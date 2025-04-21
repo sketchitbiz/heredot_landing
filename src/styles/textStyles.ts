@@ -49,60 +49,103 @@ export const AppTextStyles = {
   // Title (카드, 폼 타이틀 등)
   // Title (Card titles, form headers, etc.)
   title1: {
+    fontFamily: "Noto Sans KR",
+    fontWeight: 700,
     fontSize: "22px",
-    fontWeight: 400,
-    lineHeight: "28px",
+    lineHeight: "100%",
+    letterSpacing: "0%",
   },
   title2: {
-    fontSize: "16px",
-    fontWeight: 500,
-    lineHeight: "24px",
+    fontFamily: "Noto Sans KR",
+    fontWeight: 700,
+    fontSize: "20px",
+    lineHeight: "100%",
+    letterSpacing: "0%",
   },
   title3: {
-    fontSize: "14px",
+    fontFamily: "Noto Sans KR",
     fontWeight: 500,
-    lineHeight: "20px",
+    fontSize: "18px",
+    lineHeight: "100%",
+    letterSpacing: "0%",
   },
 
   // Body (본문)
   // Body (Main content text)
   body1: {
-    fontSize: "16px",
-    fontWeight: 400,
-    lineHeight: "24px",
+    fontFamily: "Noto Sans KR",
+    fontWeight: 500,
+    fontSize: "20px",
+    lineHeight: "100%",
+    letterSpacing: "0%",
   },
   body2: {
-    fontSize: "14px",
-    fontWeight: 400,
-    lineHeight: "20px",
+    fontFamily: "Noto Sans KR",
+    fontWeight: 500,
+    fontSize: "18px",
+    lineHeight: "100%",
+    letterSpacing: "0%",
   },
-  body3: {
-    fontSize: "12px",
-    fontWeight: 400,
-    lineHeight: "16px",
-  },
+  // body3: {
+  //   fontSize: "12px",
+  //   fontWeight: 400,
+  //   lineHeight: "16px",
+  // },
 
   // Label (버튼, 태그, UI 요소)
   // Label (Buttons, tags, UI elements)
   label1: {
-    fontSize: "14px",
+    fontFamily: "Noto Sans KR",
     fontWeight: 500,
-    lineHeight: "20px",
+    fontSize: "24px",
+    lineHeight: "100%",
+    letterSpacing: "0%",
   },
   label2: {
-    fontSize: "12px",
+    fontFamily: "Noto Sans KR",
     fontWeight: 500,
-    lineHeight: "16px",
+    fontSize: "20px",
+    lineHeight: "100%",
+    letterSpacing: "0%",
   },
   label3: {
-    fontSize: "11px",
+    fontFamily: "Noto Sans KR",
+    fontWeight: 700,
+    fontSize: "18px",
+    lineHeight: "100%",
+    letterSpacing: "0%",
+  },
+  label4: {
+    fontFamily: "Noto Sans KR",
     fontWeight: 500,
-    lineHeight: "16px",
+    fontSize: "18px",
+    lineHeight: "100%",
+    letterSpacing: "0%",
+  },
+  label5: {
+    fontFamily: "Noto Sans KR",
+    fontWeight: 500,
+    fontSize: "16px",
+    lineHeight: "100%",
+    letterSpacing: "0%",
   },
 
-  // *************** 추가 *********** 
+  caption1: {
+    fontFamily: "Noto Sans KR",
+    fontWeight: 500,
+    fontSize: "16px",
+    lineHeight: "100%",
+    letterSpacing: "0%",
+  },
+  caption2: {
+    fontFamily: "Noto Sans KR",
+    fontWeight: 500,
+    fontSize: "16px",
+    lineHeight: "100%",
+    letterSpacing: "0%",
+  },
+  // *************** 추가 ***********
   // Additional Styles
   // 프로젝트에 필요한 추가적인 텍스트 스타일을 여기에 정의할 수 있습니다.
   // You can define additional text styles needed for your project here.
-
 } as const;

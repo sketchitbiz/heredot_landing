@@ -12,23 +12,27 @@
 export const AppColors = {
   // 기본색상
   // Base Colors
-  primary: "#1976D2",
-  secondary: "#9C27B0",
+  primary: "#202055",
+  secondary: "#546ACB",
+
   tertiary: "#FFC107",
   background: "#FFFFFF",
   surface: "#FFFFFF",
 
   // 텍스트 또는 any on 기본색상
   // Text or any content on base colors
-  onPrimary: "#d82323",
-  onSecondary: "#FFFFFF",
+  onPrimary: "#FFFFFF",
+  onPrimaryGray: "#A1A1A1",
+  onPrimaryBlack: "#000000",
+
+  onSecondary: "#252525",
   onTertiary: "#000000",
-  onBackground: "#000000",
+  onBackground: "#FFFFFF",
   onSurface: "#000000",
 
   // 상태
   // Status Colors
-  disabled: "#A9A9A9",
+  disabled: "#757575",
   error: "#B00020",
   success: "#4CAF50",
   warning: "#FFC107",
@@ -36,7 +40,7 @@ export const AppColors = {
 
   // 버튼
   // Button Colors
-  buttonPrimary: "#1976D2",
+  buttonPrimary: "#1D1D26",
   buttonPrimaryHover: "#1565C0",
   buttonPrimaryActive: "#0D47A1",
   buttonSecondary: "#9C27B0",
@@ -61,16 +65,19 @@ export const AppColors = {
 
   // 아이콘
   // Icon Colors
-  iconPrimary: "#1976D2",
+  iconPrimary: "#BBBBCF",
   iconSecondary: "#9C27B0",
   iconTertiary: "#FFC107",
   iconSuccess: "#4CAF50",
   iconWarning: "#FFC107",
   iconError: "#B00020",
-  iconDisabled: "#9E9E9E",
+  iconDisabled: "#575757cc",
+  iconBg: "#222229",
+  iconBorder: "#28282D",
 
   // 보더
   // Border Colors
+  border: "#5E5E5E",
   borderLight: "#E0E0E0",
   borderDark: "#9E9E9E",
   borderError: "#B00020",
@@ -88,9 +95,27 @@ export const AppColors = {
   linkActive: "#0D47A1",
   linkDisabled: "#9E9E9E",
 
-  // *************** 추가 *********** 
+  // *************** 추가 ***********
   // 프로젝트 특성 상 추가적인 색상 정의가 필요한 경우 하단에 추가
   // Additional Colors
   // For project-specific color definitions, add them below
 
+  //input
+  input: "2B2B2B80",
+
+  //background (Dark theme or specific section)
+  backgroundDark: "#08080F",
+  onBackgroundDark: "#FFFFFF", // 두 번째 정의는 onBackgroundDark로 유지
+  onBackgroundGray: "#383838",
+
+  //Alert
+  alert: "#242424",
+  alertClose: "#787878",
+  alertBg: "#EDEDED",
+
+  //popover
+  popover: "#28282B",
+
+  //scroll
+  scroll: "#AAAAAA80",
 } as const;
