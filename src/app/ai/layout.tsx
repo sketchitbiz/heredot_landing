@@ -1,7 +1,7 @@
 "use client";
 
 import styled from "styled-components";
-import AiNavigationBar from "@/components/AiNavigationBar";
+import AiNavigationBar from "@/components/Ai/AiNavigationBar";
 import PageLoader from "@/components/PageLoader";
 import { useState, useEffect } from "react";
 

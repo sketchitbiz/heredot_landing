@@ -3,7 +3,7 @@ import styled from "styled-components";
 import { ProfileDataContainer } from "@/components/ProfileDataContainer";
 import ButtonElement from "@/elements/ButtonElement";
 import { Edit, Search, Logout } from "@mui/icons-material";
-import { AppColors } from "../styles/colors";
+import { AppColors } from "../../styles/colors";
 import { AppTextStyles } from "@/styles/textStyles";
 
 interface NavigationItem {
@@ -58,10 +58,10 @@ const AiNavigationBar = ({ navigationItems, progressSteps }: AiNavigationBarProp
                   </Flex>
                   <ProfileActions>
                     <ProfileIconButton variant="text" size="small">
-                      <Edit sx={{ color: AppColors.iconPrimary, fontSize: "1rem" }} />
+                      <Edit sx={{ color: AppColors.iconPrimary, fontSize: "1.5rem" }} />
                     </ProfileIconButton>
                     <ProfileIconButton variant="text" size="small">
-                      <Search sx={{ color: AppColors.iconPrimary, fontSize: "1rem" }} />
+                      <Search sx={{ color: AppColors.iconPrimary, fontSize: "1.5rem" }} />
                     </ProfileIconButton>
                   </ProfileActions>
                 </ProfileInfo>

@@ -16,7 +16,7 @@ export const AppColors = {
   secondary: "#546ACB",
 
   tertiary: "#FFC107",
-  background: "#FFFFFF",
+  background: "#08080F",
   surface: "#FFFFFF",
 
   // 텍스트 또는 any on 기본색상
@@ -71,7 +71,7 @@ export const AppColors = {
   iconSuccess: "#4CAF50",
   iconWarning: "#FFC107",
   iconError: "#B00020",
-  iconDisabled: "#575757cc",
+  iconDisabled: "#575757",
   iconBg: "#222229",
   iconBorder: "#28282D",
 
@@ -102,6 +102,7 @@ export const AppColors = {
 
   //input
   input: "2B2B2B80",
+  inputDisabled: "#262528",
 
   //background (Dark theme or specific section)
   backgroundDark: "#08080F",
