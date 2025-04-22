@@ -1,16 +1,17 @@
 "use client";
 
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 // import { PhotoDataContainer } from "@/components/PhotoDataContainer"; // 사용 안 함
 // import { ProfileDataContainer } from "@/components/ProfileDataContainer"; // 사용 안 함
 import { Send, AddPhotoAlternate } from "@mui/icons-material"; // Search, Edit 제거
 import { AppColors } from "@/styles/colors";
 // import { TestContext } from "node:test"; // 사용 안 함
 import { AppTextStyles } from "../../styles/textStyles";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AiChatQuestion } from "@/components/Ai/AiChatQuestion"; // QuestionOption 제거
 import { AiProgressBar } from "@/components/Ai/AiProgressBar";
 import { customScrollbar } from "@/styles/commonStyles"; // customScrollbar import 추가
+import { useRouter, usePathname, useSearchParams } from "next/navigation"; // next/navigation 훅 추가
 
 // --- 데이터 정의 ---
 const stepData = [
@@ -28,7 +29,7 @@ const stepData = [
       { id: "Windows", label: "Windows" },
     ],
     gridColumns: 5,
-    selectionMode: "multiple",
+    selectionMode: "multiple" as const,
     showWebAppComponent: false, // 이 단계에서는 WEB/APP 없음
     infoText: "• AI 견적서는 90%의 정확도를 가지고 있습니다.\n• 확정 견적 문의는 '여기닷'으로 견적요청 바랍니다.",
     progress: { title: "개발 항목 선택", description: "PC, 모바일 등\n개발 환경 선택" },
@@ -51,7 +52,7 @@ const stepData = [
       { id: "gt100", label: "100장 이상" },
     ],
     gridColumns: 3,
-    selectionMode: "single",
+    selectionMode: "single" as const,
     showWebAppComponent: false, // 이 단계에서는 WEB/APP 없음
     infoText:
       "• 기획서 또는 화면 설계서 기준 페이지 수 입니다.\n• 정확한 페이지 수를 모를 경우 예상 페이지 수를 선택해주세요.",
@@ -84,7 +85,7 @@ const stepData = [
       { id: "etc", label: "기타" },
     ],
     gridColumns: 3,
-    selectionMode: "multiple",
+    selectionMode: "multiple" as const,
     showWebAppComponent: false, // 필요시 true로 변경하여 WEB/APP 섹션 표시 가능
     infoText:
       "• 제작하려는 서비스와 가장 유사한 카테고리를 선택해주세요.\n• 여러 카테고리에 해당될 경우 모두 선택 가능합니다.",
@@ -123,7 +124,20 @@ const ChatContainer = styled.div`
 
 const FlexContainer = styled.div`
   display: flex;
-  width: 100%; // 너비 100% 추가
+  width: 100%;
+  align-items: flex-start;
+`;
+
+const Title = styled.p`
+  ${AppTextStyles.title2}
+  color: ${AppColors.onBackground};
+  margin-bottom: 0.5rem; // 간격 조절
+`;
+
+const Subtitle = styled.p`
+  color: #9ca3af; // 필요시 AppColors 사용
+  margin-bottom: 2rem;
+  white-space: pre-wrap; // 줄바꿈 적용
 `;
 
 const ChatContent = styled.div`
@@ -146,12 +160,11 @@ const CenterContent = styled.div`
 `;
 
 const ProfileImage = styled.img`
-  height: 3rem; // 크기 조절
-  width: 3rem; // 크기 조절
-  border-radius: 50%; // 원형 이미지
+  height: 3rem;
+  width: 3rem;
+  border-radius: 50%;
   object-fit: cover;
-  margin-right: 1.5rem; // 간격 조절
-  margin-top: 0.5rem; // 타이틀과 정렬되도록 조정
+  margin-right: 1.5rem;
 `;
 
 const MessageInput = styled.div`
@@ -165,7 +178,7 @@ const InputContainer = styled.div`
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background-color: ${AppColors.inputDisabled}; // 변경
+  background-color: ${AppColors.inputDisabled}; // 항상 비활성화 색상 유지
   border: 1px solid ${AppColors.border};
   border-radius: 9999px;
   padding: 0.5rem 1rem;
@@ -212,35 +225,141 @@ const Input = styled.input`
   }
 `;
 
-export default function AIPage() {
-  const [currentStep, setCurrentStep] = useState(0);
-  // 각 단계별 선택 값을 저장할 상태 (객체 사용, key는 단계 id)
-  const [selections, setSelections] = useState<Record<string, string[]>>({});
+// 자유 질문 안내 스타일 수정
+const FreeFormGuide = styled.div`
+  width: 100%;
+  max-width: 48rem;
+  padding: 0;
+  background-color: ${AppColors.background};
+  border-radius: 8px;
+  text-align: left;
+  color: #9ca3af;
+  line-height: 1.6;
 
-  const currentStepData = stepData[currentStep];
-  const progressSteps = stepData.map((step) => step.progress); // 프로그레스 바 데이터 추출
+  h3 {
+    ${AppTextStyles.headline3};
+    margin-bottom: 1rem;
+    color: ${AppColors.onBackground};
+  }
+
+  p {
+    ${AppTextStyles.body1};
+    margin-bottom: 1rem;
+    color: ${AppColors.onBackground};
+  }
+
+  ul {
+    list-style: none;
+    padding-left: 0;
+    margin-bottom: 1rem;
+  }
+
+  li {
+    margin-bottom: 0.5rem;
+    ${AppTextStyles.body2};
+    color: ${AppColors.onBackground};
+    strong {
+      font-weight: bold;
+      color: ${AppColors.primary};
+    }
+    span {
+      color: ${AppColors.onPrimaryGray};
+    }
+  }
+`;
+
+export default function AIPage() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  // 상태 기본값 설정
+  const [currentStep, setCurrentStep] = useState(0);
+  const [selections, setSelections] = useState<Record<string, string[]>>({});
+  const [isFreeFormMode, setIsFreeFormMode] = useState(false);
+
+  // URL 파라미터 -> 상태 동기화 Effect
+  useEffect(() => {
+    const stepParam = searchParams.get("step");
+    const selectionsParam = searchParams.get("selections");
+    const modeParam = searchParams.get("mode");
+
+    // Step 파싱 및 유효성 검사
+    let step = 0;
+    if (stepParam) {
+      const parsedStep = parseInt(stepParam, 10);
+      if (!isNaN(parsedStep) && parsedStep >= 0 && parsedStep < stepData.length) {
+        step = parsedStep;
+      }
+    }
+
+    // Selections 파싱
+    let sels = {};
+    if (selectionsParam) {
+      try {
+        sels = JSON.parse(selectionsParam);
+      } catch (error) {
+        console.error("Error parsing selections from URL:", error);
+        // 파싱 오류 시 빈 객체 사용
+      }
+    }
+
+    // Mode 확인
+    const freeForm = modeParam === "freeform";
+
+    // 상태 업데이트
+    setCurrentStep(step);
+    setSelections(sels);
+    setIsFreeFormMode(freeForm);
+  }, [searchParams]); // searchParams가 변경될 때마다 실행
+
+  const currentStepData = !isFreeFormMode ? stepData[currentStep] : null;
+  const progressSteps = stepData.map((step) => step.progress);
+
+  // URL 업데이트 헬퍼 함수
+  const updateUrlParams = (newParams: Record<string, string | number | undefined>) => {
+    const currentParams = new URLSearchParams(searchParams.toString());
+    Object.entries(newParams).forEach(([key, value]) => {
+      if (value === undefined || value === null) {
+        currentParams.delete(key);
+      } else {
+        currentParams.set(key, String(value));
+      }
+    });
+    router.push(`${pathname}?${currentParams.toString()}`);
+  };
 
   const handleNext = (selectedIds: string[]) => {
-    // 현재 단계 선택 값 저장
-    setSelections((prev) => ({ ...prev, [currentStepData.id]: selectedIds }));
+    if (!currentStepData) return;
+
+    const updatedSelections = { ...selections, [currentStepData.id]: selectedIds };
+    const selectionsString = JSON.stringify(updatedSelections);
 
     if (currentStep < stepData.length - 1) {
-      setCurrentStep(currentStep + 1);
+      const nextStep = currentStep + 1;
+      updateUrlParams({ selections: selectionsString, step: nextStep, mode: undefined });
     } else {
-      // 마지막 단계 처리 (예: 결과 표시 또는 제출)
-      console.log("Final Selections:", { ...selections, [currentStepData.id]: selectedIds });
-      alert("견적 요청 완료 (콘솔 확인)"); // 임시 알림
+      // 마지막 단계 완료 시: mode=freeform 추가, step 제거
+      updateUrlParams({ selections: selectionsString, mode: "freeform", step: undefined });
+      // 직접 상태 업데이트 제거 -> useEffect가 처리
+      // setIsFreeFormMode(true);
     }
   };
 
   const handlePrevious = () => {
+    if (isFreeFormMode) return; // 자유 질문 모드에서는 이전 불가
+
     if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
+      const prevStep = currentStep - 1;
+      // 이전 단계로 이동 시 selections는 유지하고 step만 변경, mode 제거
+      updateUrlParams({ step: prevStep, mode: undefined });
+      // 직접 상태 업데이트 제거 -> useEffect가 처리
+      // setCurrentStep(prevStep);
     }
   };
 
-  // 현재 단계의 초기 선택값 가져오기 (이전 단계에서 돌아왔을 때)
-  const initialSelection = selections[currentStepData.id] || [];
+  // 현재 단계 초기 선택값 (상태에서 직접 읽음)
+  const initialSelection = currentStepData ? selections[currentStepData.id] || [] : [];
 
   return (
     <Container>
@@ -249,17 +368,40 @@ export default function AIPage() {
           <ChatContent>
             <CenterContent>
               <FlexContainer>
-                {/* 프로필 이미지 렌더링 */}
                 <ProfileImage src="/pretty.png" alt="AI 프로필" />
-                {/* AiChatQuestion 컴포넌트를 중앙 컨텐츠 영역에 렌더링 */}
-                <AiChatQuestion
-                  key={currentStep} // 단계 변경 시 컴포넌트 리마운트 (상태 초기화 용도)
-                  {...currentStepData} // 현재 단계 데이터 전달
-                  gridColumns={currentStepData.gridColumns as any} // 타입 에러 해결 위한 캐스팅
-                  initialSelection={initialSelection} // 현재 단계 초기 선택값 전달
-                  onNext={handleNext}
-                  onPrevious={handlePrevious}
-                />
+                {isFreeFormMode ? (
+                  <FreeFormGuide>
+                    <Title>여기닷 AI</Title>
+                    <Subtitle>
+                      <p>이제 자유질문입니다!</p>
+                      <p>원하시는 질문 자유롭게 질문해주세요! 다음과 같은 기능도 지원됩니다.</p>
+                      <ul>
+                        <li>
+                          URL: 네이버, 다음 등 원하는 사이트 링크
+                          <br />
+                          <span>ex) &quot;www.naver.com 같은 사이트를 만들고 싶어요&quot;</span>
+                        </li>
+                        <li>이미지: 캡처, JPG 등 이미지 파일</li>
+                        <li>
+                          PDF: 스토리보드 (설계/기획안) 등<br />
+                          <span>(※ 파워포인트, 엑셀 파일은 첨부 불가)</span>
+                        </li>
+                      </ul>
+                      <p>첨부와 함께 원하시는 내용을 설명해주시면 AI가 맞춤 견적을 제시해드립니다 😊</p>
+                    </Subtitle>
+                  </FreeFormGuide>
+                ) : currentStepData ? (
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  <AiChatQuestion
+                    key={currentStep} // URL 변경 시 key가 필요 없어질 수 있음 (테스트 필요)
+                    {...currentStepData}
+                    gridColumns={currentStepData.gridColumns as any}
+                    selectionMode={currentStepData.selectionMode}
+                    initialSelection={initialSelection} // URL 동기화 시 selections 상태 사용
+                    onNext={handleNext}
+                    onPrevious={handlePrevious}
+                  />
+                ) : null}
               </FlexContainer>
             </CenterContent>
           </ChatContent>
@@ -267,13 +409,15 @@ export default function AIPage() {
           {/* 메시지 입력창 */}
           <MessageInput>
             <InputContainer>
-              {/* 파일 첨부 아이콘 버튼 */}
-              <IconContainer>
+              <IconContainer disabled={!isFreeFormMode}>
                 <AddPhotoAlternate />
               </IconContainer>
-              <Input type="text" placeholder="기초자료 조사는 입력이 불가합니다." disabled />
-              {/* 전송 아이콘 버튼 */}
-              <IconContainer>
+              <Input
+                type="text"
+                placeholder={isFreeFormMode ? "메시지를 입력하세요..." : "기초자료 조사는 입력이 불가합니다."}
+                disabled={!isFreeFormMode}
+              />
+              <IconContainer disabled={!isFreeFormMode}>
                 <Send />
               </IconContainer>
             </InputContainer>
@@ -281,8 +425,8 @@ export default function AIPage() {
         </ChatContainer>
       </MainContent>
 
-      {/* Progress Bar */}
-      <AiProgressBar steps={progressSteps} currentStep={currentStep} />
+      {/* Progress Bar (자유 질문 모드일 때 숨김 처리 - 선택적) */}
+      {!isFreeFormMode && <AiProgressBar steps={progressSteps} currentStep={currentStep} />}
     </Container>
   );
 }
