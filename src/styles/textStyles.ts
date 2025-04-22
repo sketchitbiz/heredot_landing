@@ -75,7 +75,7 @@ export const AppTextStyles = {
   body1: {
     fontFamily: "Noto Sans KR",
     fontWeight: 500,
-    fontSize: "20px",
+    fontSize: "16px",
     lineHeight: "100%",
     letterSpacing: "0%",
   },
@@ -97,21 +97,21 @@ export const AppTextStyles = {
   label1: {
     fontFamily: "Noto Sans KR",
     fontWeight: 500,
-    fontSize: "24px",
+    fontSize: "20px",
     lineHeight: "100%",
     letterSpacing: "0%",
   },
   label2: {
     fontFamily: "Noto Sans KR",
     fontWeight: 500,
-    fontSize: "20px",
+    fontSize: "16px",
     lineHeight: "100%",
     letterSpacing: "0%",
   },
   label3: {
     fontFamily: "Noto Sans KR",
     fontWeight: 700,
-    fontSize: "18px",
+    fontSize: "16px",
     lineHeight: "100%",
     letterSpacing: "0%",
   },

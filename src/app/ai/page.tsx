@@ -10,6 +10,7 @@ import { AppTextStyles } from "../../styles/textStyles";
 import { useState } from "react";
 import { AiChatQuestion } from "@/components/Ai/AiChatQuestion"; // QuestionOption 제거
 import { AiProgressBar } from "@/components/Ai/AiProgressBar";
+import { customScrollbar } from "@/styles/commonStyles"; // customScrollbar import 추가
 
 // --- 데이터 정의 ---
 const stepData = [
@@ -99,6 +100,7 @@ const Container = styled.div`
   min-height: 100vh;
   background-color: ${AppColors.background}; // 변경
   color: ${AppColors.onBackground}; // 변경
+  ${customScrollbar(AppColors.background)}// customScrollbar 적용
 `;
 
 const MainContent = styled.div`
@@ -108,7 +110,7 @@ const MainContent = styled.div`
   height: 100vh;
   max-width: 1920px; // 최대 너비 유지
   margin: 0 auto; // 중앙 정렬
-  overflow-y: hidden; // 내부 스크롤 방지 (ChatContent에서 처리)
+  overflow: hidden; // 내부 스크롤 방지 (ChatContent에서 처리)
 `;
 
 const ChatContainer = styled.div`
@@ -131,8 +133,8 @@ const ChatContent = styled.div`
   flex-direction: column;
   align-items: center; // 가로 중앙 정렬
   /* justify-content: center; // 세로 중앙 정렬 제거 (위에서부터 시작) */
-  overflow-y: auto; // 내용 많아지면 스크롤
   height: calc(100vh - 100px); // 헤더/푸터 제외한 높이 (MessageInput 높이 고려 필요)
+  ${customScrollbar(AppColors.background)}// customScrollbar 적용 (배경색은 Container와 동일)
 `;
 
 const CenterContent = styled.div`
@@ -253,6 +255,7 @@ export default function AIPage() {
                 <AiChatQuestion
                   key={currentStep} // 단계 변경 시 컴포넌트 리마운트 (상태 초기화 용도)
                   {...currentStepData} // 현재 단계 데이터 전달
+                  gridColumns={currentStepData.gridColumns as any} // 타입 에러 해결 위한 캐스팅
                   initialSelection={initialSelection} // 현재 단계 초기 선택값 전달
                   onNext={handleNext}
                   onPrevious={handlePrevious}

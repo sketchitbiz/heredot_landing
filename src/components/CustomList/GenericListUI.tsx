@@ -1,0 +1,874 @@
+"use client";
+
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import styled, { css } from "styled-components";
+import dayjs from "dayjs";
+import * as XLSX from "xlsx";
+import GenericDataTable, { ColumnDefinition } from "./GenericDataTable"; // 경로 확인
+import GenericDateRangePicker from "./GenericDateRangePicker"; // 경로 확인
+import DropdownCustom from "./DropdownCustom";
+
+// --- IconClick 컴포넌트 내재화 ---
+interface IconProps {
+  src: string;
+  alt: string;
+  width?: number;
+  height?: number;
+  onClick?: () => void;
+  className?: string;
+  $flip?: boolean; // 좌우 반전 여부
+  disabled?: boolean;
+}
+
+const IconClick: React.FC<IconProps> = ({
+  src,
+  alt,
+  width = 16, // 기본 크기 조정
+  height = 16, // 기본 크기 조정
+  onClick,
+  className,
+  $flip = false,
+  disabled = false,
+}) => {
+  const handleClick = () => {
+    if (!disabled && onClick) {
+      onClick();
+    }
+  };
+  return (
+    <StyledIconWrapper onClick={handleClick} className={className} $flip={$flip} disabled={disabled}>
+      <img src={src} alt={alt} width={width} height={height} />
+    </StyledIconWrapper>
+  );
+};
+
+const StyledIconWrapper = styled.div<{ $flip: boolean; disabled: boolean }>`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px; // 크기 고정 (GenericListUI 스타일과 유사하게)
+  height: 30px; // 크기 고정
+  cursor: ${({ disabled }) => (disabled ? "not-allowed" : "pointer")};
+  transform: ${({ $flip }) => ($flip ? "scaleX(-1)" : "none")};
+  opacity: ${({ disabled }) => (disabled ? 0.5 : 1)}; // 비활성화 시 투명도
+  border: 1px solid #ccc; // GenericListUI 스타일과 유사하게 테두리 추가
+  background-color: #fff; // GenericListUI 스타일과 유사하게 배경색 추가
+  border-radius: 4px; // GenericListUI 스타일과 유사하게 둥근 모서리 추가
+
+  &:hover {
+    opacity: ${({ disabled }) => (disabled ? 0.5 : 0.8)};
+    border-color: ${({ disabled }) => (disabled ? "#ccc" : "#999")};
+    background-color: ${({ disabled }) => (disabled ? "#fff" : "#f8f8f8")};
+  }
+
+  img {
+    display: block;
+  }
+`;
+// --- IconClick 컴포넌트 내재화 끝 ---
+
+// 테마 정의
+export type ThemeMode = "dark" | "light";
+
+// 색상 테마 객체 정의
+export const THEME_COLORS = {
+  dark: {
+    background: "#4a4d59",
+    text: "#FFFFFF",
+    primary: "#333544",
+    secondary: "#4b4d59",
+    accent: "#4EFF63",
+    tableBackground: "#333544",
+    tableHeaderBackground: "#333544",
+    tableRowEven: "#333544",
+    tableRowOdd: "#333544",
+    tableText: "#FFFFFF",
+    tableHeaderText: "#FFFFFF",
+    borderColor: "#4b4d59",
+    inputBackground: "#333544",
+    inputText: "#FFFFFF",
+    buttonBackground: "#333544",
+    buttonText: "#FFFFFF",
+    titleColor: "#4EFF63",
+  },
+  light: {
+    background: "#E6E7E9",
+    text: "#000000",
+    primary: "#214A72", // 버튼 등에 사용될 기본 색상
+    secondary: "#F0F0F0",
+    accent: "#214A72", // 강조 색상
+    tableBackground: "#FFFFFF",
+    tableHeaderBackground: "#FFFFFF",
+    tableRowEven: "#FFFFFF",
+    tableRowOdd: "#F0F0F0", // 약간 다른 회색으로 변경
+    tableText: "#000000",
+    tableHeaderText: "#000000",
+    borderColor: "#E0E0E0",
+    inputBackground: "#FFFFFF", // 입력 배경 흰색
+    inputText: "#000000",
+    buttonBackground: "#214A72", // 기본 버튼 배경
+    buttonText: "#FFFFFF", // 기본 버튼 텍스트
+    titleColor: "#000000",
+  },
+};
+
+// --- Helper Function ---
+// 간단한 디바운스 함수
+function debounce<F extends (...args: any[]) => any>(func: F, waitFor: number) {
+  let timeout: ReturnType<typeof setTimeout> | null = null;
+
+  const debounced = (...args: Parameters<F>) => {
+    if (timeout !== null) {
+      clearTimeout(timeout);
+      timeout = null;
+    }
+    timeout = setTimeout(() => func(...args), waitFor);
+  };
+
+  return debounced as (...args: Parameters<F>) => ReturnType<F>;
+}
+
+// Helper: getPropertyValue (기존 유지, UserListPage 버전 개선 적용)
+const getPropertyValue = <T extends object>(obj: T, path: keyof T | string): any => {
+  if (!obj) return undefined;
+  if (typeof path === "string" && path in obj) {
+    return obj[path as keyof T];
+  }
+  if (typeof path === "number" || typeof path === "symbol") {
+    return obj[path as keyof T];
+  }
+  if (typeof path === "string" && path.includes(".")) {
+    const keys = path.split(".");
+    let value: any = obj;
+    for (const key of keys) {
+      if (value === null || typeof value !== "object" || !(key in value)) {
+        return undefined;
+      }
+      value = value[key];
+    }
+    return value;
+  }
+  return undefined;
+};
+
+// --- Component Props ---
+interface BaseRecord {
+  id?: string | number; // 기본 ID 필드 가정 (keyExtractor 대체용)
+  index?: number; // index 필드도 고려
+  [key: string]: any; // 다른 필드 허용
+}
+
+// API Fetch 함수 타입 정의 (수정: 페이지/정렬 파라미터 제거)
+export interface FetchParams {
+  // page: number; // 제거
+  // size: number; // 제거
+  // sortKey: string | null; // 제거
+  // sortOrder: "asc" | "desc"; // 제거
+  fromDate?: string; // Optional
+  toDate?: string; // Optional
+  keyword?: string; // Optional
+  // fetchAll?: boolean; // 제거 (fetchData는 항상 전체 데이터를 가져옴)
+}
+
+export interface FetchResult<T> {
+  data: T[];
+  totalItems: number; // 필터링된 총 아이템 수
+  allItems?: number; // 필터링 전 전체 아이템 수 (Optional)
+}
+
+// 초기 상태 타입
+interface InitialState {
+  page?: number;
+  size?: number;
+  sortKey?: string | null;
+  sortOrder?: "asc" | "desc";
+  fromDate?: string;
+  toDate?: string;
+  keyword?: string;
+}
+
+// GenericListUI Props 정의 (수정)
+interface GenericListUIProps<T extends BaseRecord> {
+  // 필수 Props
+  title: React.ReactNode;
+  columns: ColumnDefinition<T>[];
+  fetchData: (params: FetchParams) => Promise<FetchResult<T>>; // 파라미터 타입 변경됨
+  excelFileName?: string;
+
+  // 옵션 Props
+  initialState?: InitialState;
+  keyExtractor?: (item: T, index: number) => string | number;
+  enableSearch?: boolean;
+  searchPlaceholder?: string;
+  enableDateFilter?: boolean;
+  dateRangeOptions?: string[];
+  itemsPerPageOptions?: number[];
+  themeMode?: ThemeMode;
+  onRowClick?: (item: T, rowIndex: number) => void;
+  renderHeaderActionButton?: () => React.ReactNode;
+  renderTabs?: () => React.ReactNode;
+  noDataMessage?: string;
+  noDataComponent?: React.ReactNode;
+  // customExcelDownload?: (dataToDownload: T[]) => void; // 제거 (기본 로직 강화)
+}
+
+// --- The Component --- (상태 및 로직 대폭 수정)
+const GenericListUI = <T extends BaseRecord>({
+  // 필수
+  title,
+  columns,
+  fetchData,
+  excelFileName = "DataExport",
+  // 옵션
+  initialState = {},
+  keyExtractor,
+  enableSearch = true,
+  searchPlaceholder = "검색어를 입력해주세요",
+  enableDateFilter = true,
+  itemsPerPageOptions = [12, 30, 50, 100],
+  themeMode = "light",
+  onRowClick,
+  renderHeaderActionButton,
+  renderTabs,
+  noDataMessage = "데이터가 없습니다.",
+  noDataComponent,
+}: GenericListUIProps<T>) => {
+  // --- 내부 상태 --- (데이터 상태 추가, API 호출 관련 상태 제거)
+  const [allData, setAllData] = useState<T[]>([]); // API로부터 받은 전체 데이터
+  const [totalItems, setTotalItems] = useState(0); // 필터링된 아이템 수 (API 메타데이터 기준)
+  const [allItems, setAllItems] = useState<number | undefined>(undefined); // 전체 아이템 수 (API 메타데이터 기준)
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // UI 제어 상태 (페이지네이션, 정렬, 필터)
+  const [currentPage, setCurrentPage] = useState(initialState.page ?? 1);
+  const [itemsPerPage, setItemsPerPage] = useState(initialState.size ?? itemsPerPageOptions[0] ?? 12);
+  const [sortKey, setSortKey] = useState<string | null>(initialState.sortKey ?? null); // 기본 정렬 없음
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">(initialState.sortOrder ?? "asc");
+  const [fromDate, setFromDate] = useState(initialState.fromDate ?? dayjs().subtract(6, "month").format("YYYY-MM-DD"));
+  const [toDate, setToDate] = useState(initialState.toDate ?? dayjs().format("YYYY-MM-DD"));
+  const [searchTermInput, setSearchTermInput] = useState(initialState.keyword ?? ""); // 검색 "입력" 상태
+  const [searchKeyword, setSearchKeyword] = useState(initialState.keyword ?? ""); // 실제 "적용된" 검색어
+
+  // --- 데이터 로딩 콜백 --- (API 호출 시점 변경)
+  const fetchDataCallback = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const params: FetchParams = {
+        keyword: searchKeyword || undefined,
+      };
+      if (enableDateFilter) {
+        params.fromDate = fromDate;
+        params.toDate = toDate;
+      }
+      const result = await fetchData(params); // 페이지/정렬 파라미터 없이 호출
+
+      setAllData(result.data); // 전체 데이터 저장
+      setTotalItems(result.totalItems); // 메타데이터 저장
+      setAllItems(result.allItems); // 메타데이터 저장
+      setCurrentPage(1); // 데이터 로드 시 항상 1페이지로 리셋
+    } catch (err: any) {
+      console.error("Error fetching data:", err);
+      setError(err.message || "데이터를 불러오는 중 오류가 발생했습니다.");
+      setAllData([]); // 에러 시 데이터 초기화
+      setTotalItems(0);
+      setAllItems(undefined);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [searchKeyword, fromDate, toDate, enableDateFilter, fetchData]); // keyword, date 변경 시 호출
+
+  // 초기 로딩
+  useEffect(() => {
+    fetchDataCallback();
+  }, []); // 마운트 시 1회 호출
+
+  // --- 클라이언트 측 데이터 처리 --- (정렬, 페이지네이션)
+  const sortedData = useMemo(() => {
+    const sortableData = [...allData]; // 전체 데이터 복사
+    if (sortKey) {
+      sortableData.sort((a, b) => {
+        const valA = getPropertyValue(a, sortKey);
+        const valB = getPropertyValue(b, sortKey);
+        let comparison = 0;
+        if (valA === null || valA === undefined) comparison = -1;
+        else if (valB === null || valB === undefined) comparison = 1;
+        else if (dayjs.isDayjs(valA) && dayjs.isDayjs(valB)) comparison = valA.valueOf() - valB.valueOf();
+        else if (typeof valA === "string" && typeof valB === "string") comparison = valA.localeCompare(valB);
+        else if (typeof valA === "number" && typeof valB === "number") comparison = valA - valB;
+        else comparison = String(valA).localeCompare(String(valB));
+        return sortOrder === "asc" ? comparison : comparison * -1;
+      });
+    }
+    return sortableData;
+  }, [allData, sortKey, sortOrder]);
+
+  const paginatedData = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return sortedData.slice(startIndex, startIndex + itemsPerPage);
+  }, [sortedData, currentPage, itemsPerPage]);
+
+  // --- 파생 상태 (페이지네이션) ---
+  // totalItems는 API 결과의 메타데이터 사용 (필터링된 개수)
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const displayTotalItems = totalItems;
+  const displayAllItems = allItems ?? totalItems;
+
+  // --- 이벤트 핸들러 (수정) ---
+  // 페이지 변경: 상태만 업데이트
+  const handlePageNumChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= totalPages && newPage !== currentPage) {
+      setCurrentPage(newPage);
+    }
+  };
+  // 페이지 크기 변경: 상태만 업데이트
+  const handleItemsPerPageChange = (newSize: number) => {
+    if (newSize !== itemsPerPage) {
+      setItemsPerPage(newSize);
+      setCurrentPage(1);
+    }
+  };
+  // 정렬 변경: 상태만 업데이트
+  const handleHeaderClick = (accessor: keyof T | string) => {
+    const newSortOrder = sortKey === accessor && sortOrder === "asc" ? "desc" : "asc";
+    setSortKey(accessor as string);
+    setSortOrder(newSortOrder);
+    setCurrentPage(1); // 정렬 시 1페이지로
+  };
+
+  // 날짜 변경: 상태 업데이트 + API 호출
+  const handleDateChangeInternal = (newFrom: string, newTo: string) => {
+    setFromDate(newFrom);
+    setToDate(newTo);
+    fetchDataCallback(); // 날짜 변경 시 API 재호출
+  };
+
+  // 검색어 입력: 입력 상태만 업데이트 (API 호출 없음)
+  const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTermInput(e.target.value);
+  };
+  // 조회 버튼 클릭: 적용된 검색어 업데이트 + API 호출
+  const handleImmediateSearch = () => {
+    setSearchKeyword(searchTermInput.trim());
+    fetchDataCallback(); // 조회 버튼 클릭 시 API 재호출
+  };
+
+  // 엑셀 다운로드 핸들러 (수정: 클라이언트 데이터 사용)
+  const handleDownloadClick = () => {
+    setIsLoading(true); // 로딩 표시 (데이터 준비 중)
+    try {
+      // 정렬된 전체 데이터 사용 (페이지네이션 전)
+      const dataToDownload = sortedData;
+
+      if (!dataToDownload || dataToDownload.length === 0) {
+        console.warn("다운로드할 데이터가 없습니다.");
+        alert("다운로드할 데이터가 없습니다."); // 임시
+        return;
+      }
+
+      // 컬럼 정보를 사용하여 데이터 포맷팅 (기존 로직 유지)
+      const formattedData = dataToDownload.map((item) => {
+        const row: { [key: string]: any } = {};
+        columns.forEach((col) => {
+          if (col.accessor) {
+            let value = getPropertyValue(item, col.accessor);
+            if (col.formatter && typeof col.formatter === "function") {
+              const formattedVal = col.formatter(value, item, -1);
+              if (
+                typeof formattedVal === "string" ||
+                typeof formattedVal === "number" ||
+                typeof formattedVal === "boolean"
+              ) {
+                value = formattedVal;
+              } else if (value instanceof Date || dayjs.isDayjs(value)) {
+                value = dayjs(value).format("YYYY-MM-DD HH:mm:ss");
+              } else if (typeof value === "boolean") {
+                value = value ? "Y" : "N";
+              }
+            } else {
+              if (value instanceof Date) value = dayjs(value).format("YYYY-MM-DD HH:mm:ss");
+              else if (typeof value === "boolean") value = value ? "Y" : "N";
+              else if (value === null || value === undefined) value = "";
+            }
+            const headerName = typeof col.header === "string" ? col.header.replace(/\n/g, " ") : String(col.accessor);
+            row[headerName] = value;
+          }
+        });
+        return row;
+      });
+
+      const ws = XLSX.utils.json_to_sheet(formattedData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+      XLSX.writeFile(wb, `${excelFileName}_${dayjs().format("YYYYMMDD")}.xlsx`);
+      alert("엑셀이 다운로드되었습니다."); // 임시
+    } catch (err) {
+      console.error("Excel download failed:", err);
+      alert("엑셀 다운로드 중 오류가 발생했습니다."); // 임시
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // --- 행 클릭 핸들러 (기존 유지) ---
+  const handleRowClickInternal = useCallback(
+    (item: T, index: number) => {
+      if (onRowClick) {
+        onRowClick(item, index); // 부모 컴포넌트의 onRowClick 함수 호출
+      }
+    },
+    [onRowClick]
+  );
+
+  // --- 키 추출기 (기존 유지) ---
+  const internalKeyExtractor = useMemo(() => {
+    if (keyExtractor) return keyExtractor;
+    // 기본 keyExtractor: item.id 또는 item.index 사용 시도
+    return (item: T, index: number) => item.id ?? item.index ?? `row-${index}`;
+  }, [keyExtractor]);
+
+  const hasTabs = !!renderTabs;
+  const colors = themeMode === "light" ? THEME_COLORS.light : THEME_COLORS.dark;
+
+  return (
+    <Container $themeMode={themeMode}>
+      <TopHeader>
+        <TitleContainer>
+          {typeof title === "string" ? (
+            <CMSTitle $themeMode={themeMode}>{title}</CMSTitle>
+          ) : (
+            title /* ReactNode 직접 렌더링 */
+          )}
+        </TitleContainer>
+        {renderTabs && <TabsWrapper>{renderTabs()}</TabsWrapper>}
+      </TopHeader>
+
+      <ControlHeader>
+        <LeftControls>
+          {enableDateFilter && (
+            <DateRangePickerContainer>
+              <GenericDateRangePicker
+                initialFromDate={fromDate}
+                initialToDate={toDate}
+                onDateChange={handleDateChangeInternal}
+                themeMode={themeMode}
+              />
+            </DateRangePickerContainer>
+          )}
+          {enableSearch && (
+            <SearchContainer>
+              <SearchInput
+                type="text"
+                placeholder={searchPlaceholder}
+                value={searchTermInput}
+                onChange={handleSearchInputChange}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleImmediateSearch();
+                }}
+                $themeMode={themeMode}
+              />
+              <SearchButton onClick={handleImmediateSearch} $themeMode={themeMode}>
+                조회
+              </SearchButton>
+            </SearchContainer>
+          )}
+        </LeftControls>
+
+        <RightControls>
+          <ListInfo $themeMode={themeMode}>
+            {renderHeaderActionButton && renderHeaderActionButton()}
+            <ExcelButton onClick={handleDownloadClick} $themeMode={themeMode} disabled={isLoading}>
+              {isLoading ? "다운로드 중..." : "엑셀 다운로드"}
+            </ExcelButton>
+            <Cnt $themeMode={themeMode}>전체 {`${displayAllItems ?? "-"}건 중 ${displayTotalItems}건`}</Cnt>
+          </ListInfo>
+          <PaginationControls>
+            <NavButton
+              onClick={() => handlePageNumChange(currentPage - 1)}
+              disabled={currentPage <= 1 || isLoading}
+              $themeMode={themeMode}>
+              &lt;
+            </NavButton>
+            <PageBox $themeMode={themeMode}>
+              {currentPage} / {totalPages > 0 ? totalPages : 1}
+            </PageBox>
+            <NavButton
+              onClick={() => handlePageNumChange(currentPage + 1)}
+              disabled={currentPage >= totalPages || isLoading}
+              $themeMode={themeMode}>
+              &gt;
+            </NavButton>
+            <DropdownCustom
+              value={itemsPerPage}
+              onChange={handleItemsPerPageChange}
+              options={itemsPerPageOptions}
+              themeMode={themeMode}
+            />
+            <ItemsPerPageText $themeMode={themeMode}>개씩 보기</ItemsPerPageText>
+          </PaginationControls>
+        </RightControls>
+      </ControlHeader>
+
+      {isLoading && allData.length === 0 ? (
+        <LoadingContainer $themeMode={themeMode}>
+          <LoadingSpinner $themeMode={themeMode} />
+        </LoadingContainer>
+      ) : error ? (
+        <ErrorContainer $themeMode={themeMode}>
+          <ErrorMessage $themeMode={themeMode}>{error}</ErrorMessage>
+        </ErrorContainer>
+      ) : allData.length === 0 ? (
+        noDataComponent || (
+          <NoDataContainer $themeMode={themeMode}>
+            <NoDataText $themeMode={themeMode}>
+              {searchKeyword ? `'${searchKeyword}' 검색 결과가 없습니다.` : noDataMessage}
+            </NoDataText>
+          </NoDataContainer>
+        )
+      ) : (
+        <TableContainer $themeMode={themeMode}>
+          <GenericDataTable
+            data={paginatedData}
+            columns={columns}
+            isLoading={false}
+            error={null}
+            onRowClick={handleRowClickInternal}
+            onHeaderClick={handleHeaderClick}
+            sortKey={sortKey}
+            sortOrder={sortOrder}
+            keyExtractor={internalKeyExtractor}
+            themeMode={themeMode}
+          />
+        </TableContainer>
+      )}
+    </Container>
+  );
+};
+
+export default GenericListUI;
+
+// --- 스타일 컴포넌트 (레이아웃 관련 수정) ---
+
+const Container = styled.div<{ $themeMode: ThemeMode }>`
+  justify-content: start;
+  width: calc(100%-50px);
+  height: auto;
+  padding: 30px;
+  background-color: ${({ $themeMode }) =>
+    $themeMode === "light" ? THEME_COLORS.light.background : THEME_COLORS.dark.background};
+  box-sizing: border-box;
+  color: ${({ $themeMode }) => ($themeMode === "light" ? THEME_COLORS.light.text : THEME_COLORS.dark.text)};
+`;
+
+const TopHeader = styled.div`
+  display: flex;
+  flex-direction: column; /* 세로 배치 */
+  margin-bottom: 20px;
+  gap: 15px;
+  @media (max-width: 1400px) {
+    width: 1150px;
+  }
+
+  @media (min-width: 2050px) {
+    width: 1800px;
+  }
+`;
+
+const TitleContainer = styled.div`
+  /* 제목 영역 스타일 (필요시 추가) */
+`;
+
+const ControlHeader = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 20px;
+
+  @media (max-width: 1400px) {
+    width: 1150px;
+  }
+
+  @media (min-width: 2050px) {
+    width: 1800px;
+  }
+`;
+
+const LeftControls = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 15px;
+`;
+
+const RightControls = styled.div`
+  display: flex;
+  justify-content: end;
+
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+`;
+
+const SearchContainer = styled.div`
+  display: flex;
+  align-items: center;
+`;
+
+const SearchInput = styled.input<{ $themeMode: ThemeMode }>`
+  width: 250px;
+  height: 40px;
+  border: 1px solid
+    ${({ $themeMode }) => ($themeMode === "light" ? THEME_COLORS.light.borderColor : THEME_COLORS.dark.borderColor)};
+  border-right: none;
+  border-radius: 4px 0 0 4px;
+
+  color: ${({ $themeMode }) => ($themeMode === "light" ? THEME_COLORS.light.inputText : THEME_COLORS.dark.inputText)};
+  padding-left: 15px;
+  padding-right: 35px;
+  background-color: ${({ $themeMode }) =>
+    $themeMode === "light" ? THEME_COLORS.light.inputBackground : THEME_COLORS.dark.inputBackground};
+
+  background-image: url("/icon_search.png");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 16px 16px;
+
+  &::placeholder {
+    color: ${({ $themeMode }) => ($themeMode === "light" ? "#AAAAAA" : "#888888")};
+  }
+
+  &:focus {
+    outline: none;
+    border-color: ${({ $themeMode }) =>
+      $themeMode === "light" ? THEME_COLORS.light.primary : THEME_COLORS.dark.accent};
+    background-image: url("/icon_search.png");
+  }
+`;
+
+const SearchButton = styled.button<{ $themeMode: ThemeMode }>`
+  width: 60px;
+  height: 40px;
+  margin-left: 10px;
+  background: ${({ $themeMode }) =>
+    $themeMode === "light" ? THEME_COLORS.light.primary : THEME_COLORS.dark.buttonBackground};
+  color: ${({ $themeMode }) => ($themeMode === "light" ? THEME_COLORS.light.buttonText : THEME_COLORS.dark.buttonText)};
+  border: 1px solid
+    ${({ $themeMode }) => ($themeMode === "light" ? THEME_COLORS.light.borderColor : THEME_COLORS.dark.borderColor)};
+  border-left: none;
+  border-radius: 0;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+
+  &:hover {
+    opacity: 0.9;
+  }
+`;
+
+const PaginationContainer = styled.div`
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 15px;
+`;
+
+const ListInfo = styled.div<{ $themeMode: ThemeMode }>`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-right: 10px;
+  color: ${({ $themeMode }) => ($themeMode === "light" ? THEME_COLORS.light.text : THEME_COLORS.dark.text)};
+  font-size: 14px;
+`;
+
+const ActionButton = styled.button<{ $themeMode: ThemeMode }>`
+  padding: 8px 15px;
+  height: 36px;
+  border-radius: 0px;
+  border: none;
+  background-color: ${({ $themeMode }) => ($themeMode === "light" ? "#FFFFFF" : THEME_COLORS.dark.secondary)};
+  color: ${({ $themeMode }) => ($themeMode === "light" ? THEME_COLORS.light.text : THEME_COLORS.dark.text)};
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.2s, border-color 0.2s;
+
+  &:hover:not(:disabled) {
+    background-color: ${({ $themeMode }) => ($themeMode === "light" ? "#f0f0f0" : "#424451")};
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+`;
+
+const ExcelButton = styled(ActionButton)`
+  background: ${({ $themeMode }) => ($themeMode === "light" ? "#f8f8f8" : THEME_COLORS.dark.primary)};
+  color: ${({ $themeMode }) => ($themeMode === "light" ? THEME_COLORS.light.primary : THEME_COLORS.dark.buttonText)};
+  border: none;
+  &:hover:not(:disabled) {
+    background-color: ${({ $themeMode }) => ($themeMode === "light" ? "#e8e8e8" : "#424451")};
+  }
+`;
+
+const PaginationControls = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`;
+
+const Cnt = styled.div<{ $themeMode: ThemeMode }>`
+  font-size: 14px;
+  color: ${({ $themeMode }) => ($themeMode === "light" ? "#555555" : THEME_COLORS.dark.text)};
+  white-space: nowrap;
+`;
+
+const PageBox = styled.div<{ $themeMode: ThemeMode }>`
+  margin: 0 5px;
+  font-size: 14px;
+  color: ${({ $themeMode }) => ($themeMode === "light" ? THEME_COLORS.light.text : THEME_COLORS.dark.text)};
+  white-space: nowrap;
+`;
+
+const ItemsPerPageText = styled.p<{ $themeMode: ThemeMode }>`
+  margin: 0;
+  margin-left: 5px;
+  font-size: 14px;
+  color: ${({ $themeMode }) => ($themeMode === "light" ? "#555555" : THEME_COLORS.dark.text)};
+  white-space: nowrap;
+`;
+
+const TableContainer = styled.div<{ $themeMode: ThemeMode }>`
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid
+    ${({ $themeMode }) => ($themeMode === "light" ? THEME_COLORS.light.borderColor : THEME_COLORS.dark.borderColor)};
+  border-radius: 4px;
+  background: ${({ $themeMode }) =>
+    $themeMode === "light" ? THEME_COLORS.light.tableBackground : THEME_COLORS.dark.tableBackground};
+
+  @media (max-width: 1400px) {
+    width: 1150px;
+  }
+
+  @media (min-width: 2050px) {
+    width: 1800px;
+  }
+`;
+
+const LoadingContainer = styled.div<{ $themeMode: ThemeMode }>`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 300px;
+  width: 100%;
+  background-color: ${({ $themeMode }) =>
+    $themeMode === "light" ? THEME_COLORS.light.tableBackground : THEME_COLORS.dark.tableBackground};
+`;
+
+const LoadingSpinner = styled.div<{ $themeMode: ThemeMode }>`
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top: 4px solid
+    ${({ $themeMode }) => ($themeMode === "light" ? THEME_COLORS.light.primary : THEME_COLORS.dark.accent)};
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+`;
+
+const ErrorContainer = styled.div<{ $themeMode: ThemeMode }>`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 300px;
+  width: 100%;
+  background-color: ${({ $themeMode }) =>
+    $themeMode === "light" ? THEME_COLORS.light.tableBackground : THEME_COLORS.dark.tableBackground};
+`;
+
+const ErrorMessage = styled.p<{ $themeMode: ThemeMode }>`
+  color: #d32f2f;
+  font-size: 16px;
+  text-align: center;
+`;
+
+const NoDataContainer = styled.div<{ $themeMode: ThemeMode }>`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 300px;
+  width: 100%;
+  background-color: ${({ $themeMode }) =>
+    $themeMode === "light" ? THEME_COLORS.light.tableBackground : THEME_COLORS.dark.tableBackground};
+`;
+
+const NoDataText = styled.p<{ $themeMode: ThemeMode }>`
+  color: ${({ $themeMode }) => ($themeMode === "light" ? "#757575" : "#AAAAAA")};
+  font-size: 16px;
+  text-align: center;
+`;
+
+const DateRangePickerContainer = styled.div`
+  /* 특별한 스타일 불필요 */
+`;
+
+const TabsWrapper = styled.div`
+  margin-top: 15px;
+`;
+
+const CMSTitle = styled.h1<{ $themeMode: ThemeMode }>`
+  font-size: 28px;
+  font-weight: bold;
+  margin: 0;
+  margin-bottom: 0;
+  color: ${({ $themeMode }) => ($themeMode === "light" ? THEME_COLORS.light.titleColor : THEME_COLORS.dark.titleColor)};
+`;
+
+const NavButton = styled.button<{ $themeMode: ThemeMode }>`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  border: 1px solid
+    ${({ $themeMode }) => ($themeMode === "light" ? THEME_COLORS.light.borderColor : THEME_COLORS.dark.borderColor)};
+  background-color: ${({ $themeMode }) => ($themeMode === "light" ? "#FFFFFF" : THEME_COLORS.dark.secondary)};
+  color: ${({ $themeMode }) => ($themeMode === "light" ? THEME_COLORS.light.text : THEME_COLORS.dark.text)};
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: bold;
+  line-height: 1;
+  transition: background-color 0.2s, border-color 0.2s;
+
+  &:hover:not(:disabled) {
+    opacity: 0.8;
+    border-color: ${({ $themeMode }) => ($themeMode === "light" ? "#999" : "#AAAAAA")};
+    background-color: ${({ $themeMode }) => ($themeMode === "light" ? "#f8f8f8" : "#424451")};
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    border-color: ${({ $themeMode }) => ($themeMode === "light" ? "#EEEEEE" : "#555555")};
+    color: ${({ $themeMode }) => ($themeMode === "light" ? "#AAAAAA" : "#777777")};
+  }
+`;

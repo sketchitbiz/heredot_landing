@@ -2,7 +2,7 @@ import { useState } from "react";
 import styled from "styled-components";
 import { ProfileDataContainer } from "@/components/ProfileDataContainer";
 import ButtonElement from "@/elements/ButtonElement";
-import { Edit, Search, Logout } from "@mui/icons-material";
+import { Edit, Search } from "@mui/icons-material";
 import { AppColors } from "../../styles/colors";
 import { AppTextStyles } from "@/styles/textStyles";
 
@@ -14,18 +14,11 @@ interface NavigationItem {
   }[];
 }
 
-interface ProgressStep {
-  title: string;
-  description: string;
-  completed: boolean;
-}
-
 interface AiNavigationBarProps {
   navigationItems: NavigationItem[];
-  progressSteps: ProgressStep[];
 }
 
-const AiNavigationBar = ({ navigationItems, progressSteps }: AiNavigationBarProps) => {
+const AiNavigationBar = ({ navigationItems }: AiNavigationBarProps) => {
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>(
     navigationItems.reduce((acc, item) => ({ ...acc, [item.title]: true }), {})
   );
@@ -35,11 +28,6 @@ const AiNavigationBar = ({ navigationItems, progressSteps }: AiNavigationBarProp
       ...prev,
       [title]: !prev[title],
     }));
-  };
-
-  const handleLogout = () => {
-    console.log("로그아웃 처리");
-    // 로그아웃 로직 구현
   };
 
   return (
@@ -169,7 +157,7 @@ const ProfileIconButton = styled(ButtonElement)`
 
 const NavigationContent = styled.div`
   flex: 1;
-  overflow-y: auto;
+  overflow-y: scroll;
   padding-top: 16px;
   /* 스크롤바 스타일 */
   &::-webkit-scrollbar {
@@ -217,7 +205,7 @@ const SectionTitle = styled.h3`
 `;
 
 const SectionContent = styled.div`
-  ${AppTextStyles.label3};
+  ${AppTextStyles.label2};
   color: ${AppColors.onPrimaryGray};
 `;
 
@@ -249,10 +237,11 @@ const ItemText = styled.span`
 `;
 
 const NavigationStatusButton = styled(ButtonElement)`
-  background-color: ${AppColors.onBackground};
-  color: ${AppColors.onPrimaryBlack};
+  background-color: ${AppColors.onBackgroundGray};
+  color: ${AppColors.onPrimary};
   border-radius: 10px;
   font-size: 14px;
+  font-weight: 400;
 
   &:hover:not(:disabled) {
     background-color: ${AppColors.primary};
@@ -265,62 +254,6 @@ const LogoutButtonContainer = styled.div`
   padding: 16px;
   justify-content: end;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
-`;
-
-const ProgressContainer = styled.div`
-  flex: 1;
-  padding: 40px;
-  display: flex;
-  justify-content: center;
-`;
-
-const ProgressBar = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  max-width: 400px;
-  width: 100%;
-`;
-
-const ProgressStep = styled.div`
-  display: flex;
-  align-items: flex-start;
-  position: relative;
-`;
-
-const StepIndicator = styled.div<{ $completed: boolean }>`
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background-color: ${(props) => (props.$completed ? "#4CAF50" : "#E0E0E0")};
-  margin-right: 16px;
-  flex-shrink: 0;
-`;
-
-const StepContent = styled.div`
-  flex: 1;
-`;
-
-const StepTitle = styled.h4`
-  margin: 0;
-  font-size: 16px;
-  font-weight: 600;
-  color: #333;
-`;
-
-const StepDescription = styled.p`
-  margin: 4px 0 0;
-  font-size: 14px;
-  color: #666;
-`;
-
-const StepConnector = styled.div<{ $completed: boolean }>`
-  position: absolute;
-  left: 11px;
-  top: 24px;
-  width: 2px;
-  height: 40px;
-  background-color: ${(props) => (props.$completed ? "#4CAF50" : "#E0E0E0")};
 `;
 
 export default AiNavigationBar;
