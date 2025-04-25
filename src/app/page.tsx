@@ -1,103 +1,41 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { TextField } from '@/components/TextField';
-import ResponsiveView from '@/layout/ResponsiveView';
-import { AppTextStyles } from '@/styles/textStyles';
-import { loginAdminService } from '@/lib/services/loginAdminService';
-import { usePageLoaderContext } from '@/contexts/PageLoaderContext';
-import ScreenWrapper from '@/layout/ScreenWrapper';
+import styled from "styled-components";
+import { AppColors } from "@/styles/colors"; // AppColors 임포트 추가
+import ScreenWrapper from "@/layout/ScreenWrapper";
+import { ContactSection } from "@/components/Landing/ContactSection"; // 추가
+import { PortfolioGrid } from "@/components/block/PortfolioGrid";
+import { MembersTabSection } from "@/components/block/MembersTabSection";
+import { VideoGrid } from "@/components/block/VideoGrid";
+import { ScrollingBannerSection } from "@/components/block/ScrollingBannerSection";
 
 export default function HomePage() {
-  const [userId, setUserId] = useState('');
-  const [password, setPassword] = useState('');
-  const [loginMessage, setLoginMessage] = useState<string | null>(null);
-
-  const router = useRouter();
-
-  const handleLogin = async () => {
-    setLoginMessage(null);
-
-    await loginAdminService({
-      id: userId,
-      password,
-      showMessage: (msg) => setLoginMessage(msg),
-      onSuccess: () => {
-        router.push('/dashboard'); // ✅ 성공한 경우에만 이동
-      },
-    });
-  };
-
-//   const handleLogin = async () => {
-//   setLoginMessage(null);
-
-//   // 로딩 테스트만 수행
-//   open(); // 로더 열기
-//   console.log('로딩 시작 (이벤트 차단 테스트)');
-
-//   setTimeout(() => {
-//     close(); // 5초 후 로더 닫기
-//     console.log('로딩 종료');
-//   }, 5000);
-// };
-  
-
   return (
     <ScreenWrapper>
-      <ResponsiveView
-        mobileView={<h1 style={{ ...AppTextStyles.headline3 }}>홈 (mobile)</h1>}
-        tabletView={<h1 style={{ ...AppTextStyles.headline2 }}>홈 (tablet)</h1>}
-        desktopView={<h1 style={{ ...AppTextStyles.headline1 }}>홈 (desktop)</h1>}
-      />
+      <PageContainer>
+        {/* --- 포트폴리오 그리드 섹션 --- */}
+        <PortfolioGrid />
 
-      <TextField
-        value={userId}
-        onChange={(e) => setUserId(e.target.value)}
-        placeholder="아이디를 입력하세요"
-        type="text"
-        showSuffixIcon={false}
-      />
+        {/* --- 멤버 탭 섹션 --- */}
+        <MembersTabSection />
 
-      <TextField
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        placeholder="비밀번호를 입력하세요"
-        type="password"
-        showSuffixIcon={true}
-      />
+        {/* --- 비디오 그리드 섹션 --- */}
+        <VideoGrid />
 
-      {/* 로그인 실패 메시지: 버튼 위에 표시 */}
-      {loginMessage && (
-        <div
-          style={{
-            marginTop: '12px',
-            marginBottom: '8px',
-            padding: '10px',
-            backgroundColor: '#fff4f4',
-            color: '#d32f2f',
-            borderRadius: '6px',
-            textAlign: 'center',
-          }}
-        >
-          {loginMessage}
-        </div>
-      )}
+        {/* --- 스크롤링 배너 섹션 --- */}
+        <ScrollingBannerSection />
 
-      <button
-        onClick={handleLogin}
-        style={{
-          marginTop: '12px',
-          padding: '12px 20px',
-          backgroundColor: '#1976D2',
-          color: 'white',
-          border: 'none',
-          borderRadius: '8px',
-          cursor: 'pointer',
-        }}
-      >
-        로그인
-      </button>
+        {/* --- 연락처 섹션 --- */}
+        <ContactSection />
+      </PageContainer>
     </ScreenWrapper>
   );
 }
+
+// --- 스타일 컴포넌트 ---
+const PageContainer = styled.div`
+  width: 1200px;
+  padding: 40px 0; // 상하 패딩, 좌우는 각 섹션에서 처리
+  background-color: ${AppColors.background};
+  min-height: 100vh;
+`;

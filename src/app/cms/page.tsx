@@ -1,18 +1,18 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { TextField } from '@/components/TextField';
-import ResponsiveView from '@/layout/ResponsiveView';
-import { AppTextStyles } from '@/styles/textStyles';
-import { loginAdminService } from '@/lib/services/loginAdminService';
-import { usePageLoaderContext } from '@/contexts/PageLoaderContext';
-import ScreenWrapper from '@/layout/ScreenWrapper';
-import { useAdminAuth } from '@/contexts/AdminAuthContext';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { TextField } from "@/components/TextField";
+import ResponsiveView from "@/layout/ResponsiveView";
+import { AppTextStyles } from "@/styles/textStyles";
+import { loginAdminService } from "@/lib/services/loginAdminService";
+import { usePageLoaderContext } from "@/contexts/PageLoaderContext";
+import ScreenWrapper from "@/layout/ScreenWrapper";
+import { useAdminAuth } from "@/contexts/AdminAuthContext";
 
 export default function HomePage() {
-  const [userId, setUserId] = useState('');
-  const [password, setPassword] = useState('');
+  const [userId, setUserId] = useState("");
+  const [password, setPassword] = useState("");
   const [loginMessage, setLoginMessage] = useState<string | null>(null);
 
   const router = useRouter();
@@ -21,7 +21,7 @@ export default function HomePage() {
 
   const handleLogin = async () => {
     setLoginMessage(null);
-  
+
     await loginAdminService({
       id: userId,
       password,
@@ -29,24 +29,23 @@ export default function HomePage() {
       onSuccess: (response) => {
         // response에서 id, token 받아서 context 로그인 호출
         login(response.id, response.accessToken);
-        router.push('/cms/dashboard');
+        router.push("/cms/dashboard");
       },
     });
   };
 
-//   const handleLogin = async () => {
-//   setLoginMessage(null);
+  //   const handleLogin = async () => {
+  //   setLoginMessage(null);
 
-//   // 로딩 테스트만 수행
-//   open(); // 로더 열기
-//   console.log('로딩 시작 (이벤트 차단 테스트)');
+  //   // 로딩 테스트만 수행
+  //   open(); // 로더 열기
+  //   console.log('로딩 시작 (이벤트 차단 테스트)');
 
-//   setTimeout(() => {
-//     close(); // 5초 후 로더 닫기
-//     console.log('로딩 종료');
-//   }, 5000);
-// };
-  
+  //   setTimeout(() => {
+  //     close(); // 5초 후 로더 닫기
+  //     console.log('로딩 종료');
+  //   }, 5000);
+  // };
 
   return (
     <ScreenWrapper>
@@ -76,15 +75,14 @@ export default function HomePage() {
       {loginMessage && (
         <div
           style={{
-            marginTop: '12px',
-            marginBottom: '8px',
-            padding: '10px',
-            backgroundColor: '#fff4f4',
-            color: '#d32f2f',
-            borderRadius: '6px',
-            textAlign: 'center',
-          }}
-        >
+            marginTop: "12px",
+            marginBottom: "8px",
+            padding: "10px",
+            backgroundColor: "#fff4f4",
+            color: "#d32f2f",
+            borderRadius: "6px",
+            textAlign: "center",
+          }}>
           {loginMessage}
         </div>
       )}
@@ -92,15 +90,14 @@ export default function HomePage() {
       <button
         onClick={handleLogin}
         style={{
-          marginTop: '12px',
-          padding: '12px 20px',
-          backgroundColor: '#1976D2',
-          color: 'white',
-          border: 'none',
-          borderRadius: '8px',
-          cursor: 'pointer',
-        }}
-      >
+          marginTop: "12px",
+          padding: "12px 20px",
+          backgroundColor: "#1976D2",
+          color: "white",
+          border: "none",
+          borderRadius: "8px",
+          cursor: "pointer",
+        }}>
         로그인
       </button>
     </ScreenWrapper>
