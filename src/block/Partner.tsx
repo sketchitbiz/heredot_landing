@@ -1,10 +1,9 @@
-import React, { useState, useRef, useEffect } from 'react';
-import styled from 'styled-components';
-import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import Gap from '@/components/Gap';
-import DownloadIcon from '@mui/icons-material/Download';
-
+import React, { useState, useRef, useEffect } from "react";
+import styled from "styled-components";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import Gap from "@/components/Gap";
+import DownloadIcon from "@mui/icons-material/Download";
 
 const Container = styled.div`
   display: flex;
@@ -54,15 +53,15 @@ const Tabs = styled.div`
 
 const Tab = styled.div<{ $active: boolean }>`
   font-size: 16px;
-  font-weight: ${({ $active }) => ($active ? 'bold' : 'normal')};
-  border-bottom: ${({ $active }) => ($active ? '2px solid #000' : 'none')};
+  font-weight: ${({ $active }) => ($active ? "bold" : "normal")};
+  border-bottom: ${({ $active }) => ($active ? "2px solid #000" : "none")};
   padding-bottom: 4px;
   cursor: pointer;
-  color: ${({ $active }) => ($active ? '#000' : '#888')};
+  color: ${({ $active }) => ($active ? "#000" : "#888")};
 `;
 
 const Slide = styled.div<{ $isActive: boolean }>`
-  display: ${({ $isActive }) => ($isActive ? 'block' : 'none')};
+  display: ${({ $isActive }) => ($isActive ? "block" : "none")};
 `;
 
 const TabTitle = styled.h3`
@@ -71,9 +70,9 @@ const TabTitle = styled.h3`
   margin-bottom: 12px;
   position: relative;
   padding-left: 16px; /* 직사각형과 텍스트 간격 */
-  
+
   &::before {
-    content: '';
+    content: "";
     position: absolute;
     left: 0;
     top: 50%;
@@ -107,7 +106,7 @@ const TabSubtitle = styled.p`
   padding-left: 16px; /* 직사각형과 텍스트 간격 */
 
   &::before {
-    content: '';
+    content: "";
     position: absolute;
     left: 0;
     top: 50%;
@@ -132,9 +131,9 @@ const DownloadLink = styled.a`
 
   animation: bounceY 1.5s ease-in-out infinite;
 
-
   @keyframes bounceY {
-    0%, 100% {
+    0%,
+    100% {
       transform: translateY(0px);
     }
     50% {
@@ -142,7 +141,6 @@ const DownloadLink = styled.a`
     }
   }
 `;
-
 
 const AnimatedDescription = styled.div`
   animation: fade 0.5s ease-in-out;
@@ -163,39 +161,42 @@ const Partner: React.FC = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [activeSlide, setActiveSlide] = useState(0);
 
-  const tabs = ['안티드론', '명품역경매', '무역플랫폼', '테이블오더'];
+  const tabs = ["안티드론", "명품역경매", "무역플랫폼", "테이블오더"];
 
   const slidesByTab = [
     [
       {
-        title: '안티드론 솔루션',
-        image: '/assets/partner_1.png',
-        subtitle: '글로벌 세일즈 관련 수행 방안 제안',
-        description: '고객사가 엔지니어 중심 조직 구조인 점을 고려하여,<br />  제품 런칭 이후 기술 외에도 세일즈 관점에서의 사업 전략을 제안',
+        title: "안티드론 솔루션",
+        image: "/assets/partner_1.png",
+        subtitle: "글로벌 세일즈 관련 수행 방안 제안",
+        description:
+          "고객사가 엔지니어 중심 조직 구조인 점을 고려하여,<br />  제품 런칭 이후 기술 외에도 세일즈 관점에서의 사업 전략을 제안",
       },
     ],
     [
       {
-        title: '명품 역경매',
-        image: '/assets/partner_2.png',
-        subtitle: 'AI를 활용한 시세 조회 방안 제안',
-        description: '제품 촬영한 이미지를 AI를 통해 식별 및 인식 하여<br /> 시세를 예측하여 고객 유입 활성 방안 제안',
+        title: "명품 역경매",
+        image: "/assets/partner_2.png",
+        subtitle: "AI를 활용한 시세 조회 방안 제안",
+        description: "제품 촬영한 이미지를 AI를 통해 식별 및 인식 하여<br /> 시세를 예측하여 고객 유입 활성 방안 제안",
       },
     ],
     [
       {
-        title: '무역플랫폼',
-        image: '/assets/partner_3.png',
-        subtitle: '복잡한 프로세스 No! 절차 개선 제안',
-        description: '무역업 특성상 많은 이해 관계자들이 협업 해야 되는 구조를<br /> 정확하게 인지 및 각 구간별 불필요 절차 개선 방안 제안',
+        title: "무역플랫폼",
+        image: "/assets/partner_3.png",
+        subtitle: "복잡한 프로세스 No! 절차 개선 제안",
+        description:
+          "무역업 특성상 많은 이해 관계자들이 협업 해야 되는 구조를<br /> 정확하게 인지 및 각 구간별 불필요 절차 개선 방안 제안",
       },
     ],
     [
       {
-        title: '테이블오더',
-        image: '/assets/partner_4.png',
-        subtitle: '테이블오더 시장 안착 전력 제안',
-        description: '시중에 나와 있는 테이블 오더 제품과의 경쟁에서 살아 남기 위한<br /> 고객사만의 기능과 사업전략을 이해하고 프로젝트 킥오프 제안',
+        title: "테이블오더",
+        image: "/assets/partner_4.png",
+        subtitle: "테이블오더 시장 안착 전력 제안",
+        description:
+          "시중에 나와 있는 테이블 오더 제품과의 경쟁에서 살아 남기 위한<br /> 고객사만의 기능과 사업전략을 이해하고 프로젝트 킥오프 제안",
       },
     ],
   ];
@@ -207,10 +208,10 @@ const Partner: React.FC = () => {
   const rightRef = useRef<HTMLDivElement>(null);
   const sectionRef = useRef<HTMLDivElement>(null);
   const ignoreScroll = useRef(false);
-  
+
   const handleDownloadClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault(); // 기본 링크 이동 방지
-    console.log('Download clicked!');
+    console.log("Download clicked!");
     // 여기에 파일 다운로드 로직 or 조건 판단 로직 추가
   };
 
@@ -221,79 +222,74 @@ const Partner: React.FC = () => {
 
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
-  
+
     const slideHeight = window.innerHeight;
     const totalScroll = slideHeight * tabs.length;
-  
+
     const ctx = gsap.context(() => {
       ScrollTrigger.create({
-        id: 'partner-scroll',
+        id: "partner-scroll",
         trigger: sectionRef.current,
-        start: 'top top',
+        start: "top top",
         end: `+=${totalScroll + window.innerHeight / 2}`,
         scrub: true,
         pin: true,
         onUpdate: (self) => {
           const progress = self.progress;
-      
+
           let index = Math.floor(progress * tabs.length);
           index = Math.min(index, tabs.length - 1);
-      
+
           if (!ignoreScroll.current && index !== activeTabRef.current) {
             setActiveTab(index);
             setActiveSlide(0);
           }
         },
       });
-      ;
-      ;
-  
-      gsap.timeline({
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: 'top bottom-=200',
-          end: 'top center+=150',
-          toggleActions: 'play none none reverse',
-        },
-      })
+      gsap
+        .timeline({
+          scrollTrigger: {
+            trigger: sectionRef.current,
+            start: "top bottom-=200",
+            end: "top center+=150",
+            toggleActions: "play none none reverse",
+          },
+        })
         .fromTo(
           leftRef.current,
           { scale: 0.9, opacity: 0, y: 50 },
-          { scale: 1, opacity: 1, y: 0, duration: 1, ease: 'power3.out' }
+          { scale: 1, opacity: 1, y: 0, duration: 1, ease: "power3.out" }
         )
         .fromTo(
           rightRef.current,
           { scale: 0.95, opacity: 0, y: 60 },
-          { scale: 1, opacity: 1, y: 0, duration: 1, ease: 'power3.out' },
-          '-=0.6'
+          { scale: 1, opacity: 1, y: 0, duration: 1, ease: "power3.out" },
+          "-=0.6"
         );
     }, sectionRef);
-  
+
     return () => ctx.revert();
   }, []);
-  
+
   const handleTabClick = (index: number) => {
-    const trigger = ScrollTrigger.getById('partner-scroll');
+    const trigger = ScrollTrigger.getById("partner-scroll");
     if (!trigger) return;
-  
+
     ignoreScroll.current = true;
     setActiveTab(index);
     setActiveSlide(0);
-  
+
     const scrollY = trigger.start + (trigger.end - trigger.start) * (index / tabs.length);
-  
+
     window.scrollTo({
       top: scrollY,
-      behavior: 'smooth',
+      behavior: "smooth",
     });
-  
+
     setTimeout(() => {
       ignoreScroll.current = false;
     }, 1000);
   };
-  
-  
-  
 
   return (
     <Container ref={sectionRef}>
@@ -308,32 +304,28 @@ const Partner: React.FC = () => {
       <RightSection ref={rightRef}>
         <Tabs>
           {tabs.map((tab, index) => (
-            <Tab
-              key={index}
-              $active={activeTab === index}
-              onClick={() => handleTabClick(index)}
-            >
+            <Tab key={index} $active={activeTab === index} onClick={() => handleTabClick(index)}>
               {tab}
             </Tab>
           ))}
         </Tabs>
 
         {currentSlide && (
-  <Slide $isActive={true}>
-    <TabTitle>{currentSlide.title}</TabTitle>
-    <Gap height="16px" />
-    <TabImage src={currentSlide.image} alt={currentSlide.title} />
-    <AnimatedDescription key={`${activeTab}-${activeSlide}`}>
-      <TabSubtitle>{currentSlide.subtitle}</TabSubtitle>
-      <TabDescription dangerouslySetInnerHTML={{ __html: currentSlide.description }} />
-      <Gap height="16px" />
-      <DownloadLink href="#" onClick={handleDownloadClick}>
-  사업제안서 다운로드
-  <DownloadIcon style={{ fontSize: '16px' }} />
-</DownloadLink>
-    </AnimatedDescription>
-  </Slide>
-)}
+          <Slide $isActive={true}>
+            <TabTitle>{currentSlide.title}</TabTitle>
+            <Gap height="16px" />
+            <TabImage src={currentSlide.image} alt={currentSlide.title} />
+            <AnimatedDescription key={`${activeTab}-${activeSlide}`}>
+              <TabSubtitle>{currentSlide.subtitle}</TabSubtitle>
+              <TabDescription dangerouslySetInnerHTML={{ __html: currentSlide.description }} />
+              <Gap height="16px" />
+              <DownloadLink href="#" onClick={handleDownloadClick}>
+                사업제안서 다운로드
+                <DownloadIcon style={{ fontSize: "16px" }} />
+              </DownloadLink>
+            </AnimatedDescription>
+          </Slide>
+        )}
       </RightSection>
     </Container>
   );

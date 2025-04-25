@@ -1,111 +1,122 @@
 "use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { TextField } from '@/components/TextField';
-import ResponsiveView from '@/layout/ResponsiveView';
-import { AppTextStyles } from '@/styles/textStyles';
-import { loginAdminService } from '@/lib/services/loginAdminService';
-import { usePageLoaderContext } from '@/contexts/PageLoaderContext';
-import ScreenWrapper from '@/layout/ScreenWrapper';
+import { useLang } from "@/contexts/LangContext";
+import { dictionary } from "@/lib/i18n/lang";
+import LandingAppBar from "@/components/LandingAppBar";
+import HeaderBlock from "@/block/HeaderBlock";
+import LandingBaseWrapper from "@/layout/LandingBaseWrapper";
+import { AppColors } from "@/styles/colors";
+import FirstMapBlock from "@/block/FirstMapBlock";
+import AppBlock from "@/block/AppBlock";
+import Partner from "@/block/Partner";
+import SecondMapBlock from "@/block/SecondMapBlock";
+import Consulting from "@/block/Consulting";
+import Design from "@/block/Design";
+import Rolling from "@/block/Rolling";
+
+// --- 추가된 import ---
+import styled from "styled-components";
+import ScreenWrapper from "@/layout/ScreenWrapper";
+import { ContactSection } from "@/components/Landing/ContactSection";
+import { PortfolioGrid } from "@/components/block/PortfolioGrid";
+import { MembersTabSection } from "@/components/block/MembersTabSection";
+import { VideoGrid } from "@/components/block/VideoGrid";
+import { ScrollingBannerSection } from "@/components/block/ScrollingBannerSection";
+// ---------------------
 
 export default function HomePage() {
-  const [userId, setUserId] = useState('');
-  const [password, setPassword] = useState('');
-  const [loginMessage, setLoginMessage] = useState<string | null>(null);
+  const { lang } = useLang();
+  const t = dictionary[lang];
 
-  const router = useRouter();
-
-  const handleLogin = async () => {
-    setLoginMessage(null);
-
-    await loginAdminService({
-      id: userId,
-      password,
-      showMessage: (msg) => setLoginMessage(msg),
-      onSuccess: () => {
-        router.push('/dashboard'); // ✅ 성공한 경우에만 이동
-      },
-    });
-  };
-
-//   const handleLogin = async () => {
-//   setLoginMessage(null);
-
-//   // 로딩 테스트만 수행
-//   open(); // 로더 열기
-//   console.log('로딩 시작 (이벤트 차단 테스트)');
-
-//   setTimeout(() => {
-//     close(); // 5초 후 로더 닫기
-//     console.log('로딩 종료');
-//   }, 5000);
-// };
-  
+  const sections = [
+    {
+      backgroundColor: AppColors.background,
+      content: (
+        <LandingAppBar
+          logoSrc="/assets/logo.svg"
+          logoWidth="169px"
+          logoHeight="64px"
+          navLinks={t.nav.map((label) => ({
+            label,
+            onClick: () => {}, // TODO
+          }))}
+          isShowLanguageSwitcher={true}
+        />
+      ),
+    },
+    {
+      $backgroundColor: AppColors.background,
+      content: <HeaderBlock title={t.headerTitle} subtitle={t.headerSubtitle} downloadLabel={t.download} />,
+    },
+    {
+      $backgroundColor: AppColors.background,
+      content: <FirstMapBlock />,
+      $zIndex: 1,
+      $isOverLayout: true,
+    },
+    {
+      $backgroundColor: AppColors.surface,
+      content: <Partner />,
+      $zIndex: 10,
+    },
+    {
+      $backgroundColor: AppColors.error,
+      content: <Rolling />,
+      $zIndex: 10,
+      $isOverLayout: true,
+    },
+    {
+      $backgroundColor: AppColors.surface,
+      content: <Consulting />,
+      $zIndex: 20,
+    },
+    {
+      $backgroundColor: AppColors.background,
+      content: <Design />,
+      $zIndex: 10,
+    },
+    {
+      $backgroundColor: AppColors.background,
+      content: <SecondMapBlock />,
+      $zIndex: 20,
+      $isOverLayout: true,
+    },
+    {
+      $backgroundColor: AppColors.surface,
+      content: <AppBlock />,
+      $zIndex: 10,
+    },
+    {
+      $backgroundColor: AppColors.background,
+      content: <PortfolioGrid />,
+      $zIndex: 10,
+    },
+    {
+      $backgroundColor: AppColors.background,
+      content: <MembersTabSection />,
+      $zIndex: 10,
+    },
+    {
+      $backgroundColor: AppColors.background,
+      content: <VideoGrid />,
+      $zIndex: 10,
+    },
+    {
+      $backgroundColor: AppColors.background,
+      content: <ScrollingBannerSection />,
+      $zIndex: 10,
+    },
+    {
+      $backgroundColor: AppColors.surface,
+      content: <ContactSection />,
+      $zIndex: 10,
+    },
+  ];
 
   return (
-    <ScreenWrapper>
-      <ResponsiveView
-        mobileView={<h1 style={{ ...AppTextStyles.headline3 }}>홈 (mobile)</h1>}
-        tabletView={<h1 style={{ ...AppTextStyles.headline2 }}>홈 (tablet)</h1>}
-        desktopView={<h1 style={{ ...AppTextStyles.headline1 }}>홈 (desktop)</h1>}
-      />
-
-      <TextField
-        value={userId}
-        onChange={(e) => setUserId(e.target.value)}
-        placeholder="아이디를 입력하세요"
-        type="text"
-        showSuffixIcon={false}
-      />
-
-      <TextField
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        placeholder="비밀번호를 입력하세요"
-        type="password"
-        showSuffixIcon={true}
-      />
-
-      {/* 로그인 실패 메시지: 버튼 위에 표시 */}
-      {loginMessage && (
-        <div
-          style={{
-            marginTop: '12px',
-            marginBottom: '8px',
-            padding: '10px',
-            backgroundColor: '#fff4f4',
-            color: '#d32f2f',
-            borderRadius: '6px',
-            textAlign: 'center',
-          }}
-        >
-          {loginMessage}
-        </div>
-      )}
-
-      <button
-        onClick={handleLogin}
-        style={{
-          marginTop: '12px',
-          padding: '12px 20px',
-          backgroundColor: '#1976D2',
-          color: 'white',
-          border: 'none',
-          borderRadius: '8px',
-          cursor: 'pointer',
-        }}
-      >
-        로그인
-      </button>
-    </ScreenWrapper>
+    <>
+      {/* --- 기존 랜딩 페이지 구조 --- */}
+      <LandingBaseWrapper sections={sections} />
+    </>
   );
 }
-
-// --- 스타일 컴포넌트 ---
-const PageContainer = styled.div`
-  width: 1200px;
-  padding: 40px 0; // 상하 패딩, 좌우는 각 섹션에서 처리
-  background-color: ${AppColors.background};
-  min-height: 100vh;
-`;

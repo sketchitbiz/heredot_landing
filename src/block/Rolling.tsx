@@ -44,16 +44,14 @@ const common = css`
   animation: ${scrollX} 20s linear infinite;
 `;
 
-
 // 마퀴 스타일
 const Marquee = styled.div`
   display: flex;
-    width: 100%;
-    /* width: 1200px; */
+  width: 100%;
+  /* width: 1200px; */
   height: 100px;
   overflow: hidden;
   user-select: none;
-
 
   /* @media (max-width: 769px) {
     width: 1200px;

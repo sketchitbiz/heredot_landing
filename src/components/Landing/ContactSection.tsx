@@ -77,8 +77,8 @@ export const ContactSection: React.FC = () => {
             <EmailIcon />
           </IconWrapper>
           <ContactTitle>이메일 문의</ContactTitle>
-          <ContactInfo>gganj123@gmail.com</ContactInfo>
-          <ContactButton href="mailto:gganj123@gmail.com">메일 보내기</ContactButton>
+          <ContactInfo>heredot83@heredotcorp.com</ContactInfo>
+          <ContactButton href="mailto:heredot83@heredotcorp.com">메일 보내기</ContactButton>
         </ContactItem>
 
         {/* 전화 문의 */}

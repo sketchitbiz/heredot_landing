@@ -1,9 +1,8 @@
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import styled from 'styled-components';
-import { useScroll, useTransform, motion } from 'framer-motion';
-import { Breakpoints } from '@/constants/layoutConstants';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
-
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
+import styled from "styled-components";
+import { useScroll, useTransform, motion } from "framer-motion";
+import { Breakpoints } from "@/constants/layoutConstants";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
 
 const originalPath = `M380.902 30C380.902 30 382.902 79.5 403.901 124C424.9 168.5 451.402 235 444.902 299.5C438.402 364 366.902 426.5 345.902 470.5C324.902 514.5 302.902 734.5 289.402 779.5C275.902 824.5 255.401 849.5 241.901 884.5C228.401 919.5 196.402 1027.5 178.402 1068C160.402 1108.5 153.903 1105.5 150.903 1157C147.903 1208.5 198.902 1289 193.402 1349C187.902 1409 165.402 1480.5 152.902 1509.5C140.402 1538.5 83.4013 1641 62.9013 1698.5C42.4013 1756 36.4001 1801 31.4001 1838.5C26.4001 1876 36.3994 2223.5 36.3994 2223.5`;
 
@@ -14,7 +13,7 @@ const Wrapper = styled.div`
 `;
 
 const ContentWrapper = styled.div<{ $isOverLayout?: boolean }>`
-  width: ${({ $isOverLayout }) => ($isOverLayout ? '100%' : `${Breakpoints.desktop}px`)};
+  width: ${({ $isOverLayout }) => ($isOverLayout ? "100%" : `${Breakpoints.desktop}px`)};
   margin: 0 auto;
   box-sizing: border-box;
   position: relative;
@@ -31,8 +30,7 @@ const StyledPath = styled.path`
   stroke-linecap: round;
   stroke-linejoin: round;
   fill: none;
-  filter: drop-shadow(0 0 12px rgba(160, 91, 255, 0.8))
-          drop-shadow(0 0 24px rgba(160, 91, 255, 0.8));
+  filter: drop-shadow(0 0 12px rgba(160, 91, 255, 0.8)) drop-shadow(0 0 24px rgba(160, 91, 255, 0.8));
 `;
 
 const MarkerIcon = styled(LocationOnIcon)`
@@ -140,8 +138,8 @@ const FirstMapBlock = () => {
     };
 
     update();
-    window.addEventListener('resize', update);
-    return () => window.removeEventListener('resize', update);
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
   }, []);
 
   const iconScale = useTransform(scrollY, [startScroll, endScroll], [1, maxScale]);
@@ -177,11 +175,11 @@ const FirstMapBlock = () => {
       path.style.strokeDasharray = `${length}`;
       path.style.strokeDashoffset = `${(1 - scrollRatio) * length}`;
     } else {
-      path.style.strokeDasharray = 'none';
-      path.style.strokeDashoffset = '0';
+      path.style.strokeDasharray = "none";
+      path.style.strokeDashoffset = "0";
     }
 
-    group.setAttribute('transform', `translate(${point.x}, ${point.y}) rotate(${angle})`);
+    group.setAttribute("transform", `translate(${point.x}, ${point.y}) rotate(${angle})`);
   }, [scrollRatio, sectionTop]);
 
   return (
@@ -191,16 +189,15 @@ const FirstMapBlock = () => {
 
         <svg
           style={{
-            position: 'absolute',
+            position: "absolute",
             top: -20,
             left: 522,
-            width: '100%',
+            width: "100%",
             height: `${imgHeight}px`,
-            pointerEvents: 'none',
+            pointerEvents: "none",
             zIndex: 2,
           }}
-          xmlns="http://www.w3.org/2000/svg"
-        >
+          xmlns="http://www.w3.org/2000/svg">
           <StyledPath ref={pathRef} d={originalPath} />
           <MarkerGroup ref={markerGroupRef}>
             <MarkerCircle r="60" />

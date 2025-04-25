@@ -23,7 +23,8 @@ const GridContainer = styled.div`
   grid-template-columns: repeat(4, 1fr);
   gap: 24px;
   margin-bottom: 64px;
-  padding: 0 40px; // 좌우 패딩 추가
+  margin-top: 64px;
+  padding: 40px 40px; // 좌우 패딩 추가
 
   /* 반응형 유지 */
   /* @media (max-width: 1200px) {

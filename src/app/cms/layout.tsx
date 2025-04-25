@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { AdminAuthProvider, useAdminAuth } from '@/contexts/AdminAuthContext';
-import { usePathname, useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { AdminAuthProvider, useAdminAuth } from "@/contexts/AdminAuthContext";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function CmsLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -17,11 +17,11 @@ function ProtectedCmsLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
 
-  const isLoginPage = pathname === '/cms';
+  const isLoginPage = pathname === "/cms";
 
   useEffect(() => {
     if (ready && !isLoggedIn && !isLoginPage) {
-      router.replace('/cms'); // 로그인 페이지로 이동
+      router.replace("/cms"); // 로그인 페이지로 이동
     }
   }, [ready, isLoggedIn, isLoginPage]);
 

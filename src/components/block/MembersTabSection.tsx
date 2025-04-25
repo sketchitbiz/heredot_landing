@@ -46,7 +46,7 @@ const cardDataForTabs: MemberData[] = [
   {
     id: 3,
     imageUrl: "/landing/members/3_martin.webp",
-    name: "이사 Martin",
+    name: "이사 Max",
     messages: {
       "채팅 앱": null,
       "스트리밍 웹": null,
@@ -97,17 +97,17 @@ const cardDataForTabs: MemberData[] = [
       점심시간: "햄버거 버튼 말고 햄버거 줘요",
     },
   },
-  {
-    id: 8,
-    imageUrl: "/landing/members/8_theo.webp",
-    name: "개발자 Theo",
-    messages: {
-      "채팅 앱": null,
-      "스트리밍 웹": null,
-      "구독 플랫폼": null,
-      점심시간: "현재 상태: 배고픔...",
-    },
-  },
+  // {
+  //   id: 8,
+  //   imageUrl: "/landing/members/8_theo.webp",
+  //   name: "개발자 Theo",
+  //   messages: {
+  //     "채팅 앱": null,
+  //     "스트리밍 웹": null,
+  //     "구독 플랫폼": null,
+  //     점심시간: "현재 상태: 배고픔...",
+  //   },
+  // },
   {
     id: 9,
     imageUrl: "/landing/members/jaxon.png",
@@ -124,11 +124,11 @@ const cardDataForTabs: MemberData[] = [
 // --- 스타일 ---
 const GridContainerForTabs = styled.div`
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 24px;
   padding: 0 40px;
   margin-bottom: 64px;
-  max-width: 900px; // 전체 너비 제한
+  max-width: 1200px; // 전체 너비 제한
   margin-left: auto;
   margin-right: auto;
 `;

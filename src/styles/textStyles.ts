@@ -144,6 +144,15 @@ export const AppTextStyles = {
     lineHeight: "100%",
     letterSpacing: "0%",
   },
+
+  //임의 추가
+  button: {
+    fontFamily: "Noto Sans KR",
+    fontWeight: 500,
+    fontSize: "16px",
+    lineHeight: "100%",
+    letterSpacing: "0%",
+  },
   // *************** 추가 ***********
   // Additional Styles
   // 프로젝트에 필요한 추가적인 텍스트 스타일을 여기에 정의할 수 있습니다.

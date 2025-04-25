@@ -1,25 +1,25 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+// import { Geist, Geist_Mono } from "next/font/google"; // next/font 제거
 import { GlobalWrapper } from "./global-wrapper";
 
 /**
  * RootLayout은 Next.js 애플리케이션의 루트 레이아웃을 정의합니다.
- * HTML 구조, 글로벌 폰트, 글로벌 컨텍스트 및 스타일 적용의 최상단 엔트리 포인트입니다.
+ * HTML 구조, 글로벌 컨텍스트 및 스타일 적용의 최상단 엔트리 포인트입니다.
  *
  * RootLayout defines the root layout of the Next.js application.
- * It includes the base HTML structure, global fonts, and wraps the app with global context and styles.
+ * It includes the base HTML structure, and wraps the app with global context and styles.
  */
 
-// ✅ Google Fonts 설정 | Configure Google Fonts with CSS variables
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+// next/font 설정 제거
+// const geistSans = Geist({
+//   variable: "--font-geist-sans",
+//   subsets: ["latin"],
+// });
+//
+// const geistMono = Geist_Mono({
+//   variable: "--font-geist-mono",
+//   subsets: ["latin"],
+// });
 
 // ✅ 페이지 메타데이터 | Page metadata
 export const metadata: Metadata = {
@@ -35,16 +35,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {/* ✅ 글로벌 스타일 및 컨텍스트 적용 래퍼 
-            Applies global styles and contexts (e.g., device info, page loader) */}
-        <GlobalWrapper>
-          {children}
-        </GlobalWrapper>
+      {/* body className에서 폰트 변수 제거 */}
+      <body className="antialiased">
+        {/* ✅ 글로벌 스타일 및 컨텍스트 적용 래퍼 */}
+        <GlobalWrapper>{children}</GlobalWrapper>
       </body>
     </html>
   );
 }
-

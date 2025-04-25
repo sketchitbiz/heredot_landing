@@ -64,7 +64,7 @@ const StepContent = styled.div`
 `;
 
 const StepTitle = styled.div<StepProps>`
-  ${AppTextStyles.body1Bold}
+  ${AppTextStyles.body1}
   color: ${(props) => (props.isCompleted || props.isActive ? AppColors.onBackground : AppColors.disabled)};
   transition: color 0.3s ease;
 `;

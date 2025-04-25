@@ -3,7 +3,7 @@
 import { useState } from "react";
 import styled from "styled-components";
 import { FaChevronDown } from "react-icons/fa";
-import { ThemeMode } from "../../Components/List/GenericListUI"; // ThemeMode 타입 임포트
+import { ThemeMode } from "./GenericListUI"; // ThemeMode 타입 임포트
 
 type DropdownProps = {
   value: number;

@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useEffect, useRef, useState } from 'react';
-import styled from 'styled-components';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import Gap from '@/components/Gap';
-import DownloadIcon from '@mui/icons-material/Download';
+import { useEffect, useRef, useState } from "react";
+import styled from "styled-components";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import Gap from "@/components/Gap";
+import DownloadIcon from "@mui/icons-material/Download";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -22,7 +22,7 @@ const Wrapper = styled.div`
 const Content = styled.div`
   display: flex;
   justify-content: space-between;
-  align-items:start;
+  align-items: start;
   width: 100%;
 `;
 
@@ -61,8 +61,6 @@ const TextTitle = styled.h2`
   margin-bottom: 24px;
 `;
 
-
-
 const TextDescription = styled.p`
   font-size: 16px;
   color: #444;
@@ -94,7 +92,6 @@ const Box = styled.div`
   overflow: hidden;
 `;
 
-
 const DownloadLink = styled.a`
   font-size: 14px;
   color: #000000;
@@ -108,9 +105,9 @@ const DownloadLink = styled.a`
 
   animation: bounceY 1.5s ease-in-out infinite;
 
-
   @keyframes bounceY {
-    0%, 100% {
+    0%,
+    100% {
       transform: translateY(0px);
     }
     50% {
@@ -163,9 +160,7 @@ const Consulting = () => {
   const horizontalRefs = useRef<HTMLDivElement[]>([]);
   const verticalRefs = useRef<HTMLDivElement[]>([]);
 
-  const [visibleMap, setVisibleMap] = useState<number[][]>(
-    Array(3).fill([0, 0, 0, 0])
-  );
+  const [visibleMap, setVisibleMap] = useState<number[][]>(Array(3).fill([0, 0, 0, 0]));
   const [headerVisible, setHeaderVisible] = useState([0, 0, 0, 0]);
 
   const size = 150;
@@ -178,16 +173,26 @@ const Consulting = () => {
   const centerLeft = 780 / 2;
 
   const horizontalTexts = [
-    ['로그인', '보안강화목적<br /> USB로 로그인', '구글 OTP<br /> 2Factor 인증', '기존 윈도우 Only<br /> 접속 기기 다변화 수용'],
-    ['핵심/편의기능<br /> 구분', '한정된 예산 내<br /> 전체 기능 요구', '핵심/편의 기능 분리<br /> 단계별 개발 가이드', '예산에 맞춘<br /> 사업성장 최적화 지원'],
-    ['개인정보수집', '모든 정보 수집', '개인정보법, 정보통신법 안내<br /> 법적기준 개발 가이드', '준법 RISK 최소화'],
+    [
+      "로그인",
+      "보안강화목적<br /> USB로 로그인",
+      "구글 OTP<br /> 2Factor 인증",
+      "기존 윈도우 Only<br /> 접속 기기 다변화 수용",
+    ],
+    [
+      "핵심/편의기능<br /> 구분",
+      "한정된 예산 내<br /> 전체 기능 요구",
+      "핵심/편의 기능 분리<br /> 단계별 개발 가이드",
+      "예산에 맞춘<br /> 사업성장 최적화 지원",
+    ],
+    ["개인정보수집", "모든 정보 수집", "개인정보법, 정보통신법 안내<br /> 법적기준 개발 가이드", "준법 RISK 최소화"],
   ];
 
-    const handleDownloadClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-      e.preventDefault(); // 기본 링크 이동 방지
-      console.log('Download clicked!');
-      // 여기에 파일 다운로드 로직 or 조건 판단 로직 추가
-    };
+  const handleDownloadClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault(); // 기본 링크 이동 방지
+    console.log("Download clicked!");
+    // 여기에 파일 다운로드 로직 or 조건 판단 로직 추가
+  };
 
   useEffect(() => {
     if (!wrapperRef.current) return;
@@ -197,8 +202,8 @@ const Consulting = () => {
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: wrapperRef.current,
-        start: 'top top',
-        end: '+=2000',
+        start: "top top",
+        end: "+=2000",
         pin: true,
         scrub: false,
         onEnter: () => {
@@ -217,91 +222,119 @@ const Consulting = () => {
 
     horizontalRefs.current.forEach((el, i) => {
       const top = start + i * (size + gap);
-      tl.to(el, {
-        top,
-        left: 0,
-        duration: 0.3,
-        ease: 'power2.out',
-      }, i * 0.1);
+      tl.to(
+        el,
+        {
+          top,
+          left: 0,
+          duration: 0.3,
+          ease: "power2.out",
+        },
+        i * 0.1
+      );
     });
 
     verticalRefs.current.forEach((el, i) => {
       const left = verticalStart + i * (verticalWidth + gap);
-      tl.to(el, {
-        top: 0,
-        left,
-        duration: 0.3,
-        ease: 'power2.out',
-      }, i * 0.1);
+      tl.to(
+        el,
+        {
+          top: 0,
+          left,
+          duration: 0.3,
+          ease: "power2.out",
+        },
+        i * 0.1
+      );
     });
 
     horizontalRefs.current.forEach((el, i) => {
       const expandStart = 0.6 + i * 0.2;
 
-      tl.to(el, {
-        width: 780,
-        height: size,
-        borderRadius: 24,
-        duration: 0.6,
-        ease: 'power3.out',
-      }, expandStart);
+      tl.to(
+        el,
+        {
+          width: 780,
+          height: size,
+          borderRadius: 24,
+          duration: 0.6,
+          ease: "power3.out",
+        },
+        expandStart
+      );
 
-      tl.call(() => {
-        setVisibleMap((prev) => {
-          const next = [...prev];
-          next[i] = [...next[i]];
-          next[i][0] = 1;
-          return next;
-        });
-        setHeaderVisible((prev) => {
-          const next = [...prev];
-          next[0] = 1; // 항목
-          return next;
-        });
-      }, [], expandStart + 0.05);
+      tl.call(
+        () => {
+          setVisibleMap((prev) => {
+            const next = [...prev];
+            next[i] = [...next[i]];
+            next[i][0] = 1;
+            return next;
+          });
+          setHeaderVisible((prev) => {
+            const next = [...prev];
+            next[0] = 1; // 항목
+            return next;
+          });
+        },
+        [],
+        expandStart + 0.05
+      );
     });
 
     verticalRefs.current.forEach((el, i) => {
       const vExpandStart = 1.5 + i * 0.4;
 
-      tl.to(el, {
-        width: verticalWidth,
-        height: 580,
-        borderRadius: 24,
-        duration: 0.6,
-        ease: 'power3.out',
-      }, vExpandStart);
+      tl.to(
+        el,
+        {
+          width: verticalWidth,
+          height: 580,
+          borderRadius: 24,
+          duration: 0.6,
+          ease: "power3.out",
+        },
+        vExpandStart
+      );
 
-      tl.call(() => {
+      tl.call(
+        () => {
+          setVisibleMap((prev) =>
+            prev.map((row) => {
+              const updated = [...row];
+              updated[i + 1] = 1;
+              return updated;
+            })
+          );
+          setHeaderVisible((prev) => {
+            const next = [...prev];
+            next[i + 1] = 1;
+            return next;
+          });
+        },
+        [],
+        vExpandStart + 0.05
+      );
+    });
+
+    tl.call(
+      () => {
         setVisibleMap((prev) =>
           prev.map((row) => {
             const updated = [...row];
-            updated[i + 1] = 1;
+            updated[3] = 1;
             return updated;
           })
         );
         setHeaderVisible((prev) => {
           const next = [...prev];
-          next[i + 1] = 1;
+          next[3] = 1;
           return next;
         });
-      }, [], vExpandStart + 0.05);
-    });
-
-    tl.call(() => {
-      setVisibleMap((prev) =>
-        prev.map((row) => {
-          const updated = [...row];
-          updated[3] = 1;
-          return updated;
-        })
-      );
-      setHeaderVisible((prev) => {
-        const next = [...prev];
-        next[3] = 1;
-        return next;
-      });
-    }, [], '+=0.2');
+      },
+      [],
+      "+=0.2"
+    );
 
     return () => {
       tl.scrollTrigger?.kill();
@@ -321,18 +354,13 @@ const Consulting = () => {
         borderRadius: 100,
         zIndex: 2,
         top: centerTop,
-        border: '1px solid #E6E6E6',
-        backgroundColor: 'rgba(248, 248, 248, 0.7)',
+        border: "1px solid #E6E6E6",
+        backgroundColor: "rgba(248, 248, 248, 0.7)",
         left: centerLeft,
-      }}
-    >
+      }}>
       <Grid>
         {row.map((text, idx) => (
-          <Cell
-            key={idx}
-            $visible={!!visibleMap[i]?.[idx]}
-            dangerouslySetInnerHTML={{ __html: text }}
-          />
+          <Cell key={idx} $visible={!!visibleMap[i]?.[idx]} dangerouslySetInnerHTML={{ __html: text }} />
         ))}
       </Grid>
     </Box>
@@ -351,8 +379,8 @@ const Consulting = () => {
         zIndex: 2,
         top: centerTop,
         left: centerLeft,
-        border: '1px solid #E6E6E6',
-        backgroundColor: 'rgba(238, 203, 255, 0.7)',
+        border: "1px solid #E6E6E6",
+        backgroundColor: "rgba(238, 203, 255, 0.7)",
       }}
     />
   ));
@@ -360,28 +388,28 @@ const Consulting = () => {
   return (
     <Wrapper ref={wrapperRef}>
       <Content>
-      <LeftTextContainer>
-  <TitleContainer>
-    <TextTitle>
-      여기닷은 "기능·설계·비용"
-      <br />
-      최적화 목적으로 활용합니다
-    </TextTitle>
-  </TitleContainer>
+        <LeftTextContainer>
+          <TitleContainer>
+            <TextTitle>
+              여기닷은 "기능·설계·비용"
+              <br />
+              최적화 목적으로 활용합니다
+            </TextTitle>
+          </TitleContainer>
 
-  <DescriptionContainer>
-    <TextDescription>1. 견적 단계에서 분량 및 기능정리</TextDescription>
-    <TextDescription>2. IT서비스 최적 설계 지원</TextDescription>
-    <TextDescription>3. 일정관리 (WBS)로 활용해요</TextDescription>
-  </DescriptionContainer>
+          <DescriptionContainer>
+            <TextDescription>1. 견적 단계에서 분량 및 기능정리</TextDescription>
+            <TextDescription>2. IT서비스 최적 설계 지원</TextDescription>
+            <TextDescription>3. 일정관리 (WBS)로 활용해요</TextDescription>
+          </DescriptionContainer>
 
-  <DownloadContainer>
-    <DownloadLink href="#" onClick={handleDownloadClick}>
-      사업제안서 다운로드
-      <DownloadIcon style={{ fontSize: '16px' }} />
-    </DownloadLink>
-  </DownloadContainer>
-</LeftTextContainer>
+          <DownloadContainer>
+            <DownloadLink href="#" onClick={handleDownloadClick}>
+              기능명세 다운로드
+              <DownloadIcon style={{ fontSize: "16px" }} />
+            </DownloadLink>
+          </DownloadContainer>
+        </LeftTextContainer>
 
         <RightContainer>
           <StackWrapper ref={stackRef}>

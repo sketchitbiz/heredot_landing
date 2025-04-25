@@ -50,7 +50,7 @@ const Subtitle = styled.p`
 `;
 
 const SelectionTitle = styled.h3`
-  ${AppTextStyles.body1Bold} // 스타일 적용
+  ${AppTextStyles.body1} // 스타일 적용
   color: ${AppColors.onBackground};
   margin-bottom: 1rem;
 `;

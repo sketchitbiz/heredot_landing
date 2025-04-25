@@ -16,8 +16,10 @@ const videoData = [
 const GridContainerForVideos = styled.div`
   display: grid;
   grid-template-columns: repeat(3, 1fr); // 3열
+
   gap: 24px;
   padding: 0 40px;
+
   margin-bottom: 64px; // 아래 섹션과의 간격
 
   /* @media (max-width: 768px) {

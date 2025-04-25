@@ -29,7 +29,7 @@ export const AppColors = {
   onTertiary: "#000000",
   onBackground: "#FFFFFF",
   onSurface: "#000000",
-
+  onSurfaceVariant: "#757575",
   // 상태
   // Status Colors
   disabled: "#757575",
