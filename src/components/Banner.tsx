@@ -64,3 +64,4 @@ export default function Banner({ images }: BannerProps) {
     </div>
   );
 }
+ 

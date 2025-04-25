@@ -1,14 +1,10 @@
 "use client";
 
 import styled from "styled-components";
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { TabComponent } from "@/components/Landing/TabComponent";
 import { SectionHeader } from "@/components/Landing/SectionHeader";
 import { MemberCard } from "@/components/Landing/MemberCard";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-
-gsap.registerPlugin(ScrollTrigger);
 
 // --- 타입 정의 ---
 type MessageMap = {
@@ -137,57 +133,26 @@ const GridContainerForTabs = styled.div`
   margin-right: auto;
 `;
 
-// 개별 멤버 카드 래퍼 (애니메이션 타겟)
-const MemberCardWrapper = styled.div`
-  opacity: 0; // 초기 상태 숨김
-  transform: translateX(-30px); // 초기 상태 왼쪽에서 시작
-`;
-
 export const MembersTabSection = () => {
   const [activeTab, setActiveTab] = useState(tabItems[0]);
-  const gridRef = useRef<HTMLDivElement>(null);
-  const animationRef = useRef<gsap.core.Tween | null>(null);
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
   };
 
-  const triggerAnimation = () => {
-    const gridElement = gridRef.current;
-    const cardItems = gsap.utils.toArray<HTMLDivElement>(
-      (gridElement?.children as HTMLCollectionOf<HTMLDivElement>) || []
-    );
-
-    if (!gridElement || cardItems.length === 0) return;
-
-    animationRef.current = gsap.to(cardItems, {
-      opacity: 1,
-      x: 0,
-      stagger: 0.1,
-      duration: 0.5,
-      ease: "power2.out",
-      scrollTrigger: {
-        trigger: gridElement,
-        start: "top 90%",
-        toggleActions: "play reverse play reverse",
-      },
-      overwrite: true,
-    });
-  };
-
-  useEffect(() => {
-    triggerAnimation();
-  }, [activeTab]);
-
   return (
     <>
       <SectionHeader title="일감을 주세요!" description="아래 버튼을 클릭하여 직원들에게 일을 맡겨보아요!" />
       <TabComponent tabs={tabItems} initialActiveTab={activeTab} onTabChange={handleTabChange}>
-        <GridContainerForTabs ref={gridRef}>
+        <GridContainerForTabs>
           {cardDataForTabs.map((item) => (
-            <MemberCardWrapper key={item.id}>
-              <MemberCard imageUrl={item.imageUrl} name={item.name} messages={item.messages} currentTab={activeTab} />
-            </MemberCardWrapper>
+            <MemberCard
+              key={item.id}
+              imageUrl={item.imageUrl}
+              name={item.name}
+              messages={item.messages}
+              currentTab={activeTab}
+            />
           ))}
         </GridContainerForTabs>
       </TabComponent>

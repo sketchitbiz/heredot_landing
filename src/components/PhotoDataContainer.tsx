@@ -16,9 +16,9 @@ type DataContainerProps = {
  */
 export function PhotoDataContainer({ message, successChild, noDataChild }: DataContainerProps) {
   const isSuccess = message === "success";
-
-  return (
-    <div style={{ flex: 1 }}>
+  
+    return (
+      <div style={{ flex: 1 }}>
       {isSuccess
         ? successChild
         : noDataChild ?? (
@@ -26,7 +26,8 @@ export function PhotoDataContainer({ message, successChild, noDataChild }: DataC
               <Image style={{ fontSize: 48, marginBottom: 12 }} />
               <p>이미지가 존재하지 않습니다.</p>
             </div>
-          )}
-    </div>
-  );
-}
+        )}
+      </div>
+    );
+  }
+  

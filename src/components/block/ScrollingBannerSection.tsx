@@ -4,6 +4,7 @@ import styled from "styled-components";
 import Image from "next/image";
 import { AppColors } from "@/styles/colors";
 import { useState, useEffect, useRef } from "react";
+import { SectionHeader } from "../Landing/SectionHeader";
 
 // 스크롤링 배너 데이터
 const bannerData = [
@@ -18,7 +19,7 @@ const CarouselContainer = styled.div`
   width: 100%;
   max-width: 1000px; // 최대 너비 제한 (디자인에 맞게 조절)
   margin: 0 auto; // 중앙 정렬
-  padding: 100px 0; // 상하 패딩
+  padding: 0px 0 100px 0; // 상하 패딩
   margin-bottom: 64px;
   overflow: hidden; // 내부 슬라이드 넘침 방지
 `;
@@ -110,31 +111,37 @@ export const ScrollingBannerSection = () => {
   };
 
   return (
-    <CarouselContainer>
-      <SlideWrapper>
-        {bannerData.map((banner, index) => (
-          <Slide key={banner.id} $isActive={index === currentIndex}>
-            <BannerImage
-              src={banner.imageUrl}
-              alt={banner.altText || `Banner ${banner.id}`}
-              fill
-              sizes="(max-width: 1100px) 90vw, 1000px" // 컨테이너 너비에 맞게 sizes 조정
-              priority={index === 0} // 첫 이미지만 우선 로드
-            />
-          </Slide>
-        ))}
-      </SlideWrapper>
+    <>
+      <SectionHeader
+        title="특별 프로모션 지금 바로 클릭!"
+        description="선착순으로 제공되는 상품으로 조기 종료될 수 있습니다."
+      />
+      <CarouselContainer>
+        <SlideWrapper>
+          {bannerData.map((banner, index) => (
+            <Slide key={banner.id} $isActive={index === currentIndex}>
+              <BannerImage
+                src={banner.imageUrl}
+                alt={banner.altText || `Banner ${banner.id}`}
+                fill
+                sizes="(max-width: 1100px) 90vw, 1000px" // 컨테이너 너비에 맞게 sizes 조정
+                priority={index === 0} // 첫 이미지만 우선 로드
+              />
+            </Slide>
+          ))}
+        </SlideWrapper>
 
-      <NavigationDots>
-        {bannerData.map((_, index) => (
-          <Dot
-            key={index}
-            $isActive={index === currentIndex}
-            onClick={() => handleDotClick(index)}
-            aria-label={`Go to slide ${index + 1}`}
-          />
-        ))}
-      </NavigationDots>
-    </CarouselContainer>
+        <NavigationDots>
+          {bannerData.map((_, index) => (
+            <Dot
+              key={index}
+              $isActive={index === currentIndex}
+              onClick={() => handleDotClick(index)}
+              aria-label={`Go to slide ${index + 1}`}
+            />
+          ))}
+        </NavigationDots>
+      </CarouselContainer>{" "}
+    </>
   );
 };

@@ -70,7 +70,7 @@ const TabTitle = styled.h3`
   margin-bottom: 12px;
   position: relative;
   padding-left: 16px; /* 직사각형과 텍스트 간격 */
-
+  
   &::before {
     content: "";
     position: absolute;
@@ -208,7 +208,7 @@ const Partner: React.FC = () => {
   const rightRef = useRef<HTMLDivElement>(null);
   const sectionRef = useRef<HTMLDivElement>(null);
   const ignoreScroll = useRef(false);
-
+  
   const handleDownloadClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault(); // 기본 링크 이동 방지
     console.log("Download clicked!");
@@ -222,10 +222,10 @@ const Partner: React.FC = () => {
 
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
-
+  
     const slideHeight = window.innerHeight;
     const totalScroll = slideHeight * tabs.length;
-
+  
     const ctx = gsap.context(() => {
       ScrollTrigger.create({
         id: "partner-scroll",
@@ -236,10 +236,10 @@ const Partner: React.FC = () => {
         pin: true,
         onUpdate: (self) => {
           const progress = self.progress;
-
+      
           let index = Math.floor(progress * tabs.length);
           index = Math.min(index, tabs.length - 1);
-
+      
           if (!ignoreScroll.current && index !== activeTabRef.current) {
             setActiveTab(index);
             setActiveSlide(0);
@@ -248,13 +248,13 @@ const Partner: React.FC = () => {
       });
       gsap
         .timeline({
-          scrollTrigger: {
-            trigger: sectionRef.current,
+        scrollTrigger: {
+          trigger: sectionRef.current,
             start: "top bottom-=200",
             end: "top center+=150",
             toggleActions: "play none none reverse",
-          },
-        })
+        },
+      })
         .fromTo(
           leftRef.current,
           { scale: 0.9, opacity: 0, y: 50 },
@@ -267,25 +267,25 @@ const Partner: React.FC = () => {
           "-=0.6"
         );
     }, sectionRef);
-
+  
     return () => ctx.revert();
   }, []);
-
+  
   const handleTabClick = (index: number) => {
     const trigger = ScrollTrigger.getById("partner-scroll");
     if (!trigger) return;
-
+  
     ignoreScroll.current = true;
     setActiveTab(index);
     setActiveSlide(0);
-
+  
     const scrollY = trigger.start + (trigger.end - trigger.start) * (index / tabs.length);
-
+  
     window.scrollTo({
       top: scrollY,
       behavior: "smooth",
     });
-
+  
     setTimeout(() => {
       ignoreScroll.current = false;
     }, 1000);
@@ -311,21 +311,21 @@ const Partner: React.FC = () => {
         </Tabs>
 
         {currentSlide && (
-          <Slide $isActive={true}>
-            <TabTitle>{currentSlide.title}</TabTitle>
-            <Gap height="16px" />
-            <TabImage src={currentSlide.image} alt={currentSlide.title} />
-            <AnimatedDescription key={`${activeTab}-${activeSlide}`}>
-              <TabSubtitle>{currentSlide.subtitle}</TabSubtitle>
-              <TabDescription dangerouslySetInnerHTML={{ __html: currentSlide.description }} />
-              <Gap height="16px" />
-              <DownloadLink href="#" onClick={handleDownloadClick}>
-                사업제안서 다운로드
+  <Slide $isActive={true}>
+    <TabTitle>{currentSlide.title}</TabTitle>
+    <Gap height="16px" />
+    <TabImage src={currentSlide.image} alt={currentSlide.title} />
+    <AnimatedDescription key={`${activeTab}-${activeSlide}`}>
+      <TabSubtitle>{currentSlide.subtitle}</TabSubtitle>
+      <TabDescription dangerouslySetInnerHTML={{ __html: currentSlide.description }} />
+      <Gap height="16px" />
+      <DownloadLink href="#" onClick={handleDownloadClick}>
+  사업제안서 다운로드
                 <DownloadIcon style={{ fontSize: "16px" }} />
-              </DownloadLink>
-            </AnimatedDescription>
-          </Slide>
-        )}
+</DownloadLink>
+    </AnimatedDescription>
+  </Slide>
+)}
       </RightSection>
     </Container>
   );

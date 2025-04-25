@@ -6,11 +6,6 @@ import { AppTextStyles } from "@/styles/textStyles"; // 경로 확인 필요
 import EmailIcon from "@mui/icons-material/Email";
 import PhoneIcon from "@mui/icons-material/Phone";
 import ChatIcon from "@mui/icons-material/Chat"; // 예시 아이콘 (적절한 카카오 아이콘 사용 권장)
-import { useEffect, useRef } from "react"; // useEffect, useRef 추가
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-
-gsap.registerPlugin(ScrollTrigger);
 
 const SectionContainer = styled.div`
   background-color: ${AppColors.backgroundDark}; // 섹션 배경색
@@ -23,11 +18,6 @@ const ContactGrid = styled.div`
   gap: 40px;
   max-width: 1000px; // 최대 너비 제한
   margin: 0 auto; // 중앙 정렬
-`;
-
-// 개별 연락처 아이템 래퍼 (애니메이션 타겟)
-const ContactItemWrapper = styled.div`
-  opacity: 0; // 초기 상태 숨김
 `;
 
 const ContactItem = styled.div`
@@ -78,72 +68,42 @@ const ContactButton = styled.a`
 `;
 
 export const ContactSection: React.FC = () => {
-  const gridRef = useRef<HTMLDivElement>(null); // 그리드 참조 추가
-
-  useEffect(() => {
-    const gridElement = gridRef.current;
-    const contactItems = gsap.utils.toArray<HTMLDivElement>(
-      (gridElement?.children as HTMLCollectionOf<HTMLDivElement>) || []
-    );
-
-    if (!gridElement || contactItems.length === 0) return;
-
-    gsap.to(contactItems, {
-      opacity: 1,
-      stagger: 0.1,
-      duration: 0.5,
-      ease: "power2.out",
-      scrollTrigger: {
-        trigger: gridElement,
-        start: "top 85%", // 그리드 상단이 뷰포트 85% 지점에 닿으면 시작
-        toggleActions: "play reverse play reverse", // 스크롤 아웃 시 애니메이션 반대로 실행
-        // markers: true,
-      },
-    });
-  }, []);
-
   return (
     <SectionContainer>
-      {/* gridRef 추가 */}
-      <ContactGrid ref={gridRef}>
+      <ContactGrid>
         {/* 이메일 문의 */}
-        {/* 각 ContactItem을 Wrapper로 감싸기 */}
-        <ContactItemWrapper>
-          <ContactItem>
-            <IconWrapper>
-              <EmailIcon />
-            </IconWrapper>
-            <ContactTitle>이메일 문의</ContactTitle>
-            <ContactInfo>heredot83@heredotcorp.com</ContactInfo>
-            <ContactButton href="mailto:heredot83@heredotcorp.com">메일 보내기</ContactButton>
-          </ContactItem>
-        </ContactItemWrapper>
+        <ContactItem>
+          <IconWrapper>
+            <EmailIcon />
+          </IconWrapper>
+          <ContactTitle>이메일 문의</ContactTitle>
+          <ContactInfo>heredot83@heredotcorp.com</ContactInfo>
+          <ContactButton href="mailto:heredot83@heredotcorp.com">메일 보내기</ContactButton>
+        </ContactItem>
 
         {/* 전화 문의 */}
-        <ContactItemWrapper>
-          <ContactItem>
-            <IconWrapper>
-              <PhoneIcon />
-            </IconWrapper>
-            <ContactTitle>전화 문의</ContactTitle>
-            <ContactInfo>031-8039-7981</ContactInfo>
-            <ContactButton href="tel:031-8039-7981">전화 연결</ContactButton>
-          </ContactItem>
-        </ContactItemWrapper>
+        <ContactItem>
+          <IconWrapper>
+            <PhoneIcon />
+          </IconWrapper>
+          <ContactTitle>전화 문의</ContactTitle>
+          <ContactInfo>031-8039-7981</ContactInfo>
+          <ContactButton href="tel:031-8039-7981">전화 연결</ContactButton>
+        </ContactItem>
 
         {/* 카카오톡 채팅 상담 */}
-        <ContactItemWrapper>
-          <ContactItem>
-            <IconWrapper>
-              <ChatIcon />
-            </IconWrapper>
-            <ContactTitle>카카오톡 채팅 상담</ContactTitle>
-            <ContactInfo>Kakao</ContactInfo>
-            <ContactButton href="YOUR_KAKAO_CHANNEL_URL" target="_blank" rel="noopener noreferrer">
-              채팅방 연결
-            </ContactButton>
-          </ContactItem>
-        </ContactItemWrapper>
+        <ContactItem>
+          <IconWrapper>
+            <ChatIcon />
+          </IconWrapper>
+          {/* 적절한 카카오 아이콘으로 변경 */}
+          <ContactTitle>카카오톡 채팅 상담</ContactTitle>
+          <ContactInfo>Kakao</ContactInfo> {/* 카카오 채널 ID 또는 설명 추가 */}
+          <ContactButton href="https://open.kakao.com/o/smVyiMig" target="_blank" rel="noopener noreferrer">
+            {/* 실제 URL로 변경 */}
+            채팅방 연결
+          </ContactButton>
+        </ContactItem>
       </ContactGrid>
     </SectionContainer>
   );
