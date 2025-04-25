@@ -21,9 +21,9 @@ const GlobalStyle = createGlobalStyle`
     padding: 0;
     width: 100%;
     height: 100%;
-    background-color: ${AppColors.background};       /* 배경색 설정 | Set background color */
-    color: ${AppColors.onBackground};                /* 텍스트 색상 설정 | Set default text color */
-    font-family: 'Arial', sans-serif;                /* 기본 폰트 설정 | Set default font */
+    background-color: ${AppColors.background};       
+    /* color: ${AppColors.onBackground};                */
+    font-family: 'Noto Sans KR', sans-serif;               /* 기본 폰트 설정 | Set default font */
   }
 `;
 

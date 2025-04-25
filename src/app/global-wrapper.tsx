@@ -10,6 +10,7 @@
  */
 
 import { DeviceProvider } from "@/contexts/DeviceContext";
+import { LangProvider } from "@/contexts/LangContext";
 import { PageLoaderProvider } from "@/contexts/PageLoaderContext";
 import GlobalStyle from "@/styles/GlobalStyles";
 
@@ -19,11 +20,13 @@ export function GlobalWrapper({ children }: { children: React.ReactNode }) {
       {/* 페이지 로딩 상태 전역 관리 | Global page loading state */}
       <PageLoaderProvider>
         {/* 반응형 디바이스 정보 전역 제공 | Global device type context */}
+        <LangProvider>
         <DeviceProvider>
           {/* 글로벌 스타일 적용 | Apply global base styles */}
           <GlobalStyle />
           {children}
         </DeviceProvider>
+        </LangProvider>
       </PageLoaderProvider>
     </>
   );

@@ -12,10 +12,10 @@
 export const AppColors = {
   // 기본색상
   // Base Colors
-  primary: "#1976D2",
+  primary: "#6B32B4",
   secondary: "#9C27B0",
   tertiary: "#FFC107",
-  background: "#FFFFFF",
+  background: "#08080F",
   surface: "#FFFFFF",
 
   // 텍스트 또는 any on 기본색상
@@ -23,7 +23,7 @@ export const AppColors = {
   onPrimary: "#d82323",
   onSecondary: "#FFFFFF",
   onTertiary: "#000000",
-  onBackground: "#000000",
+  onBackground: "#FFFFFF",
   onSurface: "#000000",
 
   // 상태
@@ -71,7 +71,7 @@ export const AppColors = {
 
   // 보더
   // Border Colors
-  borderLight: "#E0E0E0",
+  borderLight: "#B5B5EA",
   borderDark: "#9E9E9E",
   borderError: "#B00020",
 
@@ -87,6 +87,8 @@ export const AppColors = {
   linkHover: "#1565C0",
   linkActive: "#0D47A1",
   linkDisabled: "#9E9E9E",
+
+  hoverText: "#6B32B4",
 
   // *************** 추가 *********** 
   // 프로젝트 특성 상 추가적인 색상 정의가 필요한 경우 하단에 추가

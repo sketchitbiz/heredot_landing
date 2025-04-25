@@ -90,14 +90,14 @@ export const AppTextStyles = {
     lineHeight: "20px",
   },
   label2: {
-    fontSize: "12px",
+    fontSize: "25px",
     fontWeight: 500,
-    lineHeight: "16px",
+    lineHeight: "25px",
   },
   label3: {
-    fontSize: "11px",
+    fontSize: "20px",
     fontWeight: 500,
-    lineHeight: "16px",
+    lineHeight: "20px",
   },
 
   // *************** 추가 *********** 

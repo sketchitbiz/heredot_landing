@@ -1,32 +1,44 @@
-// src/layout/LandingBaseWrapper.tsx
-
-/**
- * LandingBaseWrapper는 랜딩형 UI 페이지에서 사용되는 공통 컨테이너입니다.
- * 최대 너비를 제한하면서, 지정된 최소 너비 이하에서는 가로 스크롤을 허용합니다.
- * 중앙 정렬, 배경 이미지, 반응형 대응을 포함합니다.
- *
- * LandingBaseWrapper is a shared container for landing-style pages.
- * It handles max-width alignment, horizontal scroll below min-width,
- * and includes responsive and centered layout.
- */
-
-import { Breakpoints } from '@/constants/layoutConstants';
+import React from 'react';
 import styled from 'styled-components';
+import { Breakpoints } from '@/constants/layoutConstants';
 
-const LandingBaseWrapper = styled.div`
-  width: 100vw;
-  min-height: 100vh;
-  background: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  overflow-x: auto;
+interface LandingSection {
+  $backgroundColor?: string;
+  content: React.ReactNode;
+  $zIndex?: number;
+  $isOverLayout?: boolean; // ✅ 추가
+}
 
-  @media (min-width: ${Breakpoints.desktop}px) {
-    width: ${Breakpoints.desktop}px;
-    margin: 0 auto;
-  }
+interface LandingBaseWrapperProps {
+  sections: LandingSection[];
+}
+
+const SectionWrapper = styled.section<{
+  $backgroundColor?: string;
+  $zIndex?: number;
+}>`
+  width: 100%;
+  background-color: ${({ $backgroundColor }) => $backgroundColor || 'transparent'};
+  position: relative;
+  z-index: ${({ $zIndex }) => $zIndex ?? 1};
 `;
+
+const ContentWrapper = styled.div<{ $isOverLayout?: boolean }>`
+  width: ${({ $isOverLayout }) => ($isOverLayout ? '100%' : `${Breakpoints.desktop}px`)};
+  margin: 0 auto;
+  box-sizing: border-box;
+`;
+
+const LandingBaseWrapper: React.FC<LandingBaseWrapperProps> = ({ sections }) => {
+  return (
+    <>
+      {sections.map(({ $backgroundColor, content, $zIndex, $isOverLayout }, idx) => (
+        <SectionWrapper key={idx} $backgroundColor={$backgroundColor} $zIndex={$zIndex}>
+          <ContentWrapper $isOverLayout={$isOverLayout}>{content}</ContentWrapper>
+        </SectionWrapper>
+      ))}
+    </>
+  );
+};
 
 export default LandingBaseWrapper;
