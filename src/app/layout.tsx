@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 // import { Geist, Geist_Mono } from "next/font/google"; // next/font 제거
+import StyledComponentsRegistry from "@/lib/registry"; // 레지스트리 임포트
 import { GlobalWrapper } from "./global-wrapper";
 
 /**
@@ -37,8 +38,10 @@ export default function RootLayout({
     <html lang="en">
       {/* body className에서 폰트 변수 제거 */}
       <body className="antialiased">
-        {/* ✅ 글로벌 스타일 및 컨텍스트 적용 래퍼 */}
-        <GlobalWrapper>{children}</GlobalWrapper>
+        {/* StyledComponentsRegistry로 GlobalWrapper와 children 감싸기 */}
+        <StyledComponentsRegistry>
+          <GlobalWrapper>{children}</GlobalWrapper>
+        </StyledComponentsRegistry>
       </body>
     </html>
   );

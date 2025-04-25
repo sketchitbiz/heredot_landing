@@ -12,7 +12,7 @@ interface SectionHeaderProps {
 const HeaderContainer = styled.div`
   text-align: start;
   margin-bottom: 90px; // 아래 콘텐츠와의 간격
-  padding-top: 64px;
+  padding-top: 100px;
 `;
 
 const Title = styled.h2`

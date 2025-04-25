@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { useLang } from "@/contexts/LangContext";
 import { dictionary } from "@/lib/i18n/lang";
 import LandingAppBar from "@/components/LandingAppBar";
@@ -15,13 +16,12 @@ import Design from "@/block/Design";
 import Rolling from "@/block/Rolling";
 
 // --- 추가된 import ---
-import styled from "styled-components";
-import ScreenWrapper from "@/layout/ScreenWrapper";
 import { ContactSection } from "@/components/Landing/ContactSection";
 import { PortfolioGrid } from "@/components/block/PortfolioGrid";
 import { MembersTabSection } from "@/components/block/MembersTabSection";
 import { VideoGrid } from "@/components/block/VideoGrid";
 import { ScrollingBannerSection } from "@/components/block/ScrollingBannerSection";
+import { Footer } from "@/components/block/Footer";
 // ---------------------
 
 export default function HomePage() {
@@ -109,6 +109,11 @@ export default function HomePage() {
     {
       $backgroundColor: AppColors.surface,
       content: <ContactSection />,
+      $zIndex: 10,
+    },
+    {
+      $backgroundColor: AppColors.backgroundDark,
+      content: <Footer />,
       $zIndex: 10,
     },
   ];
