@@ -17,6 +17,8 @@ type ChatSessionType = any;
 export default function useAI() {
   // 모델 이름을 상수로 정의 (필요시 환경 변수 등에서 관리)
   const GEMINI_MODEL = "gemini-2.5-pro-preview-03-25";
+  //   const GEMINI_MODEL = "gemini-2.5-flash-latest";
+  // const GEMINI_MODEL = "gemini-2.0-flash-lite";
 
   // useRef의 초기값 타입을 명시적으로 지정 (any 사용)
   const model = useRef<GenerativeModelType>(null as any);
@@ -54,7 +56,7 @@ export default function useAI() {
           // 채팅 세션 시작
           chat.current = model.current.startChat();
 
-          console.log("AI Model and Chat initialized successfully.");
+          console.log(`AI Model (${GEMINI_MODEL}) and Chat initialized successfully.`);
           initialized.current = true; // 초기화 완료 플래그 설정
         } catch (error) {
           console.error("Error initializing AI:", error);
@@ -67,5 +69,5 @@ export default function useAI() {
   }, []); // 빈 의존성 배열로 마운트 시 한 번만 실행
 
   // 초기화된 model과 chat ref 반환
-  return { model, chat };
+  return { model, chat, modelName: GEMINI_MODEL };
 }

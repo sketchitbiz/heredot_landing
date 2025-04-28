@@ -41,6 +41,7 @@ const Title = styled.p`
   ${AppTextStyles.title2}
   color: ${AppColors.onBackground};
   margin-bottom: 0.5rem; // 간격 조절
+  margin-top: 1rem;
 `;
 
 const Subtitle = styled.p`

@@ -20,8 +20,8 @@ const stepData = [
   // Step 1: 개발 항목 선택
   {
     id: "platform",
-    title: "여기닷 AI",
-    subtitle: "안녕하세요, AI 견적서 도우미입니다.\n제작을 원하시는 플랫폼을 선택해주세요.",
+    title: "AIGO - 에이고",
+    subtitle: "안녕하세요, AI 견적서 도우미 에이고입니다.\n제작을 원하시는 플랫폼을 선택해주세요.",
     selectionTitle: "플랫폼 선택 (중복 가능)",
     options: [
       { id: "pc", label: "PC" },
@@ -39,7 +39,7 @@ const stepData = [
   // Step 2: 개발 분량 선택
   {
     id: "volume",
-    title: "여기닷 AI",
+    title: "AIGO - 에이고",
     subtitle: "개발 분량을 선택해주세요.",
     selectionTitle: "페이지 수 선택 (단일 선택)",
     options: [
@@ -63,9 +63,9 @@ const stepData = [
   // Step 3: 개발 카테고리 선택
   {
     id: "category",
-    title: "여기닷 AI",
+    title: "AIGO - 에이고",
     subtitle: "개발 카테고리를 선택해주세요.",
-    selectionTitle: "카테고리 선택 (중복 가능)",
+    selectionTitle: "카테고리 선택 (단일 선택)",
     options: [
       { id: "board", label: "게시판앱" },
       { id: "iot", label: "IoT앱" },
@@ -87,10 +87,9 @@ const stepData = [
       { id: "etc", label: "기타" },
     ],
     gridColumns: 3,
-    selectionMode: "multiple" as const,
+    selectionMode: "single" as const,
     showWebAppComponent: false, // 필요시 true로 변경하여 WEB/APP 섹션 표시 가능
-    infoText:
-      "• 제작하려는 서비스와 가장 유사한 카테고리를 선택해주세요.\n• 여러 카테고리에 해당될 경우 모두 선택 가능합니다.",
+    infoText: "• 제작하려는 서비스와 가장 유사한 카테고리를 선택해주세요.",
     progress: { title: "개발 카테고리 선택", description: "세부 기능 또는\n 산업군 선택" },
   },
   // --- 추가 단계 데이터 ---
@@ -235,13 +234,73 @@ const Input = styled.input`
   }
 `;
 
+// --- 새 ProfileName 스타일 정의 ---
+const ProfileName = styled.p`
+  font-size: 20px;
+  color: ${AppColors.onBackground};
+  font-weight: bold;
+  margin: 0; /* 마진 제거 */
+  margin-top: 0.6rem; /* 아래쪽 간격 약간 추가 */
+`;
+
+// --- FreeFormGuide 스타일 수정 ---
+const FreeFormGuide = styled.div`
+  width: 100%;
+  max-width: 48rem;
+  padding: 0;
+  background-color: ${AppColors.background};
+  border-radius: 8px;
+  text-align: left;
+  color: #9ca3af;
+  line-height: 1.6;
+
+  p {
+    margin-bottom: 1rem;
+    color: ${AppColors.onBackground};
+  }
+
+  ul {
+    list-style: none;
+    padding-left: 0;
+    margin-bottom: 1.5rem;
+  }
+
+  li {
+    margin-bottom: 0.75rem;
+    ${AppTextStyles.body2};
+    color: #ffffff; /* 흰색으로 변경 */
+    padding-left: 1.25rem;
+    position: relative;
+
+    &::before {
+      content: "•";
+      position: absolute;
+      left: 0;
+      top: 0;
+      color: ${AppColors.primary}; /* Bullet 색상 유지 */
+    }
+
+    strong {
+      font-weight: bold;
+      color: ${AppColors.primary};
+    }
+    span {
+      color: ${AppColors.onPrimaryGray};
+      display: block;
+      margin-left: 0.5rem;
+      margin-top: 0.25rem;
+    }
+  }
+`;
+// ------------------------------------
+
 export default function AIPage() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const chatEndRef = useRef<HTMLDivElement>(null);
 
-  const { chat } = useAI(); // 경로 확인 필요
+  const { chat, modelName } = useAI(); // modelName 추가
 
   const [currentStep, setCurrentStep] = useState(0);
   const [selections, setSelections] = useState<Record<string, string[]>>({});
@@ -337,13 +396,13 @@ export default function AIPage() {
     }
   };
 
-  // Gemini API 호출 함수 (디버깅 로그 유지)
+  // --- Gemini API 호출 함수 (로그에 modelName 추가) ---
   const handleGeminiSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
     console.log("handleGeminiSubmit called");
     console.log(
       `DEBUG: prompt='${prompt}', loading=${loading}, isFreeFormMode=${isFreeFormMode}, chat.current=${!!chat.current}, chat.current.sendMessage=${!!chat
-        .current?.sendMessage}`
+        .current?.sendMessage}, modelName=${modelName}`
     );
 
     if (!prompt || loading || !isFreeFormMode || !chat.current?.sendMessage) {
@@ -351,29 +410,53 @@ export default function AIPage() {
       return;
     }
 
-    const userMessage: Message = { id: Date.now(), sender: "user", text: prompt }; // 타입 복구
+    // --- 기초 조사 선택 내용 문자열로 만들기 ---
+    let selectionSummary = "선택된 기초 조사:\n";
+    Object.entries(selections).forEach(([stepId, selectedOptions]) => {
+      // stepData에서 해당 단계 정보 찾기 (선택 사항: 제목 표시용)
+      const stepInfo = stepData.find((step) => step.id === stepId);
+      const stepTitle = stepInfo ? stepInfo.selectionTitle : stepId; // 제목 없으면 ID 사용
+      if (selectedOptions && selectedOptions.length > 0) {
+        // 옵션 ID를 레이블로 변환 (선택 사항)
+        const selectedLabels = selectedOptions.map((optionId) => {
+          const option = stepInfo?.options.find((opt) => opt.id === optionId);
+          return option ? option.label : optionId; // 레이블 없으면 ID 사용
+        });
+        selectionSummary += `- ${stepTitle}: ${selectedLabels.join(", ")}\n`;
+      }
+    });
+    selectionSummary += "\n"; // 구분 위한 줄바꿈
+    // ------------------------------------------
+
+    const currentPrompt = prompt; // 사용자의 현재 입력 내용
+    const combinedPrompt = `${selectionSummary}사용자 질문:\n${currentPrompt}`; // 기초 조사 + 사용자 질문 결합
+
+    console.log("Combined Prompt:", combinedPrompt); // 결합된 프롬프트 확인용 로그
+
+    const userMessage: Message = { id: Date.now(), sender: "user", text: currentPrompt }; // 화면에는 사용자 질문만 표시
     setMessages((prev) => [...prev, userMessage]);
-    const currentPrompt = prompt;
     setPrompt("");
     setLoading(true);
     setError("");
 
     try {
-      const result = await chat.current.sendMessage(currentPrompt);
+      // 결합된 프롬프트를 AI에게 전송
+      const result = await chat.current.sendMessage(combinedPrompt);
       const text = result?.response?.candidates?.[0]?.content?.parts?.[0]?.text || "AI 응답 구조 확인 필요";
       console.log("AI Response Object:", result);
-      const aiMessage: Message = { id: Date.now() + 1, sender: "ai", text }; // 타입 복구
+      const aiMessage: Message = { id: Date.now() + 1, sender: "ai", text };
       setMessages((prev) => [...prev, aiMessage]);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "알 수 없는 오류가 발생했습니다.";
       setError(errorMessage);
       console.error("Error sending message via useAI:", err);
-      const errorAiMessage: Message = { id: Date.now() + 1, sender: "ai", text: `오류: ${errorMessage}` }; // 타입 복구
+      const errorAiMessage: Message = { id: Date.now() + 1, sender: "ai", text: `오류: ${errorMessage}` };
       setMessages((prev) => [...prev, errorAiMessage]);
     } finally {
       setLoading(false);
     }
   };
+  // ----------------------------------------------------
 
   // gridColumns 임시 any 유지 (나중에 수정 권장)
   const gridColumnsValue = currentStepData?.gridColumns as any;
@@ -384,16 +467,36 @@ export default function AIPage() {
         <ChatContainer>
           <ChatContent>
             <ChatMessagesContainer>
-              {/* 자유 질문 모드 안내 UI 복구 필요 */}
               {isFreeFormMode && (
                 <FlexContainer>
                   <ProfileImage src="/pretty.png" alt="AI 프로필" />
-                  {/* 여기에 FreeFormGuide 또는 유사한 안내 컴포넌트 렌더링 */}
-                  <div>
-                    <h3>이제 자유질문입니다!</h3>
-                    <p>원하시는 질문 자유롭게 질문해주세요!</p>
-                    {/* ... 더 자세한 안내 ... */}
-                  </div>
+                  <FreeFormGuide>
+                    <ProfileName>AIGO - 에이고</ProfileName>
+
+                    <div>
+                      {/* ... (나머지 FreeFormGuide 내용) ... */}
+                      <p>
+                        이제 자유질문입니다! <br /> 원하시는 질문 자유롭게 질문해주세요!
+                      </p>
+                      <p style={{ marginTop: "1.5rem" }}>다음과 같은 기능도 지원됩니다.</p>
+                      <ul>
+                        <li>
+                          URL: 네이버, 다음 등 원하는 사이트 링크
+                          <br />
+                          <span>ex) "www.naver.com 같은 사이트를 만들고 싶어요"</span>
+                        </li>
+                        <li>이미지: 캡처, JPG 등 이미지 파일</li>
+                        <li>
+                          PDF: 스토리보드 (설계/기획안) 등
+                          <br />
+                          <span>(※ 파워포인트, 엑셀 파일은 첨부 불가)</span>
+                        </li>
+                      </ul>
+                      <p style={{ marginTop: "1.5rem" }}>
+                        첨부와 함께 원하시는 내용을 설명해주시면 AI가 맞춤 견적을 제시해드립니다 😊
+                      </p>
+                    </div>
+                  </FreeFormGuide>
                 </FlexContainer>
               )}
 
@@ -426,11 +529,11 @@ export default function AIPage() {
 
           <MessageInput>
             {/* --- 디버깅용 상태 표시 --- */}
-            <div style={{ textAlign: "center", fontSize: "12px", color: "gray", marginBottom: "10px" }}>
+            {/* <div style={{ textAlign: "center", fontSize: "12px", color: "gray", marginBottom: "10px" }}>
               <span>FreeForm: {String(isFreeFormMode)} | </span>
               <span>Loading: {String(loading)} | </span>
               <span>Prompt Empty: {String(!prompt)}</span>
-            </div>
+            </div> */}
             {/* ------------------------ */}
 
             <InputContainer onSubmit={handleGeminiSubmit} data-active={isFreeFormMode && !loading}>
