@@ -28,9 +28,11 @@ export const AdminAuthProvider = ({ children }: { children: React.ReactNode }) =
   };
 
   const logout = () => {
-    localStorage.clear();
+    localStorage.removeItem('admin_access_token');
+    localStorage.removeItem('adminId');
     setIsLoggedIn(false);
   };
+  
 
   return (
     <AdminAuthContext.Provider value={{ isLoggedIn, ready, login, logout }}>

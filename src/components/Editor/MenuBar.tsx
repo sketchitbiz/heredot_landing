@@ -44,7 +44,7 @@ const MenuBar = ({ editor }: MenuBarProps) => {
 
   const [imageUrl, setImageUrl] = useState("");
   const [lineHeight, setLineHeight] = useState(
-    parseFloat(editor.getAttributes("textStyle").lineHeight || "1.6") // 기본값 설정 또는 에디터 상태 반영
+    parseFloat(editor.getAttributes("textStyle").lineHeight || "1.2") // 기본값 설정 또는 에디터 상태 반영
   );
   const [letterSpacing, setLetterSpacing] = useState(
     parseFloat(editor.getAttributes("textStyle").letterSpacing || "0") // 기본값 설정 또는 에디터 상태 반영
@@ -53,24 +53,15 @@ const MenuBar = ({ editor }: MenuBarProps) => {
   const handleLineHeightChange = (value: number) => {
     setLineHeight(value);
     if (!editor) return;
-
-    editor
-      .chain()
-      .focus()
-      .setMark("textStyle", { lineHeight: String(value) })
-      .run();
+    editor.commands.setMark("textStyle", { lineHeight: String(value) });
   };
-
+  
   const handleLetterSpacingChange = (value: number) => {
     setLetterSpacing(value);
     if (!editor) return;
-
-    editor
-      .chain()
-      .focus()
-      .setMark("textStyle", { letterSpacing: `${value}px` })
-      .run();
+    editor.commands.setMark("textStyle", { letterSpacing: `${value}px` });
   };
+  
 
   // 이미지 업로드 및 에디터에 삽입 (미리보기만)
   const handleImageUpload = useCallback(() => {
@@ -129,7 +120,7 @@ const MenuBar = ({ editor }: MenuBarProps) => {
       const textStyleAttrs = editor.getAttributes("textStyle");
 
       // 행간 값 가져오기
-      const currentLineHeight = textStyleAttrs.lineHeight ? parseFloat(textStyleAttrs.lineHeight) : 1.6;
+      const currentLineHeight = textStyleAttrs.lineHeight ? parseFloat(textStyleAttrs.lineHeight) : 1.2;
 
       // 자간 값 가져오기 (px 단위 제거)
       const currentLetterSpacing = textStyleAttrs.letterSpacing ? parseFloat(textStyleAttrs.letterSpacing) : 0;
@@ -263,7 +254,7 @@ const MenuBar = ({ editor }: MenuBarProps) => {
         </span>
         <input
           type="range"
-          min="1.6"
+          min="1.2"
           max="3"
           step="0.1"
           value={lineHeight}

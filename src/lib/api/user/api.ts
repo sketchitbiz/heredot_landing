@@ -11,6 +11,6 @@ export async function userStamp(params: Partial<UserStampCreateParams>) {
       ...params,
       firstYn: params.firstYn || 'N', // 기본값 설정
     },
-    isCallPageLoader: true,
+    isCallPageLoader: false,
   });
 }

@@ -17,7 +17,7 @@ export async function callApiPost<T = any>({
   isCallPageLoader = false,
 }: CallApiPostParams): Promise<T> {
   devLog(`📱 [${title}]`, url, body);
-  // if (isCallPageLoader) pageLoaderController.open();
+  if (isCallPageLoader) pageLoaderController.open();
 
   let returnValue = '';
 
@@ -25,6 +25,7 @@ export async function callApiPost<T = any>({
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     };
+
 
     if (accessToken) {
       headers['Authorization'] = `Bearer ${accessToken}`;
@@ -42,7 +43,7 @@ export async function callApiPost<T = any>({
     devLog(`❌ [${title}] API 요청 에러`, error);
     returnValue = '[]';
   } finally {
-    // if (isCallPageLoader) pageLoaderController.close();
+    if (isCallPageLoader) pageLoaderController.close();
   }
 
   try {

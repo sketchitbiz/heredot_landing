@@ -5,12 +5,9 @@ import { useRouter } from 'next/navigation';
 import { TextField } from '@/components/TextField';
 import { loginAdminService } from '@/lib/services/loginAdminService';
 import { useAdminAuth } from '@/contexts/AdminAuthContext';
-import ScreenWrapper from '@/layout/ScreenWrapper';
 import CommonButton from '@/components/CommonButton';
 import Image from 'next/image';
 import { toast, ToastContainer } from 'react-toastify';
-
-import Gap from '@/components/Gap';
 
 export default function LoginPage() {
   const [userId, setUserId] = useState('');
@@ -21,15 +18,14 @@ export default function LoginPage() {
   const router = useRouter();
   const { login } = useAdminAuth();
 
-  // 정규식 패턴
   const userIdRegex = /^(?=.*[A-Za-z])(?=.*[0-9])[A-Za-z0-9]{6,20}$/;
-  const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[$@$!%*#?~^<>,.&+=])[A-Za-z\d$@$!%*#?~^<>,.&+=]{8,}$/;
+  const passwordRegex =
+    /^(?=.*[A-Za-z])(?=.*\d)(?=.*[$@$!%*#?~^<>,.&+=])[A-Za-z\d$@$!%*#?~^<>,.&+=]{8,}$/;
 
   const handleLogin = async () => {
     setIdError(null);
     setPwdError(null);
 
-    // 유효성 검사
     let hasError = false;
 
     if (!userIdRegex.test(userId)) {
@@ -44,69 +40,121 @@ export default function LoginPage() {
 
     if (hasError) return;
 
-    // 로그인 서비스 호출
     await loginAdminService({
       id: userId,
       password,
       showMessage: (msg) => {
-        toast.error(msg); // 에러 메시지를 토스트로 표시
+        toast.error(msg);
       },
       onSuccess: (response) => {
         login(response.id, response.accessToken);
-        toast.success('로그인 성공!'); // 성공 메시지를 토스트로 표시
+        toast.success('로그인 성공!');
         router.push('/cms');
       },
     });
   };
 
   return (
-    <ScreenWrapper>
+    <div
+      style={{
+        height: '100vh',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        flexDirection: 'column',
+        padding: '16px',
+        maxWidth: '360px',
+        minWidth: '360px',
+        margin: '0 auto',
+      }}
+    >
+      {/* 로고와 설명 텍스트 (row) */}
+      <div
+  style={{
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between', // 양쪽 끝으로 정렬
+    marginBottom: '20px',
+    width: '100%', // 부모 컨테이너의 너비를 기준으로 정렬
+  }}
+>
+  {/* 로고 이미지 */}
+  <Image src="/assets/logo.svg" alt="CMS Logo" width={80} height={80} />
+
+  {/* 설명 텍스트 */}
+  <div
+    style={{
+      fontSize: '18px',
+      fontWeight: 600,
+      color: '#fff',
+      whiteSpace: 'nowrap',
+    }}
+  >
+    AI 견적서 관리자용
+  </div>
+</div>
+
+      {/* SIGN IN 텍스트 */}
       <div
         style={{
-          height: '100vh',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          flexDirection: 'column',
-          padding: '16px',
+          fontSize: '30px',
+          fontWeight: 500,
+          color: '#fff',
+          marginBottom: '10px',
+          alignSelf: 'flex-start',
         }}
       >
-        {/* 로고 이미지 */}
-        <Image
-          src="/assets/logo.svg"
-          alt="CMS Logo"
-          width={250}
-          height={100}
-          style={{ marginBottom: '0px' }}
-        />
-
-        <TextField
-          value={userId}
-          label='아이디'
-          onChange={(e) => setUserId(e.target.value)}
-          placeholder="아이디를 입력하세요"
-          showSuffixIcon={false}
-          errorMessage={idError || undefined}
-        />
-
-        <TextField
-          value={password}
-          label='비밀번호'
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="비밀번호를 입력하세요"
-          showSuffixIcon={true}
-          errorMessage={pwdError || undefined}
-        />
-        <div style={{ height: '8px' }} />
-        <CommonButton text="로그인" onClick={handleLogin} />
+        SIGN IN
       </div>
 
+      {/* 아이디 입력 */}
+      <TextField
+        value={userId}
+        radius="0px"
+        onChange={(e) => setUserId(e.target.value)}
+        placeholder="아이디를 입력하세요"
+        showSuffixIcon={false}
+        errorMessage={idError || undefined}
+      />
 
+      {/* 비밀번호 입력 */}
+      <TextField
+        value={password}
+        radius="0px"
+        onChange={(e) => setPassword(e.target.value)}
+        placeholder="비밀번호를 입력하세요"
+        isPasswordField={true}
+        showSuffixIcon={true}
+        errorMessage={pwdError || undefined}
+      />
 
-      {/* 토스트 메시지 컨테이너 */}
+      {/* 버튼과 여백 */}
+      <div style={{ height: '8px' }} />
+      <CommonButton
+        borderRadius="0px"
+        borderColor="transparent"
+        text="로그인"
+        onClick={handleLogin}
+      />
+
+      {/* 하단 안내 문구 */}
+      <div
+        style={{
+          marginTop: '50px',
+          fontSize: '16px',
+          fontWeight: 400,
+          color: '#6c6969',
+          textAlign: 'center',
+        }}
+      >
+        시스템 계정이 없다면, 관리자에게 문의 바랍니다.
+      </div>
+
+      {/* 토스트 메시지 */}
       <ToastContainer
-        position="top-center" // 위에서 아래로 내려오는 위치
-        autoClose={3000} // 3초 후 자동 닫힘
+        position="top-center"
+        autoClose={3000}
         hideProgressBar={false}
         newestOnTop={true}
         closeOnClick
@@ -115,6 +163,6 @@ export default function LoginPage() {
         draggable
         pauseOnHover
       />
-    </ScreenWrapper>
+    </div>
   );
 }

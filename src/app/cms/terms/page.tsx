@@ -7,6 +7,7 @@ import styled from "styled-components";
 import CommonButton from "@/components/CommonButton";
 import { termGetList, TermGetListParams, termUpdate } from "@/lib/api/admin";
 import { toast, ToastContainer } from 'react-toastify';
+import { devLog } from "@/lib/utils/devLogger";
 
 const CustomTiptapEditor = dynamic(() => import("@/components/Editor/CustomTiptapEditor"), {
   ssr: false,
@@ -73,18 +74,19 @@ export default function TermsPage() {
   useEffect(() => {
     const fetchTerms = async () => {
       const res = await termGetList();
-      console.log("📱 [약관 목록] 응답", res);
+      devLog("📱 [약관 목록] 응답", res);
   
-      const rawList = res?.[0]?.["data"] ?? [];
+      const rawList = res?.[0]?.["data"] == '' ? [] : res?.[0]?.["data"];
+      devLog("📱 [약관 목록] 데이터", rawList);
   
       const map: ContentMap = {};
   
       tabs.forEach((tab) => {
-        const matched = rawList.find((item: any) => Number(item["index"]) === tab.index);
+        const matched = rawList?.find((item: any) => Number(item["index"]) === tab.index);
         map[tab.key] = {
           index: tab.index,
           termsType: "user",
-          content: matched?.["content"] ?? "",
+          content: matched?.["content"] ?? "", // matched가 없으면 공란
         };
       });
   

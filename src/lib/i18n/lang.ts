@@ -1,4 +1,4 @@
-import { m } from "framer-motion";
+// src/lib/i18n/lang.ts
 
 export const dictionary = {
   ko: {
