@@ -17,11 +17,11 @@ import Rolling from "@/block/Rolling";
 
 // --- 추가된 import ---
 import { ContactSection } from "@/components/Landing/ContactSection";
-import { PortfolioGrid } from "@/components/block/PortfolioGrid";
-import { MembersTabSection } from "@/components/block/MembersTabSection";
-import { VideoGrid } from "@/components/block/VideoGrid";
-import { ScrollingBannerSection } from "@/components/block/ScrollingBannerSection";
-import { Footer } from "@/components/block/Footer";
+import { PortfolioGrid } from "@/block/PortfolioGrid";
+import { MembersTabSection } from "@/block/MembersTabSection";
+import { VideoGrid } from "@/block/VideoGrid";
+import { ScrollingBannerSection } from "@/block/ScrollingBannerSection";
+import { Footer } from "@/block/Footer";
 // ---------------------
 
 export default function HomePage() {
