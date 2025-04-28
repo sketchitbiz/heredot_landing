@@ -16,9 +16,9 @@ type ChatSessionType = any;
 
 export default function useAI() {
   // 모델 이름을 상수로 정의 (필요시 환경 변수 등에서 관리)
-  const GEMINI_MODEL = "gemini-2.5-pro-preview-03-25";
-  //   const GEMINI_MODEL = "gemini-2.5-flash-latest";
-  // const GEMINI_MODEL = "gemini-2.0-flash-lite";
+  // const GEMINI_MODEL = "gemini-2.5-pro-preview-03-25";
+  const GEMINI_MODEL = "gemini-2.5-flash-preview-04-17";
+  // const GEMINI_MODEL = "gemini-2.0-flash";
 
   // useRef의 초기값 타입을 명시적으로 지정 (any 사용)
   const model = useRef<GenerativeModelType>(null as any);

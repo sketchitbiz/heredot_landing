@@ -396,7 +396,7 @@ export default function AIPage() {
     }
   };
 
-  // --- Gemini API 호출 함수 (로그에 modelName 추가) ---
+  // --- Gemini API 호출 함수 수정 ---
   const handleGeminiSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
     console.log("handleGeminiSubmit called");
@@ -428,22 +428,24 @@ export default function AIPage() {
     selectionSummary += "\n"; // 구분 위한 줄바꿈
     // ------------------------------------------
 
-    const currentPrompt = prompt; // 사용자의 현재 입력 내용
-    const combinedPrompt = `${selectionSummary}사용자 질문:\n${currentPrompt}`; // 기초 조사 + 사용자 질문 결합
+    const currentPrompt = prompt;
+    const combinedPrompt = `${selectionSummary}사용자 질문:\n${currentPrompt}`;
 
-    console.log("Combined Prompt:", combinedPrompt); // 결합된 프롬프트 확인용 로그
+    // 모델명 함께 출력하도록 수정
+    console.log(`Model: ${modelName} | Combined Prompt:`, combinedPrompt);
 
-    const userMessage: Message = { id: Date.now(), sender: "user", text: currentPrompt }; // 화면에는 사용자 질문만 표시
+    const userMessage: Message = { id: Date.now(), sender: "user", text: currentPrompt };
     setMessages((prev) => [...prev, userMessage]);
     setPrompt("");
     setLoading(true);
     setError("");
 
     try {
-      // 결합된 프롬프트를 AI에게 전송
       const result = await chat.current.sendMessage(combinedPrompt);
+      console.log("Raw AI Response Data:", result);
+
       const text = result?.response?.candidates?.[0]?.content?.parts?.[0]?.text || "AI 응답 구조 확인 필요";
-      console.log("AI Response Object:", result);
+      console.log("AI Response Object (Legacy log):", result);
       const aiMessage: Message = { id: Date.now() + 1, sender: "ai", text };
       setMessages((prev) => [...prev, aiMessage]);
     } catch (err) {
@@ -458,8 +460,8 @@ export default function AIPage() {
   };
   // ----------------------------------------------------
 
-  // gridColumns 임시 any 유지 (나중에 수정 권장)
-  const gridColumnsValue = currentStepData?.gridColumns as any;
+  // gridColumns 타입 수정
+  const gridColumnsValue: number | undefined = currentStepData?.gridColumns;
 
   return (
     <Container>
@@ -472,18 +474,14 @@ export default function AIPage() {
                   <ProfileImage src="/pretty.png" alt="AI 프로필" />
                   <FreeFormGuide>
                     <ProfileName>AIGO - 에이고</ProfileName>
-
                     <div>
-                      {/* ... (나머지 FreeFormGuide 내용) ... */}
-                      <p>
-                        이제 자유질문입니다! <br /> 원하시는 질문 자유롭게 질문해주세요!
-                      </p>
+                      {/* ... */}
                       <p style={{ marginTop: "1.5rem" }}>다음과 같은 기능도 지원됩니다.</p>
                       <ul>
                         <li>
                           URL: 네이버, 다음 등 원하는 사이트 링크
                           <br />
-                          <span>ex) "www.naver.com 같은 사이트를 만들고 싶어요"</span>
+                          <span>ex) &quot;www.naver.com 같은 사이트를 만들고 싶어요&quot;</span>
                         </li>
                         <li>이미지: 캡처, JPG 등 이미지 파일</li>
                         <li>
@@ -506,7 +504,7 @@ export default function AIPage() {
                   <AiChatQuestion
                     key={currentStep}
                     {...currentStepData}
-                    gridColumns={gridColumnsValue} // 임시 any
+                    gridColumns={gridColumnsValue} // 수정된 타입 사용
                     selectionMode={currentStepData.selectionMode}
                     initialSelection={initialSelection}
                     onNext={handleNext}
