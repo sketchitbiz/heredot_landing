@@ -1,5 +1,5 @@
 import type { NextConfig } from "next";
- 
+
 const nextConfig: NextConfig = {
   /* config options here */
   compiler: {
@@ -15,6 +15,7 @@ const nextConfig: NextConfig = {
     // 타입 관련 오류를 무시하며, 런타임 오류로 이어질 수 있습니다.
     ignoreBuildErrors: true,
   },
+  output: "standalone",
 };
- 
+
 export default nextConfig;
