@@ -269,7 +269,7 @@ export function AiChatMessage({ sender, text, onActionClick }: MessageProps) {
         {isAiMessage ? (
           <StyledMarkdownContainer>
             <ProfileName>
-              <strong>AIGO - 에이고</strong>
+              <strong>강유하</strong>
             </ProfileName>
             <ReactMarkdown components={customComponents} remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
               {text}

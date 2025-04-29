@@ -29,12 +29,12 @@ const stepData = [
   // Step 1: 개발 항목 선택
   {
     id: "platform",
-    title: "AIGO - 에이고",
-    subtitle: "안녕하세요, AI 견적서 도우미 에이고입니다.\n제작을 원하시는 플랫폼을 선택해주세요.",
+    title: "강유하",
+    subtitle: "안녕하세요, AI 견적상담사 강유하입니다.\n제작을 원하시는 플랫폼을 선택해주세요.",
     selectionTitle: "플랫폼 선택 (중복 가능)",
     options: [
-      { id: "pc", label: "PC" },
-      { id: "mobile", label: "모바일" },
+      { id: "pc", label: "PC Web" },
+      { id: "mobile", label: "mobile Web" },
       { id: "AOS", label: "AOS" },
       { id: "IOS", label: "IOS" },
       { id: "Windows", label: "Windows" },
@@ -48,7 +48,7 @@ const stepData = [
   // Step 2: 개발 분량 선택
   {
     id: "volume",
-    title: "AIGO - 에이고",
+    title: "강유하",
     subtitle: "개발 분량을 선택해주세요.",
     selectionTitle: "페이지 수 선택 (단일 선택)",
     options: [
@@ -72,7 +72,7 @@ const stepData = [
   // Step 3: 개발 카테고리 선택
   {
     id: "category",
-    title: "AIGO - 에이고",
+    title: "강유하",
     subtitle: "개발 카테고리를 선택해주세요.",
     selectionTitle: "카테고리 선택 (단일 선택)",
     options: [
@@ -694,7 +694,7 @@ export default function AiPageContent() {
                   <ProfileImage src="/pretty.png" alt="AI 프로필" />
                   <FreeFormGuide>
                     <ProfileName>
-                      <strong>AIGO - 에이고</strong>
+                      <strong>강유하</strong>
                     </ProfileName>
                     <div>
                       {/* ... */}
