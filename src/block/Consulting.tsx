@@ -46,6 +46,7 @@ const TextTitle = styled.h2`
   font-weight: 700;
   line-height: 1.4;
   margin-bottom: 24px;
+  color: #000;
 `;
 
 const TextDescription = styled.p`
@@ -181,6 +182,7 @@ const Consulting: React.FC<ConsultingProps> = ({
   useEffect(() => {
     if (!wrapperRef.current) return;
 
+    const initialMap = Array(3).fill([0, 0, 0, 0]);
 
     const tl = gsap.timeline({
       scrollTrigger: {
@@ -287,7 +289,7 @@ const Consulting: React.FC<ConsultingProps> = ({
       tl.scrollTrigger?.kill();
       tl.kill();
     };
-  }, []);
+  }, []);;
 
   const horizontalBoxes = gridContents.map((row, i) => (
     <Box

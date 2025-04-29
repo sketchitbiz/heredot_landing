@@ -15,10 +15,12 @@ interface LandingCardProps {
   showTitle?: boolean; // 제목 표시 여부 추가
   width?: string | number; // 너비 추가
   height?: string | number; // 높이 추가
+  onClick?: () => void; 
 }
 
 const CardContainer = styled.div<Pick<LandingCardProps, "width" | "height">>`
   display: flex;
+  cursor: pointer; 
   flex-direction: column;
   background-color: ${AppColors.surface};
   border-radius: 8px;
@@ -101,31 +103,33 @@ export const LandingCard: React.FC<LandingCardProps> = ({
   showTitle = true,
   width,
   height,
+  onClick,
 }) => {
   return (
     <CardWrapper width={width} height={height}>
-      <CardContainer width={width} height={height}>
-        <ContentWrapper>
-          {contentType === "image" ? (
-            imageUrl ? (
-              <CardImage
-                src={imageUrl}
-                alt={altText}
-                fill
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              />
-            ) : (
-              <PlaceholderContainer>
-                <ImageIcon />
-                <p>이미지 없음</p>
-              </PlaceholderContainer>
-            )
-          ) : (
-            <TextContentWrapper>{content}</TextContentWrapper>
-          )}
-        </ContentWrapper>
-      </CardContainer>
-      {showTitle && <CardTitle>{title}</CardTitle>}
-    </CardWrapper>
+  <CardContainer width={width} height={height} onClick={onClick}>
+    <ContentWrapper>
+      {contentType === "image" ? (
+        imageUrl ? (
+          <CardImage
+            src={imageUrl}
+            alt={altText}
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          />
+        ) : (
+          <PlaceholderContainer>
+            <ImageIcon />
+            <p>이미지 없음</p>
+          </PlaceholderContainer>
+        )
+      ) : (
+        <TextContentWrapper>{content}</TextContentWrapper>
+      )}
+    </ContentWrapper>
+  </CardContainer>
+  {showTitle && <CardTitle>{title}</CardTitle>}
+</CardWrapper>
+
   );
 };

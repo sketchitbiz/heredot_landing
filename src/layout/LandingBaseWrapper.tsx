@@ -23,7 +23,7 @@ const SectionWrapper = styled.section<{
   position: relative;
   z-index: ${({ $zIndex }) => $zIndex ?? 1};
 `;
-
+``
 const ContentWrapper = styled.div<{ $isOverLayout?: boolean }>`
   width: ${({ $isOverLayout }) => ($isOverLayout ? '100%' : `${Breakpoints.desktop}px`)};
   margin: 0 auto;

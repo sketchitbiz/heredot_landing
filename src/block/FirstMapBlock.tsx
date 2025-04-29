@@ -96,7 +96,7 @@ const DestinationImage = styled(motion.img)`
 `;
 
 const Label = styled.div`
-  ${AppTextStyles.label2};
+  ${AppTextStyles.label2}; /* AppTextStyles.label2 객체를 통째로 사용 */
   position: absolute;
   top: calc(50%);
   left: 50%;

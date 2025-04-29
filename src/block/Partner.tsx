@@ -68,6 +68,7 @@ const TabTitle = styled.h3`
   margin-bottom: 12px;
   position: relative;
   padding-left: 16px;
+  color:  #000;
 
   &::before {
     content: '';
@@ -180,7 +181,7 @@ const Partner: React.FC<PartnerProps> = ({
         id: 'partner-scroll',
         trigger: sectionRef.current,
         start: 'top top',
-        end: `+=${totalScroll + window.innerHeight / 2}`,
+        end: `+=${totalScroll }`,
         scrub: true,
         pin: true,
         onUpdate: (self) => {

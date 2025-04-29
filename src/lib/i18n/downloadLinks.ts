@@ -23,5 +23,9 @@ export const downloadLinks = {
       ko: 'https://heredotcorp.com/static/02/Functional_specification_KR.xlsx',
       en: 'https://heredotcorp.com/static/02/Functional_specification_EN.xlsx',
     },
+    designProposal: {
+      ko: 'https://heredotcorp.com/static/03/design_strategy_kr.pdf',
+      en: 'https://heredotcorp.com/static/03/design_strategy_eng.pdf',
+    },
   };
   

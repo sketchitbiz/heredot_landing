@@ -10,10 +10,12 @@
 
 import { createGlobalStyle } from 'styled-components';
 import { AppColors } from './colors';
-
 const GlobalStyle = createGlobalStyle`
   *, *::before, *::after {
     box-sizing: border-box;
+  }
+  :root {
+    color-scheme: light;
   }
 
   html, body {
@@ -21,9 +23,12 @@ const GlobalStyle = createGlobalStyle`
     padding: 0;
     width: 100%;
     height: 100%;
-    background-color: ${AppColors.background};       
-    /* color: ${AppColors.onBackground};                */
-    font-family: 'Noto Sans KR', sans-serif;               /* 기본 폰트 설정 | Set default font */
+    font-family: 'Noto Sans KR', sans-serif;
+
+    background-color: ${AppColors.background};      
+     /* background-color: #ffffff !important; */
+    color: ${AppColors.onBackground};               
+    color-scheme: only dark;                     
   }
 `;
 

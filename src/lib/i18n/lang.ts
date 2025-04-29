@@ -69,7 +69,7 @@ export const dictionary = {
       downloadText: '사업제안서 다운로드',
     },
     consulting: {
-      title: `여기닷은 "기능·설계·비용"\n최적화 목적으로 활용합니다`, // ✅ 줄바꿈은 \n
+      title: `여기닷은 "기능명세"를\n 최적화 목적으로 활용합니다`, 
       descriptions: [
         '1. 견적 단계에서 분량 및 기능정리',
         '2. IT서비스 최적 설계 지원',
@@ -171,6 +171,7 @@ export const dictionary = {
       tabs: ['레퍼런스 조사', '트렌드 파악', '컬러제안', 'UI/UX 제안', '고객의사결정'],
       tabNumbers: ['01', '02', '03', '04', '05'],
       title: '여기닷은 모든 프로젝트에\n 디자인 전략을 제안합니다',
+      downloadText: '디자인 제안서 다운로드',
       slides: [
         { title: '시장/레퍼런스 조사', image: '/assets/design/design_1.png' },
         { title: '트렌드 파악', image: '/assets/design/design_2.png' },
@@ -385,6 +386,7 @@ export const dictionary = {
       tabs: ['Reference Research', 'Trend Analysis', 'Color Proposal', 'UI/UX Proposal', 'Customer Decision'],
       tabNumbers: ['01', '02', '03', '04', '05'],
       title: 'Heredot Design Strategy', 
+      downloadText: 'Download Design Proposal',
       slides: [
         { title: 'Market/Reference Research', image: '/assets/design/design_1.png' },
         { title: 'Trend Analysis', image: '/assets/design/design_2.png' },

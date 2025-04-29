@@ -149,6 +149,7 @@ export default function HomePage() {
           tabNumbers={t.design.tabNumbers}
           slides={t.design.slides}
           title={t.design.title}
+          downloadText={t.design.downloadText}
         />
       ),
       $zIndex: 1100,
@@ -169,7 +170,7 @@ export default function HomePage() {
           description={t.appBlock.description}
         />
       ),
-      $zIndex: 10,
+      $zIndex: 1100,
     },
     {
       id: 'portfolio',
@@ -183,7 +184,7 @@ export default function HomePage() {
           bottomLabel={t.arrival}
         />
       ),
-      $zIndex: 10,
+      $zIndex: 1110,
     },
     
     
@@ -219,21 +220,21 @@ export default function HomePage() {
       $zIndex: 10,
     },
     
-    {
-      id: 'market',
-      $backgroundColor: AppColors.background,
-      content: (
-        <ScrollingBannerSection
-        title={t.bannerSection.title}
-        description={t.bannerSection.description}
-        topLabel={t.departure}
-        centerLabel={t.customNavigator.event}
-        bottomLabel={t.arrival}
-      />
+    // {
+    //   id: 'market',
+    //   $backgroundColor: AppColors.background,
+    //   content: (
+    //     <ScrollingBannerSection
+    //     title={t.bannerSection.title}
+    //     description={t.bannerSection.description}
+    //     topLabel={t.departure}
+    //     centerLabel={t.customNavigator.event}
+    //     bottomLabel={t.arrival}
+    //   />
       
-      ),
-      $zIndex: 10,
-    },
+    //   ),
+    //   $zIndex: 10,
+    // },
     
     {
       id: 'contact',

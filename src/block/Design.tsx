@@ -4,18 +4,22 @@ import React, { useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import DownloadIcon from '@mui/icons-material/Download';
+import { useLang } from '@/contexts/LangContext';
+import { downloadLinks } from '@/lib/i18n/downloadLinks';
 
 interface DesignProps {
   title: string;
   tabs: string[];
   tabNumbers: string[];
   slides: { title: string; image: string }[];
+  downloadText: string;
 }
 
 gsap.registerPlugin(ScrollTrigger);
 
 const Container = styled.div`
-  position: relative; /* 기준 컨테이너 */
+  position: relative;
   width: 100%;
   height: 100vh;
   overflow: hidden;
@@ -72,7 +76,7 @@ const ArcItem = styled.div<{ $active: boolean; $offset: number }>`
 const FixedTitle = styled.div`
   position: absolute;
   top: 20%;
-  left: 45%;
+  left: 42%;
   transform: translateX(-50%);
   color: white;
   font-size: 24px;
@@ -81,20 +85,34 @@ const FixedTitle = styled.div`
   white-space: pre-line;
 `;
 
-const TabImage = styled.img`
+const TabImage = styled.img<{ $hovered: boolean }>`
   position: absolute;
   top: 30%;
   left: 32%;
-  /* transform: translateX(-50%); */
   width: 800px;
-  /* max-width: 100%; */
   border-radius: 16px;
   box-shadow: 0 0 16px rgba(0, 0, 0, 0.3);
   transition: transform 0.3s ease;
-  pointer-events: auto;
+  transform: ${({ $hovered }) => ($hovered ? 'translateX(-25%) scale(1.46)' : 'none')};
+`;
 
-  &:hover {
-    transform: translateX(-25%) scale(1.46);
+const DownloadLink = styled.a`
+  position: absolute; /* 부모(Container)를 기준으로 배치 */
+  font-size: 14px;
+  color: #ffffff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  text-decoration: none;
+  top: 25%; /* 화면에서의 위치 조정 */
+  right: 0%; /* 오른쪽에서의 위치 조정 */
+  animation: bounceY 1.5s ease-in-out infinite;
+
+  @keyframes bounceY {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
   }
 `;
 
@@ -113,8 +131,12 @@ const TabNumber = styled.span<{ $active: boolean }>`
   font-weight: 400;
 `;
 
-const Design: React.FC<DesignProps> = ({ title, tabs, tabNumbers, slides }) => {
+const Design: React.FC<DesignProps> = ({ title, tabs, tabNumbers, slides, downloadText }) => {
+    const { lang } = useLang();
   const [activeTab, setActiveTab] = useState(0);
+  const [hoverEnabled, setHoverEnabled] = useState(true);
+  const [isHovering, setIsHovering] = useState(false);
+
   const sectionRef = useRef<HTMLDivElement>(null);
   const activeTabRef = useRef(activeTab);
 
@@ -145,6 +167,27 @@ const Design: React.FC<DesignProps> = ({ title, tabs, tabNumbers, slides }) => {
     return () => trigger.kill();
   }, [tabs.length]);
 
+  const getDownloadLink = () => {
+    return downloadLinks.designProposal[lang];
+  };
+
+  const handleMouseEnter = () => {
+    if (hoverEnabled) {
+      setIsHovering(true);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (hoverEnabled) {
+      setIsHovering(false);
+    }
+  };
+
+  const handleClick = () => {
+    setHoverEnabled(false);
+    setIsHovering(false);
+  };
+
   return (
     <Wrapper ref={sectionRef}>
       <StickySection>
@@ -169,7 +212,19 @@ const Design: React.FC<DesignProps> = ({ title, tabs, tabNumbers, slides }) => {
             }}
           />
 
-          <TabImage src={slides[activeTab].image} alt={slides[activeTab].title} />
+<DownloadLink href={getDownloadLink()} target="_blank" rel="noopener noreferrer">
+            {downloadText}
+            <DownloadIcon style={{ fontSize: '16px' }} />
+          </DownloadLink>
+
+          <TabImage
+            src={slides[activeTab].image}
+            alt={slides[activeTab].title}
+            $hovered={isHovering}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+            onClick={handleClick}
+          />
         </Container>
       </StickySection>
     </Wrapper>

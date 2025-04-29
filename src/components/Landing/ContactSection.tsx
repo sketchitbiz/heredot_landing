@@ -62,7 +62,7 @@ const ContactButton = styled.a`
   ${AppTextStyles.button}
   display: inline-block;
   padding: 12px 24px;
-  background-color: #1d1626;
+  background-color: ${AppColors.primary};
   color: ${AppColors.onPrimary};
   border-radius: 99px;
   text-decoration: none;
