@@ -131,6 +131,7 @@ const StyledMarkdownContainer = styled.div`
     border-radius: 8px;
     overflow: hidden;
     border: 1px solid ${AppColors.border};
+    font-weight: 300;
 
     td button {
       background-color: ${AppColors.onBackgroundGray};
@@ -147,9 +148,14 @@ const StyledMarkdownContainer = styled.div`
       }
     }
   }
-
+  //에이닷 텍스트 크기
   p {
     margin-bottom: 0.5rem;
+    font-weight: 300;
+  }
+
+  strong {
+    font-weight: 400;
   }
 `;
 
@@ -166,6 +172,8 @@ const MessageBox = styled.div<StyledComponentProps>`
   padding: 0.3rem 1rem;
   border-radius: 12px;
   ${AppTextStyles.body1}
+  line-height: 1.7;
+  letter-spacing: normal;
 
   ${(props) =>
     props.$sender === "user"
@@ -179,7 +187,6 @@ const MessageBox = styled.div<StyledComponentProps>`
       : css`
           background-color: ${AppColors.background};
           color: ${AppColors.onBackground};
-          line-height: 1.7;
         `};
 `;
 
@@ -261,7 +268,9 @@ export function AiChatMessage({ sender, text, onActionClick }: MessageProps) {
       <MessageBox $sender={sender}>
         {isAiMessage ? (
           <StyledMarkdownContainer>
-            <ProfileName>AIGO - 에이고</ProfileName>
+            <ProfileName>
+              <strong>AIGO - 에이고</strong>
+            </ProfileName>
             <ReactMarkdown components={customComponents} remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
               {text}
             </ReactMarkdown>

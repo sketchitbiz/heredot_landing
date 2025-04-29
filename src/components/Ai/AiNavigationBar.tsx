@@ -207,6 +207,7 @@ const SectionTitle = styled.h3`
 const SectionContent = styled.div`
   ${AppTextStyles.label2};
   color: ${AppColors.onPrimaryGray};
+  font-size: 16px;
 `;
 
 const ItemList = styled.div`

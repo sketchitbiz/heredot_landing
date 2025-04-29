@@ -44,7 +44,7 @@ Generate the detailed invoice table (following the specified Markdown format bel
     \`\`\`markdown
     
     **견적가 할인받기:** 견적가의 할인을 원하시면 다음 옵션을 선택할 수 있습니다:
-    1.  **개발 기간 3주 연장하고 20% 할인받기** <button data-action='discount_extend_3w_20p'> 선택 </button>
+    1.  *개발 기간 8주 연장하고 20% 할인받기** <button data-action='discount_extend_3w_20p'> 선택 </button>
     2.  **핵심 보조 기능 일부 제거하고 할인받기** (AI가 제거할 기능을 제안합니다) <button data-action='discount_remove_features'> 선택 </button>
     
     **PDF로 저장:** <button data-action='download_pdf'>PDF 견적서 다운</button>

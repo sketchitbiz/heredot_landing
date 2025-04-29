@@ -21,7 +21,8 @@ import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate"; // �
 import IconButton from "@mui/material/IconButton";
 import CloseIcon from "@mui/icons-material/Close";
 import { FileUploadData, uploadFiles } from "@/lib/firebase/firebase.functions"; // 경로 확인 필요
-import { Part, FileDataPart, FileData } from "firebase/vertexai";
+import { Part, FileData } from "firebase/vertexai"; // FileDataPart 제거
+import TextareaAutosize from "react-textarea-autosize"; // 라이브러리 import
 
 // --- 데이터 정의 ---
 const stepData = [
@@ -110,7 +111,7 @@ const Container = styled.div`
   min-height: 100vh;
   background-color: ${AppColors.background}; // 변경
   color: ${AppColors.onBackground}; // 변경
-  ${customScrollbar(AppColors.background)}// customScrollbar 적용
+  ${customScrollbar()}// customScrollbar 적용 (인자 없이 호출)
 `;
 
 const MainContent = styled.div`
@@ -154,7 +155,7 @@ const ChatContent = styled.div`
   align-items: center; // 가로 중앙 정렬
   /* justify-content: center; // 세로 중앙 정렬 제거 (위에서부터 시작) */
   height: calc(100vh - 100px); // 헤더/푸터 제외한 높이 (MessageInput 높이 고려 필요)
-  ${customScrollbar(AppColors.background)}// customScrollbar 적용 (배경색은 Container와 동일)
+  ${customScrollbar()}// customScrollbar 적용 (인자 없이 호출)
 `;
 
 const ChatMessagesContainer = styled.div`
@@ -185,13 +186,48 @@ const MessageInput = styled.div`
   margin-top: auto;
 `;
 
+// Input styled-component는 이제 TextareaAutosize를 감싸도록 변경
+const AutoSizeInput = styled(TextareaAutosize)`
+  flex: 1;
+  background-color: transparent;
+  border: none;
+  outline: none;
+  color: ${AppColors.onBackground};
+  ${AppTextStyles.body2}
+  resize: none; // 크기 조절 비활성화
+  overflow-y: auto; // 내용 넘칠 경우 스크롤 (auto-resize와 함께 작동)
+  min-height: 21px; // 최소 높이 (body2의 line-height * font-size 근사값)
+  max-height: 300px; // 최대 높이 제한 (대략 10줄 = 21px * 10)
+  padding-top: 0; // 내부 패딩 조정
+  padding-bottom: 0;
+  line-height: 1.5; // 줄 간격
+  font-family: inherit; // 폰트 상속
+
+  &::placeholder {
+    color: ${AppColors.disabled};
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    color: ${AppColors.disabled};
+  }
+
+  /* 스크롤바 스타일 추가 */
+  ${customScrollbar({
+    trackColor: "#262528", // 스크롤바 배경색
+    // thumbColor: AppColors.scroll, // 막대 색상은 기본값 사용 (AppColors.scroll)
+    // thumbHoverColor는 mixin에서 직접 지원하지 않으므로 제거
+  })}
+`;
+
 const InputContainer = styled.form`
-  display: flex;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 0.5rem;
-  background-color: ${AppColors.inputDisabled}; // 항상 비활성화 색상 유지
+  background-color: ${AppColors.inputDisabled};
   border: 1px solid ${AppColors.border};
-  border-radius: 9999px;
+  border-radius: 24px;
   padding: 0.5rem 1rem;
   max-width: 48rem;
   margin: 0 auto;
@@ -218,24 +254,6 @@ const IconContainer = styled.button`
   }
 `;
 
-const Input = styled.input`
-  flex: 1;
-  background-color: transparent;
-  border: none;
-  outline: none;
-  color: ${AppColors.onBackground};
-  ${AppTextStyles.body2}
-
-  &::placeholder {
-    color: ${AppColors.disabled}; // onSurfaceVariant -> disabled
-  }
-
-  &:disabled {
-    cursor: not-allowed;
-    color: ${AppColors.disabled};
-  }
-`;
-
 // --- 새 ProfileName 스타일 정의 ---
 const ProfileName = styled.p`
   font-size: 20px;
@@ -249,6 +267,7 @@ const ProfileName = styled.p`
 const FreeFormGuide = styled.div`
   width: 100%;
   max-width: 48rem;
+  font-weight: 300;
   padding: 0;
   background-color: ${AppColors.background};
   border-radius: 8px;
@@ -259,6 +278,8 @@ const FreeFormGuide = styled.div`
   p {
     margin-bottom: 1rem;
     color: ${AppColors.onBackground};
+    font-weight: 400;
+    font-weight: 300;
   }
 
   ul {
@@ -273,6 +294,7 @@ const FreeFormGuide = styled.div`
     color: #ffffff; /* 흰색으로 변경 */
     padding-left: 1.25rem;
     position: relative;
+    font-weight: 400;
 
     &::before {
       content: "•";
@@ -283,14 +305,14 @@ const FreeFormGuide = styled.div`
     }
 
     strong {
-      font-weight: bold;
-      color: ${AppColors.primary};
+      font-weight: 400;
     }
     span {
       color: ${AppColors.onPrimaryGray};
       display: block;
       margin-left: 0.5rem;
       margin-top: 0.25rem;
+      font-weight: 300;
     }
   }
 `;
@@ -348,7 +370,7 @@ export default function AiPageContent() {
   const searchParams = useSearchParams();
   const chatEndRef = useRef<HTMLDivElement>(null);
 
-  const { chat, model } = useAI();
+  const { /* chat, */ model } = useAI(); // chat 변수 주석 처리 (사용하지 않음)
 
   const [currentStep, setCurrentStep] = useState(0);
   const [selections, setSelections] = useState<Record<string, string[]>>({});
@@ -475,6 +497,16 @@ export default function AiPageContent() {
     fileInputRef.current?.click();
   };
 
+  // 엔터 키 처리 함수
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    // Enter 키 단독 입력 시 (Shift 키 X)
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault(); // textarea의 기본 Enter 동작(줄바꿈) 막기
+      handleGeminiSubmit(null); // 메시지 전송 함수 호출 (이벤트 객체 불필요)
+    }
+    // Shift + Enter는 기본 동작(줄바꿈) 수행
+  };
+
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = e.target.files;
     if (!selectedFiles) return;
@@ -595,21 +627,19 @@ export default function AiPageContent() {
       // generateContentStream 사용 (문자열 대신 Part 배열 전송)
       const streamResult = await model.current.generateContentStream({ contents: [{ role: "user", parts }] });
 
-      let accumulatedText = "";
       for await (const item of streamResult.stream) {
         const chunkText = item.candidates?.[0]?.content?.parts?.[0]?.text;
         if (chunkText) {
-          accumulatedText += chunkText;
-          // 메시지 업데이트 로직 (이전과 동일)
+          // 메시지 업데이트 로직 수정: 이전 텍스트에 새 청크 추가
           setMessages((prevMessages: Message[]) => {
             const updatedMessages: Message[] = [...prevMessages];
             const lastMessageIndex = updatedMessages.length - 1;
             if (lastMessageIndex >= 0 && updatedMessages[lastMessageIndex].sender === "ai") {
-              const prevAiMessage = updatedMessages[lastMessageIndex]; // 타입 추론 기대
+              const prevAiMessage = updatedMessages[lastMessageIndex];
               const newMessage: Message = {
                 id: prevAiMessage.id,
                 sender: prevAiMessage.sender,
-                text: accumulatedText,
+                text: prevAiMessage.text + chunkText, // 이전 텍스트 + 새 청크
               };
               updatedMessages[lastMessageIndex] = newMessage;
             }
@@ -663,7 +693,9 @@ export default function AiPageContent() {
                 <FlexContainer>
                   <ProfileImage src="/pretty.png" alt="AI 프로필" />
                   <FreeFormGuide>
-                    <ProfileName>AIGO - 에이고</ProfileName>
+                    <ProfileName>
+                      <strong>AIGO - 에이고</strong>
+                    </ProfileName>
                     <div>
                       {/* ... */}
                       <p style={{ marginTop: "1.5rem" }}>다음과 같은 기능도 지원됩니다.</p>
@@ -764,12 +796,15 @@ export default function AiPageContent() {
                 }}>
                 <AddPhotoAlternateIcon sx={{ color: "#BBBBCF" }} /> {/* 아이콘 색상 적용 */}
               </IconButton>
-              <Input
-                type="text"
+              {/* Input 대신 AutoSizeInput 사용 */}
+              <AutoSizeInput
+                minRows={1} // 최소 줄 수
+                maxRows={12} // 최대 줄 수 (max-height와 연동)
                 placeholder={isFreeFormMode ? "메시지 또는 파일 첨부..." : "기초자료 조사는 입력이 불가합니다."}
                 disabled={!isFreeFormMode || loading}
                 value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setPrompt(e.target.value)}
+                onKeyDown={handleKeyDown} // 기존 핸들러 유지
               />
               <IconContainer
                 type="submit"
