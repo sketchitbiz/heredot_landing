@@ -18,10 +18,17 @@ const firebaseConfig: FirebaseOptions = {
 
 // Firebase 앱 초기화 (서버/클라이언트 중복 초기화 방지)
 let app;
+console.log(">>>> Firebase Config: Attempting initialization..."); // 실행 시작 로그
 if (!getApps().length) {
-  app = initializeApp(firebaseConfig);
+  try {
+    app = initializeApp(firebaseConfig);
+    console.log(">>>> Firebase Config: Initialized successfully:", app.name); // 성공 로그
+  } catch (error) {
+    console.error(">>>> Firebase Config: Error during initializeApp:", error); // 초기화 중 오류 로그
+  }
 } else {
   app = getApp();
+  console.log(">>>> Firebase Config: App already exists, getting app:", app.name); // 이미 초기화됨 로그
 }
 
 // 필요한 Firebase 서비스 객체 생성

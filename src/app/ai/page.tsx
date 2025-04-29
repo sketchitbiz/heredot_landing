@@ -347,7 +347,7 @@ export default function AIPage() {
   const searchParams = useSearchParams();
   const chatEndRef = useRef<HTMLDivElement>(null);
 
-  const { chat } = useAI();
+  const { chat, model } = useAI();
 
   const [currentStep, setCurrentStep] = useState(0);
   const [selections, setSelections] = useState<Record<string, string[]>>({});
@@ -555,7 +555,7 @@ export default function AIPage() {
     try {
       // --- AI 요청 구성 ---
       const parts: (string | Part)[] = [];
-      // 1. 기초 조사 요약 추가 (선택 사항, 필요시)
+      // 1. 기초 조사 요약 추가 (Part 객체 형태로)
       let selectionSummary = "";
       Object.entries(selections).forEach(([stepId, selectedOptions]) => {
         // stepData에서 해당 단계 정보 찾기 (선택 사항: 제목 표시용)
@@ -572,12 +572,12 @@ export default function AIPage() {
       });
       selectionSummary += "\n"; // 구분 위한 줄바꿈
       // ------------------------------------------
-      if (selectionSummary) parts.push(selectionSummary + "\n");
+      if (selectionSummary) parts.push({ text: selectionSummary + "\n" });
 
-      // 2. 텍스트 프롬프트 추가
-      if (submissionPrompt) parts.push(submissionPrompt);
+      // 2. 텍스트 프롬프트 추가 (Part 객체 형태로)
+      if (submissionPrompt) parts.push({ text: submissionPrompt });
 
-      // 3. 파일 데이터 추가
+      // 3. 파일 데이터 추가 (기존 방식 유지 - 올바름)
       currentFiles.forEach((file) => {
         parts.push({ fileData: { mimeType: file.mimeType, fileUri: file.fileUri } as FileData } as FileDataPart);
       });
@@ -588,7 +588,7 @@ export default function AIPage() {
       // generateContentStream 사용 (문자열 대신 Part 배열 전송)
       // 참고: useAI 훅의 chat.current가 generateContentStream을 지원하는지 확인 필요
       // 만약 useAI가 generateContentStream을 직접 노출하지 않는다면 useAI 수정 필요
-      const streamResult = await chat.current.generateContentStream({ contents: [{ role: "user", parts }] });
+      const streamResult = await model.current.generateContentStream({ contents: [{ role: "user", parts }] });
 
       let accumulatedText = "";
       for await (const item of streamResult.stream) {
