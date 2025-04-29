@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { GlobalWrapper } from "./global-wrapper";
 import StyledComponentsRegistry from "@/lib/registry";
+import "@/lib/firebase/firebase.config";
 
 /**
  * RootLayout은 Next.js 애플리케이션의 루트 레이아웃을 정의합니다.
@@ -49,4 +50,3 @@ export default function RootLayout({
     </html>
   );
 }
-

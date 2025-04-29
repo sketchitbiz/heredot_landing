@@ -6,13 +6,14 @@ import RadioButtonCheckedIcon from "@mui/icons-material/RadioButtonChecked"; // 
 import { AppColors } from "@/styles/colors";
 import { AppTextStyles } from "@/styles/textStyles";
 
-interface StepProps {
-  isActive: boolean;
-  isCompleted: boolean;
+// Transient props 인터페이스 (올바른 $ 사용)
+interface StepStyleProps {
+  $isActive: boolean;
+  $isCompleted: boolean;
 }
 
-interface ConnectorProps {
-  isActive: boolean;
+interface ConnectorStyleProps {
+  $isActive: boolean; // 완료 상태 기준으로 변경
 }
 
 interface AiProgressBarProps {
@@ -30,7 +31,8 @@ const ProgressBarContainer = styled.div`
   margin-left: auto; // 오른쪽 정렬 효과 (MainContent와 ProgressContainer 분리)
 `;
 
-const StepContainer = styled.div<StepProps>`
+// StepStyleProps 사용 (올바른 $ 사용)
+const StepContainer = styled.div<StepStyleProps>`
   display: flex;
   align-items: center;
   margin-bottom: 0.5rem; // 각 스텝 간격 조절
@@ -41,18 +43,19 @@ const StepContainer = styled.div<StepProps>`
   }
 `;
 
-const StepIconContainer = styled.div<StepProps>`
+// StepStyleProps 사용 (올바른 $ 사용)
+const StepIconContainer = styled.div<StepStyleProps>`
   position: relative;
   z-index: 1; // Connector 위에 오도록 설정
   margin-right: 1rem;
 
   .MuiSvgIcon-root {
-    // 아이콘 스타일 공통 적용
+    // props 접근 시 올바른 $ 사용
     font-size: 1.75rem; // 아이콘 크기
     color: ${(props) =>
-      props.isCompleted
+      props.$isCompleted
         ? "#546ACB" // 완료 시
-        : props.isActive
+        : props.$isActive
         ? "#546ACB" // 현재 진행 시
         : AppColors.disabled}; // 비활성 시
     transition: color 0.3s ease;
@@ -63,27 +66,33 @@ const StepContent = styled.div`
   margin-left: 1rem; // 아이콘과 텍스트 간격
 `;
 
-const StepTitle = styled.div<StepProps>`
+// StepStyleProps 사용 (올바른 $ 사용)
+const StepTitle = styled.div<StepStyleProps>`
   ${AppTextStyles.body1}
-  color: ${(props) => (props.isCompleted || props.isActive ? AppColors.onBackground : AppColors.disabled)};
+  // props 접근 시 올바른 $ 사용
+  color: ${(props) => (props.$isCompleted || props.$isActive ? AppColors.onBackground : AppColors.disabled)};
   transition: color 0.3s ease;
 `;
 
-const StepDescription = styled.div<StepProps>`
+// StepStyleProps 사용 (올바른 $ 사용)
+const StepDescription = styled.div<StepStyleProps>`
   ${AppTextStyles.caption1}
+  // props 접근 시 올바른 $ 사용
   color: ${(props) =>
-    props.isCompleted || props.isActive ? AppColors.disabled /* onSurfaceVariant 대신 */ : AppColors.disabled};
+    props.$isCompleted || props.$isActive ? AppColors.disabled /* onSurfaceVariant 대신 */ : AppColors.disabled};
   transition: color 0.3s ease;
   white-space: pre-wrap; // 설명 줄바꿈 허용
 `;
 
-const Connector = styled.div<ConnectorProps>`
+// ConnectorStyleProps 사용 (올바른 $ 사용)
+const Connector = styled.div<ConnectorStyleProps>`
   position: absolute;
   top: 2.4rem; // 아이콘 아래 시작 (아이콘 크기 + 약간의 간격)
   left: 0.875rem; // 아이콘 중앙 정렬 (아이콘 크기의 절반 정도)
   width: 2px; // 선 두께
   height: calc(100% - 1.3rem); // 다음 아이콘 상단까지 연결 (간격 고려)
-  background-color: ${(props) => (props.isActive ? "#546ACB" : AppColors.disabled)};
+  // props 접근 시 올바른 $ 사용
+  background-color: ${(props) => (props.$isActive ? "#546ACB" : AppColors.disabled)};
   transition: background-color 0.3s ease;
   z-index: 0; // 아이콘 뒤로 가도록 설정
 `;
@@ -97,9 +106,12 @@ export const AiProgressBar: React.FC<AiProgressBarProps> = ({ steps, currentStep
         const isLastStep = index === steps.length - 1;
 
         return (
-          <StepContainer key={index} isActive={isActive} isCompleted={isCompleted}>
-            {!isLastStep && <Connector isActive={isCompleted} />}
-            <StepIconContainer isActive={isActive} isCompleted={isCompleted}>
+          // transient props 전달 (올바른 $ 사용)
+          <StepContainer key={index} $isActive={isActive} $isCompleted={isCompleted}>
+            {/* transient prop 전달 (올바른 $ 사용) */}
+            {!isLastStep && <Connector $isActive={isCompleted} />}
+            {/* transient props 전달 (올바른 $ 사용) */}
+            <StepIconContainer $isActive={isActive} $isCompleted={isCompleted}>
               {isCompleted ? (
                 <CheckCircleIcon />
               ) : isActive ? (
@@ -109,10 +121,12 @@ export const AiProgressBar: React.FC<AiProgressBarProps> = ({ steps, currentStep
               )}
             </StepIconContainer>
             <StepContent>
-              <StepTitle isActive={isActive} isCompleted={isCompleted}>
+              {/* transient props 전달 (올바른 $ 사용) */}
+              <StepTitle $isActive={isActive} $isCompleted={isCompleted}>
                 {step.title}
               </StepTitle>
-              <StepDescription isActive={isActive} isCompleted={isCompleted}>
+              {/* transient props 전달 (올바른 $ 사용) */}
+              <StepDescription $isActive={isActive} $isCompleted={isCompleted}>
                 {step.description}
               </StepDescription>
             </StepContent>

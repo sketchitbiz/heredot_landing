@@ -1,28 +1,28 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import { useLang } from '@/contexts/LangContext';
-import { dictionary } from '@/lib/i18n/lang';
-import LandingAppBar from '@/components/LandingAppBar';
-import LandingBaseWrapper from '@/layout/LandingBaseWrapper';
+import React, { useEffect, useState } from "react";
+import { useLang } from "@/contexts/LangContext";
+import { dictionary } from "@/lib/i18n/lang";
+import LandingAppBar from "@/components/LandingAppBar";
+import LandingBaseWrapper from "@/layout/LandingBaseWrapper";
 
-import HeaderBlock from '@/block/HeaderBlock';
-import FirstMapBlock from '@/block/FirstMapBlock';
-import Partner from '@/block/Partner';
-import Rolling from '@/block/Rolling';
-import Consulting from '@/block/Consulting';
-import Design from '@/block/Design';
-import SecondMapBlock from '@/block/SecondMapBlock';
-import AppBlock from '@/block/AppBlock';
-import { PortfolioGrid } from '@/block/PortfolioGrid';
-import { MembersTabSection } from '@/block/MembersTabSection';
-import { VideoGrid } from '@/block/VideoGrid';
-import { ScrollingBannerSection } from '@/block/ScrollingBannerSection';
-import { ContactSection } from '@/components/Landing/ContactSection';
-import { Footer } from '@/block/Footer';
-import { AppColors } from '@/styles/colors';
-import { CustomNavigator } from '@/customComponents/CustomNavigator';
-import { downloadLinks } from '@/lib/i18n/downloadLinks';
+import HeaderBlock from "@/block/HeaderBlock";
+import FirstMapBlock from "@/block/FirstMapBlock";
+import Partner from "@/block/Partner";
+import Rolling from "@/block/Rolling";
+import Consulting from "@/block/Consulting";
+import Design from "@/block/Design";
+import SecondMapBlock from "@/block/SecondMapBlock";
+import AppBlock from "@/block/AppBlock";
+import { PortfolioGrid } from "@/block/PortfolioGrid";
+import { MembersTabSection } from "@/block/MembersTabSection";
+import { VideoGrid } from "@/block/VideoGrid";
+import { ScrollingBannerSection } from "@/block/ScrollingBannerSection";
+import { ContactSection } from "@/components/Landing/ContactSection";
+import { Footer } from "@/block/Footer";
+import { AppColors } from "@/styles/colors";
+import { CustomNavigator } from "@/customComponents/CustomNavigator";
+import { downloadLinks } from "@/lib/i18n/downloadLinks";
 
 export default function HomePage() {
   const { lang } = useLang();
@@ -37,23 +37,23 @@ export default function HomePage() {
         if (visible) {
           const id = visible.target.id;
           switch (id) {
-            case 'firstMap':
-            case 'secondMap':
+            case "firstMap":
+            case "secondMap":
               setCurrentSection(t.nav[0]); // 핵심강점
               break;
-            case 'portfolio':
+            case "portfolio":
               setCurrentSection(t.nav[1]); // 포트폴리오
               break;
-            case 'members':
+            case "members":
               setCurrentSection(t.nav[2]); // 팀원소개
               break;
-            case 'video':
+            case "video":
               setCurrentSection(t.customNavigator.review); // 고객후기
               break;
-            case 'market':
+            case "market":
               setCurrentSection(t.customNavigator.event); // 기획전
               break;
-            case 'contact':
+            case "contact":
               setCurrentSection(t.customNavigator.contact); // 연락
               break;
             default:
@@ -64,15 +64,7 @@ export default function HomePage() {
       { threshold: 0.3 }
     );
 
-    const sectionElements = [
-      'firstMap',
-      'secondMap',
-      'portfolio',
-      'members',
-      'video',
-      'market',
-      'contact',
-    ]
+    const sectionElements = ["firstMap", "secondMap", "portfolio", "members", "video", "market", "contact"]
       .map((id) => document.getElementById(id))
       .filter(Boolean);
 
@@ -85,7 +77,7 @@ export default function HomePage() {
 
   const sections = [
     {
-      id: 'header',
+      id: "header",
       $backgroundColor: AppColors.background,
       content: (
         <HeaderBlock
@@ -98,14 +90,14 @@ export default function HomePage() {
       $zIndex: 1000,
     },
     {
-      id: 'firstMap',
+      id: "firstMap",
       $backgroundColor: AppColors.background,
       content: <FirstMapBlock label={t.firstMap.label} />,
       $zIndex: 1,
       $isOverLayout: true,
     },
     {
-      id: 'partner',
+      id: "partner",
       $backgroundColor: AppColors.surface,
       content: (
         <Partner
@@ -120,14 +112,14 @@ export default function HomePage() {
       $zIndex: 1100,
     },
     {
-      id: 'rolling',
+      id: "rolling",
       $backgroundColor: AppColors.background,
       content: <Rolling />,
       $zIndex: 1100,
       $isOverLayout: true,
     },
     {
-      id: 'consulting',
+      id: "consulting",
       $backgroundColor: AppColors.surface,
       content: (
         <Consulting
@@ -141,7 +133,7 @@ export default function HomePage() {
       $zIndex: 1100,
     },
     {
-      id: 'design',
+      id: "design",
       $backgroundColor: AppColors.background,
       content: (
         <Design
@@ -155,14 +147,14 @@ export default function HomePage() {
       $zIndex: 1100,
     },
     {
-      id: 'secondMap',
+      id: "secondMap",
       $backgroundColor: AppColors.background,
       content: <SecondMapBlock label={t.secondMap.label} />,
       $zIndex: 20,
       $isOverLayout: true,
     },
     {
-      id: 'appblock',
+      id: "appblock",
       $backgroundColor: AppColors.primary,
       content: (
         <AppBlock
@@ -173,7 +165,7 @@ export default function HomePage() {
       $zIndex: 1100,
     },
     {
-      id: 'portfolio',
+      id: "portfolio",
       $backgroundColor: AppColors.background,
       content: (
         <PortfolioGrid
@@ -186,10 +178,9 @@ export default function HomePage() {
       ),
       $zIndex: 1110,
     },
-    
-    
+
     {
-      id: 'members',
+      id: "members",
       $backgroundColor: AppColors.background,
       content: (
         <MembersTabSection
@@ -204,9 +195,9 @@ export default function HomePage() {
       ),
       $zIndex: 10,
     },
-    
+
     {
-      id: 'video',
+      id: "video",
       $backgroundColor: AppColors.background,
       content: (
         <VideoGrid
@@ -237,13 +228,13 @@ export default function HomePage() {
     // },
     
     {
-      id: 'contact',
+      id: "contact",
       $backgroundColor: AppColors.background,
       content: <ContactSection />,
       $zIndex: 10,
     },
     {
-      id: 'footer',
+      id: "footer",
       $backgroundColor: AppColors.background,
       content: <Footer />,
       $zIndex: 10,
@@ -252,27 +243,24 @@ export default function HomePage() {
 
   return (
     <>
-
-
       {/* 🔥 LandingAppBar pinned */}
       <div
         style={{
-          position: 'fixed',
+          position: "fixed",
           top: 0,
           left: 0,
           right: 0,
           zIndex: 1050,
-        }}
-      >
+        }}>
         <LandingAppBar
           logoSrc="/assets/logo.svg"
           logoWidth="169px"
           logoHeight="64px"
           navLinks={[
-            { label: t.nav[0], targetId: 'partner' },
-            { label: t.nav[1], targetId: 'portfolio' },
-            { label: t.nav[2], targetId: 'members' },
-            { label: t.nav[3], targetId: 'market' },
+            { label: t.nav[0], targetId: "partner" },
+            { label: t.nav[1], targetId: "portfolio" },
+            { label: t.nav[2], targetId: "members" },
+            { label: t.nav[3], targetId: "market" },
           ]}
           isShowLanguageSwitcher={true}
         />

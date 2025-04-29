@@ -172,53 +172,61 @@ const Partner: React.FC<PartnerProps> = ({
   }, [activeTab]);
 
   useEffect(() => {
-    gsap.registerPlugin(ScrollTrigger);
-    const slideHeight = window.innerHeight;
-    const totalScroll = slideHeight * tabs.length;
-
-    const ctx = gsap.context(() => {
-      ScrollTrigger.create({
-        id: 'partner-scroll',
-        trigger: sectionRef.current,
-        start: 'top top',
-        end: `+=${totalScroll }`,
-        scrub: true,
-        pin: true,
-        onUpdate: (self) => {
-          const progress = self.progress;
-          let index = Math.floor(progress * tabs.length);
-          index = Math.min(index, tabs.length - 1);
-
-          if (!ignoreScroll.current && index !== activeTabRef.current) {
-            setActiveTab(index);
-            setActiveSlide(0);
-          }
-        },
-      });
-
-      gsap.timeline({
-        scrollTrigger: {
+    if (typeof window === 'undefined') return; // ✅ 서버에서는 아예 실행 안 함
+  
+    (async () => {
+      const { gsap } = await import('gsap'); // ✅ gsap를 동적으로 import
+      const { ScrollTrigger } = await import('gsap/ScrollTrigger');
+      gsap.registerPlugin(ScrollTrigger);
+  
+      const slideHeight = window.innerHeight;
+      const totalScroll = slideHeight * tabs.length;
+  
+      const ctx = gsap.context(() => {
+        ScrollTrigger.create({
+          id: 'partner-scroll',
           trigger: sectionRef.current,
-          start: 'top bottom-=200',
-          end: 'top center+=150',
-          toggleActions: 'play none none reverse',
-        },
-      })
-        .fromTo(
-          leftRef.current,
-          { scale: 0.9, opacity: 0, y: 50 },
-          { scale: 1, opacity: 1, y: 0, duration: 1, ease: 'power3.out' }
-        )
-        .fromTo(
-          rightRef.current,
-          { scale: 0.95, opacity: 0, y: 60 },
-          { scale: 1, opacity: 1, y: 0, duration: 1, ease: 'power3.out' },
-          '-=0.6'
-        );
-    }, sectionRef);
-
-    return () => ctx.revert();
+          start: 'top top',
+          end: `+=${totalScroll}`,
+          scrub: true,
+          pin: true,
+          onUpdate: (self) => {
+            const progress = self.progress;
+            let index = Math.floor(progress * tabs.length);
+            index = Math.min(index, tabs.length - 1);
+  
+            if (!ignoreScroll.current && index !== activeTabRef.current) {
+              setActiveTab(index);
+              setActiveSlide(0);
+            }
+          },
+        });
+  
+        gsap.timeline({
+          scrollTrigger: {
+            trigger: sectionRef.current,
+            start: 'top bottom-=200',
+            end: 'top center+=150',
+            toggleActions: 'play none none reverse',
+          },
+        })
+          .fromTo(
+            leftRef.current,
+            { scale: 0.9, opacity: 0, y: 50 },
+            { scale: 1, opacity: 1, y: 0, duration: 1, ease: 'power3.out' }
+          )
+          .fromTo(
+            rightRef.current,
+            { scale: 0.95, opacity: 0, y: 60 },
+            { scale: 1, opacity: 1, y: 0, duration: 1, ease: 'power3.out' },
+            '-=0.6'
+          );
+      }, sectionRef);
+  
+      return () => ctx.revert();
+    })();
   }, []);
+  ;
 
   const handleTabClick = (index: number) => {
     const trigger = ScrollTrigger.getById('partner-scroll');
