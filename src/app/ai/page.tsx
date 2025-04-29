@@ -12,8 +12,16 @@ import { AiChatQuestion } from "@/components/Ai/AiChatQuestion";
 import { AiProgressBar } from "@/components/Ai/AiProgressBar";
 import { customScrollbar } from "@/styles/commonStyles";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import { AiChatMessage } from "@/components/Ai/AiChatMessage";
+import { AiChatMessage, Message } from "@/components/Ai/AiChatMessage";
 import useAI from "@/hooks/useAI"; // 경로 확인 필요
+
+// Material UI & File Upload Imports
+// import AttachFileIcon from '@mui/icons-material/AttachFile'; // 이전 아이콘 제거
+import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate"; // 새 아이콘 추가
+import IconButton from "@mui/material/IconButton";
+import CloseIcon from "@mui/icons-material/Close";
+import { FileUploadData, uploadFiles } from "@/lib/firebase/firebase.functions"; // 경로 확인 필요
+import { Part, FileDataPart, FileData } from "firebase/vertexai";
 
 // --- 데이터 정의 ---
 const stepData = [
@@ -95,13 +103,6 @@ const stepData = [
   // --- 추가 단계 데이터 ---
 ];
 
-// --- 메시지 타입 정의 (복구) ---
-interface Message {
-  id: number;
-  sender: "user" | "ai";
-  text: string;
-}
-
 // --- 스타일 컴포넌트 (기존 것 유지 및 일부 수정) ---
 const Container = styled.div`
   display: flex;
@@ -125,6 +126,7 @@ const MainContent = styled.div`
 const ChatContainer = styled.div`
   flex: 1; // 남은 공간 차지
   display: flex;
+  width: 100%;
   flex-direction: column; // 내부 요소 세로 정렬
   height: 100%; // 부모 높이 채우기
   overflow: hidden; // 스크롤은 ChatContent에서
@@ -157,7 +159,7 @@ const ChatContent = styled.div`
 
 const ChatMessagesContainer = styled.div`
   width: 100%;
-  max-width: 48rem;
+  max-width: 64rem;
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -294,22 +296,73 @@ const FreeFormGuide = styled.div`
 `;
 // ------------------------------------
 
+// --- 새 파일 관련 스타일 ---
+const UploadedFilePreview = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background-color: ${AppColors.onSurfaceVariant};
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+  max-width: fit-content; /* 내용물 크기에 맞춤 */
+
+  span {
+    font-size: 0.8rem;
+    color: ${AppColors.onSurfaceVariant};
+    max-width: 150px; /* 파일 이름 최대 너비 */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+`;
+
+const UploadedFilesContainer = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0 auto 1rem auto; /* 위아래 마진 추가 및 중앙 정렬 */
+  max-width: 48rem; /* InputContainer와 동일 너비 */
+  justify-content: center; /* 파일 목록 중앙 정렬 */
+`;
+
+const DragDropOverlay = styled.div`
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0, 0, 255, 0.1);
+  border: 2px dashed ${AppColors.primary};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  color: ${AppColors.primary};
+  pointer-events: none; /* Prevent interference */
+  z-index: 10;
+`;
+// -------------------------
+
 export default function AIPage() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const chatEndRef = useRef<HTMLDivElement>(null);
 
-  const { chat, modelName } = useAI(); // modelName 추가
+  const { chat } = useAI();
 
   const [currentStep, setCurrentStep] = useState(0);
   const [selections, setSelections] = useState<Record<string, string[]>>({});
   const [isFreeFormMode, setIsFreeFormMode] = useState(false);
 
-  const [messages, setMessages] = useState<Message[]>([]); // 타입 복구
+  const [messages, setMessages] = useState<Message[]>([]);
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // --- File Upload State ---
+  const [uploadedFiles, setUploadedFiles] = useState<FileUploadData[]>([]);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+  // -------------------------
 
   // URL 파라미터 -> 상태 동기화 Effect
   useEffect(() => {
@@ -379,8 +432,6 @@ export default function AIPage() {
     } else {
       // 마지막 단계 완료 시: mode=freeform 추가, step 제거
       updateUrlParams({ selections: selectionsString, mode: "freeform", step: undefined });
-      // 직접 상태 업데이트 제거 -> useEffect가 처리
-      // setIsFreeFormMode(true);
     }
   };
 
@@ -391,83 +442,217 @@ export default function AIPage() {
       const prevStep = currentStep - 1;
       // 이전 단계로 이동 시 selections는 유지하고 step만 변경, mode 제거
       updateUrlParams({ step: prevStep, mode: undefined });
-      // 직접 상태 업데이트 제거 -> useEffect가 처리
-      // setCurrentStep(prevStep);
     }
   };
 
-  // --- Gemini API 호출 함수 수정 ---
-  const handleGeminiSubmit = async (e?: React.FormEvent) => {
-    e?.preventDefault();
-    console.log("handleGeminiSubmit called");
-    console.log(
-      `DEBUG: prompt='${prompt}', loading=${loading}, isFreeFormMode=${isFreeFormMode}, chat.current=${!!chat.current}, chat.current.sendMessage=${!!chat
-        .current?.sendMessage}, modelName=${modelName}`
-    );
+  // --- 버튼 액션 처리 함수 수정 ---
+  const handleActionClick = (action: string) => {
+    console.log("Action clicked:", action);
+    switch (action) {
+      case "show_invoice":
+        // AI에게 견적서 생성을 직접 요청
+        handleGeminiSubmit(null, "견적서를 보여줘");
+        break;
+      case "discount_extend_3w_20p":
+        // 할인 옵션 1 선택 메시지 직접 전송
+        handleGeminiSubmit(null, "할인 옵션 1 (기간 연장)을 선택합니다.");
+        break;
+      case "discount_remove_features":
+        // 할인 옵션 2 선택 메시지 직접 전송
+        handleGeminiSubmit(null, "할인 옵션 2 (기능 제거)를 선택합니다.");
+        break;
+      case "download_pdf":
+        alert("PDF 다운로드 기능은 로그인 후 사용할 수 있습니다. (구현 예정)");
+        break;
+      default:
+        console.warn("Unknown button action:", action);
+    }
+  };
 
-    if (!prompt || loading || !isFreeFormMode || !chat.current?.sendMessage) {
-      console.error("Submit prevented by conditions.");
+  // --- 파일 처리 핸들러 ---
+  const handleIconUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = e.target.files;
+    if (!selectedFiles) return;
+    uploadFiles(Array.from(selectedFiles), {
+      onUpload: (data) => setUploadedFiles((prev) => [...prev, data]),
+      progress: (percent) => setUploadProgress(percent),
+    });
+    if (e.target) {
+      e.target.value = "";
+    }
+  };
+
+  const handleDropFiles = (e: React.DragEvent<HTMLElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const droppedFiles = e.dataTransfer.files;
+    if (!droppedFiles) return;
+    uploadFiles(Array.from(droppedFiles), {
+      onUpload: (data) => setUploadedFiles((prev) => [...prev, data]),
+      progress: (percent) => setUploadProgress(percent),
+    });
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLElement>) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDeleteFile = (fileUri: string) => {
+    setUploadedFiles((prev) => prev.filter((f) => f.fileUri !== fileUri));
+    // TODO: Optionally delete from Firebase Storage using deleteImage function
+    // import { deleteImage } from '@/lib/firebase/firebase.functions';
+    // deleteImage(fileUri, { onSuccess: () => console.log('Deleted from storage') });
+  };
+  // ------------------------
+
+  // --- Gemini API 호출 함수 수정 (파일 처리 추가) ---
+  const handleGeminiSubmit = async (e?: React.FormEvent | null, actionPrompt?: string) => {
+    e?.preventDefault();
+    const submissionPrompt = actionPrompt || prompt;
+
+    // 파일 또는 프롬프트가 없으면 중단
+    if ((!submissionPrompt && uploadedFiles.length === 0) || loading) {
+      console.error("Submit prevented: No prompt or files, or already loading.");
       return;
     }
 
-    // --- 기초 조사 선택 내용 문자열로 만들기 ---
-    let selectionSummary = "선택된 기초 조사:\n";
-    Object.entries(selections).forEach(([stepId, selectedOptions]) => {
-      // stepData에서 해당 단계 정보 찾기 (선택 사항: 제목 표시용)
-      const stepInfo = stepData.find((step) => step.id === stepId);
-      const stepTitle = stepInfo ? stepInfo.selectionTitle : stepId; // 제목 없으면 ID 사용
-      if (selectedOptions && selectedOptions.length > 0) {
-        // 옵션 ID를 레이블로 변환 (선택 사항)
-        const selectedLabels = selectedOptions.map((optionId) => {
-          const option = stepInfo?.options.find((opt) => opt.id === optionId);
-          return option ? option.label : optionId; // 레이블 없으면 ID 사용
-        });
-        selectionSummary += `- ${stepTitle}: ${selectedLabels.join(", ")}\n`;
-      }
-    });
-    selectionSummary += "\n"; // 구분 위한 줄바꿈
-    // ------------------------------------------
+    // 기존 isFreeFormMode 체크 유지 (파일 업로드는 자유 질문 모드에서만 가능하다고 가정)
+    if (!isFreeFormMode) {
+      console.error("Submit prevented: File upload only in free form mode.");
+      return;
+    }
 
-    const currentPrompt = prompt;
-    const combinedPrompt = `${selectionSummary}사용자 질문:\n${currentPrompt}`;
-
-    // 모델명 함께 출력하도록 수정
-    console.log(`Model: ${modelName} | Combined Prompt:`, combinedPrompt);
-
-    const userMessage: Message = { id: Date.now(), sender: "user", text: currentPrompt };
-    setMessages((prev) => [...prev, userMessage]);
-    setPrompt("");
+    console.log("handleGeminiSubmit called with prompt:", submissionPrompt, "Files:", uploadedFiles);
     setLoading(true);
     setError("");
 
-    try {
-      const result = await chat.current.sendMessage(combinedPrompt);
-      console.log("Raw AI Response Data:", result);
+    // 사용자 메시지 생성 (프롬프트 + 파일 목록 텍스트)
+    let userMessageText = submissionPrompt;
+    if (uploadedFiles.length > 0) {
+      userMessageText += `\n\n(첨부 파일: ${uploadedFiles.map((f) => f.name).join(", ")})`;
+    }
+    const userMessage: Message = { id: Date.now(), sender: "user", text: userMessageText };
+    const initialAiMessage: Message = { id: Date.now() + 1, sender: "ai", text: "" };
+    setMessages((prev) => [...prev, userMessage, initialAiMessage]);
 
-      const text = result?.response?.candidates?.[0]?.content?.parts?.[0]?.text || "AI 응답 구조 확인 필요";
-      console.log("AI Response Object (Legacy log):", result);
-      const aiMessage: Message = { id: Date.now() + 1, sender: "ai", text };
-      setMessages((prev) => [...prev, aiMessage]);
+    if (!actionPrompt) {
+      setPrompt("");
+    }
+    const currentFiles = [...uploadedFiles]; // 현재 파일 목록 복사
+    setUploadedFiles([]); // 상태 초기화 (UI에서 제거)
+    setUploadProgress(0); // 진행률 초기화
+
+    try {
+      // --- AI 요청 구성 ---
+      const parts: (string | Part)[] = [];
+      // 1. 기초 조사 요약 추가 (선택 사항, 필요시)
+      let selectionSummary = "";
+      Object.entries(selections).forEach(([stepId, selectedOptions]) => {
+        // stepData에서 해당 단계 정보 찾기 (선택 사항: 제목 표시용)
+        const stepInfo = stepData.find((step) => step.id === stepId);
+        const stepTitle = stepInfo ? stepInfo.selectionTitle : stepId; // 제목 없으면 ID 사용
+        if (selectedOptions && selectedOptions.length > 0) {
+          // 옵션 ID를 레이블로 변환 (선택 사항)
+          const selectedLabels = selectedOptions.map((optionId) => {
+            const option = stepInfo?.options.find((opt) => opt.id === optionId);
+            return option ? option.label : optionId; // 레이블 없으면 ID 사용
+          });
+          selectionSummary += `- ${stepTitle}: ${selectedLabels.join(", ")}\n`;
+        }
+      });
+      selectionSummary += "\n"; // 구분 위한 줄바꿈
+      // ------------------------------------------
+      if (selectionSummary) parts.push(selectionSummary + "\n");
+
+      // 2. 텍스트 프롬프트 추가
+      if (submissionPrompt) parts.push(submissionPrompt);
+
+      // 3. 파일 데이터 추가
+      currentFiles.forEach((file) => {
+        parts.push({ fileData: { mimeType: file.mimeType, fileUri: file.fileUri } as FileData } as FileDataPart);
+      });
+      // --- AI 요청 구성 완료 ---
+
+      console.log("Sending parts to AI:", parts); // 디버깅 로그
+
+      // generateContentStream 사용 (문자열 대신 Part 배열 전송)
+      // 참고: useAI 훅의 chat.current가 generateContentStream을 지원하는지 확인 필요
+      // 만약 useAI가 generateContentStream을 직접 노출하지 않는다면 useAI 수정 필요
+      const streamResult = await chat.current.generateContentStream({ contents: [{ role: "user", parts }] });
+
+      let accumulatedText = "";
+      for await (const item of streamResult.stream) {
+        const chunkText = item.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (chunkText) {
+          accumulatedText += chunkText;
+          // 메시지 업데이트 로직 (이전과 동일)
+          setMessages((prevMessages: Message[]) => {
+            const updatedMessages: Message[] = [...prevMessages];
+            const lastMessageIndex = updatedMessages.length - 1;
+            if (lastMessageIndex >= 0 && updatedMessages[lastMessageIndex].sender === "ai") {
+              const prevAiMessage = updatedMessages[lastMessageIndex]; // 타입 추론 기대
+              const newMessage: Message = {
+                id: prevAiMessage.id,
+                sender: prevAiMessage.sender,
+                text: accumulatedText,
+              };
+              updatedMessages[lastMessageIndex] = newMessage;
+            }
+            return updatedMessages;
+          });
+        }
+      }
     } catch (err) {
+      // 오류 처리 (이전과 동일)
       const errorMessage = err instanceof Error ? err.message : "알 수 없는 오류가 발생했습니다.";
       setError(errorMessage);
-      console.error("Error sending message via useAI:", err);
-      const errorAiMessage: Message = { id: Date.now() + 1, sender: "ai", text: `오류: ${errorMessage}` };
-      setMessages((prev) => [...prev, errorAiMessage]);
+      console.error("Error sending message with files:", err);
+      setMessages((prevMessages: Message[]) => {
+        const updatedMessages: Message[] = [...prevMessages];
+        const lastMessageIndex = updatedMessages.length - 1;
+        if (lastMessageIndex >= 0 && updatedMessages[lastMessageIndex].sender === "ai") {
+          const prevAiMessage = updatedMessages[lastMessageIndex];
+          const errorMessageObj: Message = {
+            id: prevAiMessage.id,
+            sender: prevAiMessage.sender,
+            text: `오류: ${errorMessage}`,
+          };
+          updatedMessages[lastMessageIndex] = errorMessageObj;
+        }
+        return updatedMessages;
+      });
     } finally {
       setLoading(false);
     }
   };
   // ----------------------------------------------------
 
-  // gridColumns 타입 수정
-  const gridColumnsValue: number | undefined = currentStepData?.gridColumns;
+  // gridColumns 타입 수정 및 기본값 설정
+  const stepGridColumns = currentStepData?.gridColumns;
+  // AiChatQuestion이 받는 타입 (1 | 2 | 3 | 4 | 5)으로 제한하고, 아니면 기본값 3 사용
+  const gridColumnsForQuestion: 1 | 2 | 3 | 4 | 5 =
+    typeof stepGridColumns === "number" && [1, 2, 3, 4, 5].includes(stepGridColumns)
+      ? (stepGridColumns as 1 | 2 | 3 | 4 | 5)
+      : 3; // 기본값 3
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   return (
     <Container>
       <MainContent>
         <ChatContainer>
-          <ChatContent>
+          <ChatContent onDrop={handleDropFiles} onDragOver={handleDragOver} onDragLeave={handleDragLeave}>
+            {isDragging && <DragDropOverlay>파일을 여기에 놓으세요</DragDropOverlay>}
             <ChatMessagesContainer>
               {isFreeFormMode && (
                 <FlexContainer>
@@ -481,7 +666,8 @@ export default function AIPage() {
                         <li>
                           URL: 네이버, 다음 등 원하는 사이트 링크
                           <br />
-                          <span>ex) &quot;www.naver.com 같은 사이트를 만들고 싶어요&quot;</span>
+                          {/* eslint-disable-next-line react/no-unescaped-entities */}
+                          <span>ex) "www.naver.com 같은 사이트를 만들고 싶어요"</span>
                         </li>
                         <li>이미지: 캡처, JPG 등 이미지 파일</li>
                         <li>
@@ -504,7 +690,7 @@ export default function AIPage() {
                   <AiChatQuestion
                     key={currentStep}
                     {...currentStepData}
-                    gridColumns={gridColumnsValue} // 수정된 타입 사용
+                    gridColumns={gridColumnsForQuestion} // 수정된 변수 사용
                     selectionMode={currentStepData.selectionMode}
                     initialSelection={initialSelection}
                     onNext={handleNext}
@@ -513,9 +699,9 @@ export default function AIPage() {
                 </FlexContainer>
               )}
 
-              {/* 메시지 맵핑 (타입 복구됨) */}
+              {/* 메시지 맵핑: id prop 제거 */}
               {messages.map((msg) => (
-                <AiChatMessage key={msg.id} sender={msg.sender} text={msg.text} />
+                <AiChatMessage key={msg.id} sender={msg.sender} text={msg.text} onActionClick={handleActionClick} />
               ))}
 
               {loading && <StatusMessage>AI 응답을 생성 중입니다...</StatusMessage>}
@@ -526,23 +712,65 @@ export default function AIPage() {
           </ChatContent>
 
           <MessageInput>
-            {/* --- 디버깅용 상태 표시 --- */}
-            {/* <div style={{ textAlign: "center", fontSize: "12px", color: "gray", marginBottom: "10px" }}>
-              <span>FreeForm: {String(isFreeFormMode)} | </span>
-              <span>Loading: {String(loading)} | </span>
-              <span>Prompt Empty: {String(!prompt)}</span>
-            </div> */}
-            {/* ------------------------ */}
+            {/* 업로드된 파일 목록 표시 */}
+            {uploadedFiles.length > 0 && (
+              <UploadedFilesContainer>
+                {uploadedFiles.map((file) => (
+                  <UploadedFilePreview key={file.fileUri}>
+                    <span>{file.name}</span>
+                    <IconButton onClick={() => handleDeleteFile(file.fileUri)} size="small" style={{ padding: "2px" }}>
+                      <CloseIcon fontSize="inherit" />
+                    </IconButton>
+                  </UploadedFilePreview>
+                ))}
+              </UploadedFilesContainer>
+            )}
+            {/* 업로드 진행률 표시 */}
+            {uploadProgress > 0 && uploadProgress < 100 && (
+              <div style={{ width: "100%", maxWidth: "48rem", margin: "0 auto 0.5rem auto" }}>
+                <progress value={uploadProgress} max="100" style={{ width: "100%" }} />
+              </div>
+            )}
 
             <InputContainer onSubmit={handleGeminiSubmit} data-active={isFreeFormMode && !loading}>
+              {/* 숨겨진 파일 입력 */}
+              <input
+                type="file"
+                multiple
+                accept="image/*,application/pdf"
+                ref={fileInputRef}
+                onChange={handleFileInputChange}
+                style={{ display: "none" }}
+                disabled={!isFreeFormMode || loading} // 자유모드 및 로딩 중 비활성화
+              />
+              {/* 파일 업로드 아이콘 버튼 (스타일 수정) */}
+              <IconButton
+                onClick={handleIconUploadClick}
+                size="small"
+                disabled={!isFreeFormMode || loading}
+                sx={{
+                  // sx prop으로 스타일 적용
+                  padding: "0.5rem",
+                  borderRadius: "50%",
+                  background: AppColors.iconDisabled,
+                  "&:hover": {
+                    backgroundColor: AppColors.disabled,
+                  },
+                }}>
+                <AddPhotoAlternateIcon sx={{ color: "#BBBBCF" }} /> {/* 아이콘 색상 적용 */}
+              </IconButton>
               <Input
                 type="text"
-                placeholder={isFreeFormMode ? "메시지를 입력하세요..." : "기초자료 조사는 입력이 불가합니다."}
+                placeholder={isFreeFormMode ? "메시지 또는 파일 첨부..." : "기초자료 조사는 입력이 불가합니다."}
                 disabled={!isFreeFormMode || loading}
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
               />
-              <IconContainer type="submit" disabled={!isFreeFormMode || loading || !prompt}>
+              <IconContainer
+                type="submit"
+                disabled={!isFreeFormMode || loading || (!prompt && uploadedFiles.length === 0)}>
+                {" "}
+                {/* 파일 없을때도 비활성화 */}
                 <Send />
               </IconContainer>
             </InputContainer>
