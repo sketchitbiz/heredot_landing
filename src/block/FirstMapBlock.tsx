@@ -3,7 +3,12 @@ import styled from 'styled-components';
 import { useScroll, useTransform, motion } from 'framer-motion';
 import { Breakpoints } from '@/constants/layoutConstants';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
+import { AppColors } from '@/styles/colors';
+import { AppTextStyles } from '@/styles/textStyles';
 
+interface FirstMapBlockProps {
+  label: string;
+}
 
 const originalPath = `M380.902 30C380.902 30 382.902 79.5 403.901 124C424.9 168.5 451.402 235 444.902 299.5C438.402 364 366.902 426.5 345.902 470.5C324.902 514.5 302.902 734.5 289.402 779.5C275.902 824.5 255.401 849.5 241.901 884.5C228.401 919.5 196.402 1027.5 178.402 1068C160.402 1108.5 153.903 1105.5 150.903 1157C147.903 1208.5 198.902 1289 193.402 1349C187.902 1409 165.402 1480.5 152.902 1509.5C140.402 1538.5 83.4013 1641 62.9013 1698.5C42.4013 1756 36.4001 1801 31.4001 1838.5C26.4001 1876 36.3994 2223.5 36.3994 2223.5`;
 
@@ -91,17 +96,17 @@ const DestinationImage = styled(motion.img)`
 `;
 
 const Label = styled.div`
+  ${AppTextStyles.label2};
   position: absolute;
-  top: calc(50% + 20px);
+  top: calc(50%);
   left: 50%;
-  transform: translate(-50%, 0);
-  font-size: 24px;
-  font-weight: 600;
-  color: #fff;
+  transform: translate(-40%, -600%);
+  color: ${AppColors.onBackground};
   white-space: nowrap;
 `;
 
-const FirstMapBlock = () => {
+const FirstMapBlock: React.FC<FirstMapBlockProps> = ({ label }) => {
+
   const wrapperRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
   const pathRef = useRef<SVGPathElement>(null);
@@ -183,12 +188,11 @@ const FirstMapBlock = () => {
 
     group.setAttribute('transform', `translate(${point.x}, ${point.y}) rotate(${angle})`);
   }, [scrollRatio, sectionTop]);
-
-  return (
+ return (
     <Wrapper ref={wrapperRef}>
       <ContentWrapper>
         <Image ref={imgRef} src="/assets/map.svg" alt="Map Section" />
-
+        
         <svg
           style={{
             position: 'absolute',
@@ -210,13 +214,28 @@ const FirstMapBlock = () => {
       </ContentWrapper>
 
       <IconStack>
-        <BackgroundCircle />
-        <DestinationImage
-          src="/assets/destination_3.svg"
-          alt="Destination Icon"
-          style={{ scale: iconScale, y: iconY }}
+        <LocationOnIcon
+          style={{
+            fontSize: '92px',
+            color: 'rgba(116, 7, 255, 0.8)',
+            transform: 'translate(12%, -80%)',
+          }}
         />
-        <Label>전략 파트너</Label>
+        <motion.div
+          style={{
+            width: '22px',
+            height: '22px',
+            borderRadius: '50%',
+            backgroundColor: '#fff',
+            position: 'absolute',
+            top: 'calc(50% - 100px)',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            scale: iconScale,
+            y: iconY,
+          }}
+        />
+        <Label>{label}</Label> {/* ✅ 여기 props로 받은 label 사용 */}
       </IconStack>
     </Wrapper>
   );

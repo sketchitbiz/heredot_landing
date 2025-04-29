@@ -1,0 +1,107 @@
+'use client';
+
+import styled from 'styled-components';
+import { useState } from 'react';
+import { CustomNavigator } from '@/customComponents/CustomNavigator';
+import { TabComponent } from '@/components/Landing/TabComponent';
+import { MemberCard } from '@/components/Landing/MemberCard';
+import { useLang } from '@/contexts/LangContext';
+import { dictionary } from '@/lib/i18n/lang';
+
+interface MembersTabSectionProps {
+  title: string;
+  description: string;
+  topLabel: string;
+  centerLabel: string;
+  bottomLabel: string;
+  memberCards: {
+    [id: string]: {
+      name: string;
+      messages: { [tabKey: string]: string | null };
+    };
+  };
+}
+
+const Wrapper = styled.div``;
+
+const GridContainerForTabs = styled.div`
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  margin-bottom: 100px;
+`;
+
+// ✅ 여기에 고정 key 배열 선언
+const memberTabKeys = ['chat', 'streaming', 'subscription', 'lunch'];
+
+export const MembersTabSection: React.FC<MembersTabSectionProps> = ({
+  title,
+  description,
+  topLabel,
+  centerLabel,
+  bottomLabel,
+  memberCards,
+}) => {
+  const { lang } = useLang();
+  const t = dictionary[lang];
+
+  const [currentTabKey, setCurrentTabKey] = useState(memberTabKeys[0]);
+
+  // ✅ label은 여기서 안전하게 매핑
+  const tabItems = memberTabKeys.map((key) => ({
+    key,
+    label:
+      key === 'chat'
+        ? t.memberTabs?.[0]
+        : key === 'streaming'
+        ? t.memberTabs?.[1]
+        : key === 'subscription'
+        ? t.memberTabs?.[2]
+        : t.memberTabs?.[3],
+  }));
+
+  const handleTabChange = (key: string) => {
+    setCurrentTabKey(key);
+  };
+
+  const baseCardData = [
+    { id: '1', imageUrl: '/landing/members/1_liam.webp' },
+    { id: '2', imageUrl: '/landing/members/2_martin.webp' },
+    { id: '3', imageUrl: '/landing/members/3_martin.webp' },
+    { id: '4', imageUrl: '/landing/members/4_k.webp' },
+    { id: '5', imageUrl: '/landing/members/5_dony.webp' },
+    { id: '6', imageUrl: '/landing/members/6_day.webp' },
+    { id: '7', imageUrl: '/landing/members/7_sien.webp' },
+    { id: '9', imageUrl: '/landing/members/jaxon.png' },
+  ];
+
+  return (
+    <>
+      <CustomNavigator
+        topLabel={topLabel}
+        centerLabel={centerLabel}
+        bottomLabel={bottomLabel}
+        title={title}
+        description={description}
+      />
+      <Wrapper>
+        <TabComponent
+          tabs={tabItems}
+          activeTabKey={currentTabKey}
+          onTabChange={handleTabChange}
+        >
+          <GridContainerForTabs>
+            {baseCardData.map((item) => (
+              <MemberCard
+                key={item.id}
+                imageUrl={item.imageUrl}
+                name={memberCards[item.id]?.name}
+                messages={memberCards[item.id]?.messages}
+                currentTab={currentTabKey}
+              />
+            ))}
+          </GridContainerForTabs>
+        </TabComponent>
+      </Wrapper>
+    </>
+  );
+};

@@ -1,12 +1,15 @@
-import React from 'react';
-import * as SelectPrimitive from '@radix-ui/react-select';
+'use client';
+
+import React, { useEffect, useRef, useState } from 'react';
+import ReactDOM from 'react-dom';
 import styled from 'styled-components';
 
-// -------------------------
-// Types for styled props
-// -------------------------
-interface StyledTriggerProps {
- $height?: string;
+interface SelectProps {
+  options: string[];
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  $height?: string;
   $radius?: string;
   $triggerFontSize?: string;
   $triggerFontWeight?: string;
@@ -14,142 +17,162 @@ interface StyledTriggerProps {
   $triggerBackgroundColor?: string;
   $triggerHoverBackgroundColor?: string;
   $triggerHoverTextColor?: string;
-  $isShowIcon?: boolean;
-}
-
-interface StyledContentProps {
   $contentFontSize?: string;
+  $contentFontWeight?: string;
   $contentTextColor?: string;
   $contentBackgroundColor?: string;
-}
-
-interface StyledItemProps {
-  $fontSize?: string;
-  $textColor?: string;
   $itemHoverBackgroundColor?: string;
   $itemHoverTextColor?: string;
+  $isShowIcon?: boolean;
+  $triggerContent?: React.ReactNode; // ✅ 추가
 }
 
-// -------------------------
-// Core Wrappers
-// -------------------------
-export const SelectElement = SelectPrimitive.Root;
-export const SelectGroupElement = SelectPrimitive.Group;
-export const SelectValueElement = SelectPrimitive.Value;
+export const SimpleSelect = ({
+  options,
+  value,
+  onChange,
+  placeholder = 'Select...',
+  $height,
+  $radius,
+  $triggerFontSize,
+  $triggerFontWeight,
+  $triggerTextColor,
+  $triggerBackgroundColor,
+  $triggerHoverBackgroundColor,
+  $triggerHoverTextColor,
+  $contentFontSize,
+  $contentFontWeight,
+  $contentTextColor,
+  $contentBackgroundColor,
+  $itemHoverBackgroundColor,
+  $itemHoverTextColor,
+  $isShowIcon = true,
+  $triggerContent,
+}: SelectProps) => {
+  const [open, setOpen] = useState(false);
+  const [triggerRect, setTriggerRect] = useState<DOMRect | null>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (open && triggerRef.current) {
+      setTriggerRect(triggerRef.current.getBoundingClientRect());
+    }
+  }, [open]);
+
+  const handleSelect = (option: string) => {
+    onChange(option);
+    setOpen(false);
+  };
+
+  return (
+    <>
+      <Wrapper $fixedWidth={!!$triggerContent}>
+        <Trigger
+          ref={triggerRef}
+          onClick={() => setOpen(prev => !prev)}
+          $height={$height}
+          $radius={$radius}
+          $triggerFontSize={$triggerFontSize}
+          $triggerFontWeight={$triggerFontWeight}
+          $triggerTextColor={$triggerTextColor}
+          $triggerBackgroundColor={$triggerBackgroundColor}
+          $triggerHoverBackgroundColor={$triggerHoverBackgroundColor}
+          $triggerHoverTextColor={$triggerHoverTextColor}
+        >
+          {$triggerContent || value || placeholder}
+          {/* ✅ triggerContent 있을 때는 Icon 제거 */}
+          {!$triggerContent && $isShowIcon && <Icon>▾</Icon>}
+        </Trigger>
+      </Wrapper>
+
+      {open && triggerRect &&
+        ReactDOM.createPortal(
+          <PortalContent
+            style={{
+              top: triggerRect.bottom + window.scrollY,
+              left: triggerRect.left + window.scrollX,
+              width: triggerRect.width,
+            }}
+            $contentBackgroundColor={$contentBackgroundColor}
+            $contentFontSize={$contentFontSize}
+            $contentFontWeight={$contentFontWeight}
+            $contentTextColor={$contentTextColor}
+          >
+            {options.map(option => (
+              <Item
+                key={option}
+                onClick={() => handleSelect(option)}
+                $itemHoverBackgroundColor={$itemHoverBackgroundColor}
+                $itemHoverTextColor={$itemHoverTextColor}
+              >
+                {option}
+              </Item>
+            ))}
+          </PortalContent>,
+          document.body
+        )}
+    </>
+  );
+};
 
 // -------------------------
-// Trigger
+// Styled
 // -------------------------
-export const SelectTriggerElement = React.forwardRef<
-  React.ElementRef<typeof SelectPrimitive.Trigger>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger> & StyledTriggerProps
->(({ children, $isShowIcon = true, ...props }, ref) => (
-  <StyledTrigger ref={ref} {...props}>
-    {children}
-    {$isShowIcon && <StyledIcon>▾</StyledIcon>}
-  </StyledTrigger>
-));
-SelectTriggerElement.displayName = 'SelectTriggerElement';
 
-// -------------------------
-// Content
-// -------------------------
-export const SelectContentElement = React.forwardRef<
-  React.ElementRef<typeof SelectPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content> & StyledContentProps
->(({ children, ...props }, ref) => (
-  <SelectPrimitive.Portal>
-    <StyledContent ref={ref} {...props}>
-      <SelectPrimitive.Viewport>{children}</SelectPrimitive.Viewport>
-    </StyledContent>
-  </SelectPrimitive.Portal>
-));
-SelectContentElement.displayName = 'SelectContentElement';
+const Wrapper = styled.div<{ $fixedWidth?: boolean }>`
+  position: relative;
+  width: ${({ $fixedWidth }) => ($fixedWidth ? '100px' : '100%')};
+`;
 
-// -------------------------
-// Item
-// -------------------------
-export const SelectItemElement = React.forwardRef<
-  React.ElementRef<typeof SelectPrimitive.Item>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item> & StyledItemProps
->(({ children, ...props }, ref) => (
-  <StyledItem ref={ref} {...props}>
-    <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
-  </StyledItem>
-));
-SelectItemElement.displayName = 'SelectItemElement';
-
-// ======================
-// Styled Components
-// ======================
-
-const StyledTrigger = styled(SelectPrimitive.Trigger)<StyledTriggerProps>`
-  $display: flex;
-  $align-items: center;
-  $justify-content: space-between;
-  $height: ${({ $height }) => $height || '36px'};
-  $padding: 0 12px;
-  $border: 1px solid #ccc;
-  $border-radius: ${({ $radius }) => $radius || '6px'};
-  $background-color: ${({ $triggerBackgroundColor }) => $triggerBackgroundColor || 'white'};
-  $color: ${({ $triggerTextColor }) => $triggerTextColor || '#000'};
-  $font-size: ${({ $triggerFontSize }) => $triggerFontSize || '14px'};
-  $font-weight: ${({ $triggerFontWeight }) => $triggerFontWeight || '400'};
+const Trigger = styled.button<Partial<SelectProps>>`
+  display: flex;
+  align-items: center;
+  width: 100%;
+  justify-content: space-between;
+  overflow: hidden;
+  height: ${({ $height }) => $height || '36px'};
+  padding: 0 35px;
+  border-radius: ${({ $radius }) => $radius || '6px'};
+  background-color: ${({ $triggerBackgroundColor }) => $triggerBackgroundColor || 'white'};
+  border: 1px solid ${({ $triggerBackgroundColor }) => $triggerBackgroundColor || '#ccc'};
+  color: ${({ $triggerTextColor }) => $triggerTextColor || '#000'};
+  font-size: ${({ $triggerFontSize }) => $triggerFontSize || '14px'};
+  font-weight: ${({ $triggerFontWeight }) => $triggerFontWeight || '400'};
   cursor: pointer;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 
-  /* &:focus {
-    outline: none;
-    border-color: #666;
-  } */
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
   &:hover {
     background-color: ${({ $triggerHoverBackgroundColor }) => $triggerHoverBackgroundColor || 'transparent'};
     color: ${({ $triggerHoverTextColor }) => $triggerHoverTextColor || 'inherit'};
   }
 `;
 
-const StyledIcon = styled.span`
-  $margin-left: 8px;
-  $font-size: 12px;
-  $pointer-events: none;
+const Icon = styled.span`
+  margin-left: 16px;
+  font-size: 12px;
+  pointer-events: none;
 `;
 
-const StyledContent = styled(SelectPrimitive.Content)<StyledContentProps>`
-  $margin-top: 4px;
-  $border: 1px solid #ccc;
-  $border-radius: 6px;
-  $background-color: white;
-  $overflow: hidden;
-  $box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
-  $z-index: 1000;
-  $background-color: ${({ $contentBackgroundColor }) => $contentBackgroundColor || 'white'};
-  $color: ${({ $contentTextColor }) => $contentTextColor || '#000'};
-  $font-size: ${({ $contentFontSize }) => $contentFontSize || '14px'};
-
-
+const PortalContent = styled.div<Partial<SelectProps>>`
+  position: absolute;
+  z-index: 9999;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background-color: ${({ $contentBackgroundColor }) => $contentBackgroundColor || 'white'};
+  color: ${({ $contentTextColor }) => $contentTextColor || '#000'};
+  font-size: ${({ $contentFontSize }) => $contentFontSize || '14px'};
+  font-weight: ${({ $contentFontWeight }) => $contentFontWeight || '400'};
+  max-height: 200px;
+  overflow-y: auto;
 `;
 
-const StyledItem = styled(SelectPrimitive.Item)<StyledItemProps>`
+const Item = styled.div<Partial<SelectProps>>`
   padding: 8px 12px;
-  font-size: ${({ $fontSize }) => $fontSize || '14px'};
-  color: ${({ $textColor }) => $textColor || '#000'};
   cursor: pointer;
 
   &:hover {
     background-color: ${({ $itemHoverBackgroundColor }) => $itemHoverBackgroundColor || '#f0f0f0'};
     color: ${({ $itemHoverTextColor }) => $itemHoverTextColor || '#000'};
-  }
-
-  &[data-disabled] {
-    color: #aaa;
-    cursor: not-allowed;
-  }
-
-  &[data-state='checked'] {
-    font-weight: bold;
   }
 `;

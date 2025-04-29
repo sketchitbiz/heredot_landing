@@ -3,10 +3,11 @@ import styled from 'styled-components';
 import { Breakpoints } from '@/constants/layoutConstants';
 
 interface LandingSection {
+  id?: string; // ✅ 섹션 이동용 id 추가
   $backgroundColor?: string;
   content: React.ReactNode;
   $zIndex?: number;
-  $isOverLayout?: boolean; // ✅ 추가
+  $isOverLayout?: boolean;
 }
 
 interface LandingBaseWrapperProps {
@@ -32,9 +33,16 @@ const ContentWrapper = styled.div<{ $isOverLayout?: boolean }>`
 const LandingBaseWrapper: React.FC<LandingBaseWrapperProps> = ({ sections }) => {
   return (
     <>
-      {sections.map(({ $backgroundColor, content, $zIndex, $isOverLayout }, idx) => (
-        <SectionWrapper key={idx} $backgroundColor={$backgroundColor} $zIndex={$zIndex}>
-          <ContentWrapper $isOverLayout={$isOverLayout}>{content}</ContentWrapper>
+      {sections.map(({ id, $backgroundColor, content, $zIndex, $isOverLayout }, idx) => (
+        <SectionWrapper
+          key={idx}
+          id={id} // ✅ id 추가해서 scrollIntoView 가능
+          $backgroundColor={$backgroundColor}
+          $zIndex={$zIndex}
+        >
+          <ContentWrapper $isOverLayout={$isOverLayout}>
+            {content}
+          </ContentWrapper>
         </SectionWrapper>
       ))}
     </>
