@@ -1,76 +1,97 @@
 'use client';
 
+import React from 'react';
+import { useLang } from '@/contexts/LangContext';
+import { GradientButton } from '@/components/GradientButton';
 import { ProjectPopupContent } from '@/customComponents/ProjectPopupContent';
 
+const Text = ({ children }: { children: React.ReactNode }) => (
+  <p style={{ fontSize: 16, fontWeight: 400, color: '#454545', margin: 0, marginBottom: 0,lineHeight : '20px', whiteSpace: 'pre-line' }}>
+    {children}
+  </p>
+);
+
+
+const TEXT = {
+  ko: {
+    projectIntro:
+      '지역내 대형 병원, 급식, 식당 등에서 영양사 또는 소상공인 사장께서 식자재 발주 시 요청일에 배송 해주는 식자재 발주 시스템',
+    features: [
+      ['[발주]', '제철 상품, 식자재, 공산품 발주 기능'],
+      ['[명세서]', '발주 내역을 명세서로 PDF출력 기능'],
+      ['[관리자]', '발주된 식자재를 확인 및 배송 체크 기능'],
+      ['[매출관리]', '미수관리, 정산관리, 매출관리 기능'],
+    ],
+    screenshots: ['관리자 화면'],
+    confirmButtons: [{ title: '서비스 웹 바로가기', href: 'https://limefood.co.kr/' }],
+    volume: '화면 분량 30장 내외',
+    scope: ['* 총 2종 웹 구성', '사용자 웹', '관리자 웹'],
+    stack: ['FE: JSP', 'BE: java spring boot', 'Server: Cafe24 Cloud', 'OS: Linux', 'DB: PostgreSQL'],
+    duration: ['스토리보드 4주', 'UI/UX 디자인 2주', 'FE/BE 개발 12주'],
+  },
+  en: {
+    projectIntro:
+      'A food ordering system that delivers ordered ingredients to hospitals, cafeterias, and restaurants on the requested date.',
+    features: [
+      ['[Order]', 'Ordering of seasonal items, ingredients, and products'],
+      ['[Statement]', 'PDF export of order statements'],
+      ['[Admin]', 'Check and manage deliveries of ordered items'],
+      ['[Sales Management]', 'Unpaid, settlement, and sales management'],
+    ],
+    screenshots: ['Admin Screen'],
+    confirmButtons: [{ title: 'Visit Web Service', href: 'https://limefood.co.kr/' }],
+    volume: 'Approx. 30 screens',
+    scope: ['* 2 types of web pages', 'User Web', 'Admin Web'],
+    stack: ['FE: JSP', 'BE: java spring boot', 'Server: Cafe24 Cloud', 'OS: Linux', 'DB: PostgreSQL'],
+    duration: ['Storyboard: 4 weeks', 'UI/UX Design: 2 weeks', 'FE/BE Development: 12 weeks'],
+  },
+};
+
 export const LimeFoodPopup = () => {
+  const { lang } = useLang();
+  const t = TEXT[lang];
+
   return (
     <ProjectPopupContent
       imageUrl="/assets/portpolio_popup/limefood.png"
-      leftHeader={<p>이 프로젝트는 A 기능을 중심으로 설계된 고도화 서비스입니다.</p>}
-      projectIntro={
-        <p>
-          하드웨어 센서 기반으로 자폭 · 공격 드론을 식별·탐지한 뒤, 이를 무력화하는 시스템으로, 
-          국방 및 주요 국가 시설에 납품되는 제품입니다.
-        </p>
-      }
+      projectIntro={<Text>{t.projectIntro}</Text>}
       featureList={
-        <div>
-          <div>[RabbitMQ]</div>
-          <div style={{ marginBottom: '16px' }}>센싱 데이터를 실시간 연계 및 활용</div>
-          <div>[Web Push]</div>
-          <div style={{ marginBottom: '16px' }}>드론 침입 · 무력화 시 실시간 알림</div>
-          <div>[3D Map]</div>
-          <div style={{ marginBottom: '16px' }}>드론 위치를 실시간으로 3D 맵 이동 구현</div>
-          <div>[RealTime]</div>
-          <div>Streaming API를 통한 실시간 이동 식별</div>
-        </div>
+        <>
+          {t.features.map(([label, desc], i) => (
+            <div key={i} style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 16, fontWeight: 700, color: '#3f4347', lineHeight: '24px' }}>{label}</div>
+              <div style={{ fontWeight: 400, color: '#3f4347', whiteSpace: 'pre-line' , lineHeight: '24px'}}>{desc}</div>
+            </div>
+          ))}
+        </>
       }
       projectScreenshots={
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div>
-            <h4>사용자 화면</h4>
-            <img
-              src="/assets/portpolio_popup/antidron_1.png"
-              alt="사용자 화면"
-              style={{ width: '100%' }}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {t.screenshots.map((title, i) => (
+            <div key={i}>
+              <h4 style={{ fontWeight: 700, fontSize: 16, color: '#3f4347' }}>{title}</h4>
+              <img src={`/assets/portpolio_popup/lime_${i + 1}.png`} alt={title} style={{ width: '100%' }} />
+            </div>
+          ))}
+        </div>
+      }
+      pjtConfirm={
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {t.confirmButtons.map((btn, i) => (
+            <GradientButton
+              key={i}
+              title={btn.title}
+              href={btn.href}
+              titleColor="#FFFFFF"
+              gradient="linear-gradient(to bottom, #5EC2A0, #40AD99)"
             />
-          </div>
-          <div>
-            <h4>관리자 화면</h4>
-            <img
-              src="/assets/portpolio_popup/antidron_2.png"
-              alt="관리자 화면"
-              style={{ width: '100%' }}
-            />
-          </div>
+          ))}
         </div>
       }
-      pjtVolume={<p>화면 분량 30장 내외</p>}
-      pjtScope={
-        <div>
-          <div>* 총 3종 웹 구성</div>
-          <div>사용자 관제 웹</div>
-          <div>하드웨어 설정 웹</div>
-          <div>관리자용 웹</div>
-        </div>
-      }
-      pjtStack={
-        <div>
-          <div>FE: React.js</div>
-          <div>BE: Python</div>
-          <div>Server: 독립 서버</div>
-          <div>OS: Linux</div>
-          <div>DB: PostgreSQL, MongoDB</div>
-        </div>
-      }
-      pjtDuration={
-        <div>
-          <div>스토리보드 4주</div>
-          <div>UI/UX 디자인 4주</div>
-          <div>FE/BE 개발 14주</div>
-        </div>
-      }
+      pjtVolume={<Text>{t.volume}</Text>}
+      pjtScope={<>{t.scope.map((line, i) => <Text key={i}>{line}</Text>)}</>}
+      pjtStack={<>{t.stack.map((line, i) => <Text key={i}>{line}</Text>)}</>}
+      pjtDuration={<>{t.duration.map((line, i) => <Text key={i}>{line}</Text>)}</>}
     />
   );
 };
-

@@ -245,7 +245,7 @@ const AppBlock: React.FC<AppBlockProps> = ({ title, description }) => {
       scrollTrigger: {
         trigger: sectionRef.current,
         start: 'top top',
-        end: '+=3000',
+        end: '+=1000',
         pin: true,
         scrub: false,
         onEnter: async () => {

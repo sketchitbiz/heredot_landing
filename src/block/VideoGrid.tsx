@@ -27,7 +27,7 @@ const GridContainerForVideos = styled.div`
   grid-template-columns: repeat(3, 1fr);
   gap: 24px;
   margin-bottom: 64px;
-  padding: 0px 40px 100px 40px; // 좌우 여백 맞추기 (0 40px)
+  padding: 0px 40px 00px 0px; // 좌우 여백 맞추기 (0 40px)
 `;
 
 export const VideoGrid: React.FC<VideoGridProps> = ({

@@ -1,5 +1,8 @@
+'use client';
+
 import React from 'react';
 import styled from 'styled-components';
+import { useLang } from '@/contexts/LangContext';
 
 interface ProjectPopupContentProps {
   imageUrl: string;
@@ -14,6 +17,28 @@ interface ProjectPopupContentProps {
   pjtDuration?: React.ReactNode | null;
 }
 
+const I18N_LABEL = {
+  ko: {
+    intro: '📂 프로젝트 소개',
+    features: '📂 주요 기능',
+    screenshots: '📂 프로젝트 이미지',
+    confirm: '📂 PJT 확인',
+    volume: '📂 PJT 분량',
+    scope: '📂 PJT 스콥',
+    stack: '📂 PJT 스택',
+    duration: '📂 PJT 기간',
+  },
+  en: {
+    intro: '📂 Project Introduction',
+    features: '📂 Main Features',
+    screenshots: '📂 Screenshots',
+    confirm: '📂 PJT Info',
+    volume: '📂 PJT Volume',
+    scope: '📂 PJT Scope',
+    stack: '📂 PJT Stack',
+    duration: '📂 PJT Duration',
+  },
+};
 
 export const ProjectPopupContent: React.FC<ProjectPopupContentProps> = ({
   imageUrl,
@@ -27,68 +52,70 @@ export const ProjectPopupContent: React.FC<ProjectPopupContentProps> = ({
   pjtStack,
   pjtDuration,
 }) => {
+  const { lang } = useLang();
+  const t = I18N_LABEL[lang];
+
   return (
     <Wrapper>
-      {/* 상단 이미지 영역 */}
       <TopSection>
-      {leftHeader && <LeftHeader>{leftHeader}</LeftHeader>} {/* 조건부 렌더링 */}
+        {leftHeader && <LeftHeader>{leftHeader}</LeftHeader>}
         <PreviewImage src={imageUrl} alt="project" />
       </TopSection>
 
-      {/* 메인 콘텐츠 */}
       <ContentSection>
-      <LeftColumn>
-  {projectIntro && (
-    <Block>
-      <SectionTitle>📂 프로젝트 소개</SectionTitle>
-      {projectIntro}
-    </Block>
-  )}
-  {featureList && (
-    <Block>
-      <SectionTitle>📂 주요 기능</SectionTitle>
-      {featureList}
-    </Block>
-  )}
-  {projectScreenshots && (
-    <Block>
-      <SectionTitle>📂 프로젝트 이미지</SectionTitle>
-      {projectScreenshots}
-    </Block>
-  )}
-</LeftColumn>
-<RightColumn>
-  {pjtConfirm && (
-    <InfoBlock>
-      <Label>📂 PJT 확인</Label>
-      {pjtConfirm}
-    </InfoBlock>
-  )}
-  {pjtVolume && (
-    <InfoBlock>
-      <Label>📂 PJT 분량</Label>
-      {pjtVolume}
-    </InfoBlock>
-  )}
-  {pjtScope && (
-    <InfoBlock>
-      <Label>📂 PJT 스콥</Label>
-      {pjtScope}
-    </InfoBlock>
-  )}
-  {pjtStack && (
-    <InfoBlock>
-      <Label>📂 PJT 스택</Label>
-      {pjtStack}
-    </InfoBlock>
-  )}
-  {pjtDuration && (
-    <InfoBlock>
-      <Label>📂 PJT 기간</Label>
-      {pjtDuration}
-    </InfoBlock>
-  )}
-</RightColumn>
+        <LeftColumn>
+          {projectIntro && (
+            <Block>
+              <SectionTitle>{t.intro}</SectionTitle>
+              {projectIntro}
+            </Block>
+          )}
+          {featureList && (
+            <Block>
+              <SectionTitle>{t.features}</SectionTitle>
+              {featureList}
+            </Block>
+          )}
+          {projectScreenshots && (
+            <Block>
+              <SectionTitle>{t.screenshots}</SectionTitle>
+              {projectScreenshots}
+            </Block>
+          )}
+        </LeftColumn>
+
+        <RightColumn>
+          {pjtConfirm && (
+            <InfoBlock>
+              <Label>{t.confirm}</Label>
+              {pjtConfirm}
+            </InfoBlock>
+          )}
+          {pjtVolume && (
+            <InfoBlock>
+              <Label>{t.volume}</Label>
+              {pjtVolume}
+            </InfoBlock>
+          )}
+          {pjtScope && (
+            <InfoBlock>
+              <Label>{t.scope}</Label>
+              {pjtScope}
+            </InfoBlock>
+          )}
+          {pjtStack && (
+            <InfoBlock>
+              <Label>{t.stack}</Label>
+              {pjtStack}
+            </InfoBlock>
+          )}
+          {pjtDuration && (
+            <InfoBlock>
+              <Label>{t.duration}</Label>
+              {pjtDuration}
+            </InfoBlock>
+          )}
+        </RightColumn>
       </ContentSection>
     </Wrapper>
   );
@@ -105,33 +132,32 @@ const Wrapper = styled.div`
 `;
 
 const TopSection = styled.div`
-  position: relative; /* 스택 구조를 위해 relative 설정 */
+  position: relative;
   height: 350px;
   width: 100%;
 `;
 
-
 const LeftHeader = styled.div`
-  position: absolute; /* 스택 구조를 위해 absolute 설정 */
+  position: absolute;
   top: 0;
   left: 0;
-  width: 100%; /* 부모 너비를 다 차지 */
-  height: 100%; /* 부모 높이를 다 차지 */
+  width: 100%;
+  height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
   padding: 12px;
-  z-index: 1; /* PreviewImage 위에 표시되도록 z-index 설정 */
+  z-index: 1;
 `;
 
 const PreviewImage = styled.img`
-  width: 100%; /* 부모 너비를 다 차지 */
-  height: 100%; /* 부모 높이를 다 차지 */
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  position: absolute; /* 스택 구조를 위해 absolute 설정 */
+  position: absolute;
   top: 0;
   left: 0;
-  z-index: 0; /* LeftHeader 아래에 표시되도록 z-index 설정 */
+  z-index: 0;
 `;
 
 const ContentSection = styled.div`
@@ -145,8 +171,8 @@ const LeftColumn = styled.div`
   flex-direction: column;
   gap: 24px;
   padding-left: 20px;
-  border-right: 1px solid #ddd; /* 오른쪽에 보더 추가 */
-  padding-right: 20px; /* 보더와 콘텐츠 간 간격 추가 */
+  border-right: 1px solid #ddd;
+  padding-right: 20px;
 `;
 
 const RightColumn = styled.div`
@@ -161,7 +187,6 @@ const Block = styled.div`
   display: flex;
   flex-direction: column;
   gap: 8px;
-  /* color: #333; */
 `;
 
 const InfoBlock = styled.div`
@@ -183,4 +208,3 @@ const SectionTitle = styled.h3`
   font-weight: bold;
   color: #333;
 `;
-

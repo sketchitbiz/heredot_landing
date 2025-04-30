@@ -9,7 +9,6 @@ import { AppTextStyles } from '@/styles/textStyles';
 
 const FooterContainer = styled.footer`
   color: ${AppColors.onBackground};
-  padding: 48px 0; /* 좌우 패딩 제거 */
   background-color: ${AppColors.backgroundDark}; /* 배경 넣어줄 수도 있음 */
 `;
 
@@ -31,6 +30,7 @@ const Separator = styled.hr`
   border: none;
   height: 1px;
   margin: 24px 0;
+  background-color: ${AppColors.onBackgroundDark};
 `;
 
 const InfoSection = styled.div`
@@ -63,7 +63,7 @@ export const Footer: React.FC = () => {
     <FooterContainer>
       <FooterContent>
         <LogoImageWrapper>
-          <Image src="/landing/Logo.png" alt="Heredot Logo" width={150} height={50} priority />
+          <Image src="/landing/Logo.png" alt="Heredot Logo" width={150} height={60} priority />
         </LogoImageWrapper>
         <Separator />
         <InfoSection>

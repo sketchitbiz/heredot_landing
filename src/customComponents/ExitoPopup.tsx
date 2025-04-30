@@ -1,76 +1,103 @@
 'use client';
 
+import React from 'react';
+import { useLang } from '@/contexts/LangContext';
 import { ProjectPopupContent } from '@/customComponents/ProjectPopupContent';
+import { GradientButton } from '@/components/GradientButton';
+
+const Text = ({ children }: { children: React.ReactNode }) => (
+  <p style={{ fontSize: 16, fontWeight: 400, color: '#454545', margin: 0, marginBottom: 0,lineHeight : '20px', whiteSpace: 'pre-line' }}>
+    {children}
+  </p>
+);
+
+
+const hrefs = [
+  'https://exitobiz.co.kr/',
+  'https://play.google.com/store/apps/details?id=com.ctns.itda_user&hl=ko',
+  'https://apps.apple.com/kr/app/%EC%97%91%EC%8B%9C%ED%86%A0-%ED%95%9C%EB%88%88%EC%97%90-%EB%B3%B4%EB%8A%94-%EC%8A%A4%ED%83%80%ED%8A%B8%EC%97%85-%EC%A7%80%EC%9B%90%EC%82%AC%EC%97%85-%EC%96%B4%ED%94%8C/id1555629389',
+];
+
+const TEXT = {
+  ko: {
+    projectIntro:
+      '산재된 정부지원사업을 1일 단위 자동 수집을 통하여 창업팀에게 지원사업 안내 하는 솔루션 입니다',
+    features: [
+      ['[크롤링]', '200개 지원사업 기관 1일 단위 자동수집'],
+      ['[맞춤알림]', '관심분야 , 키워드 , 맞춤 지원사업 알림'],
+      ['[편의기능]', '창업 뉴스, 창업 커뮤니티 운영'],
+      ['[하이브리드 앱]', '웹뷰 기반 앱 패키징 AOS, IOS 출시'],
+    ],
+    screenshots: ['서비스 웹 페이지', '💻  PC 화면'],
+    confirmButtons: ['서비스 웹 바로가기', 'AOS 앱 바로가기', 'IOS 앱 바로가기'],
+    volume: '화면 분량 30장 내외',
+    scope: ['* 총 2종 웹·앱(AOS ·IOS) 구성', '사용자 웹·앱', '관리자용 웹'],
+    stack: ['FE: React.js, Flutter', 'BE: Node.js', 'Server: Cafe24 Cloud', 'OS: Linux', 'DB: PostgreSQL'],
+    duration: ['스토리보드 2.5주', 'UI/UX 디자인 1.5주', 'FE/BE 개발 12주'],
+  },
+  en: {
+    projectIntro:
+      'A solution that collects scattered government support programs daily and informs startups of available opportunities.',
+    features: [
+      ['[Crawling]', 'Auto-crawling over 200 public program sources daily'],
+      ['[Custom Alerts]', 'Keyword and interest-based customized notifications'],
+      ['[Convenience]', 'Startup news and community features'],
+      ['[Hybrid App]', 'Webview-based app for AOS and iOS launched'],
+    ],
+    screenshots: ['Service Web Page', '💻 PC Screen'],
+    confirmButtons: ['Go to Web Service', 'Open AOS App', 'Open iOS App'],
+    volume: 'Approx. 30 screens',
+    scope: ['* Consists of 2 types (Web/App for AOS·iOS)', 'User Web/App', 'Admin Web'],
+    stack: ['FE: React.js, Flutter', 'BE: Node.js', 'Server: Cafe24 Cloud', 'OS: Linux', 'DB: PostgreSQL'],
+    duration: ['Storyboard: 2.5 weeks', 'UI/UX Design: 1.5 weeks', 'FE/BE Development: 12 weeks'],
+  },
+};
 
 export const ExitoPopup = () => {
+  const { lang } = useLang();
+  const t = TEXT[lang];
+
   return (
     <ProjectPopupContent
       imageUrl="/assets/portpolio_popup/exito.png"
-      leftHeader={<p>이 프로젝트는 A 기능을 중심으로 설계된 고도화 서비스입니다.</p>}
-      projectIntro={
-        <p>
-          하드웨어 센서 기반으로 자폭 · 공격 드론을 식별·탐지한 뒤, 이를 무력화하는 시스템으로, 
-          국방 및 주요 국가 시설에 납품되는 제품입니다.
-        </p>
-      }
+      projectIntro={<Text>{t.projectIntro}</Text>}
       featureList={
-        <div>
-          <div>[RabbitMQ]</div>
-          <div style={{ marginBottom: '16px' }}>센싱 데이터를 실시간 연계 및 활용</div>
-          <div>[Web Push]</div>
-          <div style={{ marginBottom: '16px' }}>드론 침입 · 무력화 시 실시간 알림</div>
-          <div>[3D Map]</div>
-          <div style={{ marginBottom: '16px' }}>드론 위치를 실시간으로 3D 맵 이동 구현</div>
-          <div>[RealTime]</div>
-          <div>Streaming API를 통한 실시간 이동 식별</div>
-        </div>
+        <>
+          {t.features.map(([label, desc], i) => (
+            <div key={i} style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 16, fontWeight: 700, color: '#3f4347', lineHeight: '24px' }}>{label}</div>
+              <div style={{ fontWeight: 400, color: '#3f4347', whiteSpace: 'pre-line' , lineHeight: '24px'}}>{desc}</div>
+            </div>
+          ))}
+        </>
       }
       projectScreenshots={
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div>
-            <h4>사용자 화면</h4>
-            <img
-              src="/assets/portpolio_popup/antidron_1.png"
-              alt="사용자 화면"
-              style={{ width: '100%' }}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {t.screenshots.map((title, i) => (
+            <div key={i}>
+              <h4 style={{ fontWeight: 700, fontSize: 16, color: '#3f4347' }}>{title}</h4>
+              <img src={`/assets/portpolio_popup/exito_${i + 1}.png`} alt={title} style={{ width: '100%' }} />
+            </div>
+          ))}
+        </div>
+      }
+      pjtConfirm={
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {t.confirmButtons.map((title, i) => (
+            <GradientButton
+              key={i}
+              title={title}
+              href={hrefs[i]}
+              titleColor="#FFFFFF"
+              gradient="linear-gradient(to bottom, #4c5cd4, #27349D)"
             />
-          </div>
-          <div>
-            <h4>관리자 화면</h4>
-            <img
-              src="/assets/portpolio_popup/antidron_2.png"
-              alt="관리자 화면"
-              style={{ width: '100%' }}
-            />
-          </div>
+          ))}
         </div>
       }
-      pjtVolume={<p>화면 분량 30장 내외</p>}
-      pjtScope={
-        <div>
-          <div>* 총 3종 웹 구성</div>
-          <div>사용자 관제 웹</div>
-          <div>하드웨어 설정 웹</div>
-          <div>관리자용 웹</div>
-        </div>
-      }
-      pjtStack={
-        <div>
-          <div>FE: React.js</div>
-          <div>BE: Python</div>
-          <div>Server: 독립 서버</div>
-          <div>OS: Linux</div>
-          <div>DB: PostgreSQL, MongoDB</div>
-        </div>
-      }
-      pjtDuration={
-        <div>
-          <div>스토리보드 4주</div>
-          <div>UI/UX 디자인 4주</div>
-          <div>FE/BE 개발 14주</div>
-        </div>
-      }
+      pjtVolume={<Text>{t.volume}</Text>}
+      pjtScope={<>{t.scope.map((line, i) => <Text key={i}>{line}</Text>)}</>}
+      pjtStack={<>{t.stack.map((line, i) => <Text key={i}>{line}</Text>)}</>}
+      pjtDuration={<>{t.duration.map((line, i) => <Text key={i}>{line}</Text>)}</>}
     />
   );
 };
-

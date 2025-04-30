@@ -230,7 +230,13 @@ export default function HomePage() {
     {
       id: "contact",
       $backgroundColor: AppColors.background,
-      content: <ContactSection />,
+      content: <ContactSection
+      topLabel={t.departure}
+      centerLabel={t.customNavigator.contact}
+      bottomLabel={t.arrival}
+      title={t.contract.title}
+      description={t.contract.description}
+      />,
       $zIndex: 10,
     },
     {

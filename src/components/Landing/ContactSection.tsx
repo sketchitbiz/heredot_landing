@@ -8,10 +8,19 @@ import PhoneIcon from '@mui/icons-material/Phone';
 import ChatIcon from '@mui/icons-material/Chat';
 import { useLang } from '@/contexts/LangContext';
 import { dictionary } from '@/lib/i18n/lang';
+import { CustomNavigator } from '@/customComponents/CustomNavigator';
 
+
+interface ContractProps {
+  topLabel: string;
+  centerLabel: string;
+  bottomLabel: string;
+  title: string;
+  description: string;
+}
 const SectionContainer = styled.div`
   background-color: ${AppColors.backgroundDark};
-  padding: 64px 0; /* 왼쪽/오른쪽 패딩 제거 */
+  padding-bottom: 64px; /* 아래 여백 */
 `;
 
 const ContactGrid = styled.div`
@@ -75,11 +84,26 @@ const ContactButton = styled.a`
   }
 `;
 
-export const ContactSection: React.FC = () => {
+export const ContactSection: React.FC<ContractProps> = ({
+  topLabel,
+  centerLabel,
+  bottomLabel,
+  title,
+  description,
+}) => {
   const { lang } = useLang();
   const t = dictionary[lang].contactSection;
 
   return (
+        <>
+          {/* 🔥 CustomNavigator 추가 */}
+          <CustomNavigator
+            topLabel={topLabel}
+            centerLabel={centerLabel}
+            bottomLabel={bottomLabel}
+            title={title}
+            description={description}
+          />
     <SectionContainer>
       <ContactGrid>
         {/* 이메일 문의 */}
@@ -115,5 +139,6 @@ export const ContactSection: React.FC = () => {
         </ContactItem>
       </ContactGrid>
     </SectionContainer>
+    </>
   );
 };

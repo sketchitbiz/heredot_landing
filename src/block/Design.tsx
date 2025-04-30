@@ -27,7 +27,7 @@ const Container = styled.div`
 
 const ActiveDot = styled.div`
   position: absolute;
-  left: 0px;
+  left: 100px;
   top: 50%;
   width: 24px;
   height: 24px;
@@ -40,9 +40,9 @@ const ActiveDot = styled.div`
 const ArcTrack = styled.div`
   position: absolute;
   top: 50%;
-  left: 0%;
+  left: -5%;
   transform: translateY(-50%);
-  width: 400px;
+  width: 450px;
   height: 700px;
   display: flex;
   flex-direction: column;

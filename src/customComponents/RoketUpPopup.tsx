@@ -1,76 +1,100 @@
 'use client';
 
+import React from 'react';
+import { useLang } from '@/contexts/LangContext';
+import { GradientButton } from '@/components/GradientButton';
 import { ProjectPopupContent } from '@/customComponents/ProjectPopupContent';
 
+const Text = ({ children }: { children: React.ReactNode }) => (
+  <p style={{ fontSize: 16, fontWeight: 400, color: '#454545', margin: 0, marginBottom: 0,lineHeight : '20px', whiteSpace: 'pre-line' }}>
+    {children}
+  </p>
+);
+
+const TEXT = {
+  ko: {
+    projectIntro:
+      '창업자들이 자금 조달을 더 쉽고 빠르게 할 수 있도록\n정부지원사업을 기반으로 한 기본형 / 합격형 / 환불형\n상품 컨설팅 서비스를 제공합니다',
+    features: [
+      ['[랜딩]', '서비스 특장 점 및 상품 안내 PR'],
+      ['[SMS]', '상품 문의 접수 시 관리자 SMS 수신 기능'],
+      ['[크롤링]', '주요 지원사업 1일 단위 자동 수집'],
+      ['[크롤링 관제]', '크롤링 수집 상태를 1일 단위 메일링으로 헬스체크 하는 기능'],
+    ],
+    screenshots: ['사용자 화면', '관리자 화면'],
+    confirmButtons: [
+      { title: '서비스 웹 바로가기', href: 'https://roketup.com' },
+    ],
+    volume: '화면 분량 10장 내외',
+    scope: ['* 총 2종 웹 구성', '사용자 웹', '관리자용 웹'],
+    stack: ['FE: Flutter', 'BE: Node.js', 'Server: Cafe24 Cloud', 'OS: Linux', 'DB: PostgreSQL'],
+    duration: ['UI/UX 디자인 2주', 'FE/BE 개발 2주'],
+  },
+  en: {
+    projectIntro:
+      'A consulting platform that helps startups secure funding faster and easier\nthrough government support programs, offering basic/success/refund-based packages.',
+    features: [
+      ['[Landing]', 'PR for product strengths and service info'],
+      ['[SMS]', 'Receive SMS alerts when inquiries are submitted'],
+      ['[Crawling]', 'Daily auto-collection of key government support programs'],
+      ['[Health Check]', 'Daily mailing to monitor crawling status'],
+    ],
+    screenshots: ['User Screen', 'Admin Screen'],
+    confirmButtons: [
+      { title: 'Visit Web Service', href: 'https://roketup.com' },
+    ],
+    volume: 'Approx. 10 screens',
+    scope: ['* 2 types of web interfaces', 'User Web', 'Admin Web'],
+    stack: ['FE: Flutter', 'BE: Node.js', 'Server: Cafe24 Cloud', 'OS: Linux', 'DB: PostgreSQL'],
+    duration: ['UI/UX Design: 2 weeks', 'FE/BE Development: 2 weeks'],
+  },
+};
+
 export const RocketPopup = () => {
+  const { lang } = useLang();
+  const t = TEXT[lang];
+
   return (
     <ProjectPopupContent
       imageUrl="/assets/portpolio_popup/roketup.png"
-      leftHeader={<p>이 프로젝트는 A 기능을 중심으로 설계된 고도화 서비스입니다.</p>}
-      projectIntro={
-        <p>
-          하드웨어 센서 기반으로 자폭 · 공격 드론을 식별·탐지한 뒤, 이를 무력화하는 시스템으로, 
-          국방 및 주요 국가 시설에 납품되는 제품입니다.
-        </p>
-      }
+      projectIntro={<Text>{t.projectIntro}</Text>}
       featureList={
-        <div>
-          <div>[RabbitMQ]</div>
-          <div style={{ marginBottom: '16px' }}>센싱 데이터를 실시간 연계 및 활용</div>
-          <div>[Web Push]</div>
-          <div style={{ marginBottom: '16px' }}>드론 침입 · 무력화 시 실시간 알림</div>
-          <div>[3D Map]</div>
-          <div style={{ marginBottom: '16px' }}>드론 위치를 실시간으로 3D 맵 이동 구현</div>
-          <div>[RealTime]</div>
-          <div>Streaming API를 통한 실시간 이동 식별</div>
-        </div>
+        <>
+          {t.features.map(([label, desc], i) => (
+            <div key={i} style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 16, fontWeight: 700, color: '#3f4347', lineHeight: '24px' }}>{label}</div>
+              <div style={{ fontWeight: 400, color: '#3f4347', whiteSpace: 'pre-line' , lineHeight: '24px'}}>{desc}</div>
+            </div>
+          ))}
+        </>
       }
       projectScreenshots={
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div>
-            <h4>사용자 화면</h4>
-            <img
-              src="/assets/portpolio_popup/antidron_1.png"
-              alt="사용자 화면"
-              style={{ width: '100%' }}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {t.screenshots.map((title, i) => (
+            <div key={i}>
+              <h4 style={{ fontWeight: 700, fontSize: 16, color: '#3f4347' }}>{title}</h4>
+              <img src={`/assets/portpolio_popup/roket_${i + 1}.png`} alt={title} style={{ width: '100%' }} />
+            </div>
+          ))}
+        </div>
+      }
+      pjtConfirm={
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {t.confirmButtons.map((btn, i) => (
+            <GradientButton
+              key={i}
+              title={btn.title}
+              href={btn.href}
+              titleColor="#FA4C64"
+              gradient="linear-gradient(to bottom, #F8F6F6, #E6C4CC)"
             />
-          </div>
-          <div>
-            <h4>관리자 화면</h4>
-            <img
-              src="/assets/portpolio_popup/antidron_2.png"
-              alt="관리자 화면"
-              style={{ width: '100%' }}
-            />
-          </div>
+          ))}
         </div>
       }
-      pjtVolume={<p>화면 분량 30장 내외</p>}
-      pjtScope={
-        <div>
-          <div>* 총 3종 웹 구성</div>
-          <div>사용자 관제 웹</div>
-          <div>하드웨어 설정 웹</div>
-          <div>관리자용 웹</div>
-        </div>
-      }
-      pjtStack={
-        <div>
-          <div>FE: React.js</div>
-          <div>BE: Python</div>
-          <div>Server: 독립 서버</div>
-          <div>OS: Linux</div>
-          <div>DB: PostgreSQL, MongoDB</div>
-        </div>
-      }
-      pjtDuration={
-        <div>
-          <div>스토리보드 4주</div>
-          <div>UI/UX 디자인 4주</div>
-          <div>FE/BE 개발 14주</div>
-        </div>
-      }
+      pjtVolume={<Text>{t.volume}</Text>}
+      pjtScope={<>{t.scope.map((line, i) => <Text key={i}>{line}</Text>)}</>}
+      pjtStack={<>{t.stack.map((line, i) => <Text key={i}>{line}</Text>)}</>}
+      pjtDuration={<>{t.duration.map((line, i) => <Text key={i}>{line}</Text>)}</>}
     />
   );
 };
-

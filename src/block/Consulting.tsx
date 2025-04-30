@@ -188,9 +188,11 @@ const Consulting: React.FC<ConsultingProps> = ({
       scrollTrigger: {
         trigger: wrapperRef.current,
         start: 'top top',
-        end: '+=2000',
+        end: '+=1000',
         pin: true,
         scrub: false,
+        onEnter: () => tl.restart(),
+        onEnterBack: () => tl.restart(),
       },
     });
 

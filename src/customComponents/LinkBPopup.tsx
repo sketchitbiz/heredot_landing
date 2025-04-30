@@ -1,76 +1,106 @@
 'use client';
 
+import React from 'react';
+import { useLang } from '@/contexts/LangContext';
+import { GradientButton } from '@/components/GradientButton';
 import { ProjectPopupContent } from '@/customComponents/ProjectPopupContent';
 
+const Text = ({ children }: { children: React.ReactNode }) => (
+  <p style={{ fontSize: 16, fontWeight: 400, color: '#454545', margin: 0, marginBottom: 0,lineHeight : '20px', whiteSpace: 'pre-line' }}>
+    {children}
+  </p>
+);
+
+const TEXT = {
+  ko: {
+    projectIntro:
+      '2차전지 배터리팩 관제 솔루션을 통한\n실시간 배터리 위험 실시간감지 및 수명 예측 기능을 통한 제품 판매 상승 전략 시장 검증 과제 입니다',
+    features: [
+      ['[산업IoT]', 'BMS내 DATA를 KT IoT 단말을 통한 Data 전송'],
+      ['[무선 OTA]', '상시 최신 펌웨어 업데이트 지원'],
+      ['[원격제어]', '유사 긴급 상황 시 BMS 전류 차단'],
+      ['[배터리팩 교체 요청]', '수명 저하 시 배터리팩 교체 지원'],
+      ['[배터리팩 관제]', '배터리 상태, 위치, 온도, 수명 관제'],
+    ],
+    screenshots: ['모바일 & PC 화면'],
+    confirmButtons: [
+      { title: 'PR 영상 바로가기', href: 'https://www.youtube.com/watch?v=ZGsmnebmjLQ' },
+    ],
+    volume: '화면 분량 100장 내외',
+    scope: ['* 총 2종 웹 구성', '사용자 웹', '관리자 웹'],
+    stack: ['FE: JSP', 'BE: java spring boot', 'Server: Cafe24 Cloud', 'OS: Linux', 'DB: PostgreSQL, MongoDB'],
+    duration: ['스토리보드 5개월', 'UI/UX 디자인 3개월', 'FE/BE 개발 12개월'],
+  },
+  en: {
+    projectIntro:
+      'A secondary battery pack monitoring solution that provides real-time risk detection and lifecycle prediction to improve product sales.',
+    features: [
+      ['[Industrial IoT]', 'Send BMS data via KT IoT devices'],
+      ['[Wireless OTA]', 'Support for always-on firmware updates'],
+      ['[Remote Control]', 'Shutdown current in emergency-like situations'],
+      ['[Battery Pack Replacement]', 'Support for pack replacement when degraded'],
+      ['[Monitoring]', 'Status, location, temperature, and lifespan monitoring'],
+    ],
+    screenshots: ['Mobile & PC Screen'],
+    confirmButtons: [
+      { title: 'Go to PR Video', href: 'https://www.youtube.com/watch?v=ZGsmnebmjLQ' },
+    ],
+    volume: 'Approx. 100 screens',
+    scope: ['* 2 types of web systems', 'User Web', 'Admin Web'],
+    stack: ['FE: JSP', 'BE: java spring boot', 'Server: Cafe24 Cloud', 'OS: Linux', 'DB: PostgreSQL, MongoDB'],
+    duration: ['Storyboard: 5 months', 'UI/UX Design: 3 months', 'FE/BE Development: 12 months'],
+  },
+};
+
 export const LinkBPopup = () => {
+  const { lang } = useLang();
+  const t = TEXT[lang];
+
   return (
     <ProjectPopupContent
       imageUrl="/assets/portpolio_popup/link-b.png"
-      leftHeader={<p>이 프로젝트는 A 기능을 중심으로 설계된 고도화 서비스입니다.</p>}
-      projectIntro={
-        <p>
-          하드웨어 센서 기반으로 자폭 · 공격 드론을 식별·탐지한 뒤, 이를 무력화하는 시스템으로, 
-          국방 및 주요 국가 시설에 납품되는 제품입니다.
-        </p>
-      }
+      projectIntro={<Text>{t.projectIntro}</Text>}
       featureList={
-        <div>
-          <div>[RabbitMQ]</div>
-          <div style={{ marginBottom: '16px' }}>센싱 데이터를 실시간 연계 및 활용</div>
-          <div>[Web Push]</div>
-          <div style={{ marginBottom: '16px' }}>드론 침입 · 무력화 시 실시간 알림</div>
-          <div>[3D Map]</div>
-          <div style={{ marginBottom: '16px' }}>드론 위치를 실시간으로 3D 맵 이동 구현</div>
-          <div>[RealTime]</div>
-          <div>Streaming API를 통한 실시간 이동 식별</div>
-        </div>
+        <>
+          {t.features.map(([label, desc], i) => (
+            <div key={i} style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 16, fontWeight: 700, color: '#3f4347', lineHeight: '24px' }}>{label}</div>
+              <div style={{ fontWeight: 400, color: '#3f4347', whiteSpace: 'pre-line' , lineHeight: '24px'}}>{desc}</div>
+            </div>
+          ))}
+        </>
       }
       projectScreenshots={
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div>
-            <h4>사용자 화면</h4>
-            <img
-              src="/assets/portpolio_popup/antidron_1.png"
-              alt="사용자 화면"
-              style={{ width: '100%' }}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {t.screenshots.map((title, i) => (
+            <div key={i}>
+              <h4 style={{ fontWeight: 700, fontSize: 16, color: '#3f4347' }}>{title}</h4>
+              <img
+                src={`/assets/portpolio_popup/linkB_${i + 1}.png`}
+                alt={title}
+                style={{ width: '100%' }}
+              />
+            </div>
+          ))}
+        </div>
+      }
+      pjtConfirm={
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {t.confirmButtons.map((btn, i) => (
+            <GradientButton
+              key={i}
+              title={btn.title}
+              href={btn.href}
+              titleColor="#FFFFFF"
+              gradient="linear-gradient(to bottom, #3E403C, #3E403C)"
             />
-          </div>
-          <div>
-            <h4>관리자 화면</h4>
-            <img
-              src="/assets/portpolio_popup/antidron_2.png"
-              alt="관리자 화면"
-              style={{ width: '100%' }}
-            />
-          </div>
+          ))}
         </div>
       }
-      pjtVolume={<p>화면 분량 30장 내외</p>}
-      pjtScope={
-        <div>
-          <div>* 총 3종 웹 구성</div>
-          <div>사용자 관제 웹</div>
-          <div>하드웨어 설정 웹</div>
-          <div>관리자용 웹</div>
-        </div>
-      }
-      pjtStack={
-        <div>
-          <div>FE: React.js</div>
-          <div>BE: Python</div>
-          <div>Server: 독립 서버</div>
-          <div>OS: Linux</div>
-          <div>DB: PostgreSQL, MongoDB</div>
-        </div>
-      }
-      pjtDuration={
-        <div>
-          <div>스토리보드 4주</div>
-          <div>UI/UX 디자인 4주</div>
-          <div>FE/BE 개발 14주</div>
-        </div>
-      }
+      pjtVolume={<Text>{t.volume}</Text>}
+      pjtScope={<>{t.scope.map((line, i) => <Text key={i}>{line}</Text>)}</>}
+      pjtStack={<>{t.stack.map((line, i) => <Text key={i}>{line}</Text>)}</>}
+      pjtDuration={<>{t.duration.map((line, i) => <Text key={i}>{line}</Text>)}</>}
     />
   );
 };
-

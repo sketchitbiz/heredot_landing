@@ -8,6 +8,10 @@ export const dictionary = {
       event: '기획전',
       contact: '연락',
     },
+    contract: {
+      title: '프로젝트 문의가 있다면',
+      description: '망설이지 말고 지금 "여기닷"에게 연락 주세요',
+    },
     headerTitle: '출발과 도착의 여정',
     headerSubtitle: '여기닷에서',
     download: '기업 소개서',
@@ -69,7 +73,7 @@ export const dictionary = {
       downloadText: '사업제안서 다운로드',
     },
     consulting: {
-      title: `여기닷은 "기능명세"를\n 최적화 목적으로 활용합니다`, 
+      title: `여기닷은 "기능명세"를\n 최적화 용도로 활용합니다`, 
       descriptions: [
         '1. 견적 단계에서 분량 및 기능정리',
         '2. IT서비스 최적 설계 지원',
@@ -185,7 +189,7 @@ export const dictionary = {
       description: "대표님들은 '여기닷'을 이렇게 기억합니다.",
     },
     appBlock: {
-      title: `여기닷은 레고 디자인 시스템으로\n차곡차곡 쌓아 빠르고 안정적으로 개발합니다.`,
+      title: `여기닷은 레고 디자인 시스템으로\n차곡차곡 쌓아 빠르고·안정적 개발합니다.`,
       description: `화면을 작은 단위부터 체계적으로 설계해\n디자인과 개발을 일관된 구조로 개발하며,\n완성도는 물론 추후 코드 이관과 유지보수도 간편합니다.`,
     },
     contactSection: {
@@ -328,7 +332,11 @@ export const dictionary = {
         },
       },
     },
-    
+    contract: {
+      title: 'Have a project inquiry?',
+      description: 'Let’s connect and make it happen — contact HereDot today.',
+      
+    },
     partner: {
       title1: 'Heredot is',
       title2: 'a Strategic Partner for Founders',
@@ -363,7 +371,7 @@ export const dictionary = {
       downloadText: 'Download Proposal',
     },
     consulting: {
-      title: `Heredot is used for "Function, Design, and Cost" Optimization`,
+      title: `Heredot uses "Function Specifications"\nfor Optimization Purposes`,
       descriptions: [
         '1. Organizing quantity and functions at the estimate stage',
         '2. Supporting optimal IT service design',

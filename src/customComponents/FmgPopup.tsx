@@ -1,76 +1,106 @@
 'use client';
 
+import React from 'react';
+import { useLang } from '@/contexts/LangContext';
 import { ProjectPopupContent } from '@/customComponents/ProjectPopupContent';
+import { GradientButton } from '@/components/GradientButton';
+
+const Text = ({ children }: { children: React.ReactNode }) => (
+  <p style={{ fontSize: 16, fontWeight: 400, color: '#454545', margin: 0, marginBottom: 0,lineHeight : '20px', whiteSpace: 'pre-line' }}>
+    {children}
+  </p>
+);
+
+
+const TEXT = {
+  ko: {
+    projectIntro:
+      'FMG는 Find Me a Golf sponsor 약어로\n스크린골프 / 필드에서 홀인원 시 최대 1천만원을 지급하는 골프 스폰서십 플랫폼 입니다.',
+    features: [
+      ['[상품운영]', '구독형 스폰서십 상품 운영'],
+      ['[PG연계]', '신용카드 등록 후 매달 지정일 결제'],
+      ['[PC/Mobile]', 'PC에서도 모바일 화면 형태 UI/UX 형태로 웹 서비스 진행'],
+    ],
+    screenshots: ['📱모바일 화면', '관리자 화면'],
+    confirmButtons: [
+      { title: '서비스 웹 바로가기', href: 'https://xn--bb0bq9znnr.com/' },
+      { title: 'AOS 앱 바로가기', href: 'https://play.google.com/store/apps/details?id=com.hclub.fmgs&hl=ko' },
+      { title: 'IOS 앱 바로가기', href: 'https://apps.apple.com/kr/app/%ED%8C%8C%EB%AF%B8%EA%B3%A8-%EB%82%98%EB%A7%8C%EC%9D%98-%EA%B3%A8%ED%94%84-%EC%8A%A4%ED%8F%B0%EC%84%9C/id6508168269' },
+    ],
+    volume: '화면 분량 35장 내외',
+    scope: ['총 2종 웹·앱(AOS ·IOS) 구성', '사용자 웹·앱', '관리자용 웹'],
+    stack: ['FE: Flutter', 'BE: Node.js', 'Server: Cafe24 Cloud', 'OS: Linux', 'DB: PostgreSQL'],
+    duration: ['스토리보드 2주', 'UI/UX 디자인 1주', 'FE/BE 개발 8주'],
+  },
+  en: {
+    projectIntro:
+      'FMG stands for "Find Me a Golf sponsor".\nIt is a golf sponsorship platform that offers up to 10 million KRW when a hole-in-one is achieved in screen golf or on the field.',
+    features: [
+      ['[Product Model]', 'Subscription-based sponsorship product model'],
+      ['[PG Integration]', 'Monthly billing after credit card registration'],
+      ['[PC/Mobile]', 'Mobile-first UI/UX provided even in PC web version'],
+    ],
+    screenshots: ['📱Mobile Screen', 'Admin Screen'],
+    confirmButtons: [
+      { title: 'Visit Web Service', href: 'https://xn--bb0bq9znnr.com/' },
+      { title: 'Open AOS App', href: 'https://play.google.com/store/apps/details?id=com.hclub.fmgs&hl=ko' },
+      { title: 'Open iOS App', href: 'https://apps.apple.com/kr/app/%ED%8C%8C%EB%AF%B8%EA%B3%A8-%EB%82%98%EB%A7%8C%EC%9D%98-%EA%B3%A8%ED%94%84-%EC%8A%A4%ED%8F%B0%EC%84%9C/id6508168269' },
+    ],
+    volume: 'Approx. 35 screens',
+    scope: ['2 platforms (Web/App for AOS · iOS)', 'User Web/App', 'Admin Web'],
+    stack: ['FE: Flutter', 'BE: Node.js', 'Server: Cafe24 Cloud', 'OS: Linux', 'DB: PostgreSQL'],
+    duration: ['Storyboard: 2 weeks', 'UI/UX Design: 1 week', 'FE/BE Development: 8 weeks'],
+  },
+};
 
 export const FmgPopup = () => {
+  const { lang } = useLang();
+  const t = TEXT[lang];
+
   return (
     <ProjectPopupContent
       imageUrl="/assets/portpolio_popup/fmg.png"
-      leftHeader={<p>이 프로젝트는 A 기능을 중심으로 설계된 고도화 서비스입니다.</p>}
-      projectIntro={
-        <p>
-          하드웨어 센서 기반으로 자폭 · 공격 드론을 식별·탐지한 뒤, 이를 무력화하는 시스템으로, 
-          국방 및 주요 국가 시설에 납품되는 제품입니다.
-        </p>
-      }
+      projectIntro={<Text>{t.projectIntro}</Text>}
       featureList={
-        <div>
-          <div>[RabbitMQ]</div>
-          <div style={{ marginBottom: '16px' }}>센싱 데이터를 실시간 연계 및 활용</div>
-          <div>[Web Push]</div>
-          <div style={{ marginBottom: '16px' }}>드론 침입 · 무력화 시 실시간 알림</div>
-          <div>[3D Map]</div>
-          <div style={{ marginBottom: '16px' }}>드론 위치를 실시간으로 3D 맵 이동 구현</div>
-          <div>[RealTime]</div>
-          <div>Streaming API를 통한 실시간 이동 식별</div>
-        </div>
+        <>
+          {t.features.map(([label, desc], i) => (
+            <div key={i} style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 16, fontWeight: 700, color: '#3f4347', lineHeight: '24px' }}>{label}</div>
+              <div style={{ fontWeight: 400, color: '#3f4347', whiteSpace: 'pre-line' , lineHeight: '24px'}}>{desc}</div>
+            </div>
+          ))}
+        </>
       }
       projectScreenshots={
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div>
-            <h4>사용자 화면</h4>
-            <img
-              src="/assets/portpolio_popup/antidron_1.png"
-              alt="사용자 화면"
-              style={{ width: '100%' }}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {t.screenshots.map((title, i) => (
+            <div key={i}>
+              <h4 style={{ fontWeight: 700, fontSize: 16, color: '#3f4347' }}>{title}</h4>
+              <img
+                src={`/assets/portpolio_popup/fmg_${i + 1}.png`}
+                alt={title}
+                style={{ width: '100%' }}
+              />
+            </div>
+          ))}
+        </div>
+      }
+      pjtConfirm={
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {t.confirmButtons.map((btn, i) => (
+            <GradientButton
+              key={i}
+              title={btn.title}
+              href={btn.href}
+              gradient="linear-gradient(to bottom, #CFFFE4, #ABE8C6)"
             />
-          </div>
-          <div>
-            <h4>관리자 화면</h4>
-            <img
-              src="/assets/portpolio_popup/antidron_2.png"
-              alt="관리자 화면"
-              style={{ width: '100%' }}
-            />
-          </div>
+          ))}
         </div>
       }
-      pjtVolume={<p>화면 분량 30장 내외</p>}
-      pjtScope={
-        <div>
-          <div>* 총 3종 웹 구성</div>
-          <div>사용자 관제 웹</div>
-          <div>하드웨어 설정 웹</div>
-          <div>관리자용 웹</div>
-        </div>
-      }
-      pjtStack={
-        <div>
-          <div>FE: React.js</div>
-          <div>BE: Python</div>
-          <div>Server: 독립 서버</div>
-          <div>OS: Linux</div>
-          <div>DB: PostgreSQL, MongoDB</div>
-        </div>
-      }
-      pjtDuration={
-        <div>
-          <div>스토리보드 4주</div>
-          <div>UI/UX 디자인 4주</div>
-          <div>FE/BE 개발 14주</div>
-        </div>
-      }
+      pjtVolume={<Text>{t.volume}</Text>}
+      pjtScope={<>{t.scope.map((line, i) => <Text key={i}>{line}</Text>)}</>}
+      pjtStack={<>{t.stack.map((line, i) => <Text key={i}>{line}</Text>)}</>}
+      pjtDuration={<>{t.duration.map((line, i) => <Text key={i}>{line}</Text>)}</>}
     />
   );
 };
-
