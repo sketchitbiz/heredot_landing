@@ -34,7 +34,7 @@ const stepData = [
     selectionTitle: "플랫폼 선택 (중복 가능)",
     options: [
       { id: "pc", label: "PC Web" },
-      { id: "mobile", label: "mobile Web" },
+      { id: "mobile", label: "Mobile Web" },
       { id: "AOS", label: "AOS" },
       { id: "IOS", label: "IOS" },
       { id: "Windows", label: "Windows" },
@@ -76,7 +76,7 @@ const stepData = [
     subtitle: "개발 카테고리를 선택해주세요.",
     selectionTitle: "카테고리 선택 (단일 선택)",
     options: [
-      { id: "board", label: "게시판앱" },
+      { id: "travel", label: "여행/교통" },
       { id: "iot", label: "IoT앱" },
       { id: "health", label: "건강/의료" },
       { id: "finance", label: "금융/펀드" },
