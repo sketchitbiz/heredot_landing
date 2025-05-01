@@ -1,5 +1,5 @@
-import { SYSTEM_INSTRUCTION } from "@/config/ai/instruction"; // 경로 수정
-import { collection, getDocs, getFirestore, query } from "firebase/firestore";
+// import { SYSTEM_INSTRUCTION } from "@/config/ai/instruction"; // 경로 수정
+// import { collection, getDocs, getFirestore, query } from "firebase/firestore"; // Firestore 관련 import 제거
 import {
   ChatSession, // 타입 직접 사용
   GenerativeModel, // 타입 직접 사용
@@ -26,27 +26,86 @@ export default function useAI() {
     if (!initialized.current) {
       const initializeAI = async () => {
         try {
-          // Firestore에서 features 데이터 가져오기
-          const q = query(collection(getFirestore(), "features")); // <- 여기서 Firebase 앱 초기화 필요
-          const querySnapshot = await getDocs(q);
+          const apiHost = process.env.NEXT_PUBLIC_API_HOST || ""; // 환경 변수 또는 기본값 사용
 
-          let featuresData = "";
-          querySnapshot.forEach((doc) => {
-            // 데이터를 문자열로 조합 (필요에 따라 형식 변경)
-            featuresData += JSON.stringify(doc.data()) + "\n";
+          // 1. 지침(Instructions) 데이터 가져오기 (API 사용 - POST 요청)
+          const instructionsResponse = await fetch(`${apiHost}/ai/instructions/get-list`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            // body: JSON.stringify({}), // 필요시 요청 본문 추가
           });
+          if (!instructionsResponse.ok) {
+            throw new Error(
+              `Failed to fetch instructions: ${instructionsResponse.statusText} (URL: ${instructionsResponse.url})`
+            );
+          }
+          const instructionsResult = await instructionsResponse.json();
 
-          // 시스템 명령어 업데이트
-          const updatedSystemInstruction = `${SYSTEM_INSTRUCTION}\n<DATA>\n${featuresData}</DATA>`;
-          console.log("Initializing AI with System Instruction:", updatedSystemInstruction);
+          // 모든 instruction의 content를 합치기
+          let allInstructionsContent = "";
+          if (instructionsResult && instructionsResult[0]?.data) {
+            instructionsResult[0].data.forEach((instr: any) => {
+              if (instr.content) {
+                allInstructionsContent += instr.content + "\n\n"; // 각 지침 사이에 줄바꿈 추가
+              }
+            });
+          } else {
+            console.error(
+              "Unexpected API response structure for instructions:",
+              JSON.stringify(instructionsResult, null, 2)
+            );
+            throw new Error("Could not extract instructions from API response");
+          }
 
-          // Vertex AI 인스턴스 가져오기 (Firebase 앱 초기화 선행 필요)
-          const vertexAI = getVertexAI(); // <- 여기서 Firebase 앱 초기화 필요
+          if (!allInstructionsContent) {
+            throw new Error("No instruction content found in API response");
+          }
+
+          // 2. 기능(Features) 데이터 가져오기 (API 사용 - POST 요청)
+          const featuresResponse = await fetch(`${apiHost}/ai/features/get-list`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            // body: JSON.stringify({}), // 필요시 요청 본문 추가
+          });
+          if (!featuresResponse.ok) {
+            throw new Error(`Failed to fetch features: ${featuresResponse.statusText} (URL: ${featuresResponse.url})`);
+          }
+          const featuresResult = await featuresResponse.json();
+
+          // 기능 데이터 추출 및 문자열 변환
+          let featuresDataString = "";
+          if (featuresResult && featuresResult[0]?.data) {
+            // API 응답이 배열의 첫 요소에 data 필드를 포함한다고 가정
+            featuresDataString = JSON.stringify(featuresResult[0].data, null, 2);
+          } else {
+            console.error("Unexpected API response structure for features:", JSON.stringify(featuresResult, null, 2));
+            throw new Error("Could not extract features from API response");
+          }
+
+          // --- Firestore 로직 제거 ---
+          // const q = query(collection(getFirestore(), "features"));
+          // const querySnapshot = await getDocs(q);
+          // let featuresData = "";
+          // querySnapshot.forEach((doc) => {
+          //   featuresData += JSON.stringify(doc.data()) + "\n";
+          // });
+
+          // 시스템 명령어 업데이트 (API 지침 + API 데이터)
+          const updatedSystemInstruction = `${allInstructionsContent}<DATA>
+${featuresDataString}</DATA>`;
+          console.log("Initializing AI with combined System Instruction from APIs...");
+
+          // Vertex AI 인스턴스 가져오기
+          const vertexAI = getVertexAI();
 
           // Generative 모델 초기화
           const generativeModelInstance = getGenerativeModel(vertexAI, {
             model: GEMINI_MODEL,
-            systemInstruction: updatedSystemInstruction,
+            systemInstruction: updatedSystemInstruction, // API 지침과 API 데이터를 결합하여 사용
           });
           model.current = generativeModelInstance; // 타입 일치
 

@@ -371,7 +371,7 @@ export default function AiPageContent() {
   const searchParams = useSearchParams();
   const chatEndRef = useRef<HTMLDivElement>(null);
 
-  const { /* chat, */ model } = useAI(); // chat 변수 주석 처리 (사용하지 않음)
+  const { chat, model } = useAI(); // chat 변수 주석 해제
 
   const [currentStep, setCurrentStep] = useState(0);
   const [selections, setSelections] = useState<Record<string, string[]>>({});
@@ -592,20 +592,17 @@ export default function AiPageContent() {
       // 1. 기초 조사 요약 추가 (Part 객체 형태로)
       let selectionSummary = "";
       Object.entries(selections).forEach(([stepId, selectedOptions]) => {
-        // stepData에서 해당 단계 정보 찾기 (선택 사항: 제목 표시용)
         const stepInfo = stepData.find((step) => step.id === stepId);
-        const stepTitle = stepInfo ? stepInfo.selectionTitle : stepId; // 제목 없으면 ID 사용
+        const stepTitle = stepInfo ? stepInfo.selectionTitle : stepId;
         if (selectedOptions && selectedOptions.length > 0) {
-          // 옵션 ID를 레이블로 변환 (선택 사항)
           const selectedLabels = selectedOptions.map((optionId) => {
             const option = stepInfo?.options.find((opt) => opt.id === optionId);
-            return option ? option.label : optionId; // 레이블 없으면 ID 사용
+            return option ? option.label : optionId;
           });
           selectionSummary += `- ${stepTitle}: ${selectedLabels.join(", ")}\n`;
         }
       });
-      selectionSummary += "\n"; // 구분 위한 줄바꿈
-      // ------------------------------------------
+      selectionSummary += "\n";
       if (selectionSummary) parts.push({ text: selectionSummary + "\n" });
 
       // 2. 텍스트 프롬프트 추가 (Part 객체 형태로)
@@ -613,25 +610,24 @@ export default function AiPageContent() {
 
       // 3. 파일 데이터 추가 (기존 방식 유지 - 올바름)
       currentFiles.forEach((file) => {
-        // FileDataPart 타입으로 명시적 캐스팅 제거 (Part 타입에 호환됨)
         parts.push({ fileData: { mimeType: file.mimeType, fileUri: file.fileUri } as FileData });
       });
       // --- AI 요청 구성 완료 ---
 
-      console.log("Sending parts to AI:", parts); // 디버깅 로그
+      console.log("Sending parts to AI via ChatSession:", parts); // 로그 수정
 
-      // 모델 존재 여부 확인 추가
-      if (!model.current) {
-        throw new Error("AI model is not initialized.");
+      // chat 객체 존재 여부 확인
+      if (!chat.current) {
+        throw new Error("AI chat session is not initialized.");
       }
 
-      // generateContentStream 사용 (문자열 대신 Part 배열 전송)
-      const streamResult = await model.current.generateContentStream({ contents: [{ role: "user", parts }] });
+      // chat.sendMessageStream 사용 (model.generateContentStream 대신)
+      const streamResult = await chat.current.sendMessageStream(parts); // parts 배열 직접 전달
 
       for await (const item of streamResult.stream) {
         const chunkText = item.candidates?.[0]?.content?.parts?.[0]?.text;
         if (chunkText) {
-          // 메시지 업데이트 로직 수정: 이전 텍스트에 새 청크 추가
+          // 메시지 업데이트 로직 (이전과 동일)
           setMessages((prevMessages: Message[]) => {
             const updatedMessages: Message[] = [...prevMessages];
             const lastMessageIndex = updatedMessages.length - 1;
