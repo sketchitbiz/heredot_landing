@@ -26,7 +26,8 @@ import TextareaAutosize from "react-textarea-autosize"; // 라이브러리 impor
 
 // --- 데이터 정의 ---
 const stepData = [
-  // Step 1: 개발 항목 선택
+  // Step 1:
+  //  선택
   {
     id: "platform",
     title: "강유하",

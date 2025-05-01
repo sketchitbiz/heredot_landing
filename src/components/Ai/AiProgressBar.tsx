@@ -1,5 +1,5 @@
 "use client";
-import styled, { css } from "styled-components";
+import styled from "styled-components";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle"; // 완료 아이콘
 import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked"; // 기본 아이콘
 import RadioButtonCheckedIcon from "@mui/icons-material/RadioButtonChecked"; // 현재 진행 아이콘 (테두리 있는 원)
@@ -64,6 +64,7 @@ const StepIconContainer = styled.div<StepStyleProps>`
 
 const StepContent = styled.div`
   margin-left: 1rem; // 아이콘과 텍스트 간격
+  line-height: 2;
 `;
 
 // StepStyleProps 사용 (올바른 $ 사용)
