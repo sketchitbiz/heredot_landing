@@ -12,6 +12,8 @@ export interface Message {
   id: number;
   sender: "user" | "ai";
   text: string;
+  imageUrl?: string; // 이미지 URL (선택적)
+  fileType?: string; // 파일 타입 (선택적)
 }
 
 interface MessageProps extends Omit<Message, "id"> {
@@ -229,7 +231,7 @@ type ButtonRendererProps = React.DetailedHTMLProps<React.ButtonHTMLAttributes<HT
   node?: unknown;
 };
 
-export function AiChatMessage({ sender, text, onActionClick }: MessageProps) {
+export function AiChatMessage({ sender, text, imageUrl, fileType, onActionClick }: MessageProps) {
   const isAiMessage = sender === "ai";
 
   const customComponents: Options["components"] = {
@@ -251,7 +253,16 @@ export function AiChatMessage({ sender, text, onActionClick }: MessageProps) {
       if (action) {
         // StyledActionButton 사용
         return (
-          <StyledActionButton onClick={() => onActionClick(action, { featureId })} {...props}>
+          <StyledActionButton
+            onClick={() => {
+              if (action && onActionClick) {
+                onActionClick(action, featureId ? { featureId } : undefined);
+              } else if (featureId && onActionClick) {
+                // data-action이 없고 data-feature-id만 있는 경우 (예: 삭제 버튼)
+                onActionClick("delete_feature", { featureId });
+              }
+            }}
+            {...props}>
             {buttonText}
           </StyledActionButton>
         );
@@ -264,19 +275,38 @@ export function AiChatMessage({ sender, text, onActionClick }: MessageProps) {
 
   return (
     <MessageWrapper $sender={sender}>
-      {sender === "ai" && <ProfileImage src="/pretty.png" alt="AI 프로필" />}
+      {isAiMessage && <ProfileImage src="/pretty.png" alt="AI 프로필" />}
       <MessageBox $sender={sender}>
-        {isAiMessage ? (
-          <StyledMarkdownContainer>
-            <ProfileName>
-              <strong>강유하</strong>
-            </ProfileName>
-            <ReactMarkdown components={customComponents} remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
-              {text}
-            </ReactMarkdown>
-          </StyledMarkdownContainer>
-        ) : (
-          text
+        <StyledMarkdownContainer>
+          <ProfileName>
+            <strong>강유하</strong>
+          </ProfileName>
+          <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} components={customComponents}>
+            {text}
+          </ReactMarkdown>
+        </StyledMarkdownContainer>
+        {/* 이미지 표시 로직 추가 */}
+        {imageUrl && fileType && fileType.startsWith("image/") && (
+          <div className="image-content" style={{ marginTop: "10px", textAlign: sender === "user" ? "right" : "left" }}>
+            <img
+              src={imageUrl}
+              alt="첨부 이미지"
+              style={{
+                maxWidth: "300px",
+                maxHeight: "300px",
+                borderRadius: "8px",
+                border: "1px solid #eee",
+                display: "inline-block", // 오른쪽 정렬을 위해
+              }}
+            />
+          </div>
+        )}
+        {/* (선택 사항) PDF 등 다른 파일 타입에 대한 아이콘/링크 표시 */}
+        {fileType && !fileType.startsWith("image/") && text.includes("(첨부 파일:") && (
+          <div className="file-attachment-info" style={{ marginTop: "5px", fontSize: "0.9em", color: "#888" }}>
+            {/* 예: <p>첨부 파일: {text.substring(text.indexOf("(첨부 파일:") + 7, text.lastIndexOf(")"))}</p> */}
+            {/* 필요시 파일 아이콘 또는 다운로드 링크 등을 추가할 수 있습니다. */}
+          </div>
         )}
       </MessageBox>
     </MessageWrapper>

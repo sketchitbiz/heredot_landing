@@ -25,98 +25,169 @@ export default function useAI() {
     // 초기화 로직은 한 번만 실행
     if (!initialized.current) {
       const initializeAI = async () => {
+        console.log("[useAI] Starting AI initialization...");
         try {
-          const apiHost = process.env.NEXT_PUBLIC_API_HOST || ""; // 환경 변수 또는 기본값 사용
+          const apiHost = process.env.NEXT_PUBLIC_API_HOST || "";
+          if (!apiHost) {
+            console.error("[useAI] ERROR: NEXT_PUBLIC_API_HOST environment variable is not set.");
+            throw new Error("API host is not configured.");
+          }
+          console.log(`[useAI] API Host: ${apiHost}`);
 
           // 1. 지침(Instructions) 데이터 가져오기 (API 사용 - POST 요청)
-          const instructionsResponse = await fetch(`${apiHost}/ai/instructions/get-list`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            // body: JSON.stringify({}), // 필요시 요청 본문 추가
-          });
-          if (!instructionsResponse.ok) {
+          const instructionsApiUrl = `${apiHost}/ai/instructions/get-list`;
+          console.log(`[useAI] Fetching instructions from: ${instructionsApiUrl}`);
+          let instructionsResponse;
+          try {
+            instructionsResponse = await fetch(instructionsApiUrl, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({}), // 빈 객체라도 body를 포함
+            });
+            console.log("[useAI] Instructions API response received. Status:", instructionsResponse.status);
+          } catch (fetchError) {
+            console.error(
+              `[useAI] Fetch error for instructions: ${
+                fetchError instanceof Error ? fetchError.message : String(fetchError)
+              }`,
+              fetchError
+            );
             throw new Error(
-              `Failed to fetch instructions: ${instructionsResponse.statusText} (URL: ${instructionsResponse.url})`
+              `Network error fetching instructions: ${
+                fetchError instanceof Error ? fetchError.message : String(fetchError)
+              }`
             );
           }
+
+          if (!instructionsResponse.ok) {
+            const errorText = await instructionsResponse.text().catch(() => "Could not read error response text");
+            console.error(
+              `[useAI] Error fetching instructions. Status: ${instructionsResponse.status}, StatusText: ${instructionsResponse.statusText}, URL: ${instructionsResponse.url}, Response: ${errorText}`
+            );
+            throw new Error(
+              `Failed to fetch instructions: ${instructionsResponse.statusText} (Status: ${instructionsResponse.status})`
+            );
+          }
+
+          console.log("[useAI] Instructions API response is OK. Parsing JSON...");
           const instructionsResult = await instructionsResponse.json();
+          console.log("[useAI] Successfully parsed instructions JSON:", JSON.stringify(instructionsResult, null, 2));
 
           // 모든 instruction의 content를 합치기
           let allInstructionsContent = "";
-          if (instructionsResult && instructionsResult[0]?.data) {
-            instructionsResult[0].data.forEach((instr: any) => {
-              if (instr.content) {
-                allInstructionsContent += instr.content + "\n\n"; // 각 지침 사이에 줄바꿈 추가
+          // API 응답 구조에 대한 더 강력한 확인 추가
+          if (
+            instructionsResult &&
+            Array.isArray(instructionsResult) &&
+            instructionsResult.length > 0 &&
+            instructionsResult[0].data &&
+            Array.isArray(instructionsResult[0].data)
+          ) {
+            instructionsResult[0].data.forEach((instr: { content?: string }) => {
+              // 타입 수정
+              if (instr && typeof instr.content === "string") {
+                // instr 객체 및 content 타입 확인
+                allInstructionsContent += instr.content + "\n\n";
               }
             });
           } else {
             console.error(
-              "Unexpected API response structure for instructions:",
+              "[useAI] Unexpected API response structure for instructions or no data found. Expected array with [0].data as array:",
               JSON.stringify(instructionsResult, null, 2)
             );
-            throw new Error("Could not extract instructions from API response");
+            throw new Error("Could not extract instructions from API response or data is missing/not an array.");
           }
 
-          if (!allInstructionsContent) {
-            throw new Error("No instruction content found in API response");
+          if (!allInstructionsContent.trim()) {
+            console.error("[useAI] No actual instruction content found after processing API response.");
+            throw new Error("No instruction content found");
           }
+          console.log("[useAI] Combined allInstructionsContent. Length:", allInstructionsContent.length);
 
           // 2. 기능(Features) 데이터 가져오기 (API 사용 - POST 요청)
-          const featuresResponse = await fetch(`${apiHost}/ai/features/get-list`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            // body: JSON.stringify({}), // 필요시 요청 본문 추가
-          });
-          if (!featuresResponse.ok) {
-            throw new Error(`Failed to fetch features: ${featuresResponse.statusText} (URL: ${featuresResponse.url})`);
+          const featuresApiUrl = `${apiHost}/ai/features/get-list`;
+          console.log(`[useAI] Fetching features from: ${featuresApiUrl}`);
+          let featuresResponse;
+          try {
+            featuresResponse = await fetch(featuresApiUrl, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({}), // 빈 객체라도 body를 포함
+            });
+            console.log("[useAI] Features API response received. Status:", featuresResponse.status);
+          } catch (fetchError) {
+            console.error(
+              `[useAI] Fetch error for features: ${
+                fetchError instanceof Error ? fetchError.message : String(fetchError)
+              }`,
+              fetchError
+            );
+            throw new Error(
+              `Network error fetching features: ${
+                fetchError instanceof Error ? fetchError.message : String(fetchError)
+              }`
+            );
           }
-          const featuresResult = await featuresResponse.json();
 
-          // 기능 데이터 추출 및 문자열 변환
+          if (!featuresResponse.ok) {
+            const errorText = await featuresResponse.text().catch(() => "Could not read error response text");
+            console.error(
+              `[useAI] Error fetching features. Status: ${featuresResponse.status}, StatusText: ${featuresResponse.statusText}, URL: ${featuresResponse.url}, Response: ${errorText}`
+            );
+            throw new Error(
+              `Failed to fetch features: ${featuresResponse.statusText} (Status: ${featuresResponse.status})`
+            );
+          }
+
+          console.log("[useAI] Features API response is OK. Parsing JSON...");
+          const featuresResult = await featuresResponse.json();
+          console.log("[useAI] Successfully parsed features JSON:", JSON.stringify(featuresResult, null, 2));
+
+          // 기능 데이터 추출 및 문자열 변환 (응답 구조에 대한 더 강력한 확인 추가)
           let featuresDataString = "";
-          if (featuresResult && featuresResult[0]?.data) {
+          if (featuresResult && Array.isArray(featuresResult) && featuresResult.length > 0 && featuresResult[0].data) {
             // API 응답이 배열의 첫 요소에 data 필드를 포함한다고 가정
             featuresDataString = JSON.stringify(featuresResult[0].data, null, 2);
           } else {
-            console.error("Unexpected API response structure for features:", JSON.stringify(featuresResult, null, 2));
-            throw new Error("Could not extract features from API response");
+            console.error(
+              "[useAI] Unexpected API response structure for features or no data found. Expected array with [0].data:",
+              JSON.stringify(featuresResult, null, 2)
+            );
+            throw new Error("Could not extract features from API response or data is missing.");
           }
+          console.log("[useAI] Combined featuresDataString. Length:", featuresDataString.length);
 
-          // --- Firestore 로직 제거 ---
-          // const q = query(collection(getFirestore(), "features"));
-          // const querySnapshot = await getDocs(q);
-          // let featuresData = "";
-          // querySnapshot.forEach((doc) => {
-          //   featuresData += JSON.stringify(doc.data()) + "\n";
-          // });
-
-          // 시스템 명령어 업데이트 (API 지침 + API 데이터)
-          const updatedSystemInstruction = `${allInstructionsContent}<DATA>
-${featuresDataString}</DATA>`;
-          console.log("Initializing AI with combined System Instruction from APIs...");
+          const updatedSystemInstruction = `${allInstructionsContent}<DATA>\n${featuresDataString}\n</DATA>`;
+          console.log(
+            "[useAI] Initializing AI with combined System Instruction. Length:",
+            updatedSystemInstruction.length
+          );
+          // console.log("[useAI] First 500 chars of system instruction:", updatedSystemInstruction.substring(0, 500));
 
           // Vertex AI 인스턴스 가져오기
           const vertexAI = getVertexAI();
 
           // Generative 모델 초기화
+          console.log(`[useAI] Initializing GenerativeModel with model: ${GEMINI_MODEL}`);
           const generativeModelInstance = getGenerativeModel(vertexAI, {
             model: GEMINI_MODEL,
-            systemInstruction: updatedSystemInstruction, // API 지침과 API 데이터를 결합하여 사용
+            systemInstruction: updatedSystemInstruction,
           });
-          model.current = generativeModelInstance; // 타입 일치
+          model.current = generativeModelInstance;
+          console.log("[useAI] GenerativeModel initialized. Starting chat...");
 
           // 채팅 세션 시작
-          chat.current = generativeModelInstance.startChat(); // 타입 일치
+          chat.current = generativeModelInstance.startChat();
+          console.log("[useAI] Chat session started successfully.");
 
-          console.log(`AI Model (${GEMINI_MODEL}) and Chat initialized successfully.`);
+          console.log(`[useAI] AI Model (${GEMINI_MODEL}) and Chat initialized successfully.`);
           initialized.current = true; // 초기화 완료 플래그 설정
         } catch (error) {
-          console.error("Error initializing AI:", error);
-          // 오류 발생 시 model.current와 chat.current는 null로 남음
+          console.error("[useAI] CRITICAL ERROR during AI initialization process:", error);
         }
       };
 
@@ -125,5 +196,11 @@ ${featuresDataString}</DATA>`;
   }, []); // 빈 의존성 배열로 마운트 시 한 번만 실행
 
   // 초기화된 model과 chat ref 반환
-  return { model, chat, modelName: GEMINI_MODEL };
+  // isInitialized 상태도 반환하여 AiPageContent에서 AI 준비 상태를 명확히 알 수 있도록 함
+  return { model, chat, modelName: GEMINI_MODEL, isInitialized: initialized };
+  // initialized는 ref이므로 .current로 접근해야 하지만, 훅 사용자 입장에서는
+  // 초기화 완료 여부를 boolean으로 받는 것이 더 편할 수 있습니다.
+  // 이 경우, 별도의 state를 만들어 initialized.current 변경 시 업데이트하거나,
+  // 아니면 사용하는 컴포넌트에서 ref.current를 확인하도록 안내합니다.
+  // 여기서는 일단 ref 자체를 반환합니다.
 }

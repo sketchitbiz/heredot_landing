@@ -36,10 +36,7 @@ export function uploadImage(
   });
 }
 
-export async function uploadFile(
-  file: File,
-  { onUpload, progress, deleteUrl }: UploadImageOptions
-) {
+export async function uploadFile(file: File, { onUpload, progress, deleteUrl }: UploadImageOptions) {
   const uploadRef = storageRef(getStorage(), `tmp/${file.name}`);
   const uploadTask = uploadBytesResumable(uploadRef, file);
   uploadTask.on(
@@ -126,13 +123,33 @@ export async function getMimeType(fileUrl: string): Promise<string | null> {
 
 export function uploadFiles(files: File[], options: UploadImageOptions) {
   if (!files) return;
+
+  const allowedMimeTypes = [
+    "image/jpeg",
+    "image/png",
+    "image/gif",
+    "image/webp",
+    "application/pdf",
+    "application/msword", // .doc
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .docx
+    "application/vnd.ms-excel", // .xls
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xlsx
+    "text/plain", // .txt
+    "application/x-hwp", // .hwp
+    // 필요에 따라 다른 MIME 타입 추가
+  ];
+
   files.forEach((file) => {
-    console.log(file.name);
-    if (
-      file &&
-      (file.type.startsWith("image/") || file.type.endsWith("/pdf"))
-    ) {
+    console.log("Attempting to upload file:", file.name, "Type:", file.type);
+    // file.type이 비어있는 경우도 고려 (예: 일부 시스템에서 확장자만 있고 MIME 타입이 없는 경우)
+    // 이 경우 파일 확장자로 추가 검사를 할 수도 있지만, 우선은 MIME 타입 기준으로 처리합니다.
+    if (file && allowedMimeTypes.includes(file.type)) {
+      console.log("Allowed file type, proceeding with upload:", file.name);
       uploadFile(file, options);
+    } else {
+      console.warn("Disallowed file type or no file, skipping upload:", file.name, "Type:", file.type);
+      // 사용자에게 알림을 줄 수도 있습니다.
+      // 예를 들어 options 객체에 onError 콜백을 추가하여 호출할 수 있습니다.
     }
   });
 }

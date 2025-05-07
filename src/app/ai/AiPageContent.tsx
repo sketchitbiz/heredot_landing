@@ -332,7 +332,7 @@ const UploadedFilePreview = styled.div`
 
   span {
     font-size: 0.8rem;
-    color: ${AppColors.onSurfaceVariant};
+    color: #ffffff;
     max-width: 150px; /* 파일 이름 최대 너비 */
     white-space: nowrap;
     overflow: hidden;
@@ -347,6 +347,7 @@ const UploadedFilesContainer = styled.div`
   margin: 0 auto 1rem auto; /* 위아래 마진 추가 및 중앙 정렬 */
   max-width: 48rem; /* InputContainer와 동일 너비 */
   justify-content: center; /* 파일 목록 중앙 정렬 */
+  color: #ffffff;
 `;
 
 const DragDropOverlay = styled.div`
@@ -358,7 +359,8 @@ const DragDropOverlay = styled.div`
   align-items: center;
   justify-content: center;
   font-size: 1.2rem;
-  color: ${AppColors.primary};
+  /* color: ${AppColors.primary}; */
+  color: #ffffff;
   pointer-events: none; /* Prevent interference */
   z-index: 10;
 `;
@@ -371,7 +373,7 @@ export default function AiPageContent() {
   const searchParams = useSearchParams();
   const chatEndRef = useRef<HTMLDivElement>(null);
 
-  const { chat, model } = useAI(); // chat 변수 주석 해제
+  const { chat } = useAI(); // chat 변수 주석 해제
 
   const [currentStep, setCurrentStep] = useState(0);
   const [selections, setSelections] = useState<Record<string, string[]>>({});
@@ -570,14 +572,44 @@ export default function AiPageContent() {
     setLoading(true);
     setError("");
 
-    // 사용자 메시지 생성 (프롬프트 + 파일 목록 텍스트)
+    // 사용자 메시지 생성 (프롬프트 + 파일 목록 텍스트 + 이미지 정보)
     let userMessageText = submissionPrompt;
+    let userMessageImageUrl: string | undefined = undefined;
+    let userMessageFileType: string | undefined = undefined;
+
     if (uploadedFiles.length > 0) {
       userMessageText += `\n\n(첨부 파일: ${uploadedFiles.map((f) => f.name).join(", ")})`;
+      const firstImageFile = uploadedFiles.find((file) => file.mimeType.startsWith("image/"));
+      if (firstImageFile) {
+        userMessageImageUrl = firstImageFile.fileUri;
+        userMessageFileType = firstImageFile.mimeType;
+      } else if (uploadedFiles.length > 0) {
+        // 이미지가 아니더라도 첫 번째 파일의 타입을 기록 (선택 사항)
+        userMessageFileType = uploadedFiles[0].mimeType;
+      }
     }
-    const userMessage: Message = { id: Date.now(), sender: "user", text: userMessageText };
-    const initialAiMessage: Message = { id: Date.now() + 1, sender: "ai", text: "" };
-    setMessages((prev) => [...prev, userMessage, initialAiMessage]);
+
+    // Message 타입이 imageUrl 및 fileType을 포함하도록 업데이트되었다고 가정합니다.
+    // 사용자가 직접 해당 파일을 수정해야 합니다.
+    const userMessage = {
+      id: Date.now(),
+      sender: "user" as const,
+      text: userMessageText,
+      imageUrl: userMessageImageUrl,
+      fileType: userMessageFileType,
+    };
+
+    // AI 메시지 객체도 일관성을 위해 동일한 구조를 가지지만, 여기서는 이미지 정보를 보내지 않습니다.
+    const initialAiMessage = {
+      id: Date.now() + 1,
+      sender: "ai" as const,
+      text: "",
+      imageUrl: undefined,
+      fileType: undefined,
+    };
+
+    // Type assertion is used here, assuming the user will update the Message type definition.
+    setMessages((prev) => [...prev, userMessage as Message, initialAiMessage as Message]);
 
     if (!actionPrompt) {
       setPrompt("");
@@ -750,9 +782,52 @@ export default function AiPageContent() {
             {uploadedFiles.length > 0 && (
               <UploadedFilesContainer>
                 {uploadedFiles.map((file) => (
-                  <UploadedFilePreview key={file.fileUri}>
-                    <span>{file.name}</span>
-                    <IconButton onClick={() => handleDeleteFile(file.fileUri)} size="small" style={{ padding: "2px" }}>
+                  <UploadedFilePreview
+                    key={file.fileUri}
+                    style={{ height: file.mimeType.startsWith("image/") ? "100px" : "60px", alignItems: "center" }}>
+                    {file.mimeType.startsWith("image/") ? (
+                      <img
+                        src={file.fileUri}
+                        alt={file.name}
+                        style={{
+                          width: "100%", // 부모 높이에 맞춰 꽉 채우도록 수정 (UploadedFilePreview 높이 기준)
+                          height: "100%",
+                          objectFit: "contain",
+                          borderRadius: "4px",
+                          // marginRight는 UploadedFilePreview의 gap으로 처리되거나 필요시 유지
+                        }}
+                      />
+                    ) : (
+                      // 이미지가 아닌 파일: 아이콘 + 파일 이름 중앙 정렬을 위한 Flexbox
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          justifyContent: "center",
+                          alignItems: "center",
+                          height: "100%",
+                          textAlign: "center",
+                        }}>
+                        {/* TODO: 파일 타입별 아이콘 추가하면 좋음 */}
+                        <span
+                          title={file.name}
+                          style={{
+                            display: "block",
+                            maxWidth: "120px",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                          }}>
+                          {file.name}
+                        </span>
+                      </div>
+                    )}
+                    <IconButton
+                      onClick={() => handleDeleteFile(file.fileUri)}
+                      size="small"
+                      style={{ padding: "2px", marginLeft: "auto" }}
+                      sx={{ color: "#FFFFFF" }} // 아이콘 색상을 흰색으로 변경
+                    >
                       <CloseIcon fontSize="inherit" />
                     </IconButton>
                   </UploadedFilePreview>
@@ -771,7 +846,7 @@ export default function AiPageContent() {
               <input
                 type="file"
                 multiple
-                accept="image/*,application/pdf"
+                accept="image/*,application/pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,.txt,text/plain,.hwp,application/x-hwp" // 다양한 문서 타입 추가
                 ref={fileInputRef}
                 onChange={handleFileInputChange}
                 style={{ display: "none" }}
