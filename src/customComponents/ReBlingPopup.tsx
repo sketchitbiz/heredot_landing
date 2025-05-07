@@ -2,20 +2,33 @@
 
 import React from 'react';
 import { useLang } from '@/contexts/LangContext';
-import { ProjectPopupContent } from '@/customComponents/ProjectPopupContent';
 import { GradientButton } from '@/components/GradientButton';
+import { ProjectPopupContent } from '@/customComponents/ProjectPopupContent';
 
 const Text = ({ children }: { children: React.ReactNode }) => (
-  <p style={{ fontSize: 16, fontWeight: 400, color: '#454545', margin: 0, marginBottom: 0,lineHeight : '20px', whiteSpace: 'pre-line' }}>
+  <p
+    style={{
+      fontSize: 16,
+      fontWeight: 400,
+      color: '#454545',
+      margin: 0,
+      marginBottom: 0,
+      lineHeight: '20px',
+      whiteSpace: 'pre-line',
+    }}
+  >
     {children}
   </p>
 );
-
 
 const TEXT = {
   ko: {
     projectIntro:
       '사용자가 중고 명품 판매를 요청하면, 딜러들이 매입가를 제시하고,\n그중 가장 높은 가격을 제시한 딜러에게 판매가 이루어지는 역경매 플랫폼입니다.',
+    leftHeader: {
+      top: '제시 받은 가격 중, 최고가에 거래하세요',
+      bottom: '명품역경매',
+    },
     features: [
       ['[알림톡]', '사용자와 명품 매입 딜러간 절차 진행 시 내용 인지'],
       ['[로그인]', '웹 프로젝트로 매번 로그인의 불편을 간소화 하기 위하여 2주마다 재로그인 정책화'],
@@ -32,6 +45,10 @@ const TEXT = {
   en: {
     projectIntro:
       'A reverse auction platform for secondhand luxury goods where sellers receive offers from dealers, and the highest bidder wins the sale.',
+    leftHeader: {
+      top: 'Sell at the highest price offered',
+      bottom: 'Luxury Reverse Auction',
+    },
     features: [
       ['[Notification]', 'Keeps both seller and buyer updated throughout the process'],
       ['[Login]', 'Reduces login inconvenience by enforcing re-login every 2 weeks'],
@@ -55,12 +72,37 @@ export const ReBlingPopup = () => {
     <ProjectPopupContent
       imageUrl="/assets/portpolio_popup/re-bling.png"
       projectIntro={<Text>{t.projectIntro}</Text>}
+      leftHeader={
+        <div style={{ position: 'absolute', top: '50px', left: '20px' }}>
+          <div
+            style={{
+              fontSize: '18px',
+              fontWeight: 600,
+              color: '#7d7d7d',
+              marginBottom: '8px',
+              whiteSpace: 'pre-line',
+            }}
+          >
+            {t.leftHeader.top}
+          </div>
+          <div
+            style={{
+              fontSize: '30px',
+              fontWeight: 700,
+              color: '#463F40',
+              whiteSpace: 'pre-line',
+            }}
+          >
+            {t.leftHeader.bottom}
+          </div>
+        </div>
+      }
       featureList={
         <>
           {t.features.map(([label, desc], i) => (
             <div key={i} style={{ marginBottom: 16 }}>
               <div style={{ fontSize: 16, fontWeight: 700, color: '#3f4347', lineHeight: '24px' }}>{label}</div>
-              <div style={{ fontWeight: 400, color: '#3f4347', whiteSpace: 'pre-line' , lineHeight: '24px'}}>{desc}</div>
+              <div style={{ fontWeight: 400, color: '#3f4347', whiteSpace: 'pre-line', lineHeight: '24px' }}>{desc}</div>
             </div>
           ))}
         </>

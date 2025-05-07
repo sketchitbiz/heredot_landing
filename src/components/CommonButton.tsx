@@ -4,15 +4,17 @@ import React from 'react';
 import styled from 'styled-components';
 import { AppColors } from '@/styles/colors';
 import { AppTextStyles } from '@/styles/textStyles';
+import { Breakpoints } from '@/constants/layoutConstants';
 
 interface CommonButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   text: string;
   icon?: React.ReactNode;
-  iconPosition?: 'left' | 'right';
+  $iconPosition?: 'left' | 'right';
 }
 
+
 const StyledButton = styled.button`
-  ${AppTextStyles.label2}; /* AppTextStyles.label2 객체를 통째로 사용 */
+  ${AppTextStyles.label2};
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -34,26 +36,37 @@ const StyledButton = styled.button`
     font-size: 25px;
     color: ${AppColors.onBackground};
   }
+
+  @media (max-width: ${Breakpoints.mobile}px) {
+    font-size: 14px;
+    font-weight: 700;
+    padding: 8px 20px;
+    height: 44px;
+
+    svg {
+      font-size: 20px;
+    }
+  }
 `;
 
-const IconWrapper = styled.span<{ position: 'left' | 'right' }>`
+const IconWrapper = styled.span<{ $position: 'left' | 'right' }>`
   display: flex;
   align-items: center;
-  margin-right: ${({ position }) => (position === 'left' ? '8px' : '0')};
-  margin-left: ${({ position }) => (position === 'right' ? '8px' : '0')};
+  margin-right: ${({ $position }) => ($position === 'left' ? '8px' : '0')};
+  margin-left: ${({ $position }) => ($position === 'right' ? '8px' : '0')};
 `;
 
 const CommonButton: React.FC<CommonButtonProps> = ({
   text,
   icon,
-  iconPosition = 'left',
-  ...buttonProps
+  $iconPosition = 'left',
+  ...buttonProps // This now excludes $iconPosition
 }) => {
   return (
     <StyledButton {...buttonProps}>
-      {icon && iconPosition === 'left' && <IconWrapper position="left">{icon}</IconWrapper>}
+      {icon && $iconPosition === 'left' && <IconWrapper $position="left">{icon}</IconWrapper>}
       {text}
-      {icon && iconPosition === 'right' && <IconWrapper position="right">{icon}</IconWrapper>}
+      {icon && $iconPosition === 'right' && <IconWrapper $position="right">{icon}</IconWrapper>}
     </StyledButton>
   );
 };

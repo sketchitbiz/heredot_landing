@@ -6,16 +6,27 @@ import { ProjectPopupContent } from '@/customComponents/ProjectPopupContent';
 import { GradientButton } from '@/components/GradientButton';
 
 const Text = ({ children }: { children: React.ReactNode }) => (
-  <p style={{ fontSize: 16, fontWeight: 400, color: '#454545', margin: 0, marginBottom: 0,lineHeight : '20px', whiteSpace: 'pre-line' }}>
+  <p style={{
+    fontSize: 16,
+    fontWeight: 400,
+    color: '#454545',
+    margin: 0,
+    marginBottom: 0,
+    lineHeight: '20px',
+    whiteSpace: 'pre-line',
+  }}>
     {children}
   </p>
 );
-
 
 const TEXT = {
   ko: {
     projectIntro:
       'FMG는 Find Me a Golf sponsor 약어로\n스크린골프 / 필드에서 홀인원 시 최대 1천만원을 지급하는 골프 스폰서십 플랫폼 입니다.',
+    leftHeader: {
+      line1: '부담없이 홀인원이 기다려지는',
+      line2: '스크린 한 게임 가격의 멤버십',
+    },
     features: [
       ['[상품운영]', '구독형 스폰서십 상품 운영'],
       ['[PG연계]', '신용카드 등록 후 매달 지정일 결제'],
@@ -35,6 +46,10 @@ const TEXT = {
   en: {
     projectIntro:
       'FMG stands for "Find Me a Golf sponsor".\nIt is a golf sponsorship platform that offers up to 10 million KRW when a hole-in-one is achieved in screen golf or on the field.',
+    leftHeader: {
+      line1: 'Enjoy the thrill of a hole-in-one, worry-free',
+      line2: 'Membership at the price of one round of screen golf',
+    },
     features: [
       ['[Product Model]', 'Subscription-based sponsorship product model'],
       ['[PG Integration]', 'Monthly billing after credit card registration'],
@@ -61,12 +76,22 @@ export const FmgPopup = () => {
     <ProjectPopupContent
       imageUrl="/assets/portpolio_popup/fmg.png"
       projectIntro={<Text>{t.projectIntro}</Text>}
+      leftHeader={
+        <div style={{ position: 'absolute', top: '50px', left: '20px' }}>
+          <div style={{ fontSize: '18px', fontWeight: 600, color: '#7d7d7d', marginBottom: '8px' }}>
+            {t.leftHeader.line1}
+          </div>
+          <div style={{ fontSize: '30px', fontWeight: 700, color: '#463F40' }}>
+            {t.leftHeader.line2}
+          </div>
+        </div>
+      }
       featureList={
         <>
           {t.features.map(([label, desc], i) => (
             <div key={i} style={{ marginBottom: 16 }}>
               <div style={{ fontSize: 16, fontWeight: 700, color: '#3f4347', lineHeight: '24px' }}>{label}</div>
-              <div style={{ fontWeight: 400, color: '#3f4347', whiteSpace: 'pre-line' , lineHeight: '24px'}}>{desc}</div>
+              <div style={{ fontWeight: 400, color: '#3f4347', whiteSpace: 'pre-line', lineHeight: '24px' }}>{desc}</div>
             </div>
           ))}
         </>

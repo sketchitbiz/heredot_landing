@@ -1,9 +1,14 @@
+import { m } from "framer-motion";
+
 export const dictionary = {
   ko: {
     departure: '출발',
     arrival: '도착',
-    nav: ['핵심강점', '포트폴리오', '팀원소개', '기획전', 'AI 견적'],
+    nav: ['핵심강점', '포트폴리오', '팀원소개', ],
     customNavigator: {
+      community: '창업커뮤니티',
+      portpolio: '포트폴리오',
+      member: '팀원소개',
       review: '고객후기',
       event: '기획전',
       contact: '연락',
@@ -42,7 +47,7 @@ export const dictionary = {
     partner: {
       title1: '여기닷은',
       title2: '창업자의 전략 파트너입니다',
-      subtitle: '여기닷은 고객사의 사업 전반적인 내용을 이해하고 시장에 조기 안착할 수 있도록 다양한 사업을 제안합니다.',
+      subtitle: '여기닷은 고객사의 사업 전반적인 내용을 이해하고 시장에\n 조기 안착할 수 있도록 다양한 사업을 제안합니다.',
       tabs: ['안티드론', '명품역경매', '무역플랫폼', '테이블오더'],
       slides: [
         {
@@ -94,7 +99,7 @@ export const dictionary = {
     memberTabs: ["채팅 앱", "스트리밍 웹", "구독 플랫폼", "점심시간"],
     memberCards: {
       "1": {
-        name: "개발자 Liam",
+        name: "개발자 Sun",
         messages: {
           "채팅 앱": "푸시는 앱 상태마다 다르게요",
           "스트리밍 웹": null,
@@ -166,6 +171,15 @@ export const dictionary = {
         },
       },
     },
+    community: {
+      title: '성공을 지원하는 많은 노하우와 네트워크',
+      description: 'IT 산업 분야 전문 컨설턴트로서, 100여개 기업과 함께 성장해왔습니다',
+      section: {
+        title: "750여명 규모의\n 창업 커뮤니티 운영 중",
+        description: "전문가들과 함께 성장하는 창업 플랫폼 함께해요",
+        buttonText: "창업커뮤니티 바로가기",
+      }
+    },
     bannerSection: {
       title: "특별 프로모션 지금 바로 클릭!",
       description: "선착순으로 제공되는 상품으로 조기 종료될 수 있습니다.",
@@ -211,17 +225,31 @@ export const dictionary = {
       address: '사업장주소 : 경기 성남시 수정구 대왕판교로 815 777호 (주) 여기닷',
       customerService: '고객센터 : 031-8039-7981',
       copyright: 'Copyright ⓒ 2025 여기닷 All right reserved.',
+      businessLicense: '통신판매업신고증 : 2025-성남 수정-0138 호',
     },
   },
   en: {
     departure: 'Departure',
     arrival: 'Arrival',
-    nav: ['Key Value', 'Portfolio', 'Team', 'Market', 'AI Estimate'],
+    nav: ['Key Value', 'Portfolio', 'Team', ],
     customNavigator: {
+      community: 'Startup Community',
+      member: 'Team',
+      portpolio: 'Portfolio',
       review: 'Reviews',
       event: 'Events',
       contact: 'Contact',
     },
+    community: {
+      title: 'Extensive Know-how and Network for Your Success',
+      description: 'We’ve grown alongside over 100 companies as IT industry consultants.',
+      section: {
+        title: "Startup community with over 750 members",
+        description: "Join a platform where you grow with professionals.",
+        buttonText: "Go to Community",
+      }
+    },
+    
     portfolio: {
       title: "Top Projects by HereDot!",
       description: "Introducing projects that led success across various industries!",
@@ -260,7 +288,7 @@ export const dictionary = {
     memberTabs: ["Chat App", "Streaming Web", "Subscription Platform", "Lunch Time"],
     memberCards: {
       "1": {
-        name: "Developer Liam",
+        name: "Developer Sun",
         messages: {
           "Chat App": "Push notifications should depend on app state",
           "Streaming Web": null,
@@ -380,10 +408,25 @@ export const dictionary = {
       downloadText: 'Download Specification',
       gridHeaders: ['Item', 'Customer Requirement', 'Heredot Proposal', 'Effect'],
       gridContents: [
-        ['Login', 'Login via USB for enhanced security', 'Google OTP<br /> 2-Factor Authentication', 'Support for diverse devices beyond Windows Only'],
-        ['Core/Convenience<br /> Features', 'Requesting all functions within limited budget', 'Separate core/convenience functions<br /> Develop step by step', 'Optimize business growth according to budget'],
-        ['Personal Information Collection', 'Collect all personal information', 'Guide development based on privacy laws<br /> and communication laws', 'Minimize compliance risks'],
-      ],
+        [
+          'Login',
+          'Login via USB<br /> for enhanced security',
+          'Google OTP<br /> 2Factor authentication',
+          'Expanded device support<br /> beyond Windows-only access',
+        ],
+        [
+          'Core / Convenience Features<br /> Distinction',
+          'Request for all features<br /> within limited budget',
+          'Guidance for phased development<br /> by separating core and convenience features',
+          'Optimized growth strategy<br /> within the given budget',
+        ],
+        [
+          'Personal Information Collection',
+          'Collecting all personal data',
+          'Guidance on the Personal Information Protection Act and the Information and Communications Act<br /> Legal standards for compliant development',
+          'Minimization of compliance risk',
+        ],
+      ]
     },
     bannerSection: {
       title: "Click Now for Special Promotions!",
@@ -396,11 +439,11 @@ export const dictionary = {
       title: 'Heredot Design Strategy', 
       downloadText: 'Download Design Proposal',
       slides: [
-        { title: 'Market/Reference Research', image: '/assets/design/design_1.png' },
-        { title: 'Trend Analysis', image: '/assets/design/design_2.png' },
-        { title: 'Color Proposal', image: '/assets/design/design_3.png' },
-        { title: 'UI/UX Proposal', image: '/assets/design/design_4.png' },
-        { title: 'Customer Decision', image: '/assets/design/design_5.png' },
+        { title: 'Market/Reference Research', image: '/assets/design/design_1e.png' },
+        { title: 'Trend Analysis', image: '/assets/design/design_2e.png' },
+        { title: 'Color Proposal', image: '/assets/design/design_3e.png' },
+        { title: 'UI/UX Proposal', image: '/assets/design/design_4e.png' },
+        { title: 'Customer Decision', image: '/assets/design/design_5e.png' },
       ],
     },
     appBlock: {
@@ -426,6 +469,7 @@ export const dictionary = {
       address: 'Address: 777, 815 Daewangpangyo-ro, Sujeong-gu, Seongnam-si, Gyeonggi-do, South Korea',
       customerService: 'Customer Service: 031-8039-7981',
       copyright: 'Copyright ⓒ 2025 Heredot. All rights reserved.',
+      businessLicense: 'E-commerce License: 2025-성남 수정-0138 호',
     },
     
     

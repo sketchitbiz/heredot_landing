@@ -4,6 +4,8 @@ import React from 'react';
 import styled, { css } from 'styled-components';
 import { AppColors } from '@/styles/colors';
 import { AppTextStyles } from '@/styles/textStyles';
+import { Breakpoints } from '@/constants/layoutConstants';
+
 
 interface TabItem {
   key: string;
@@ -21,14 +23,17 @@ const TabContainer = styled.div`
   display: flex;
   gap: 16px;
   padding-bottom: 40px;
-  justify-content: space-between;
+  justify-content: center;
+  flex-wrap: nowrap; /* ✅ 줄바꿈 금지 */
+  box-sizing: border-box;
 `;
 
-const TabButton = styled.button<{ $isActive: boolean }>`
+const TabButton = styled.button<{ $isActive: boolean; $tabCount: number }>`
   ${AppTextStyles.body1}
-  font-size: 24px;
-  padding: 25px 70px;
-  border-radius: 500px;
+  flex: 1; /* ✅ 동일 너비 자동 분배 */
+  padding: 20px 16px;
+  text-align: center;
+  border-radius: ${({ $tabCount }) => ($tabCount >= 4 ? '32px' : '16px')};
   border: 3px solid #18181f;
   background-color: #18181f;
   color: ${AppColors.disabled};
@@ -36,7 +41,7 @@ const TabButton = styled.button<{ $isActive: boolean }>`
   transition: background-color 0.2s, color 0.2s, border-color 0.2s;
 
   &:hover {
-    border: 3px solid #b5b5ea;
+    border-color: #b5b5ea;
     background-color: ${AppColors.backgroundDark};
     color: white;
   }
@@ -44,10 +49,15 @@ const TabButton = styled.button<{ $isActive: boolean }>`
   ${({ $isActive }) =>
     $isActive &&
     css`
-      border: 3px solid #b5b5ea;
+      border-color: #b5b5ea;
       background-color: ${AppColors.backgroundDark};
       color: white;
     `}
+
+    @media (max-width: ${Breakpoints.mobile}px) {
+    padding: 12px 2px; /* ✅ 모바일 시 패딩 축소 */
+    font-size: 14px;
+  }
 `;
 
 export const TabComponent: React.FC<TabComponentProps> = ({
@@ -58,17 +68,19 @@ export const TabComponent: React.FC<TabComponentProps> = ({
 }) => {
   return (
     <div>
-      <TabContainer>
-        {tabs.map(({ key, label }) => (
-          <TabButton
-            key={key}
-            $isActive={activeTabKey === key}
-            onClick={() => onTabChange(key)}
-          >
-            {label}
-          </TabButton>
-        ))}
-      </TabContainer>
+<TabContainer>
+  {tabs.map(({ key, label }) => (
+    <TabButton
+      key={key}
+      $isActive={activeTabKey === key}
+      $tabCount={tabs.length}
+      onClick={() => onTabChange(key)}
+    >
+      {label}
+    </TabButton>
+  ))}
+</TabContainer>
+
       {children}
     </div>
   );

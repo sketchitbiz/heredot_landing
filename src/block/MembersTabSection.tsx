@@ -7,6 +7,7 @@ import { TabComponent } from '@/components/Landing/TabComponent';
 import { MemberCard } from '@/components/Landing/MemberCard';
 import { useLang } from '@/contexts/LangContext';
 import { dictionary } from '@/lib/i18n/lang';
+import { Breakpoints } from '@/constants/layoutConstants';
 
 interface MembersTabSectionProps {
   title: string;
@@ -20,17 +21,36 @@ interface MembersTabSectionProps {
       messages: { [tabKey: string]: string | null };
     };
   };
+  onTopArrowClick?: () => void;
+  onBottomArrowClick?: () => void;
 }
 
-const Wrapper = styled.div``;
+const Wrapper = styled.div`
+  padding: 0 20px;     /* ✅ 좌우 여백 추가 */
 
+    min-width: ${Breakpoints.desktop}px; /* 기본값: 데스크탑 너비 강제 유지 */
+
+  @media (max-width: ${Breakpoints.mobile}px) {
+    min-width: auto; /* 모바일 이하에서 min-width 제거 */
+  }
+`;
 const GridContainerForTabs = styled.div`
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  row-gap: 50px; /* 기본값 (모바일) */
+  column-gap: 24px;
+  grid-template-columns: repeat(4, 1fr); /* 기본값: 데스크탑에서 4열 */
   margin-bottom: 100px;
+
+  @media (max-width: ${Breakpoints.mobile}px) {
+    margin-top: 16px;
+    grid-template-columns: repeat(2, 1fr); /* 모바일: 2열 */
+    row-gap: 24px; /* ✅ 데스크탑/태블릿에서 row-gap 조정 */
+    margin-bottom: 0px;
+  }
+
 `;
 
-// ✅ 여기에 고정 key 배열 선언
+
 const memberTabKeys = ['chat', 'streaming', 'subscription', 'lunch'];
 
 export const MembersTabSection: React.FC<MembersTabSectionProps> = ({
@@ -40,13 +60,14 @@ export const MembersTabSection: React.FC<MembersTabSectionProps> = ({
   centerLabel,
   bottomLabel,
   memberCards,
+  onTopArrowClick,
+  onBottomArrowClick,
 }) => {
   const { lang } = useLang();
   const t = dictionary[lang];
 
   const [currentTabKey, setCurrentTabKey] = useState(memberTabKeys[0]);
 
-  // ✅ label은 여기서 안전하게 매핑
   const tabItems = memberTabKeys.map((key) => ({
     key,
     label:
@@ -82,6 +103,8 @@ export const MembersTabSection: React.FC<MembersTabSectionProps> = ({
         bottomLabel={bottomLabel}
         title={title}
         description={description}
+        onTopArrowClick={onTopArrowClick}
+        onBottomArrowClick={onBottomArrowClick}
       />
       <Wrapper>
         <TabComponent

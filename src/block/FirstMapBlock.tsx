@@ -1,8 +1,9 @@
+'use client';
+
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 import { useScroll, useTransform, motion } from 'framer-motion';
 import { Breakpoints } from '@/constants/layoutConstants';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
 import { AppColors } from '@/styles/colors';
 import { AppTextStyles } from '@/styles/textStyles';
 
@@ -12,21 +13,32 @@ interface FirstMapBlockProps {
 
 const originalPath = `M380.902 30C380.902 30 382.902 79.5 403.901 124C424.9 168.5 451.402 235 444.902 299.5C438.402 364 366.902 426.5 345.902 470.5C324.902 514.5 302.902 734.5 289.402 779.5C275.902 824.5 255.401 849.5 241.901 884.5C228.401 919.5 196.402 1027.5 178.402 1068C160.402 1108.5 153.903 1105.5 150.903 1157C147.903 1208.5 198.902 1289 193.402 1349C187.902 1409 165.402 1480.5 152.902 1509.5C140.402 1538.5 83.4013 1641 62.9013 1698.5C42.4013 1756 36.4001 1801 31.4001 1838.5C26.4001 1876 36.3994 2223.5 36.3994 2223.5`;
 
+const BASE_WIDTH = 1200;
+const BASE_LEFT = 522;
+
 const Wrapper = styled.div`
   position: relative;
   width: 100%;
+  min-width: ${Breakpoints.desktop}px;
+
+  @media (max-width: ${Breakpoints.mobile}px) {
+    min-width: unset;
+    width: 100vw;
+  }
+
   overflow: hidden;
 `;
 
-const ContentWrapper = styled.div<{ $isOverLayout?: boolean }>`
-  width: ${({ $isOverLayout }) => ($isOverLayout ? '100%' : `${Breakpoints.desktop}px`)};
+const ContentWrapper = styled.div`
+  width: 100%;
+  max-width: ${Breakpoints.desktop}px;
   margin: 0 auto;
-  box-sizing: border-box;
   position: relative;
 `;
 
 const Image = styled.img`
   width: 100%;
+  max-width: ${Breakpoints.desktop}px;
   display: block;
 `;
 
@@ -40,29 +52,8 @@ const StyledPath = styled.path`
           drop-shadow(0 0 24px rgba(160, 91, 255, 0.8));
 `;
 
-const MarkerIcon = styled(LocationOnIcon)`
-  font-size: 92px; /* 기존 BackgroundCircle 크기와 동일 */
-  color: rgba(116, 7, 255, 0.8); /* 색상 조정 */
-  position: absolute;
-  top: calc(50% - 100px);
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 1;
-`;
-
 const MarkerGroup = styled.g`
   pointer-events: none;
-`;
-
-const MarkerCircle = styled.circle`
-  fill: #8455c1;
-  fill-opacity: 0.25;
-`;
-
-const MarkerImage = styled.image`
-  width: 60px;
-  height: 60px;
-  transform: translate(-30px, -30px);
 `;
 
 const IconStack = styled.div`
@@ -74,39 +65,21 @@ const IconStack = styled.div`
   pointer-events: none;
 `;
 
-const BackgroundCircle = styled.div`
-  width: 92px;
-  height: 92px;
-  border-radius: 50%;
-  background-color: rgba(116, 7, 255, 0.3);
-  position: absolute;
-  top: calc(50% - 100px);
-  left: 50%;
-  transform: translate(-50%, -50%);
-`;
-
-const DestinationImage = styled(motion.img)`
-  width: 48px;
-  height: 48px;
-  transform-origin: center center;
-  position: absolute;
-  top: calc(50% - 100px);
-  left: 50%;
-  transform: translate(-50%, -50%);
-`;
-
 const Label = styled.div`
-  ${AppTextStyles.label2}; /* AppTextStyles.label2 객체를 통째로 사용 */
+  ${AppTextStyles.label2};
   position: absolute;
   top: calc(50%);
   left: 50%;
-  transform: translate(-40%, -600%);
+  transform: translate(-25%, -550%);
   color: ${AppColors.onBackground};
   white-space: nowrap;
+
+  @media (max-width: ${Breakpoints.mobile}px) {
+    ${AppTextStyles.label4};
+  }
 `;
 
 const FirstMapBlock: React.FC<FirstMapBlockProps> = ({ label }) => {
-
   const wrapperRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
   const pathRef = useRef<SVGPathElement>(null);
@@ -121,27 +94,48 @@ const FirstMapBlock: React.FC<FirstMapBlockProps> = ({ label }) => {
   const [maxScale, setMaxScale] = useState(1);
   const [startScroll, setStartScroll] = useState(0);
   const [endScroll, setEndScroll] = useState(0);
-  const [followScrollPath, setFollowScrollPath] = useState(true);
+  const [scaleRatio, setScaleRatio] = useState(1);
+  const [svgLeft, setSvgLeft] = useState(0);
+
+  const [isMobile, setIsMobile] = useState(false);
+
+useEffect(() => {
+  const update = () => {
+    setIsMobile(window.innerWidth < Breakpoints.mobile);
+  };
+
+  update();
+  window.addEventListener('resize', update);
+  return () => window.removeEventListener('resize', update);
+}, []);
+
 
   useEffect(() => {
     const update = () => {
       if (!wrapperRef.current || !imgRef.current) return;
+
       const rect = wrapperRef.current.getBoundingClientRect();
       const top = rect.top + window.scrollY;
       const height = rect.height;
       const screenW = window.innerWidth;
+      const imgW = imgRef.current.clientWidth;
+
+      const rawRatio = imgW / BASE_WIDTH;
+      const ratio = Math.min(rawRatio, 1);
+      const centerOffset = (imgW - BASE_WIDTH * ratio) / 2;
 
       setSectionTop(top);
       setSectionHeight(height);
       setMaxScale((screenW * 5) / 48);
 
       const start = top + height / 2 - window.innerHeight / 2 - 200;
-
       const end = start + height * 1.5;
 
       setStartScroll(start);
       setEndScroll(end);
       setImgHeight(imgRef.current.clientHeight);
+      setScaleRatio(ratio);
+      setSvgLeft(BASE_LEFT * ratio + centerOffset);
     };
 
     update();
@@ -150,7 +144,11 @@ const FirstMapBlock: React.FC<FirstMapBlockProps> = ({ label }) => {
   }, []);
 
   const iconScale = useTransform(scrollY, [startScroll, endScroll], [1, maxScale]);
-  const iconY = useTransform(scrollY, [startScroll, endScroll], [0, 2000]);
+  const iconY = useTransform(
+    scrollY,
+    [startScroll, endScroll],
+    [0, isMobile ? 2000 : 3000]
+  );
 
   useEffect(() => {
     const handleScroll = () => {
@@ -163,7 +161,8 @@ const FirstMapBlock: React.FC<FirstMapBlockProps> = ({ label }) => {
     };
 
     handleScroll();
-    return scrollY.onChange(handleScroll);
+   return scrollY.on('change', handleScroll);
+
   }, [scrollY, sectionTop, sectionHeight]);
 
   useLayoutEffect(() => {
@@ -178,26 +177,26 @@ const FirstMapBlock: React.FC<FirstMapBlockProps> = ({ label }) => {
     const dy = tangent.y - point.y;
     const angle = Math.atan2(dy, dx) * (180 / Math.PI);
 
-    if (followScrollPath) {
-      path.style.strokeDasharray = `${length}`;
-      path.style.strokeDashoffset = `${(1 - scrollRatio) * length}`;
-    } else {
-      path.style.strokeDasharray = 'none';
-      path.style.strokeDashoffset = '0';
-    }
+    path.style.strokeDasharray = `${length}`;
+    path.style.strokeDashoffset = `${(1 - scrollRatio) * length}`;
+
+    const scaledX = point.x * scaleRatio;
+    const scaledY = point.y * scaleRatio;
 
     group.setAttribute('transform', `translate(${point.x}, ${point.y}) rotate(${angle})`);
-  }, [scrollRatio, sectionTop]);
- return (
+
+  }, [scrollRatio, scaleRatio]);
+
+  return (
     <Wrapper ref={wrapperRef}>
       <ContentWrapper>
         <Image ref={imgRef} src="/assets/map.svg" alt="Map Section" />
-        
+
         <svg
           style={{
             position: 'absolute',
             top: -20,
-            left: 522,
+            left: svgLeft,
             width: '100%',
             height: `${imgHeight}px`,
             pointerEvents: 'none',
@@ -205,38 +204,52 @@ const FirstMapBlock: React.FC<FirstMapBlockProps> = ({ label }) => {
           }}
           xmlns="http://www.w3.org/2000/svg"
         >
-          <StyledPath ref={pathRef} d={originalPath} />
-          <MarkerGroup ref={markerGroupRef}>
-            <MarkerCircle r="60" />
-            <MarkerImage href="/assets/Polygon.svg" />
-          </MarkerGroup>
+          <g transform={`scale(${scaleRatio})`}>
+            <StyledPath ref={pathRef} d={originalPath} />
+            <MarkerGroup ref={markerGroupRef}>
+              <circle cx="0" cy="0" r="60" fill="#8455c1" fillOpacity="0.25" />
+              <image
+                href="/assets/Polygon.svg"
+                width="60"
+                height="60"
+                x="-30"
+                y="-30"
+              />
+            </MarkerGroup>
+          </g>
         </svg>
-      </ContentWrapper>
 
-      <IconStack>
-        <LocationOnIcon
-          style={{
-            fontSize: '92px',
-            color: 'rgba(116, 7, 255, 0.8)',
-            transform: 'translate(12%, -80%)',
-          }}
-        />
-        <motion.div
-          style={{
-            width: '22px',
-            height: '22px',
-            borderRadius: '50%',
-            backgroundColor: '#fff',
-            position: 'absolute',
-            top: 'calc(50% - 100px)',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            scale: iconScale,
-            y: iconY,
-          }}
-        />
-        <Label>{label}</Label> {/* ✅ 여기 props로 받은 label 사용 */}
-      </IconStack>
+        <IconStack>
+          <img
+            src="/first_map_shadow.svg"
+            alt="Shadow"
+            style={{
+              width: '59px',
+              height: '9px',
+              transform: 'translate(0%, -80%)',
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transformOrigin: 'center',
+            }}
+          />
+          <motion.img
+            src="/first_map_marker.svg"
+            alt="Marker"
+            style={{
+              width: '59px',
+              height: '84px',
+              position: 'absolute',
+              top: 'calc(50% - 100px)',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              scale: iconScale,
+              y: iconY,
+            }}
+          />
+          <Label>{label}</Label>
+        </IconStack>
+      </ContentWrapper>
     </Wrapper>
   );
 };

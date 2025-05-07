@@ -3,6 +3,7 @@
 import React from "react";
 import styled, { keyframes, css } from "styled-components";
 import { useLang } from "@/contexts/LangContext"; // ✅ 언어 가져오기
+import { Breakpoints } from '@/constants/layoutConstants';
 
 // --- 애니메이션 정의 ---
 const scrollX = keyframes`
@@ -26,10 +27,17 @@ const common = css`
 const Marquee = styled.div`
   display: flex;
   width: 100%;
+  min-width: ${Breakpoints.desktop}px;
   height: 100px;
   overflow: hidden;
   user-select: none;
+
+  @media (max-width: ${Breakpoints.mobile}px) {
+    min-width: unset;
+    width: 100vw;
+  }
 `;
+
 
 const MarqueeGroup = styled.div`
   ${common}

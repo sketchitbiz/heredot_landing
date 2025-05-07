@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { ArrowBackIos, ArrowForwardIos } from '@mui/icons-material';
+import { useSwipeable } from 'react-swipeable';
 
 interface PopupContainerProps {
   open: boolean;
@@ -11,6 +12,7 @@ interface PopupContainerProps {
   heightPercent?: number;
   appBarHeight?: number;
   selectedIndex: number;
+  isFullScreen?: boolean;
   children: React.ReactNode | React.ReactNode[];
 }
 
@@ -19,10 +21,29 @@ export const PopupContainer: React.FC<PopupContainerProps> = ({
   onClose,
   padding = 20,
   heightPercent = 80,
+  appBarHeight = 56,
   selectedIndex,
+  isFullScreen = false,
   children,
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
+
+  const childArray = React.Children.toArray(children);
+
+  const handlePrev = () => {
+    setCurrentIndex((prev) => (prev > 0 ? prev - 1 : prev));
+  };
+
+  const handleNext = () => {
+    setCurrentIndex((prev) => (prev < childArray.length - 1 ? prev + 1 : prev));
+  };
+
+  const swipeHandlers = useSwipeable({
+    onSwipedLeft: () => handleNext(),
+    onSwipedRight: () => handlePrev(),
+    preventScrollOnSwipe: true,
+    trackMouse: true,
+  });
 
   useEffect(() => {
     if (open) {
@@ -37,44 +58,33 @@ export const PopupContainer: React.FC<PopupContainerProps> = ({
 
   useEffect(() => {
     if (open) {
-      setCurrentIndex(selectedIndex); 
+      setCurrentIndex(selectedIndex);
     }
   }, [open, selectedIndex]);
 
   if (!open) return null;
 
-  const childArray = React.Children.toArray(children);
-
   const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    //  클릭 시 팝업 닫기
     if (e.target === e.currentTarget) {
       // onClose();
     }
   };
 
-  const handlePrev = () => {
-    setCurrentIndex((prev) => (prev > 0 ? prev - 1 : prev));
-  };
-
-  const handleNext = () => {
-    setCurrentIndex((prev) => (prev < childArray.length - 1 ? prev + 1 : prev));
-  };
-
   return (
-    <Overlay onClick={handleOverlayClick} >
-      <NavZone>
-        <NavButton onClick={handlePrev} disabled={currentIndex === 0}>
+    <Overlay $isFullScreen={isFullScreen} onClick={handleOverlayClick}>
+      <NavZone $isOverlayed={isFullScreen} $position="left">
+        <NavButton $isFullScreen={isFullScreen} onClick={handlePrev} disabled={currentIndex === 0}>
           <ArrowBackIos />
         </NavButton>
       </NavZone>
 
-      <Popup $padding={padding} $heightPercent={heightPercent}>
-        <CloseButton onClick={onClose}>×</CloseButton>
-        <Content>{childArray[currentIndex]}</Content>
+      <Popup $padding={padding} $heightPercent={heightPercent} $isFullScreen={isFullScreen}>
+        <CloseButton $isFullScreen={isFullScreen} $appBarHeight={appBarHeight} onClick={onClose}>×</CloseButton>
+        <Content {...swipeHandlers}>{childArray[currentIndex]}</Content>
       </Popup>
 
-      <NavZone>
-        <NavButton onClick={handleNext} disabled={currentIndex === childArray.length - 1}>
+      <NavZone $isOverlayed={isFullScreen} $position="right">
+        <NavButton $isFullScreen={isFullScreen} onClick={handleNext} disabled={currentIndex === childArray.length - 1}>
           <ArrowForwardIos />
         </NavButton>
       </NavZone>
@@ -86,7 +96,7 @@ export const PopupContainer: React.FC<PopupContainerProps> = ({
 // Styled Components
 // ==========================
 
-const Overlay = styled.div`
+const Overlay = styled.div<{ $isFullScreen?: boolean }>`
   position: fixed;
   top: 0;
   left: 0;
@@ -94,27 +104,42 @@ const Overlay = styled.div`
   height: 100vh;
   background: rgba(0, 0, 0, 0.8);
   z-index: 9999;
-
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-direction: row;
 
-  /* ✅ 최소 1200px 이상 유지 */
-  min-width: 1200px;
+  ${({ $isFullScreen }) =>
+    !$isFullScreen &&
+    `
+      min-width: 1200px;
+    `}
 `;
 
-const NavZone = styled.div`
+const NavZone = styled.div<{ $isOverlayed?: boolean; $position?: 'left' | 'right' }>`
   width: 200px;
-  min-width: 200px; /* 고정 크기 유지 */
+  min-width: 200px;
   display: flex;
   justify-content: center;
   align-items: center;
+
+  ${({ $isOverlayed, $position }) =>
+    $isOverlayed &&
+    `
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      ${$position}: 0;
+      width: 80px;
+      min-width: unset;
+      z-index: 10;
+    `}
 `;
 
-const NavButton = styled.button`
+const NavButton = styled.button<{ $isFullScreen?: boolean }>`
   background: none;
   border: none;
-  color: white;
+  color: ${({ $isFullScreen }) => ($isFullScreen ? '#ccc' : 'white')};
   cursor: pointer;
   padding: 8px;
   display: flex;
@@ -122,7 +147,7 @@ const NavButton = styled.button`
   justify-content: center;
 
   svg {
-    font-size: 70px; // 🔥 아이콘 자체 키움
+    font-size: 70px;
   }
 
   &:disabled {
@@ -134,28 +159,35 @@ const NavButton = styled.button`
 const Popup = styled.div<{
   $padding: number;
   $heightPercent: number;
+  $isFullScreen?: boolean;
 }>`
   background: #fff;
   padding: 0;
   width: 800px;
   min-width: 800px;
-  height: ${({ $heightPercent }) => $heightPercent}vh;
+  height: ${({ $isFullScreen, $heightPercent }) =>
+    $isFullScreen ? '100vh' : `${$heightPercent}vh`};
   position: relative;
-  border-radius: 8px;
+  border-radius: ${({ $isFullScreen }) => ($isFullScreen ? '0px' : '8px')};
   overflow: hidden;
   border: 2px solid #ccc;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
 
-  /* ✅ 부모 최소 크기 확보 */
-  min-width: 800px;
+  ${({ $isFullScreen }) =>
+    $isFullScreen &&
+    `
+      width: 100vw;
+      min-width: unset;
+      border: none;
+    `}
 `;
 
-
-const CloseButton = styled.button`
+const CloseButton = styled.button<{ $isFullScreen?: boolean; $appBarHeight?: number }>`
   position: absolute;
-  top: 12px;
+  top: ${({ $isFullScreen, $appBarHeight }) =>
+    $isFullScreen ? `${($appBarHeight || 56) + 8}px` : '12px'};
   right: 12px;
   background: transparent;
   border: none;
@@ -163,27 +195,26 @@ const CloseButton = styled.button`
   font-weight: bold;
   color: #fff;
   cursor: pointer;
-  z-index: 10; /* CloseButton을 항상 위에 표시 */
+  z-index: 1001;
 
-  /* 원형 배경 추가 */
   &::before {
     content: '';
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 48px; /* 원형의 크기 */
+    width: 48px;
     height: 48px;
-    background: rgba(0, 0, 0, 0.1); /* 반투명 검정 배경 */
-    border-radius: 50%; /* 원형으로 만들기 */
-    z-index: -1; /* 버튼 뒤로 배치 */
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 50%;
+    z-index: -1;
   }
 `;
 
 const Content = styled.div`
   flex: 1;
   overflow-y: auto;
-  position: relative; /* CloseButton과의 z-index 충돌 방지 */
+  position: relative;
   scrollbar-width: none;
   -ms-overflow-style: none;
   &::-webkit-scrollbar {

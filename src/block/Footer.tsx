@@ -6,16 +6,31 @@ import { useLang } from '@/contexts/LangContext';
 import { dictionary } from '@/lib/i18n/lang'; // ✅ 국제화 추가
 import { AppColors } from '@/styles/colors';
 import { AppTextStyles } from '@/styles/textStyles';
+import { Breakpoints } from '@/constants/layoutConstants';
+
 
 const FooterContainer = styled.footer`
   color: ${AppColors.onBackground};
-  background-color: ${AppColors.backgroundDark}; /* 배경 넣어줄 수도 있음 */
+  padding: 48px 0;
+  background-color: ${AppColors.backgroundDark};
+  min-width: ${Breakpoints.desktop}px; /* 기본값: 데스크탑 너비 강제 유지 */
+
+  @media (max-width: ${Breakpoints.mobile}px) {
+    min-width: auto; /* 모바일 이하에서 min-width 제거 */
+  }
 `;
 
+
+
 const FooterContent = styled.div`
-  max-width: 1200px;
   margin: 0 auto;
+  padding: 0 20px;
+
+  @media (min-width: ${Breakpoints.mobile}) {
+    padding: 0; // 데스크탑 사이즈 이상에서는 패딩 제거
+  }
 `;
+
 
 
 const LogoImageWrapper = styled.div`
@@ -71,6 +86,7 @@ export const Footer: React.FC = () => {
           <InfoText>{t.footer.companyName}</InfoText>
           <InfoText>{t.footer.ceo}</InfoText>
           <InfoText>{t.footer.businessNumber}</InfoText>
+          <InfoText>{t.footer.businessLicense}</InfoText>
           <InfoText>{t.footer.address}</InfoText>
           <InfoText>{t.footer.customerService}</InfoText>
         </InfoSection>

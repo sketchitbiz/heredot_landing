@@ -36,19 +36,19 @@ export function GlobalWrapper({ children }: { children: React.ReactNode }) {
     return () => unsubscribe();
   }, [login, logout]);
 
+  useEffect(() => {
+    // ✅ 새로고침 또는 첫 진입 시 스크롤 맨 위로 이동
+    window.scrollTo(0, 0);
+  }, []);
+
   return (
-    <>
-      {/* 페이지 로딩 상태 전역 관리 | Global page loading state */}
-      <PageLoaderProvider>
-        {/* 반응형 디바이스 정보 전역 제공 | Global device type context */}
-        <LangProvider>
-          <DeviceProvider>
-            {/* 글로벌 스타일 적용 | Apply global base styles */}
-            <GlobalStyle />
-            {children}
-          </DeviceProvider>
-        </LangProvider>
-      </PageLoaderProvider>
-    </>
+    <PageLoaderProvider>
+      <LangProvider>
+        <DeviceProvider>
+          <GlobalStyle />
+          {children}
+        </DeviceProvider>
+      </LangProvider>
+    </PageLoaderProvider>
   );
 }

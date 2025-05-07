@@ -1,17 +1,20 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 import { AppColors } from '@/styles/colors';
 import { AppTextStyles } from '@/styles/textStyles';
-import { Breakpoints } from '@/constants/layoutConstants';
 import LanguageSwitcher from './LanguageSwitcher';
+import ResponsiveView from '@/layout/ResponsiveView';
+import MenuIcon from '@mui/icons-material/Menu';
+import MobileMenuOverlay from './MobileMenuOverlay';
+import { Breakpoints } from '@/constants/layoutConstants';
 
 interface LandingAppBarProps {
   logoSrc: string;
   logoWidth?: string;
   logoHeight?: string;
-  navLinks: { label: string; targetId: string }[]; // ✅ onClick → targetId로 변경
+  navLinks: { label: string; targetId: string }[];
   appBarHeight?: string;
   appBarPadding?: string;
   hoverColor?: string;
@@ -22,24 +25,28 @@ const AppBar = styled.nav<{ height?: string; padding?: string }>`
   position: sticky;
   top: 0;
   left: 0;
-  width: 100%;
-  height: ${({ height }) => height || '80px'};
+  min-width: ${Breakpoints.desktop}px;  
   background-color: ${AppColors.background};
-  display: flex;
+  display: in;
   justify-content: center;
-  padding: ${({ padding }) => padding || '0 18px'};
   z-index: 1000;
+  padding: ${({ padding }) => padding || '0 20px'};
+`;
+
+const MobileAppBarWrapper = styled.nav`
+  position: sticky;
+  top: 0;
+  left: 0;
+  background-color: ${AppColors.background};
+  z-index: 1000;
+  box-sizing: border-box;
 `;
 
 const ContentWrapper = styled.div`
-  width: 100%;
-  max-width: ${Breakpoints.desktop}px;
-  min-width: ${Breakpoints.desktop}px; /* ✅ 추가: 최소 사이즈 고정 */
   display: flex;
   align-items: center;
   justify-content: space-between;
 `;
-
 
 const Logo = styled.img<{ width?: string; height?: string }>`
   width: ${({ width }) => width || 'auto'};
@@ -65,16 +72,67 @@ const NavLink = styled.button<{ hoverColor?: string }>`
   }
 `;
 
-const LandingAppBar: React.FC<LandingAppBarProps> = ({
+const MobileMenuButton = styled.button`
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: ${AppColors.onBackground};
+`;
+
+const MobileAppBar = ({
   logoSrc,
-  logoWidth,
-  logoHeight,
   navLinks,
-  appBarHeight,
-  appBarPadding,
   hoverColor,
   isShowLanguageSwitcher,
-}) => {
+}: LandingAppBarProps) => {
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const handleScrollTo = (targetId: string) => {
+    const element = document.getElementById(targetId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setMenuOpen(false);
+    }
+  };
+
+  return (
+    <>
+      <MobileAppBarWrapper>
+        <ContentWrapper>
+          <Logo src={logoSrc} alt="Logo" width="84px" height="32px" />
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            {isShowLanguageSwitcher && <LanguageSwitcher />}
+            <MobileMenuButton onClick={() => setMenuOpen(true)}>
+              <MenuIcon />
+            </MobileMenuButton>
+          </div>
+        </ContentWrapper>
+      </MobileAppBarWrapper>
+
+      {menuOpen && (
+        <MobileMenuOverlay
+          navLinks={navLinks}
+          onClose={() => setMenuOpen(false)}
+          onNavigate={handleScrollTo}
+        />
+      )}
+    </>
+  );
+};
+
+const DesktopAppBar = (props: LandingAppBarProps) => {
+  const {
+    logoSrc,
+    logoWidth,
+    logoHeight,
+    navLinks,
+    appBarHeight,
+    appBarPadding,
+    hoverColor,
+    isShowLanguageSwitcher,
+  } = props;
+
   const handleScrollTo = (targetId: string) => {
     const element = document.getElementById(targetId);
     if (element) {
@@ -104,6 +162,15 @@ const LandingAppBar: React.FC<LandingAppBarProps> = ({
         </NavLinks>
       </ContentWrapper>
     </AppBar>
+  );
+};
+
+const LandingAppBar: React.FC<LandingAppBarProps> = (props) => {
+  return (
+    <ResponsiveView
+      mobileView={<MobileAppBar {...props} />}
+      desktopView={<DesktopAppBar {...props} />}
+    />
   );
 };
 

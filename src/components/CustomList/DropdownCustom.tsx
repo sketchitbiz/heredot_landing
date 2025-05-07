@@ -1,29 +1,36 @@
-"use client";
-
 import { useState } from "react";
 import styled from "styled-components";
 import { FaChevronDown } from "react-icons/fa";
-import { ThemeMode } from "./GenericListUI"; // ThemeMode 타입 임포트
+import { ThemeMode } from "./GenericListUI"; // 테마 타입
 
 type DropdownProps = {
   value: number;
   onChange: (value: number) => void;
-  options: number[]; // 옵션을 props로 받음 (완전 커스텀)
-  setCurrentPage?: React.Dispatch<React.SetStateAction<number>>; // 선택적으로 변경
-  themeMode?: ThemeMode; // 테마 모드 추가
+  options: number[];
+  setCurrentPage?: React.Dispatch<React.SetStateAction<number>>;
+  themeMode?: ThemeMode;
+  triggerIcon?: React.ReactNode | null; // ✅ 아이콘 추가
 };
 
-const DropdownCustom: React.FC<DropdownProps> = ({ value, onChange, options, setCurrentPage, themeMode = "dark" }) => {
+const DropdownCustom: React.FC<DropdownProps> = ({
+  value,
+  onChange,
+  options,
+  setCurrentPage,
+  themeMode = "dark",
+  triggerIcon,
+}) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
     <DropdownContainer>
       <DropdownHeader onClick={() => setIsOpen(!isOpen)} $themeMode={themeMode}>
-        {value}
+        {triggerIcon ?? value}
         <MarginTop>
           <FaChevronDown />
         </MarginTop>
       </DropdownHeader>
+
       {isOpen && (
         <DropdownList $themeMode={themeMode}>
           {options.map((option) => (
@@ -32,10 +39,10 @@ const DropdownCustom: React.FC<DropdownProps> = ({ value, onChange, options, set
               onClick={() => {
                 onChange(option);
                 setIsOpen(false);
-                // setCurrentPage가 있는 경우에만 호출
                 if (setCurrentPage) setCurrentPage(1);
               }}
-              $themeMode={themeMode}>
+              $themeMode={themeMode}
+            >
               {option}
             </DropdownItem>
           ))}
@@ -47,7 +54,7 @@ const DropdownCustom: React.FC<DropdownProps> = ({ value, onChange, options, set
 
 export default DropdownCustom;
 
-// 스타일 정의
+// 스타일 그대로 사용
 const DropdownContainer = styled.div`
   position: relative;
   width: 100px;
@@ -68,13 +75,12 @@ const DropdownHeader = styled.div<{ $themeMode: ThemeMode }>`
   font-size: 16px;
   text-align: center;
   cursor: pointer;
-  border-radius: 0; // 네모난 모양 유지
+  border-radius: 0;
   user-select: none;
   display: flex;
   justify-content: space-between;
   align-items: center;
-
-  gap: 20px; /* 숫자와 화살표 사이의 간격 */
+  gap: 20px;
 
   &:hover {
     background-color: ${({ $themeMode }) => ($themeMode === "light" ? "#f0f0f0" : "#424451")};
@@ -83,7 +89,6 @@ const DropdownHeader = styled.div<{ $themeMode: ThemeMode }>`
 
 const DropdownList = styled.ul<{ $themeMode: ThemeMode }>`
   position: absolute;
-
   width: 89%;
   background-color: ${({ $themeMode }) => ($themeMode === "light" ? "white" : "#333544")};
   border: 1px solid ${({ $themeMode }) => ($themeMode === "light" ? "#ccc" : "#424451")};
@@ -98,7 +103,7 @@ const DropdownItem = styled.li<{ $themeMode: ThemeMode }>`
   padding: 8px;
   font-size: 16px;
   cursor: pointer;
-  border-radius: 0; // 네모난 스타일 유지
+  border-radius: 0;
   color: ${({ $themeMode }) => ($themeMode === "light" ? "#000000" : "#FFFFFF")};
 
   &:hover {
