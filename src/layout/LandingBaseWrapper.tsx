@@ -3,7 +3,7 @@
 import styled from 'styled-components';
 import { Breakpoints } from '@/constants/layoutConstants';
 import ResponsiveView from '@/layout/ResponsiveView';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 interface LandingSection {
   id?: string;
@@ -30,11 +30,18 @@ const FixedAppBarWrapper = styled.div<{ $scrollX: number }>`
   justify-content: center;
 `;
 
-
 const AppBarContentWrapper = styled.div`
   width: 100%;
+  max-width: ${Breakpoints.desktop}px;
+  margin: 0 auto;
   box-sizing: border-box;
-  padding: 0 16px;
+  padding-left: 16px;
+  padding-right: 16px;
+
+  @media (max-width: ${Breakpoints.mobile}px) {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
 `;
 
 const SectionWrapper = styled.section<{
@@ -49,10 +56,9 @@ const SectionWrapper = styled.section<{
     $hideAppBar ? 999 : $zIndex ?? 1};
 
   @media (max-width: ${Breakpoints.mobile}px) {
-    overflow-x: hidden; /* ✅ 모바일~태블릿에서만 좌우 스크롤 방지 */
+    overflow-x: hidden;
   }
 `;
-
 
 const ContentWrapper = styled.div<{ $isOverLayout?: boolean }>`
   width: 100%;
@@ -70,9 +76,8 @@ const ContentWrapper = styled.div<{ $isOverLayout?: boolean }>`
     max-width: ${({ $isOverLayout }) =>
       $isOverLayout ? '100%' : `${Breakpoints.desktop}px`};
     min-width: ${({ $isOverLayout }) =>
-      $isOverLayout ? '100%' : `${Breakpoints.desktop}px`}; /* ✅ 복원 */
+      $isOverLayout ? '100%' : `${Breakpoints.desktop}px`};
   }
-
 `;
 
 const LandingBaseWrapper: React.FC<LandingBaseWrapperProps> = ({ sections, appBar }) => {
@@ -94,6 +99,7 @@ const LandingBaseWrapper: React.FC<LandingBaseWrapperProps> = ({ sections, appBa
           <AppBarContentWrapper>{appBar}</AppBarContentWrapper>
         </FixedAppBarWrapper>
       )}
+
       {sections.map(
         ({ id, $backgroundColor, content, $zIndex, $isOverLayout, isWithAppBar }, idx) => (
           <SectionWrapper
@@ -108,7 +114,14 @@ const LandingBaseWrapper: React.FC<LandingBaseWrapperProps> = ({ sections, appBa
                 <ContentWrapper $isOverLayout={$isOverLayout}>{content}</ContentWrapper>
               }
               mobileView={
-                <div style={{ width: '100%', boxSizing: 'border-box', padding: '0 0px' }}>
+                <div
+                  style={{
+                    width: '100%',
+                    boxSizing: 'border-box',
+                    paddingLeft: '12px',
+                    paddingRight: '12px',
+                  }}
+                >
                   {content}
                 </div>
               }

@@ -27,7 +27,6 @@ const AppBar = styled.nav<{ height?: string; padding?: string }>`
   left: 0;
   min-width: ${Breakpoints.desktop}px;  
   background-color: ${AppColors.background};
-  display: in;
   justify-content: center;
   z-index: 1000;
   padding: ${({ padding }) => padding || '0 20px'};
@@ -37,6 +36,7 @@ const MobileAppBarWrapper = styled.nav`
   position: sticky;
   top: 0;
   left: 0;
+  width: 100%;
   background-color: ${AppColors.background};
   z-index: 1000;
   box-sizing: border-box;
