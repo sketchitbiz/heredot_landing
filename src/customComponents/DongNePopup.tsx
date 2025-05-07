@@ -6,7 +6,17 @@ import { ProjectPopupContent } from '@/customComponents/ProjectPopupContent';
 import { GradientButton } from '@/components/GradientButton';
 
 const Text = ({ children }: { children: React.ReactNode }) => (
-  <p style={{ fontSize: 16, fontWeight: 400, color: '#454545', margin: 0, marginBottom: 8, whiteSpace: 'pre-line' }}>
+  <p
+    style={{
+      fontSize: 16,
+      fontWeight: 400,
+      color: '#454545',
+      margin: 0,
+      marginBottom: 0,
+      lineHeight: '20px',
+      whiteSpace: 'pre-line',
+    }}
+  >
     {children}
   </p>
 );
@@ -54,8 +64,8 @@ export const DongNePopup = () => {
         <>
           {t.features.map(([label, desc], i) => (
             <div key={i} style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 16, fontWeight: 700, color: '#3f4347' }}>{label}</div>
-              <div style={{ fontWeight: 400, color: '#3f4347' }}>{desc}</div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: '#3f4347', lineHeight: '24px' }}>{label}</div>
+              <div style={{ fontWeight: 400, color: '#3f4347', whiteSpace: 'pre-line', lineHeight: '24px' }}>{desc}</div>
             </div>
           ))}
         </>

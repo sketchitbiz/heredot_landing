@@ -1,7 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
-import ReactDOM from 'react-dom';
+import React, { useRef, useState } from 'react';
 import styled from 'styled-components';
 
 interface SelectProps {
@@ -24,7 +23,7 @@ interface SelectProps {
   $itemHoverBackgroundColor?: string;
   $itemHoverTextColor?: string;
   $isShowIcon?: boolean;
-  $triggerContent?: React.ReactNode; // ✅ 추가
+  $triggerContent?: React.ReactNode;
 }
 
 export const SimpleSelect = ({
@@ -50,14 +49,7 @@ export const SimpleSelect = ({
   $triggerContent,
 }: SelectProps) => {
   const [open, setOpen] = useState(false);
-  const [triggerRect, setTriggerRect] = useState<DOMRect | null>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    if (open && triggerRef.current) {
-      setTriggerRect(triggerRef.current.getBoundingClientRect());
-    }
-  }, [open]);
 
   const handleSelect = (option: string) => {
     onChange(option);
@@ -65,53 +57,43 @@ export const SimpleSelect = ({
   };
 
   return (
-    <>
-      <Wrapper $fixedWidth={!!$triggerContent}>
-        <Trigger
-          ref={triggerRef}
-          onClick={() => setOpen(prev => !prev)}
-          $height={$height}
-          $radius={$radius}
-          $triggerFontSize={$triggerFontSize}
-          $triggerFontWeight={$triggerFontWeight}
-          $triggerTextColor={$triggerTextColor}
-          $triggerBackgroundColor={$triggerBackgroundColor}
-          $triggerHoverBackgroundColor={$triggerHoverBackgroundColor}
-          $triggerHoverTextColor={$triggerHoverTextColor}
-        >
-          {$triggerContent || value || placeholder}
-          {/* ✅ triggerContent 있을 때는 Icon 제거 */}
-          {!$triggerContent && $isShowIcon && <Icon>▾</Icon>}
-        </Trigger>
-      </Wrapper>
+    <Wrapper $fixedWidth={!!$triggerContent}>
+      <Trigger
+        ref={triggerRef}
+        onClick={() => setOpen((prev) => !prev)}
+        $height={$height}
+        $radius={$radius}
+        $triggerFontSize={$triggerFontSize}
+        $triggerFontWeight={$triggerFontWeight}
+        $triggerTextColor={$triggerTextColor}
+        $triggerBackgroundColor={$triggerBackgroundColor}
+        $triggerHoverBackgroundColor={$triggerHoverBackgroundColor}
+        $triggerHoverTextColor={$triggerHoverTextColor}
+      >
+        {$triggerContent || value || placeholder}
+        {!$triggerContent && $isShowIcon && <Icon>▾</Icon>}
+      </Trigger>
 
-      {open && triggerRect &&
-        ReactDOM.createPortal(
-          <PortalContent
-            style={{
-              top: triggerRect.bottom + window.scrollY,
-              left: triggerRect.left + window.scrollX,
-              width: triggerRect.width,
-            }}
-            $contentBackgroundColor={$contentBackgroundColor}
-            $contentFontSize={$contentFontSize}
-            $contentFontWeight={$contentFontWeight}
-            $contentTextColor={$contentTextColor}
-          >
-            {options.map(option => (
-              <Item
-                key={option}
-                onClick={() => handleSelect(option)}
-                $itemHoverBackgroundColor={$itemHoverBackgroundColor}
-                $itemHoverTextColor={$itemHoverTextColor}
-              >
-                {option}
-              </Item>
-            ))}
-          </PortalContent>,
-          document.body
-        )}
-    </>
+      {open && (
+        <DropdownContent
+          $contentBackgroundColor={$contentBackgroundColor}
+          $contentFontSize={$contentFontSize}
+          $contentFontWeight={$contentFontWeight}
+          $contentTextColor={$contentTextColor}
+        >
+          {options.map((option) => (
+            <Item
+              key={option}
+              onClick={() => handleSelect(option)}
+              $itemHoverBackgroundColor={$itemHoverBackgroundColor}
+              $itemHoverTextColor={$itemHoverTextColor}
+            >
+              {option}
+            </Item>
+          ))}
+        </DropdownContent>
+      )}
+    </Wrapper>
   );
 };
 
@@ -126,12 +108,11 @@ const Wrapper = styled.div<{ $fixedWidth?: boolean }>`
 
 const Trigger = styled.button<Partial<SelectProps>>`
   display: flex;
-  align-items: center;
+  align-items: center;          // ✅ 수직 중앙 정렬
+  justify-content: center;      // ✅ 가운데 배치 (triggerContent 기준)
   width: 100%;
-  justify-content: space-between;
-  overflow: hidden;
   height: ${({ $height }) => $height || '36px'};
-  padding: 0 35px;
+  padding: 0 16px;
   border-radius: ${({ $radius }) => $radius || '6px'};
   background-color: ${({ $triggerBackgroundColor }) => $triggerBackgroundColor || 'white'};
   border: 1px solid ${({ $triggerBackgroundColor }) => $triggerBackgroundColor || '#ccc'};
@@ -148,15 +129,20 @@ const Trigger = styled.button<Partial<SelectProps>>`
   }
 `;
 
+
 const Icon = styled.span`
-  margin-left: 16px;
+  margin-left: 8px;
   font-size: 12px;
   pointer-events: none;
 `;
 
-const PortalContent = styled.div<Partial<SelectProps>>`
+const DropdownContent = styled.div<Partial<SelectProps>>`
   position: absolute;
-  z-index: 9999;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  margin-top: 4px;
   border: 1px solid #ccc;
   border-radius: 6px;
   background-color: ${({ $contentBackgroundColor }) => $contentBackgroundColor || 'white'};
@@ -172,7 +158,8 @@ const Item = styled.div<Partial<SelectProps>>`
   cursor: pointer;
 
   &:hover {
-    background-color: ${({ $itemHoverBackgroundColor }) => $itemHoverBackgroundColor || '#f0f0f0'};
+    background-color: ${({ $itemHoverBackgroundColor }) =>
+      $itemHoverBackgroundColor || '#f0f0f0'};
     color: ${({ $itemHoverTextColor }) => $itemHoverTextColor || '#000'};
   }
 `;

@@ -11,8 +11,8 @@ import { AppTextStyles } from "@/styles/textStyles";
  */
 
 export const Breakpoints = {
-  mobile: 0,
-  tablet: 769,
+  mobile: 770,
+  tablet: 1024,
   desktop: 1200,
 } as const; // 화면 너비 기준점 | Screen width breakpoints
 

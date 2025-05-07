@@ -31,8 +31,6 @@ export const metadata = {
     icon: '/favicon.ico',
   },
 };
-
-// ✅ 레이아웃 컴포넌트 | Root layout component
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -40,7 +38,18 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      {/* body className에서 폰트 변수 제거 */}
+      <head>
+        {/* Open Graph Meta Tags */}
+        <meta property="og:title" content="여기닷 AI 견적 시스템" />
+        <meta property="og:description" content="나의 아이디어 AI에게 다 물어봐!" />
+        <meta property="og:image" content="/og.png" />
+        <meta property="og:url" content="https://heredotcorp.com/" />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="여기닷 AI 견적 시스템" />
+        <meta name="twitter:description" content="나의 아이디어 AI에게 다 물어봐!" />
+        <meta name="twitter:image" content="/og.png" />
+      </head>
       <body className="antialiased">
         {/* StyledComponentsRegistry로 GlobalWrapper와 children 감싸기 */}
         <StyledComponentsRegistry>

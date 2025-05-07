@@ -49,7 +49,7 @@ export const AntiDronePopup = () => {
 
   return (
     <ProjectPopupContent
-      imageUrl="/assets/portpolio_popup/antidron.png"
+      imageUrl="/assets/portpolio_popup/antidrone.png"
       projectIntro={<Text>{t.projectIntro}</Text>}
       featureList={
         <>

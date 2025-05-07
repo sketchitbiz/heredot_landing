@@ -15,7 +15,7 @@ export const AppTextStyles = {
   display1: {
     fontSize: "57px",
     fontWeight: 400,
-    lineHeight: "64px",
+    lineHeight: "57px",
   },
   // Header에 사용
   display2: { 
@@ -23,10 +23,11 @@ export const AppTextStyles = {
     fontWeight: 700,
     lineHeight: "50px",
   },
+  // 색션에 사용
   display3: {
-    fontSize: "36px",
-    fontWeight: 400,
-    lineHeight: "44px",
+    fontSize: "40px",
+    fontWeight: 700,
+    lineHeight: "40px",
   },
 
   // Headline (섹션 타이틀, 구역 헤더)
@@ -34,56 +35,55 @@ export const AppTextStyles = {
   headline1: {
     fontSize: "32px",
     fontWeight: 400,
-    lineHeight: "40px",
+    lineHeight: "32px",
   },
+  //파트너에 사용
   headline2: {
-    fontSize: "28px",
-    fontWeight: 400,
-    lineHeight: "36px",
+    fontSize: "35px",
+    fontWeight: 700,
   },
   headline3: {
     fontSize: "24px",
     fontWeight: 400,
-    lineHeight: "32px",
+    lineHeight: "24px",
   },
 
   // Title (카드, 폼 타이틀 등)
   // Title (Card titles, form headers, etc.)
+  //네비에 사용, 색션 하단에 사용
   title1: {
-    fontFamily: "Noto Sans KR",
     fontWeight: 700,
-    fontSize: "35px",
+    fontSize: "22px",
     lineHeight: "100%",
     letterSpacing: "0%",
   },
   title2: {
-    fontFamily: "Noto Sans KR",
     fontWeight: 700,
     fontSize: "20px",
     lineHeight: "100%",
     letterSpacing: "0%",
   },
+  // 연락 카드에
   title3: {
-    fontFamily: "Noto Sans KR",
-    fontWeight: 500,
-    fontSize: "18px",
+    fontWeight: 700,
+    fontSize: "25px",
     lineHeight: "100%",
     letterSpacing: "0%",
   },
 
   // Body (본문)
   // Body (Main content text)
+  // 카드 내용에 사용
   body1: {
-    fontFamily: "Noto Sans KR",
-    fontWeight: 500,
+    fontWeight: 400,
     fontSize: "16px",
     lineHeight: "100%",
     letterSpacing: "0%",
   },
+  //푸터
   body2: {
-    fontFamily: "Noto Sans KR",
-    fontWeight: 500,
-    fontSize: "18px",
+    fontWeight: 400,
+    fontSize: "16px",
     lineHeight: "100%",
     letterSpacing: "0%",
   },
@@ -96,7 +96,6 @@ export const AppTextStyles = {
   // Label (버튼, 태그, UI 요소)
   // Label (Buttons, tags, UI elements)
   label1: {
-    fontFamily: "Noto Sans KR",
     fontWeight: 500,
     fontSize: "20px",
     lineHeight: "100%",
@@ -104,7 +103,6 @@ export const AppTextStyles = {
   },
   // 공통 버튼에 사용
   label2: {
-    fontFamily: "Noto Sans KR",
     fontWeight: 500,
     fontSize: "25px",
     lineHeight: "100%",
@@ -112,21 +110,19 @@ export const AppTextStyles = {
   },
   //앱바에 사용
   label3: {
-    fontFamily: "Noto Sans KR",
     fontWeight: 500,
     fontSize: "20px",
     lineHeight: "100%",
     letterSpacing: "0%",
   },
+  //모바일 메뉴바에 사용
   label4: {
-    fontFamily: "Noto Sans KR",
-    fontWeight: 500,
+    fontWeight: 700,
     fontSize: "18px",
     lineHeight: "100%",
     letterSpacing: "0%",
   },
   label5: {
-    fontFamily: "Noto Sans KR",
     fontWeight: 500,
     fontSize: "16px",
     lineHeight: "100%",
@@ -134,14 +130,12 @@ export const AppTextStyles = {
   },
 
   caption1: {
-    fontFamily: "Noto Sans KR",
     fontWeight: 500,
     fontSize: "16px",
     lineHeight: "100%",
     letterSpacing: "0%",
   },
   caption2: {
-    fontFamily: "Noto Sans KR",
     fontWeight: 500,
     fontSize: "16px",
     lineHeight: "100%",
@@ -150,7 +144,6 @@ export const AppTextStyles = {
 
   //임의 추가
   button: {
-    fontFamily: "Noto Sans KR",
     fontWeight: 500,
     fontSize: "16px",
     lineHeight: "100%",

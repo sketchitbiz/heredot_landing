@@ -6,11 +6,20 @@ import { ProjectPopupContent } from '@/customComponents/ProjectPopupContent';
 import { GradientButton } from '@/components/GradientButton';
 
 const Text = ({ children }: { children: React.ReactNode }) => (
-  <p style={{ fontSize: 16, fontWeight: 400, color: '#454545', margin: 0, marginBottom: 0,lineHeight : '20px', whiteSpace: 'pre-line' }}>
+  <p
+    style={{
+      fontSize: 16,
+      fontWeight: 400,
+      color: '#454545',
+      margin: 0,
+      marginBottom: 0,
+      lineHeight: '20px',
+      whiteSpace: 'pre-line',
+    }}
+  >
     {children}
   </p>
 );
-
 
 const hrefs = [
   'https://exitobiz.co.kr/',
@@ -22,6 +31,16 @@ const TEXT = {
   ko: {
     projectIntro:
       '산재된 정부지원사업을 1일 단위 자동 수집을 통하여 창업팀에게 지원사업 안내 하는 솔루션 입니다',
+    leftHeader: (
+      <>
+        <span style={{ color: '#FFFFFF' }}>지원사업</span>
+        <br />
+        <span style={{ color: '#03F4FF' }}>확인</span>
+        <span style={{ color: '#FFFFFF' }}> 부터</span>
+        <span style={{ color: '#03F4FF' }}> 선정</span>
+        <span style={{ color: '#FFFFFF' }}> 까지</span>
+      </>
+    ),
     features: [
       ['[크롤링]', '200개 지원사업 기관 1일 단위 자동수집'],
       ['[맞춤알림]', '관심분야 , 키워드 , 맞춤 지원사업 알림'],
@@ -38,6 +57,16 @@ const TEXT = {
   en: {
     projectIntro:
       'A solution that collects scattered government support programs daily and informs startups of available opportunities.',
+    leftHeader: (
+      <>
+        <span style={{ color: '#FFFFFF' }}>From</span>
+        <br />
+        <span style={{ color: '#03F4FF' }}>Program</span>
+        <span style={{ color: '#FFFFFF' }}> Discovery</span>
+        <span style={{ color: '#03F4FF' }}> to</span>
+        <span style={{ color: '#FFFFFF' }}> Final Selection</span>
+      </>
+    ),
     features: [
       ['[Crawling]', 'Auto-crawling over 200 public program sources daily'],
       ['[Custom Alerts]', 'Keyword and interest-based customized notifications'],
@@ -60,13 +89,26 @@ export const ExitoPopup = () => {
   return (
     <ProjectPopupContent
       imageUrl="/assets/portpolio_popup/exito.png"
+      leftHeader={
+        <div
+          style={{
+            position: 'absolute',
+            top: '160px',
+            left: '110px',
+            fontSize: '30px',
+            fontWeight: 700,
+          }}
+        >
+          {t.leftHeader}
+        </div>
+      }
       projectIntro={<Text>{t.projectIntro}</Text>}
       featureList={
         <>
           {t.features.map(([label, desc], i) => (
             <div key={i} style={{ marginBottom: 16 }}>
               <div style={{ fontSize: 16, fontWeight: 700, color: '#3f4347', lineHeight: '24px' }}>{label}</div>
-              <div style={{ fontWeight: 400, color: '#3f4347', whiteSpace: 'pre-line' , lineHeight: '24px'}}>{desc}</div>
+              <div style={{ fontWeight: 400, color: '#3f4347', whiteSpace: 'pre-line', lineHeight: '24px' }}>{desc}</div>
             </div>
           ))}
         </>

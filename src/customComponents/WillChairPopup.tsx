@@ -6,7 +6,15 @@ import { GradientButton } from '@/components/GradientButton';
 import { ProjectPopupContent } from '@/customComponents/ProjectPopupContent';
 
 const Text = ({ children }: { children: React.ReactNode }) => (
-  <p style={{ fontSize: 16, fontWeight: 400, color: '#454545', margin: 0, marginBottom: 0,lineHeight : '20px', whiteSpace: 'pre-line' }}>
+  <p style={{
+    fontSize: 16,
+    fontWeight: 400,
+    color: '#454545',
+    margin: 0,
+    marginBottom: 0,
+    lineHeight: '20px',
+    whiteSpace: 'pre-line',
+  }}>
     {children}
   </p>
 );
@@ -14,6 +22,10 @@ const Text = ({ children }: { children: React.ReactNode }) => (
 const TEXT = {
   ko: {
     projectIntro: '휠체어 사용자들을 위한 지도 기반 매장 정보 제공 플랫폼 입니다',
+    leftHeader: {
+      line1: '일상을 잇다,',
+      line2: '윌체어',
+    },
     features: [
       ['[GPS]', '단말 위치기반 가까운 매장 정보 안내'],
       ['[필터]', '관심 분야 , 지역별 정보 필터'],
@@ -34,6 +46,10 @@ const TEXT = {
   },
   en: {
     projectIntro: 'A map-based store information platform for wheelchair users',
+    leftHeader: {
+      line1: 'Connecting Daily Life,',
+      line2: 'WillChair',
+    },
     features: [
       ['[GPS]', 'Guide to nearby stores using device location'],
       ['[Filter]', 'Filter by interest or region'],
@@ -62,12 +78,22 @@ export const WillChairPopup = () => {
     <ProjectPopupContent
       imageUrl="/assets/portpolio_popup/willchair.png"
       projectIntro={<Text>{t.projectIntro}</Text>}
+      leftHeader={
+        <div style={{ position: 'absolute', top: '150px', left: '50px' }}>
+          <div style={{ fontSize: '30px', fontWeight: 700, color: '#fffefe', marginBottom: '8px' }}>
+            {t.leftHeader.line1}
+          </div>
+          <div style={{ fontSize: '30px', fontWeight: 700, color: '#fffefe' }}>
+            {t.leftHeader.line2}
+          </div>
+        </div>
+      }
       featureList={
         <>
           {t.features.map(([label, desc], i) => (
             <div key={i} style={{ marginBottom: 16 }}>
               <div style={{ fontSize: 16, fontWeight: 700, color: '#3f4347', lineHeight: '24px' }}>{label}</div>
-              <div style={{ fontWeight: 400, color: '#3f4347', whiteSpace: 'pre-line' , lineHeight: '24px'}}>{desc}</div>
+              <div style={{ fontWeight: 400, color: '#3f4347', whiteSpace: 'pre-line', lineHeight: '24px' }}>{desc}</div>
             </div>
           ))}
         </>

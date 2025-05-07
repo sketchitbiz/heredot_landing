@@ -2,6 +2,7 @@
 
 import React, { forwardRef } from 'react';
 import styled from 'styled-components';
+import { Breakpoints } from '@/constants/layoutConstants';
 
 interface LayoutProps {
   padding?: string;
@@ -20,14 +21,16 @@ interface SectionProps {
 
 const Container = styled.div<LayoutProps>`
   display: flex;
-  width: 100%;
+  min-width: ${Breakpoints.desktop}px; 
   min-height: 100vh;
   box-sizing: border-box;
-  padding: ${({ padding }) => padding || '0 40px'};
+  padding: ${({ padding }) => padding || '0 24px'};
   gap: ${({ gap }) => gap || '0'};
   align-items: ${({ alignItems }) => alignItems || 'center'};
   justify-content: ${({ justifyContent }) => justifyContent || 'space-between'};
+  margin: 0 auto;
 `;
+
 
 const Left = styled.div<SectionProps>`
   flex: ${({ flex }) => flex || 2};
@@ -44,11 +47,10 @@ const Right = styled.div<SectionProps>`
   flex-direction: column;
   align-items: ${({ alignItems }) => alignItems || 'flex-start'};
   justify-content: ${({ justifyContent }) => justifyContent || 'center'};
-  padding: ${({ padding }) => padding || '0 0 0 20px'};
+  /* padding: ${({ padding }) => padding || '0 0 0 20px'}; */
   position: relative;
 `;
 
-// ✅ forwardRef 사용
 const CustomBlockLayoutBase = forwardRef<HTMLDivElement, LayoutProps>(
   ({ children, ...props }, ref) => (
     <Container {...props} ref={ref}>
@@ -57,7 +59,6 @@ const CustomBlockLayoutBase = forwardRef<HTMLDivElement, LayoutProps>(
   )
 );
 
-// 네이밍 명확하게 Object.assign해서 Left, Right 달아줌
 const CustomBlockLayout = Object.assign(CustomBlockLayoutBase, {
   Left,
   Right,

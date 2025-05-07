@@ -20,15 +20,23 @@ const CardWrapper = styled.div<{ width?: string | number; height?: string | numb
   width: ${({ width }) => (width ? (typeof width === "number" ? `${width}px` : width) : "100%")};
   aspect-ratio: 1;
   border-radius: 8px;
-  overflow: hidden;
+
   transition: transform 0.2s ease-in-out;
+
   &:hover {
     transform: translateY(-4px);
+  }
+
+  @media (min-width: 769px) {
+    overflow: hidden; /* 데스크탑: 말풍선이 안 튀어나오도록 */
+  }
+
+  @media (max-width: 768px) {
+    overflow: visible; /* ✅ 모바일: 말풍선이 카드 밖으로 나와도 보이게 허용 */
   }
 `;
 
 const CardImage = styled(Image)`
-  width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: top;
@@ -50,6 +58,14 @@ const SpeechBubble = styled.div<{ $isVisible: boolean; $shouldRender: boolean }>
   transform: ${({ $isVisible }) => ($isVisible ? "translateY(0)" : "translateY(-10px)")};
   transition: opacity 0.3s ease, transform 0.3s ease;
   visibility: ${({ $shouldRender }) => ($shouldRender ? "visible" : "hidden")};
+
+  @media (max-width: 768px) {
+    max-width: 150%; 
+    padding: 8px 8px;
+    border-radius: 30px;
+    font-size: 12px;
+    top: -30px; /* ✅ 모바일에서 위로 조금 더 올림 */
+  }
 `;
 
 const NameTag = styled.div`
@@ -61,6 +77,11 @@ const NameTag = styled.div`
   border-radius: 12px;
   color: white;
   font-size: 14px;
+
+  @media (max-width: 768px) {
+    bottom: auto;
+    top: 80%; /* ✅ 모바일에서 조금 더 아래쪽으로 */
+  }
 `;
 
 export const MemberCard: React.FC<MemberCardProps> = ({

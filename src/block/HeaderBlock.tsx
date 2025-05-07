@@ -7,17 +7,24 @@ import { AppTextStyles } from '@/styles/textStyles';
 import { FiDownload } from 'react-icons/fi';
 import Gap from '@/components/Gap';
 import CommonButton from '@/components/CommonButton'; // ✅ 추가
+import { Breakpoints } from '@/constants/layoutConstants';
 
 const HeaderBlockWrapper = styled.div`
   position: relative;
   width: 100%;
+  min-width: ${Breakpoints.desktop}px; /* 기본값: 데스크톱에서 최소 너비 설정 */
   height: 100vh;
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  padding-left: 80px;
+  justify-content: start;
   overflow: hidden;
+
+  @media (max-width: ${Breakpoints.mobile}px) {
+    width: 100vw;
+    min-width: unset; /* 모바일에서는 최소 너비 제거 */
+  }
 `;
+
 
 const meteorDrip = keyframes`
   0% { transform: translateY(0px); opacity: 0; }
@@ -27,7 +34,7 @@ const meteorDrip = keyframes`
 const Meteor = styled.div`
   position: absolute;
   top: 80%;
-  left: 53%;
+  left: calc(50%); 
   transform: translateX(-50%);
   width: 3px;
   height: 80px;
@@ -35,6 +42,10 @@ const Meteor = styled.div`
   border-radius: 1.5px;
   z-index: 0;
   animation: ${meteorDrip} 1.5s ease-in-out infinite;
+
+  @media (max-width: ${Breakpoints.mobile}px) {
+    top: 70%; /* 모바일에서도 동일한 top 값 */
+  }
 `;
 
 const LeftContent = styled.div`
@@ -43,11 +54,25 @@ const LeftContent = styled.div`
   align-items: flex-start;
   z-index: 2;
   gap: 10px;
+  left: 20px; 
+  position: absolute; /* 위치를 조정하기 위해 추가 */
+  top: 200px; /* 기본값: top에서 200px 떨어짐 */
+
+  @media (max-width: ${Breakpoints.mobile}px) {
+    top: 200px; /* 모바일에서도 동일한 top 값 */
+  
+  }
 `;
 
 const Title = styled.div`
   ${AppTextStyles.display2};
   color: ${AppColors.onBackground};
+  margin-bottom: 20px;
+
+  @media (max-width: ${Breakpoints.mobile}px) {
+    font-size: 28px; /* 모바일에서 폰트 크기 변경 */
+    margin-bottom: 10px; /* 모바일에서 마진 변경 */
+  }
 `;
 
 const RadarAnimation = keyframes`
@@ -61,7 +86,7 @@ const Radar = styled.div`
   width: 552px;
   height: 552px;
   border-radius: 50%;
-  left: 30%;
+  left: calc(50% - 276px);
   background: radial-gradient(circle, #000000 10%, #7951ad80 100%);
   animation: ${RadarAnimation} 3s infinite;
   z-index: 1;
@@ -80,7 +105,20 @@ const Radar = styled.div`
     filter: blur(35px);
     z-index: 2;
   }
+
+  @media (max-width: ${Breakpoints.mobile}px) {
+    width: 330px;  /* 552px / 3 */
+    height: 330px;
+    left: calc(50% - 165px);
+
+    &::before {
+      width: 100px;  /* 119px / 3 */
+      height: 100px;
+      filter: blur(15px);
+    }
+  }
 `;
+
 
 interface HeaderBlockProps {
   title: string;
@@ -95,9 +133,7 @@ const HeaderBlock: React.FC<HeaderBlockProps> = ({ title, subtitle, downloadLabe
       <Radar />
       <LeftContent>
         <Title>{title}</Title>
-        <Gap height="20px" />
         <Title>{subtitle}</Title>
-        <Gap height="50px" />
         <a
           href={downloadLink}
           download
@@ -108,7 +144,7 @@ const HeaderBlock: React.FC<HeaderBlockProps> = ({ title, subtitle, downloadLabe
           <CommonButton
             text={downloadLabel}
             icon={<FiDownload />}
-            iconPosition="left"
+            $iconPosition="left"
           />
         </a>
       </LeftContent>

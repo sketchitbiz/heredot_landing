@@ -6,15 +6,32 @@ import { GradientButton } from '@/components/GradientButton';
 import { ProjectPopupContent } from '@/customComponents/ProjectPopupContent';
 
 const Text = ({ children }: { children: React.ReactNode }) => (
-  <p style={{ fontSize: 16, fontWeight: 400, color: '#454545', margin: 0, marginBottom: 0,lineHeight : '20px', whiteSpace: 'pre-line' }}>
+  <p
+    style={{
+      fontSize: 16,
+      fontWeight: 400,
+      color: '#454545',
+      margin: 0,
+      marginBottom: 0,
+      lineHeight: '20px',
+      whiteSpace: 'pre-line',
+    }}
+  >
     {children}
   </p>
 );
 
-
 const TEXT = {
   ko: {
-    projectIntro: '소상공인 사장님 대상 상품 생성 후 결제 링크를 고객에게 전달하여\n매달 상품을 구독 할 수 있는 결제 플랫폼 입니다',
+    projectIntro:
+      '소상공인 사장님 대상 상품 생성 후 결제 링크를 고객에게 전달하여\n매달 상품을 구독 할 수 있는 결제 플랫폼 입니다',
+    leftHeader: (
+      <>
+        <span style={{ color: '#FFFFFF' }}>매달 나가는 비용</span>
+        <br />
+        <span style={{ color: '#FFFFFF' }}>을 간편하게!</span>
+      </>
+    ),
     features: [
       ['[PG연계]', '신용카드 등록 후 매달 지정일 결제'],
       ['[Native]', 'DeepLink, Gallery, GPS, Push 활용'],
@@ -24,7 +41,10 @@ const TEXT = {
     screenshots: ['📱 모바일 화면', '💻 PC 화면', '⚙️ CMS(관리자) 페이지'],
     confirmButtons: [
       { title: '서비스 웹 바로가기', href: 'https://xn--2e0bw7u.com/' },
-      { title: '사장님 AOS 앱 바로가기', href: 'https://play.google.com/store/apps/details?id=com.heredot.link9corp' },
+      {
+        title: '사장님 AOS 앱 바로가기',
+        href: 'https://play.google.com/store/apps/details?id=com.heredot.link9corp',
+      },
       { title: '사장님 IOS 앱 바로가기', href: 'https://naver.me/xiqdvNGH' },
     ],
     volume: '화면 분량 15장 내외',
@@ -33,7 +53,15 @@ const TEXT = {
     duration: ['스토리보드 2주', 'UI/UX 디자인 1주', 'FE/BE 개발 8주'],
   },
   en: {
-    projectIntro: 'A subscription payment platform for small business owners\nwhere they can create product links and share them with customers for recurring payments.',
+    projectIntro:
+      'A subscription payment platform for small business owners\nwhere they can create product links and share them with customers for recurring payments.',
+    leftHeader: (
+      <>
+        <span style={{ color: '#FFFFFF' }}>Recurring payments</span>
+        <br />
+        <span style={{ color: '#FFFFFF' }}>made simple!</span>
+      </>
+    ),
     features: [
       ['[PG Integration]', 'Monthly card billing after credit card registration'],
       ['[Native]', 'Uses DeepLink, Gallery, GPS, and Push'],
@@ -43,7 +71,10 @@ const TEXT = {
     screenshots: ['📱 Mobile Screen', '💻 PC Screen', '⚙️ CMS (Admin) Page'],
     confirmButtons: [
       { title: 'Visit Web Service', href: 'https://xn--2e0bw7u.com/' },
-      { title: 'Open OS App', href: 'https://play.google.com/store/apps/details?id=com.heredot.link9corp' },
+      {
+        title: 'Open AOS App',
+        href: 'https://play.google.com/store/apps/details?id=com.heredot.link9corp',
+      },
       { title: 'Open iOS App', href: 'https://naver.me/xiqdvNGH' },
     ],
     volume: 'Approx. 15 screens',
@@ -62,23 +93,43 @@ export const RinguPopup = () => {
       imageUrl="/assets/portpolio_popup/ringu.png"
       projectIntro={<Text>{t.projectIntro}</Text>}
       leftHeader={
-        <div style={{ 
-          position: 'absolute', 
-          top: '50px', 
-          left: '20px', 
-          fontSize: '32px', 
-          fontWeight: 700, 
-          color: '#FFFFFF' 
-        }}>
-          매달 나가는 비용<br />을 간편하게!
+        <div
+          style={{
+            position: 'absolute',
+            top: '50px',
+            left: '20px',
+            fontSize: '32px',
+            fontWeight: 700,
+            color: '#FFFFFF',
+          }}
+        >
+          {t.leftHeader}
         </div>
       }
       featureList={
         <>
           {t.features.map(([label, desc], i) => (
             <div key={i} style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 16, fontWeight: 700, color: '#3f4347', lineHeight: '24px' }}>{label}</div>
-              <div style={{ fontWeight: 400, color: '#3f4347', whiteSpace: 'pre-line' , lineHeight: '24px'}}>{desc}</div>
+              <div
+                style={{
+                  fontSize: 16,
+                  fontWeight: 700,
+                  color: '#3f4347',
+                  lineHeight: '24px',
+                }}
+              >
+                {label}
+              </div>
+              <div
+                style={{
+                  fontWeight: 400,
+                  color: '#3f4347',
+                  whiteSpace: 'pre-line',
+                  lineHeight: '24px',
+                }}
+              >
+                {desc}
+              </div>
             </div>
           ))}
         </>
@@ -87,12 +138,28 @@ export const RinguPopup = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {t.screenshots.map((title, i) => (
             <div key={i}>
-              <h4 style={{ fontWeight: 700, fontSize: 16, color: '#3f4347' }}>{title}</h4>
-              <img src={`/assets/portpolio_popup/ringu_${i + 1}.png`} alt={title} style={{ width: '100%' }} />
+              <h4
+                style={{
+                  fontWeight: 700,
+                  fontSize: 16,
+                  color: '#3f4347',
+                }}
+              >
+                {title}
+              </h4>
+              <img
+                src={`/assets/portpolio_popup/ringu_${i + 1}.png`}
+                alt={title}
+                style={{ width: '100%' }}
+              />
             </div>
           ))}
           <div>
-            <img src="/assets/portpolio_popup/ringu_4.png" alt="Additional Screenshot" style={{ width: '100%' }} />
+            <img
+              src="/assets/portpolio_popup/ringu_4.png"
+              alt="Additional Screenshot"
+              style={{ width: '100%' }}
+            />
           </div>
         </div>
       }

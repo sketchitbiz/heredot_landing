@@ -32,7 +32,7 @@ export default function ResponsiveView({
   if (device === 'mobile' && mobileView) return <>{mobileView}</>;
 
   // 태블릿인 경우 tabletView 렌더링 (있을 때만) | Render tabletView if device is tablet and it exists
-  if (device === 'tablet' && tabletView) return <>{tabletView}</>;
+  // if (device === 'tablet' && tabletView) return <>{tabletView}</>;
 
   // 기본: 데스크톱 뷰 렌더링 | Default: Render desktop view
   return <>{desktopView}</>;
