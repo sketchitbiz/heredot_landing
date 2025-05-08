@@ -278,9 +278,13 @@ export function AiChatMessage({ sender, text, imageUrl, fileType, onActionClick 
       {isAiMessage && <ProfileImage src="/pretty.png" alt="AI 프로필" />}
       <MessageBox $sender={sender}>
         <StyledMarkdownContainer>
-          <ProfileName>
-            <strong>강유하</strong>
-          </ProfileName>
+          {isAiMessage && (
+            <>
+              <ProfileName>
+                <strong>강유하</strong>
+              </ProfileName>
+            </>
+          )}
           <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} components={customComponents}>
             {text}
           </ReactMarkdown>

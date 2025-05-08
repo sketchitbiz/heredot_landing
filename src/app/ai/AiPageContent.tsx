@@ -366,6 +366,22 @@ const DragDropOverlay = styled.div`
 `;
 // -------------------------
 
+// 견적서 항목 인터페이스 정의
+interface InvoiceItem {
+  id: string;
+  name: string;
+  amount: number;
+  isDeleted: boolean; // 삭제 여부 상태
+  // 필요시 category, description, note 등 추가
+}
+
+// 견적서 상세 정보 상태 인터페이스 정의
+interface InvoiceDetails {
+  markdown: string; // AI가 보낸 원본 Markdown (JSON 제외)
+  items: InvoiceItem[];
+  currentTotal: number;
+}
+
 // 컴포넌트 이름을 AiPageContent로 변경
 export default function AiPageContent() {
   const router = useRouter();
@@ -388,6 +404,9 @@ export default function AiPageContent() {
   const [uploadedFiles, setUploadedFiles] = useState<FileUploadData[]>([]);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [isDragging, setIsDragging] = useState<boolean>(false);
+
+  // 견적서 상태 추가
+  const [invoiceDetails, setInvoiceDetails] = useState<InvoiceDetails | null>(null);
   // -------------------------
 
   // URL 파라미터 -> 상태 동기화 Effect
@@ -472,26 +491,42 @@ export default function AiPageContent() {
   };
 
   // --- 버튼 액션 처리 함수 수정 ---
-  const handleActionClick = (action: string) => {
-    console.log("Action clicked:", action);
+  const handleActionClick = async (action: string, data?: { featureId?: string }) => {
+    console.log("Action clicked:", action, "Data:", data);
+    const invoiceRequestText = "견적서를 보여줘";
+    const discountOption1Text = "할인 옵션 1 (기간 연장)을 선택합니다.";
+    const discountOption2Text = "할인 옵션 2 (기능 제거)를 선택합니다.";
+
+    // 견적서 항목 삭제/복구 처리
+    if (action === "delete_feature" && data?.featureId && invoiceDetails) {
+      const featureId = data.featureId;
+      const newItems = invoiceDetails.items.map((item) =>
+        item.id === featureId ? { ...item, isDeleted: !item.isDeleted } : item
+      );
+      const newTotal = newItems.reduce((sum, item) => (item.isDeleted ? sum : sum + item.amount), 0);
+      setInvoiceDetails((prev) => (prev ? { ...prev, items: newItems, currentTotal: newTotal } : null));
+      return; // AI 호출 없이 함수 종료
+    }
+
+    // 기존 액션 처리
     switch (action) {
       case "show_invoice":
-        // AI에게 견적서 생성을 직접 요청
-        handleGeminiSubmit(null, "견적서를 보여줘");
+        setInvoiceDetails(null);
+        await handleGeminiSubmit(null, invoiceRequestText);
         break;
       case "discount_extend_3w_20p":
-        // 할인 옵션 1 선택 메시지 직접 전송
-        handleGeminiSubmit(null, "할인 옵션 1 (기간 연장)을 선택합니다.");
+        await handleGeminiSubmit(null, discountOption1Text);
         break;
       case "discount_remove_features":
-        // 할인 옵션 2 선택 메시지 직접 전송
-        handleGeminiSubmit(null, "할인 옵션 2 (기능 제거)를 선택합니다.");
+        await handleGeminiSubmit(null, discountOption2Text);
         break;
       case "download_pdf":
         alert("PDF 다운로드 기능은 로그인 후 사용할 수 있습니다. (구현 예정)");
         break;
       default:
-        console.warn("Unknown button action:", action);
+        if (action !== "delete_feature") {
+          console.warn("Unknown button action:", action);
+        }
     }
   };
 
@@ -551,7 +586,7 @@ export default function AiPageContent() {
   };
   // ------------------------
 
-  // --- Gemini API 호출 함수 수정 (파일 처리 추가) ---
+  // --- Gemini API 호출 함수 수정 (AI 응답 처리 부분) ---
   const handleGeminiSubmit = async (e?: React.FormEvent | null, actionPrompt?: string) => {
     e?.preventDefault();
     const submissionPrompt = actionPrompt || prompt;
@@ -600,23 +635,22 @@ export default function AiPageContent() {
     };
 
     // AI 메시지 객체도 일관성을 위해 동일한 구조를 가지지만, 여기서는 이미지 정보를 보내지 않습니다.
-    const initialAiMessage = {
-      id: Date.now() + 1,
-      sender: "ai" as const,
-      text: "",
-      imageUrl: undefined,
-      fileType: undefined,
-    };
-
-    // Type assertion is used here, assuming the user will update the Message type definition.
-    setMessages((prev) => [...prev, userMessage as Message, initialAiMessage as Message]);
+    const aiMessageId = Date.now() + 1;
+    const initialAiMessage: Message = { id: aiMessageId, sender: "ai", text: "" };
+    // Type assertion은 Message 타입이 업데이트된 후 제거해야 함
+    setMessages((prev) => [...prev, userMessage as Message, initialAiMessage]);
 
     if (!actionPrompt) {
       setPrompt("");
     }
-    const currentFiles = [...uploadedFiles]; // 현재 파일 목록 복사
-    setUploadedFiles([]); // 상태 초기화 (UI에서 제거)
-    setUploadProgress(0); // 진행률 초기화
+    const currentFiles = [...uploadedFiles];
+    setUploadedFiles([]);
+    setUploadProgress(0);
+
+    // 새 메시지 전송 시 이전 견적서 상태 초기화 (show_invoice는 handleActionClick에서 처리)
+    if (actionPrompt !== "견적서를 보여줘") {
+      setInvoiceDetails(null);
+    }
 
     try {
       // --- AI 요청 구성 ---
@@ -654,27 +688,72 @@ export default function AiPageContent() {
       }
 
       // chat.sendMessageStream 사용 (model.generateContentStream 대신)
-      const streamResult = await chat.current.sendMessageStream(parts); // parts 배열 직접 전달
+      const streamResult = await chat.current.sendMessageStream(parts);
 
+      let aiResponseText = "";
       for await (const item of streamResult.stream) {
         const chunkText = item.candidates?.[0]?.content?.parts?.[0]?.text;
         if (chunkText) {
-          // 메시지 업데이트 로직 (이전과 동일)
+          aiResponseText += chunkText;
           setMessages((prevMessages: Message[]) => {
-            const updatedMessages: Message[] = [...prevMessages];
-            const lastMessageIndex = updatedMessages.length - 1;
-            if (lastMessageIndex >= 0 && updatedMessages[lastMessageIndex].sender === "ai") {
-              const prevAiMessage = updatedMessages[lastMessageIndex];
-              const newMessage: Message = {
-                id: prevAiMessage.id,
-                sender: prevAiMessage.sender,
-                text: prevAiMessage.text + chunkText, // 이전 텍스트 + 새 청크
-              };
-              updatedMessages[lastMessageIndex] = newMessage;
-            }
-            return updatedMessages;
+            return prevMessages.map((msg) => (msg.id === aiMessageId ? { ...msg, text: msg.text + chunkText } : msg));
           });
         }
+      }
+
+      // --- 스트림 종료 후 처리 ---
+      console.log("AI full response received:", aiResponseText);
+
+      // 1. JSON 데이터 추출 및 파싱
+      const jsonScriptRegex = /<script type="application\/json" id="invoiceData">([\s\S]*?)<\/script>/;
+      const jsonMatch = aiResponseText.match(jsonScriptRegex);
+      let parsedInvoiceData: {
+        items: Array<{ id: string; name: string; amount: number }>;
+        initialTotal: number;
+      } | null = null;
+      let markdownContent = aiResponseText; // 기본값은 전체 응답
+
+      if (jsonMatch && jsonMatch[1]) {
+        try {
+          parsedInvoiceData = JSON.parse(jsonMatch[1]);
+          markdownContent = aiResponseText.replace(jsonScriptRegex, "").trim(); // JSON 스크립트 제외
+          console.log("Parsed Invoice JSON:", parsedInvoiceData);
+
+          // 2. invoiceDetails 상태 업데이트
+          if (parsedInvoiceData && parsedInvoiceData.items && typeof parsedInvoiceData.initialTotal === "number") {
+            const initialItems = parsedInvoiceData.items.map((item) => ({
+              ...item,
+              amount: Number(item.amount) || 0, // amount가 숫자인지 확인 및 변환
+              isDeleted: false,
+            }));
+            setInvoiceDetails({
+              markdown: markdownContent,
+              items: initialItems,
+              currentTotal: parsedInvoiceData.initialTotal,
+            });
+            console.log("Invoice details state updated.");
+
+            // 3. 메시지 업데이트 (파싱된 Markdown으로 최종 업데이트)
+            //    (스트리밍 업데이트가 이미 text를 만들었으므로, 원하면 여기서 markdownContent로 덮어쓸 수 있음)
+            setMessages((prevMessages: Message[]) => {
+              return prevMessages.map((msg) => (msg.id === aiMessageId ? { ...msg, text: markdownContent } : msg));
+            });
+          } else {
+            console.error("Parsed JSON data is invalid or missing required fields.");
+            setInvoiceDetails(null); // 유효하지 않으면 상태 초기화
+          }
+        } catch (e) {
+          console.error("Error parsing invoice JSON from AI response:", e);
+          setInvoiceDetails(null); // 파싱 실패 시 상태 초기화
+          // Markdown만 있는 메시지로 처리
+          setMessages((prevMessages: Message[]) => {
+            return prevMessages.map((msg) => (msg.id === aiMessageId ? { ...msg, text: aiResponseText } : msg));
+          });
+        }
+      } else {
+        console.log("No invoice JSON data found in AI response.");
+        setInvoiceDetails(null); // JSON 없으면 상태 초기화
+        // Markdown만 있는 메시지로 처리 (스트리밍 완료된 상태 유지)
       }
     } catch (err) {
       // 오류 처리 (이전과 동일)
@@ -682,19 +761,9 @@ export default function AiPageContent() {
       setError(errorMessage);
       console.error("Error sending message with files:", err);
       setMessages((prevMessages: Message[]) => {
-        const updatedMessages: Message[] = [...prevMessages];
-        const lastMessageIndex = updatedMessages.length - 1;
-        if (lastMessageIndex >= 0 && updatedMessages[lastMessageIndex].sender === "ai") {
-          const prevAiMessage = updatedMessages[lastMessageIndex];
-          const errorMessageObj: Message = {
-            id: prevAiMessage.id,
-            sender: prevAiMessage.sender,
-            text: `오류: ${errorMessage}`,
-          };
-          updatedMessages[lastMessageIndex] = errorMessageObj;
-        }
-        return updatedMessages;
+        return prevMessages.map((msg) => (msg.id === aiMessageId ? { ...msg, text: `오류: ${errorMessage}` } : msg));
       });
+      setInvoiceDetails(null); // 오류 발생 시 견적서 상태 초기화
     } finally {
       setLoading(false);
     }
@@ -767,7 +836,13 @@ export default function AiPageContent() {
 
               {/* 메시지 맵핑: id prop 제거 */}
               {messages.map((msg) => (
-                <AiChatMessage key={msg.id} sender={msg.sender} text={msg.text} onActionClick={handleActionClick} />
+                <AiChatMessage
+                  key={msg.id}
+                  {...msg} // msg 객체의 모든 속성 전달 (id, sender, text, imageUrl?, fileType?)
+                  onActionClick={handleActionClick}
+                  invoiceDetails={msg.sender === "ai" && invoiceDetails ? invoiceDetails : undefined}
+                  currentTotal={msg.sender === "ai" && invoiceDetails ? invoiceDetails.currentTotal : undefined}
+                />
               ))}
 
               {loading && <StatusMessage>AI 응답을 생성 중입니다...</StatusMessage>}
