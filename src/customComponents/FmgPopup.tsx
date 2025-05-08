@@ -4,20 +4,8 @@ import React from 'react';
 import { useLang } from '@/contexts/LangContext';
 import { ProjectPopupContent } from '@/customComponents/ProjectPopupContent';
 import { GradientButton } from '@/components/GradientButton';
+import { CustomPopupText } from './CustomPopupText';
 
-const Text = ({ children }: { children: React.ReactNode }) => (
-  <p style={{
-    fontSize: 16,
-    fontWeight: 400,
-    color: '#454545',
-    margin: 0,
-    marginBottom: 0,
-    lineHeight: '20px',
-    whiteSpace: 'pre-line',
-  }}>
-    {children}
-  </p>
-);
 
 const TEXT = {
   ko: {
@@ -75,7 +63,7 @@ export const FmgPopup = () => {
   return (
     <ProjectPopupContent
       imageUrl="/assets/portpolio_popup/fmg.png"
-      projectIntro={<Text>{t.projectIntro}</Text>}
+      projectIntro={<CustomPopupText>{t.projectIntro}</CustomPopupText>}
       leftHeader={
         <div style={{ position: 'absolute', top: '50px', left: '20px' }}>
           <div style={{ fontSize: '18px', fontWeight: 600, color: '#7d7d7d', marginBottom: '8px' }}>
@@ -122,10 +110,10 @@ export const FmgPopup = () => {
           ))}
         </div>
       }
-      pjtVolume={<Text>{t.volume}</Text>}
-      pjtScope={<>{t.scope.map((line, i) => <Text key={i}>{line}</Text>)}</>}
-      pjtStack={<>{t.stack.map((line, i) => <Text key={i}>{line}</Text>)}</>}
-      pjtDuration={<>{t.duration.map((line, i) => <Text key={i}>{line}</Text>)}</>}
+      pjtVolume={<CustomPopupText>{t.volume}</CustomPopupText>}
+      pjtScope={<>{t.scope.map((line, i) => <CustomPopupText key={i}>{line}</CustomPopupText>)}</>}
+      pjtStack={<>{t.stack.map((line, i) => <CustomPopupText key={i}>{line}</CustomPopupText>)}</>}
+      pjtDuration={<>{t.duration.map((line, i) => <CustomPopupText key={i}>{line}</CustomPopupText>)}</>}
     />
   );
 };

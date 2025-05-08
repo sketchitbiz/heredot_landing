@@ -48,7 +48,7 @@ export const dictionary = {
       title1: '여기닷은',
       title2: '창업자의 전략 파트너입니다',
       subtitle: '여기닷은 고객사의 사업 전반적인 내용을 이해하고 시장에\n 조기 안착할 수 있도록 다양한 사업을 제안합니다.',
-      tabs: ['안티드론', '명품역경매', '무역플랫폼', '테이블오더'],
+      tabs: ['안티드론', '명품역경매', '무역 플랫폼', '테이블오더'],
       slides: [
         {
           title: '안티드론 솔루션',
@@ -222,7 +222,7 @@ export const dictionary = {
       companyName: '상호명 : 주식회사 여기닷',
       ceo: '대표자명 : 강태원',
       businessNumber: '사업자등록번호 : 289-86-03278',
-      address: '사업장주소 : 경기 성남시 수정구 대왕판교로 815 777호 (주) 여기닷',
+      address: '사업장주소 : 경기 성남시 수정구 대왕판교로 815 777호',
       customerService: '고객센터 : 031-8039-7981',
       copyright: 'Copyright ⓒ 2025 여기닷 All right reserved.',
       businessLicense: '통신판매업신고증 : 2025-성남 수정-0138 호',

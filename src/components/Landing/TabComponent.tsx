@@ -55,8 +55,8 @@ const TabButton = styled.button<{ $isActive: boolean; $tabCount: number }>`
     `}
 
     @media (max-width: ${Breakpoints.mobile}px) {
-    padding: 12px 2px; /* ✅ 모바일 시 패딩 축소 */
-    font-size: 14px;
+    padding: 8px 1px; /* ✅ 모바일 시 패딩 축소 */
+    font-size: 10px;
   }
 `;
 

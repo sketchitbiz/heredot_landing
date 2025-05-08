@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Image as ImageIcon } from "@mui/icons-material"; // No-image placeholder 아이콘
 import { AppColors } from "@/styles/colors";
 import { AppTextStyles } from "@/styles/textStyles";
+import { Breakpoints } from '@/constants/layoutConstants';
 
 interface LandingCardProps {
   imageUrl?: string; // 선택 사항으로 변경
@@ -92,6 +93,10 @@ const CardTitle = styled.p`
   text-align: center;
   margin: 0;
   margin-top: 0px;
+
+  @media (max-width: ${Breakpoints.mobile}px) {
+    font-size: 16px;
+  }
 `;
 
 export const LandingCard: React.FC<LandingCardProps> = ({

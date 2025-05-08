@@ -7,6 +7,8 @@ import { dictionary } from '@/lib/i18n/lang'; // ✅ 국제화 추가
 import { AppColors } from '@/styles/colors';
 import { AppTextStyles } from '@/styles/textStyles';
 import { Breakpoints } from '@/constants/layoutConstants';
+import { useEffect, useState } from 'react';
+
 
 
 const FooterContainer = styled.footer`
@@ -36,9 +38,14 @@ const FooterContent = styled.div`
 const LogoImageWrapper = styled.div`
   margin-bottom: 16px;
   width: 150px;
-  height: 50px;
+  height: 60px;
   margin-left: 0;
   padding-left: 0;
+
+  @media (max-width: ${Breakpoints.mobile}px) {
+    height: 10px; // 모바일에서 높이 조정
+    margin-bottom: 0px;
+  }
 `;
 
 const Separator = styled.hr`
@@ -55,6 +62,9 @@ const InfoSection = styled.div`
 const InfoTitle = styled.h3`
   ${AppTextStyles.title3}
   margin: 0 0 12px 0;
+  @media (max-width: ${Breakpoints.mobile}px) {
+    font-size: 12px;
+  }
 `;
 
 const InfoText = styled.p`
@@ -62,23 +72,53 @@ const InfoText = styled.p`
   color: ${AppColors.onBackgroundDark};
   margin: 4px 0;
   line-height: 1.6;
+
+  @media (max-width: ${Breakpoints.mobile}px) {
+    font-size: 11px;
+  }
 `;
 
 const CopyrightText = styled.p`
   ${AppTextStyles.caption1}
   color: ${AppColors.onBackgroundDark};
   margin: 0;
+
+  @media (max-width: ${Breakpoints.mobile}px) {
+    font-size: 11px;
+  }
 `;
 
 export const Footer: React.FC = () => {
   const { lang } = useLang();
   const t = dictionary[lang];
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= Breakpoints.mobile);
+    };
+
+    // 초기 실행 및 이벤트 리스너 등록
+    handleResize();
+    window.addEventListener('resize', handleResize);
+
+    // 클린업
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
 
   return (
     <FooterContainer>
       <FooterContent>
         <LogoImageWrapper>
-          <Image src="/landing/Logo.png" alt="Heredot Logo" width={150} height={60} priority />
+          <Image
+            src="/landing/Logo.png"
+            alt="Heredot Logo"
+            width={isMobile ? 75 : 150} // 모바일일 때 67, 데스크톱일 때 150
+            height={isMobile ? 30 : 60} // 모바일일 때 26, 데스크톱일 때 60
+            priority
+          />
         </LogoImageWrapper>
         <Separator />
         <InfoSection>

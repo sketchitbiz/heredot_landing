@@ -18,12 +18,15 @@ export const DeviceProvider = ({ children }: { children: React.ReactNode }) => {
       const width = window.innerWidth;
       const ua = navigator.userAgent;
 
-      const isMobileUA = /iPhone|Android.*Mobile|Mobile|iPod/i.test(ua);
+      console.log('User Agent:', ua); // User Agent 로그 추가
 
-      if (isMobileUA || width < Breakpoints.mobile) {
-        setDevice('mobile');
-      } else {
+      const isIPad = /iPad/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); 
+      const isMobileUA = /iPhone|Android.*Mobile/.test(ua);
+      
+      if (isIPad || width >= Breakpoints.mobile) {
         setDevice('desktop');
+      } else if (isMobileUA || width < Breakpoints.mobile) {
+        setDevice('mobile');
       }
     };
 

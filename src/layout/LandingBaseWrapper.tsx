@@ -64,12 +64,12 @@ const ContentWrapper = styled.div<{ $isOverLayout?: boolean }>`
   width: 100%;
   margin: 0 auto;
   box-sizing: border-box;
-  padding-left: 16px;
-  padding-right: 16px;
+  /* padding-left: 16px; */
+  /* padding-right: 16px; */
 
   @media (max-width: ${Breakpoints.mobile}px) {
-    padding-left: 12px;
-    padding-right: 12px;
+    /* padding-left: 12px;
+    padding-right: 12px; */
   }
 
   @media (min-width: ${Breakpoints.desktop}px) {
@@ -118,8 +118,8 @@ const LandingBaseWrapper: React.FC<LandingBaseWrapperProps> = ({ sections, appBa
                   style={{
                     width: '100%',
                     boxSizing: 'border-box',
-                    paddingLeft: '12px',
-                    paddingRight: '12px',
+                    // paddingLeft: '12px',
+                    // paddingRight: '12px',
                   }}
                 >
                   {content}

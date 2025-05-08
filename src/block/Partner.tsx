@@ -48,6 +48,7 @@ const Subtitle = styled.p`
 
   @media (max-width: ${Breakpoints.mobile}px) {
     font-size: 14px;
+    white-space: normal;
   }
 `;
 
@@ -70,6 +71,18 @@ const Tab = styled.div<{ $active: boolean }>`
 const Slide = styled.div<{ $isActive: boolean }>`
   display: ${({ $isActive }) => ($isActive ? 'block' : 'none')};
 `;
+
+const Wrapper = styled.div`
+  min-width: ${Breakpoints.desktop}px; 
+  background-color: #fff;
+
+  @media (max-width: ${Breakpoints.mobile}px) {
+    min-width: 100%;
+  }
+
+`;
+
+
 
 const TabTitle = styled.h3`
   font-size: 25px;
@@ -302,6 +315,7 @@ useEffect(() => {
   return (
     <ResponsiveView
       desktopView={
+        <Wrapper>
         <CustomBlockLayout ref={sectionRef}>
           <CustomBlockLayout.Left ref={leftRef}>
             <Title>{`${title1}\n${title2}`}</Title>
@@ -332,6 +346,7 @@ useEffect(() => {
             </AnimatedDescription>
           </CustomBlockLayout.Right>
         </CustomBlockLayout>
+        </Wrapper>
       }
       mobileView={
         <MobileContainer>
@@ -340,7 +355,9 @@ useEffect(() => {
           {slides.map((slide, index) => (
             <SlideWrapper key={index}>
               <TabTitle>{tabs[index]}</TabTitle>
-              <TabDescription dangerouslySetInnerHTML={{ __html: slide.description }} />
+              <TabDescription>
+  {slide.description.replace(/<br\s*\/?>/gi, '')}
+</TabDescription>
               <MobileDownloadButton href={getDownloadLink(index)} target="_blank" rel="noopener noreferrer">
                 {downloadText}
                 <DownloadIcon style={{ fontSize: '16px' }} />

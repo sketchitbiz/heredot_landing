@@ -3,6 +3,7 @@
 import styled from "styled-components";
 import { AppColors } from "@/styles/colors"; // 경로 확인 필요
 import { AppTextStyles } from "@/styles/textStyles"; // 경로 확인 필요
+import { Breakpoints } from '@/constants/layoutConstants';
 
 interface SectionHeaderProps {
   title: string;
@@ -22,6 +23,10 @@ const Title = styled.h2`
 
   margin-bottom: 16px;
   margin-top: 0; // 필요 시 추가 조정
+
+    @media (max-width: ${Breakpoints.mobile}px) {
+    font-size: 18px; // 모바일에서 폰트 크기 조정
+    }
 `;
 
 const Description = styled.p`
@@ -29,6 +34,11 @@ const Description = styled.p`
 
   color: ${AppColors.onBackground}; // 약간 연한 색상
   margin: 0;
+
+  @media (max-width: ${Breakpoints.mobile}px) {
+    font-size: 14px; // 모바일에서 폰트 크기 조정
+    line-height: 1.4; // 모바일에서 줄 간격 조정
+    }
 `;
 
 export const SectionHeader: React.FC<SectionHeaderProps> = ({ title, description }) => {

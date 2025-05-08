@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { ArrowBackIos, ArrowForwardIos } from '@mui/icons-material';
 import { useSwipeable } from 'react-swipeable';
+import { createPortal } from 'react-dom';
 
 interface PopupContainerProps {
   open: boolean;
@@ -16,80 +17,122 @@ interface PopupContainerProps {
   children: React.ReactNode | React.ReactNode[];
 }
 
+const PopupPortal = ({ children }: { children: React.ReactNode }) => {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  if (!mounted) return null;
+  return createPortal(children, document.body);
+};
+
 export const PopupContainer: React.FC<PopupContainerProps> = ({
   open,
   onClose,
   padding = 20,
   heightPercent = 80,
-  appBarHeight = 56,
+  appBarHeight = 10,
   selectedIndex,
   isFullScreen = false,
   children,
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
 
   const childArray = React.Children.toArray(children);
 
-  const handlePrev = () => {
-    setCurrentIndex((prev) => (prev > 0 ? prev - 1 : prev));
-  };
+  useEffect(() => {
+    const update = () => setIsMobile(window.innerWidth < 768);
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
 
-  const handleNext = () => {
-    setCurrentIndex((prev) => (prev < childArray.length - 1 ? prev + 1 : prev));
-  };
-
-  const swipeHandlers = useSwipeable({
-    onSwipedLeft: () => handleNext(),
-    onSwipedRight: () => handlePrev(),
-    preventScrollOnSwipe: true,
-    trackMouse: true,
-  });
+  const swipeHandlers = useSwipeable(
+    isMobile
+      ? {
+          onSwipedLeft: () => setCurrentIndex((prev) => Math.min(prev + 1, childArray.length - 1)),
+          onSwipedRight: () => setCurrentIndex((prev) => Math.max(prev - 1, 0)),
+          preventScrollOnSwipe: true,
+          trackTouch: true,
+          trackMouse: true,
+        }
+      : {}
+  );
 
   useEffect(() => {
-    if (open) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
+    if (!open) return;
+  
+    // 1. 팝업 열릴 때 히스토리 스택 추가
+    history.pushState({ popup: true }, '');
+  
+    // 2. 뒤로 가기 감지 시 팝업 닫기
+    const handlePopState = (e: PopStateEvent) => {
+      onClose(); // 팝업 닫기
+    };
+  
+    window.addEventListener('popstate', handlePopState);
+  
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      if (history.state?.popup) {
+        history.back(); // 팝업 히스토리 제거
+      }
+    };
+  }, [open, onClose]);
+
+  useEffect(() => {
+    if (open) document.body.style.overflow = 'hidden';
+    else document.body.style.overflow = '';
     return () => {
       document.body.style.overflow = '';
     };
   }, [open]);
 
   useEffect(() => {
-    if (open) {
-      setCurrentIndex(selectedIndex);
-    }
+    if (open) setCurrentIndex(selectedIndex);
   }, [open, selectedIndex]);
 
   if (!open) return null;
 
-  const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.target === e.currentTarget) {
-      // onClose();
-    }
-  };
-
-  return (
-    <Overlay $isFullScreen={isFullScreen} onClick={handleOverlayClick}>
-      <NavZone $isOverlayed={isFullScreen} $position="left">
-        <NavButton $isFullScreen={isFullScreen} onClick={handlePrev} disabled={currentIndex === 0}>
+  const popupJSX = (
+    <Overlay $isFullScreen={isFullScreen}>
+      <NavZone $isMobile={isMobile} $position="left">
+        <NavButton
+          $isFullScreen={isFullScreen}
+          onClick={() => setCurrentIndex((prev) => Math.max(prev - 1, 0))}
+          disabled={currentIndex === 0}
+        >
           <ArrowBackIos />
         </NavButton>
       </NavZone>
 
       <Popup $padding={padding} $heightPercent={heightPercent} $isFullScreen={isFullScreen}>
-        <CloseButton $isFullScreen={isFullScreen} $appBarHeight={appBarHeight} onClick={onClose}>×</CloseButton>
+        <CloseButton
+          $isFullScreen={isFullScreen}
+          $appBarHeight={appBarHeight}
+          onClick={onClose}
+        >
+          ×
+        </CloseButton>
         <Content {...swipeHandlers}>{childArray[currentIndex]}</Content>
       </Popup>
 
-      <NavZone $isOverlayed={isFullScreen} $position="right">
-        <NavButton $isFullScreen={isFullScreen} onClick={handleNext} disabled={currentIndex === childArray.length - 1}>
+      <NavZone $isMobile={isMobile} $position="right">
+        <NavButton
+          $isFullScreen={isFullScreen}
+          onClick={() =>
+            setCurrentIndex((prev) => Math.min(prev + 1, childArray.length - 1))
+          }
+          disabled={currentIndex === childArray.length - 1}
+        >
           <ArrowForwardIos />
         </NavButton>
       </NavZone>
     </Overlay>
   );
+
+  return isMobile ? <PopupPortal>{popupJSX}</PopupPortal> : popupJSX;
 };
 
 // ==========================
@@ -100,40 +143,36 @@ const Overlay = styled.div<{ $isFullScreen?: boolean }>`
   position: fixed;
   top: 0;
   left: 0;
-  width: 100vw;
-  height: 100vh;
+  width: 100dvw;
+  height: 100dvh;
   background: rgba(0, 0, 0, 0.8);
   z-index: 9999;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-direction: row;
-
-  ${({ $isFullScreen }) =>
-    !$isFullScreen &&
-    `
-      min-width: 1200px;
-    `}
 `;
 
-const NavZone = styled.div<{ $isOverlayed?: boolean; $position?: 'left' | 'right' }>`
+
+const NavZone = styled.div<{ $isMobile?: boolean; $position?: 'left' | 'right' }>`
   width: 200px;
   min-width: 200px;
   display: flex;
   justify-content: center;
   align-items: center;
 
-  ${({ $isOverlayed, $position }) =>
-    $isOverlayed &&
+  ${({ $isMobile, $position }) =>
+    $isMobile &&
     `
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      ${$position}: 0;
-      width: 80px;
-      min-width: unset;
-      z-index: 10;
-    `}
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    ${$position}: 0;
+    width: 80px;
+    min-width: unset;
+    height: 70px; /* ✅ only takes button height */
+    z-index: 10;
+    pointer-events: auto;
+  `}
 `;
 
 const NavButton = styled.button<{ $isFullScreen?: boolean }>`
@@ -188,7 +227,7 @@ const CloseButton = styled.button<{ $isFullScreen?: boolean; $appBarHeight?: num
   position: absolute;
   top: ${({ $isFullScreen, $appBarHeight }) =>
     $isFullScreen ? `${($appBarHeight || 56) + 8}px` : '12px'};
-  right: 12px;
+  right: 20px;
   background: transparent;
   border: none;
   font-size: 24px;

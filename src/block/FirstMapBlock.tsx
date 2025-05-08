@@ -147,7 +147,7 @@ useEffect(() => {
   const iconY = useTransform(
     scrollY,
     [startScroll, endScroll],
-    [0, isMobile ? 2000 : 3000]
+    [0, isMobile ? 1000 : 3000]
   );
 
   useEffect(() => {

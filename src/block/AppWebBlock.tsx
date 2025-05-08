@@ -8,6 +8,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import CustomBlockLayout from '@/customComponents/CustomBlockLayout';
 import { AppColors } from '@/styles/colors';
 import { AppTextStyles } from '@/styles/textStyles';
+import { Breakpoints } from '@/constants/layoutConstants';
 
 interface AppBlockProps {
   title: string;
@@ -61,7 +62,7 @@ const AppBlockWrapper = styled.div`
 
 const PhoneFrame = styled.div<{ $isFlat: boolean; $painted: boolean }>`
   width: 330px;
-  height: 720px;
+  height: 640px;
   border-radius: 32px;
   border: 8px solid white;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
@@ -128,6 +129,8 @@ const SearchBar = styled.div`
   font-size: 14px;
 `;
 
+
+
 const ChipsContainer = styled.div`
   width: 100%;
   display: flex;
@@ -158,6 +161,13 @@ const CardImage = styled.div`
   width: 100%;
   height: 160px;
   background: #ddd;
+`;
+
+const Wrapper = styled.div`
+  min-width: ${Breakpoints.desktop}px; 
+  background-color: ${AppColors.primary};
+
+
 `;
 
 const CardContent = styled.div`
@@ -349,6 +359,7 @@ const AppWebBlock: React.FC<AppBlockProps> = ({ title, description }) => {
   }, []);
 
   return (
+    <Wrapper>
     <section ref={sectionRef} style={{ position: 'relative', overflow: 'hidden' }}>
       <TopTrigger ref={topTriggerRef} />
       <CustomBlockLayout>
@@ -360,7 +371,7 @@ const AppWebBlock: React.FC<AppBlockProps> = ({ title, description }) => {
         <CustomBlockLayout.Right>
           <AppBlockWrapper>
             <PhoneFrame ref={phoneRef} $isFlat={isFlat} $painted={painted} />
-            <StackLayer ref={appBarRef} $translateZ={-200} $topOffset={-300}>
+            <StackLayer ref={appBarRef} $translateZ={-200} $topOffset={-280}>
               <AppBar>
                 <span style={{ color: painted ? '#000' : '#fff' }}>HereDot.</span>
                 <Icons>
@@ -410,6 +421,7 @@ const AppWebBlock: React.FC<AppBlockProps> = ({ title, description }) => {
       </CustomBlockLayout>
       <BottomTrigger ref={bottomTriggerRef} />
     </section>
+    </Wrapper>
   );
 };
 
