@@ -17,14 +17,13 @@ interface CustomNavigatorProps {
   onBottomArrowClick?: () => void;
 }
 
-// ✅ scroll container (고정된 너비를 유지하고 넘치면 스크롤)
 const NavigatorWrapper = styled.div`
-  margin-bottom: 100px; 
-  min-width: ${Breakpoints.desktop}px; /* 기본값: 데스크탑 너비 강제 유지 */
+  margin-bottom: 100px;
+  min-width: ${Breakpoints.desktop}px;
 
   @media (max-width: ${Breakpoints.mobile}px) {
-    min-width: auto; /* 모바일 이하에서 min-width 제거 */
-    margin-bottom: 50px; 
+    min-width: auto;
+    margin-bottom: 50px;
   }
 `;
 
@@ -38,13 +37,12 @@ const Wrapper = styled.div`
   box-sizing: border-box;
 
   @media (max-width: ${Breakpoints.mobile}px) {
-    flex-direction: column-reverse; /* ✅ 모바일에서는 아래쪽에 title이 오도록 */
+    flex-direction: column-reverse;
     gap: 48px;
-    align-items: flex-start;
+    align-items: stretch; /* ✅ stretch to allow Row to expand */
     margin: 50px auto 0 auto;
   }
 `;
-
 
 const LeftSection = styled.div`
   flex: 1;
@@ -57,12 +55,26 @@ const RightSection = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: center;
+
+  @media (max-width: ${Breakpoints.mobile}px) {
+    width: 100%; /* ✅ allow Row to stretch fully */
+  }
 `;
 
 const Row = styled.div`
   display: flex;
   align-items: center;
   height: 36px;
+
+  @media (max-width: ${Breakpoints.mobile}px) {
+    justify-content: space-between;
+    width: 100%;
+  }
+`;
+
+const LeftGroup = styled.div`
+  display: flex;
+  align-items: center;
 `;
 
 const Radio = styled.div<{ $isCenter?: boolean }>`
@@ -87,6 +99,11 @@ const Label = styled.div<{ $isCenter?: boolean }>`
   color: ${({ $isCenter }) =>
     $isCenter ? AppColors.onBackground : 'rgba(247, 245, 245, 0.5)'};
   text-align: left;
+
+  @media (max-width: ${Breakpoints.mobile}px) {
+    font-size: ${({ $isCenter }) =>
+    $isCenter ?  '18px': '12px'};
+  }
 `;
 
 const Arrows = styled.div`
@@ -95,6 +112,10 @@ const Arrows = styled.div`
   justify-content: center;
   align-items: center;
   gap: 4px;
+
+  @media (max-width: ${Breakpoints.mobile}px) {
+    min-width: 32px; /* optional stability for icon side */
+  }
 `;
 
 const ArrowButton = styled.button`
@@ -128,26 +149,32 @@ export const CustomNavigator: React.FC<CustomNavigatorProps> = ({
         <RightSection>
           {/* Top */}
           <Row>
-            <Radio />
-            <Label>{topLabel}</Label>
+            <LeftGroup>
+              <Radio />
+              <Label>{topLabel}</Label>
+            </LeftGroup>
             <Arrows>
-              <ArrowButton onClick={() => onTopArrowClick?.()}>▲</ArrowButton>
+              <ArrowButton onClick={onTopArrowClick}>▲</ArrowButton>
             </Arrows>
           </Row>
 
           {/* Center */}
           <Row>
-            <Radio $isCenter />
-            <Label $isCenter>{centerLabel}</Label>
+            <LeftGroup>
+              <Radio $isCenter />
+              <Label $isCenter>{centerLabel}</Label>
+            </LeftGroup>
           </Row>
 
           {/* Bottom */}
           {bottomLabel && (
             <Row>
-              <Radio />
-              <Label>{bottomLabel}</Label>
+              <LeftGroup>
+                <Radio />
+                <Label>{bottomLabel}</Label>
+              </LeftGroup>
               <Arrows>
-                <ArrowButton onClick={() => onBottomArrowClick?.()}>▼</ArrowButton>
+                <ArrowButton onClick={onBottomArrowClick}>▼</ArrowButton>
               </Arrows>
             </Row>
           )}

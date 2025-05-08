@@ -41,7 +41,7 @@ const TitleWrapper = styled.div`
 `;
 
 const Title = styled.h2`
-  font-size: 20px;
+  font-size: 25px;
   font-weight: bold;
   color: white;
   text-align: left;
@@ -80,7 +80,7 @@ const Tabs = styled.div`
 `;
 
 const Tab = styled.div`
-  font-size: 14px;
+  font-size: 20px;
   font-weight: 500;
   display: flex;
   align-items: center;
@@ -88,7 +88,7 @@ const Tab = styled.div`
 `;
 
 const TabNumber = styled.span`
-  font-size: 12px;
+  font-size: 20px;
   opacity: 0.7;
 `;
 

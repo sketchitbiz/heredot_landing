@@ -1,8 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { useLang } from '@/contexts/LangContext';
+import { Breakpoints } from '@/constants/layoutConstants';
 
 interface ProjectPopupContentProps {
   imageUrl: string;
@@ -55,6 +56,75 @@ export const ProjectPopupContent: React.FC<ProjectPopupContentProps> = ({
   const { lang } = useLang();
   const t = I18N_LABEL[lang];
 
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  const leftContent = (
+    <LeftColumn>
+      {projectIntro && (
+        <Block>
+          <SectionTitle>{t.intro}</SectionTitle>
+          {projectIntro}
+        </Block>
+      )}
+      {featureList && (
+        <Block>
+          <SectionTitle>{t.features}</SectionTitle>
+          {featureList}
+        </Block>
+      )}
+      {projectScreenshots && (
+        <Block>
+          <SectionTitle>{t.screenshots}</SectionTitle>
+          {projectScreenshots}
+        </Block>
+      )}
+    </LeftColumn>
+  );
+
+  const rightContent = (
+    <RightColumn>
+      {pjtConfirm && (
+        <InfoBlock>
+          <SectionTitle>{t.confirm}</SectionTitle>
+          {pjtConfirm}
+        </InfoBlock>
+      )}
+      {pjtVolume && (
+        <InfoBlock>
+          <SectionTitle>{t.volume}</SectionTitle>
+          {pjtVolume}
+        </InfoBlock>
+      )}
+      {pjtScope && (
+        <InfoBlock>
+          <SectionTitle>{t.scope}</SectionTitle>
+          {pjtScope}
+        </InfoBlock>
+      )}
+      {pjtStack && (
+        <InfoBlock>
+          <SectionTitle>{t.stack}</SectionTitle>
+          {pjtStack}
+        </InfoBlock>
+      )}
+      {pjtDuration && (
+        <InfoBlock>
+          <SectionTitle>{t.duration}</SectionTitle>
+          {pjtDuration}
+        </InfoBlock>
+      )}
+    </RightColumn>
+  );
+
   return (
     <Wrapper>
       <TopSection>
@@ -63,59 +133,17 @@ export const ProjectPopupContent: React.FC<ProjectPopupContentProps> = ({
       </TopSection>
 
       <ContentSection>
-        <LeftColumn>
-          {projectIntro && (
-            <Block>
-              <SectionTitle>{t.intro}</SectionTitle>
-              {projectIntro}
-            </Block>
-          )}
-          {featureList && (
-            <Block>
-              <SectionTitle>{t.features}</SectionTitle>
-              {featureList}
-            </Block>
-          )}
-          {projectScreenshots && (
-            <Block>
-              <SectionTitle>{t.screenshots}</SectionTitle>
-              {projectScreenshots}
-            </Block>
-          )}
-        </LeftColumn>
-
-        <RightColumn>
-          {pjtConfirm && (
-            <InfoBlock>
-              <Label>{t.confirm}</Label>
-              {pjtConfirm}
-            </InfoBlock>
-          )}
-          {pjtVolume && (
-            <InfoBlock>
-              <Label>{t.volume}</Label>
-              {pjtVolume}
-            </InfoBlock>
-          )}
-          {pjtScope && (
-            <InfoBlock>
-              <Label>{t.scope}</Label>
-              {pjtScope}
-            </InfoBlock>
-          )}
-          {pjtStack && (
-            <InfoBlock>
-              <Label>{t.stack}</Label>
-              {pjtStack}
-            </InfoBlock>
-          )}
-          {pjtDuration && (
-            <InfoBlock>
-              <Label>{t.duration}</Label>
-              {pjtDuration}
-            </InfoBlock>
-          )}
-        </RightColumn>
+        {isMobile ? (
+          <>
+            {rightContent}
+            {leftContent}
+          </>
+        ) : (
+          <>
+            {leftContent}
+            {rightContent}
+          </>
+        )}
       </ContentSection>
     </Wrapper>
   );
@@ -129,6 +157,7 @@ const Wrapper = styled.div`
   display: flex;
   flex-direction: column;
   gap: 32px;
+  padding-bottom: 50px; /* ✅ 하단 여백 */
 `;
 
 const TopSection = styled.div`
@@ -163,6 +192,13 @@ const PreviewImage = styled.img`
 const ContentSection = styled.div`
   display: flex;
   gap: 32px;
+
+ @media (max-width: ${Breakpoints.mobile}px) {
+    flex-direction: column;
+    padding: 0 20px;
+    gap: 40px;
+    margin-bottom: 100px; /* ✅ 하단 여백 */
+  }
 `;
 
 const LeftColumn = styled.div`
@@ -171,8 +207,13 @@ const LeftColumn = styled.div`
   flex-direction: column;
   gap: 24px;
   padding-left: 20px;
-  border-right: 1px solid #ddd;
   padding-right: 20px;
+  border-right: 1px solid #ddd;
+
+  @media (max-width: ${Breakpoints.mobile}px) {
+    padding: 0;
+    border-right: none;
+  }
 `;
 
 const RightColumn = styled.div`
@@ -181,6 +222,10 @@ const RightColumn = styled.div`
   flex-direction: column;
   gap: 20px;
   padding-right: 20px;
+
+  @media (max-width: ${Breakpoints.mobile}px) {
+    padding: 0;
+  }
 `;
 
 const Block = styled.div`

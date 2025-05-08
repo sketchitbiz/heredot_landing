@@ -43,6 +43,8 @@ const GridContainerForVideos = styled.div`
   @media (max-width: ${Breakpoints.mobile}px) {
     grid-template-columns: repeat(2, 1fr); /* ✅ 모바일은 2개씩 */
     margin-bottom: 0px;
+    gap: 8px;
+    row-gap: 16px; /* ✅ 모바일에서 row-gap 조정 */
   }
 `;
 

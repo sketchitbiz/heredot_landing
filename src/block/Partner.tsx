@@ -48,6 +48,7 @@ const Subtitle = styled.p`
 
   @media (max-width: ${Breakpoints.mobile}px) {
     font-size: 14px;
+    white-space: normal;
   }
 `;
 
@@ -340,7 +341,9 @@ useEffect(() => {
           {slides.map((slide, index) => (
             <SlideWrapper key={index}>
               <TabTitle>{tabs[index]}</TabTitle>
-              <TabDescription dangerouslySetInnerHTML={{ __html: slide.description }} />
+              <TabDescription>
+  {slide.description.replace(/<br\s*\/?>/gi, '')}
+</TabDescription>
               <MobileDownloadButton href={getDownloadLink(index)} target="_blank" rel="noopener noreferrer">
                 {downloadText}
                 <DownloadIcon style={{ fontSize: '16px' }} />

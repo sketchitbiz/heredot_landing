@@ -44,8 +44,9 @@ const GridContainerForTabs = styled.div`
   @media (max-width: ${Breakpoints.mobile}px) {
     margin-top: 16px;
     grid-template-columns: repeat(2, 1fr); /* 모바일: 2열 */
-    row-gap: 24px; /* ✅ 데스크탑/태블릿에서 row-gap 조정 */
+    row-gap: 50px; /* ✅ 데스크탑/태블릿에서 row-gap 조정 */
     margin-bottom: 0px;
+    column-gap: 8px;
   }
 
 `;

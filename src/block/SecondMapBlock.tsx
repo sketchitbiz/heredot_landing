@@ -156,7 +156,6 @@ useEffect(() => {
       const start = sectionTop - viewportH;
       const end = sectionTop + sectionHeight;
       const value = (scrollTop - start) / (end - start);
-      console.log(scrollY.get(), start, end, value);
       setScrollRatio(Math.max(0, Math.min(value, 1)));
     };
   

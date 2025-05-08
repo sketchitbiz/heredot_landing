@@ -21,7 +21,7 @@ const shine = keyframes`
 
 const Section = styled.section`
   width: 100%;
-  min-height: 100vh;
+  min-height: 700px;
   padding: 40px 20px;
   overflow: hidden;
   position: relative;
@@ -70,7 +70,7 @@ const AppBlockWrapper = styled.div`
 
 const PhoneFrame = styled.div<{ $isFlat: boolean; $painted: boolean }>`
   width: 330px;
-  height: 720px;
+  height: 600px;
   border-radius: 32px;
   border: 8px solid white;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
@@ -358,13 +358,17 @@ const AppMobileBlock: React.FC<AppBlockProps> = ({ title, description }) => {
   return (
     <Section ref={sectionRef}>
       <TopTrigger ref={topTriggerRef} />
-      <Title dangerouslySetInnerHTML={{ __html: title.replace(/\n/g, '<br/>') }} />
-      <Description dangerouslySetInnerHTML={{ __html: description.replace(/\n/g, '<br/>') }} />
+      <h2 style={{ lineHeight: 1.4 }}>
+  {title.replace(/<br\s*\/?>|\n/g, ' ')}
+</h2>
+<p style={{ lineHeight: 1.4 }}>
+  {description.replace(/<br\s*\/?>|\n/g, ' ')}
+</p>
 
       <AppBlockWrapper>
         <PhoneFrame ref={phoneRef} $isFlat={isFlat} $painted={painted} />
 
-        <StackLayer ref={appBarRef} $translateZ={-200} $topOffset={-300}>
+        <StackLayer ref={appBarRef} $translateZ={-200} $topOffset={-260}>
           <AppBar>
             <span style={{ color: painted ? '#000' : '#fff' }}>HereDot.</span>
             <Icons>
@@ -405,7 +409,7 @@ const AppMobileBlock: React.FC<AppBlockProps> = ({ title, description }) => {
         <BottomNavContainer
           ref={bottomNavRef}
           $translateZ={100}
-          $topOffset={260}
+          $topOffset={250}
           $highlight={painted}
         >
           <div style={{ display: 'flex', gap: '80px' }}>

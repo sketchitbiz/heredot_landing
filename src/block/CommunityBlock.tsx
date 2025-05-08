@@ -70,6 +70,11 @@ const Heading = styled.h3`
   font-weight: 700;
   color: white;
   margin-bottom: 0px;
+  @media (max-width: ${Breakpoints.mobile}px) {
+    font-size: 20px; // 모바일에서 폰트 크기 조정
+    line-height: 1.4; // 모바일에서 줄 간격 조정
+    }
+
 `;
 
 const SubText = styled.p`
@@ -78,6 +83,11 @@ const SubText = styled.p`
   color: #ccc;
   margin-bottom: 24px;
   line-height: 1.6;
+
+  @media (max-width: ${Breakpoints.mobile}px) {
+    font-size: 14px; // 모바일에서 폰트 크기 조정
+    line-height: 1.4; // 모바일에서 줄 간격 조정
+    }
 `;
 
 const StyledButton = styled.button`
@@ -87,6 +97,11 @@ const StyledButton = styled.button`
   border: none;
   cursor: pointer;
   padding: 0;
+
+  @media (max-width: ${Breakpoints.mobile}px) {
+    font-size: 12px; // 모바일에서 폰트 크기 조정
+    line-height: 1.4; // 모바일에서 줄 간격 조정
+    }
 `;
 
 const RightImage = styled.div`

@@ -18,7 +18,7 @@ export const DeviceProvider = ({ children }: { children: React.ReactNode }) => {
       const width = window.innerWidth;
       const ua = navigator.userAgent;
 
-      const isMobileUA = /iPhone|Android.*Mobile|Mobile|iPod/i.test(ua);
+      const isMobileUA = /iPhone|Android.*Mobile|Mobile|/i.test(ua);
 
       if (isMobileUA || width < Breakpoints.mobile) {
         setDevice('mobile');
