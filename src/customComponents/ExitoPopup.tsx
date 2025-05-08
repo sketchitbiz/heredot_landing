@@ -4,22 +4,8 @@ import React from 'react';
 import { useLang } from '@/contexts/LangContext';
 import { ProjectPopupContent } from '@/customComponents/ProjectPopupContent';
 import { GradientButton } from '@/components/GradientButton';
+import { CustomPopupText } from './CustomPopupText';
 
-const Text = ({ children }: { children: React.ReactNode }) => (
-  <p
-    style={{
-      fontSize: 16,
-      fontWeight: 400,
-      color: '#454545',
-      margin: 0,
-      marginBottom: 0,
-      lineHeight: '20px',
-      whiteSpace: 'pre-line',
-    }}
-  >
-    {children}
-  </p>
-);
 
 const hrefs = [
   'https://exitobiz.co.kr/',
@@ -102,7 +88,7 @@ export const ExitoPopup = () => {
           {t.leftHeader}
         </div>
       }
-      projectIntro={<Text>{t.projectIntro}</Text>}
+      projectIntro={<CustomPopupText>{t.projectIntro}</CustomPopupText>}
       featureList={
         <>
           {t.features.map(([label, desc], i) => (
@@ -136,10 +122,10 @@ export const ExitoPopup = () => {
           ))}
         </div>
       }
-      pjtVolume={<Text>{t.volume}</Text>}
-      pjtScope={<>{t.scope.map((line, i) => <Text key={i}>{line}</Text>)}</>}
-      pjtStack={<>{t.stack.map((line, i) => <Text key={i}>{line}</Text>)}</>}
-      pjtDuration={<>{t.duration.map((line, i) => <Text key={i}>{line}</Text>)}</>}
+      pjtVolume={<CustomPopupText>{t.volume}</CustomPopupText>}
+      pjtScope={<>{t.scope.map((line, i) => <CustomPopupText key={i}>{line}</CustomPopupText>)}</>}
+      pjtStack={<>{t.stack.map((line, i) => <CustomPopupText key={i}>{line}</CustomPopupText>)}</>}
+      pjtDuration={<>{t.duration.map((line, i) => <CustomPopupText key={i}>{line}</CustomPopupText>)}</>}
     />
   );
 };
