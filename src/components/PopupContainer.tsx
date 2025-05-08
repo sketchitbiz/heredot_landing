@@ -30,7 +30,7 @@ export const PopupContainer: React.FC<PopupContainerProps> = ({
   open,
   onClose,
   padding = 20,
-  heightPercent = 100,
+  heightPercent = 80,
   appBarHeight = 10,
   selectedIndex,
   isFullScreen = false,
@@ -143,14 +143,15 @@ const Overlay = styled.div<{ $isFullScreen?: boolean }>`
   position: fixed;
   top: 0;
   left: 0;
-  width: 100vw;
-  height: 100vh;
+  width: 100dvw;
+  height: 100dvh;
   background: rgba(0, 0, 0, 0.8);
   z-index: 9999;
   display: flex;
   align-items: center;
   justify-content: center;
 `;
+
 
 const NavZone = styled.div<{ $isMobile?: boolean; $position?: 'left' | 'right' }>`
   width: 200px;

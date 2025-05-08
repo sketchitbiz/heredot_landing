@@ -8,6 +8,7 @@ import DownloadIcon from '@mui/icons-material/Download';
 import { useLang } from '@/contexts/LangContext';
 import { downloadLinks } from '@/lib/i18n/downloadLinks';
 import CustomBlockLayout from '@/customComponents/CustomBlockLayout';
+import { Breakpoints } from '@/constants/layoutConstants';
 
 interface ConsultingProps {
   title: string;
@@ -64,6 +65,12 @@ const RightContainer = styled.div`
   align-items: center;
   overflow: visible;
   position: relative;
+`;
+
+const Wrapper = styled.div`
+  min-width: ${Breakpoints.desktop}px; 
+  background-color: #fff;
+
 `;
 
 const StackWrapper = styled.div`
@@ -397,6 +404,7 @@ const ConsultingWeb: React.FC<ConsultingProps> = ({
   ));
 
   return (
+    <Wrapper>
     <div ref={wrapperRef}>
       <CustomBlockLayout>
         <CustomBlockLayout.Left>
@@ -440,6 +448,7 @@ const ConsultingWeb: React.FC<ConsultingProps> = ({
         </CustomBlockLayout.Right>
       </CustomBlockLayout>
     </div>
+    </Wrapper>
 
   );
 };

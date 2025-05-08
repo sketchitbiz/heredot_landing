@@ -8,7 +8,7 @@ import DownloadIcon from '@mui/icons-material/Download';
 import { useLang } from '@/contexts/LangContext';
 import { downloadLinks } from '@/lib/i18n/downloadLinks';
 import { Breakpoints } from '@/constants/layoutConstants';
-
+import { AppColors } from "@/styles/colors";
 
 interface DesignProps {
   title: string;
@@ -121,6 +121,8 @@ const DownloadLink = styled.a`
 const PageWrapper = styled.div`
   width: 100%;
   min-width: ${Breakpoints.desktop}px; // 데스크탑 이하로 안 줄어들게
+
+  background-color: ${AppColors.background};
 `;
 
 const ScrollContent = styled.div`

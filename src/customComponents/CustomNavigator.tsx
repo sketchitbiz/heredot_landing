@@ -24,6 +24,7 @@ const NavigatorWrapper = styled.div`
   @media (max-width: ${Breakpoints.mobile}px) {
     min-width: auto;
     margin-bottom: 50px;
+    margin-top: 150px;
   }
 `;
 

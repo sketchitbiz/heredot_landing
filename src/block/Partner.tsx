@@ -72,6 +72,18 @@ const Slide = styled.div<{ $isActive: boolean }>`
   display: ${({ $isActive }) => ($isActive ? 'block' : 'none')};
 `;
 
+const Wrapper = styled.div`
+  min-width: ${Breakpoints.desktop}px; 
+  background-color: #fff;
+
+  @media (max-width: ${Breakpoints.mobile}px) {
+    min-width: 100%;
+  }
+
+`;
+
+
+
 const TabTitle = styled.h3`
   font-size: 25px;
   font-weight: bold;
@@ -303,6 +315,7 @@ useEffect(() => {
   return (
     <ResponsiveView
       desktopView={
+        <Wrapper>
         <CustomBlockLayout ref={sectionRef}>
           <CustomBlockLayout.Left ref={leftRef}>
             <Title>{`${title1}\n${title2}`}</Title>
@@ -333,6 +346,7 @@ useEffect(() => {
             </AnimatedDescription>
           </CustomBlockLayout.Right>
         </CustomBlockLayout>
+        </Wrapper>
       }
       mobileView={
         <MobileContainer>

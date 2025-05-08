@@ -222,7 +222,7 @@ export const dictionary = {
       companyName: '상호명 : 주식회사 여기닷',
       ceo: '대표자명 : 강태원',
       businessNumber: '사업자등록번호 : 289-86-03278',
-      address: '사업장주소 : 경기 성남시 수정구 대왕판교로 815 777호 (주) 여기닷',
+      address: '사업장주소 : 경기 성남시 수정구 대왕판교로 815 777호',
       customerService: '고객센터 : 031-8039-7981',
       copyright: 'Copyright ⓒ 2025 여기닷 All right reserved.',
       businessLicense: '통신판매업신고증 : 2025-성남 수정-0138 호',

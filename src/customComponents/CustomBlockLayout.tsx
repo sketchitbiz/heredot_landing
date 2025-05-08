@@ -22,6 +22,7 @@ interface SectionProps {
 const Container = styled.div<LayoutProps>`
   display: flex;
   min-width: ${Breakpoints.desktop}px; 
+  width: 100%;
   min-height: 100vh;
   box-sizing: border-box;
   padding: ${({ padding }) => padding || '0 24px'};
