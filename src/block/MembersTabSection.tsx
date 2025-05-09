@@ -8,6 +8,7 @@ import { MemberCard } from '@/components/Landing/MemberCard';
 import { useLang } from '@/contexts/LangContext';
 import { dictionary } from '@/lib/i18n/lang';
 import { Breakpoints } from '@/constants/layoutConstants';
+import { userStamp } from '@/lib/api/user/api';
 
 interface MembersTabSectionProps {
   title: string;
@@ -83,6 +84,15 @@ export const MembersTabSection: React.FC<MembersTabSectionProps> = ({
 
   const handleTabChange = (key: string) => {
     setCurrentTabKey(key);
+  
+    // 버튼 스탬프 추가
+    const label = tabItems.find((item) => item.key === key)?.label ?? key;
+    void userStamp({
+      uuid: localStorage.getItem('logId') ?? 'anonymous',
+      category: '버튼',
+      content: 'Members',
+      memo: `탭: ${label}`,
+    });
   };
 
   const baseCardData = [

@@ -11,6 +11,7 @@ import { dictionary } from '@/lib/i18n/lang';
 import { CustomNavigator } from '@/customComponents/CustomNavigator';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import { Breakpoints } from '@/constants/layoutConstants';
+import { userStamp } from '@/lib/api/user/api';
 
 interface ContractProps {
   topLabel: string;
@@ -46,6 +47,15 @@ const ContactGrid = styled.div`
     grid-template-columns: 1fr;
   }
 `;
+
+const logButtonClick = (memo: string) => {
+  userStamp({
+    uuid: localStorage.getItem('logId') ?? 'anonymous',
+    category: '버튼',
+    content: 'Contact',
+    memo,
+  });
+};
 
 const ContactItem = styled.div`
   background-color: #1d1626;
@@ -162,7 +172,10 @@ export const ContactSection: React.FC<ContractProps> = ({
         <ContactGrid>
           {/* 이메일 */}
           <ContactItem
-            onClick={() => (window.location.href = `mailto:${t.emailInfo}`)}
+           onClick={() => {
+            logButtonClick('이메일 문의');
+            window.location.href = `mailto:${t.emailInfo}`;
+          }}
           >
             <ContactTitle>{t.emailTitle}</ContactTitle>
             <ContactInfo>{t.emailInfo}</ContactInfo>
@@ -174,7 +187,10 @@ export const ContactSection: React.FC<ContractProps> = ({
 
           {/* 전화 */}
           <ContactItem
-            onClick={() => (window.location.href = `tel:${t.phoneInfo}`)}
+         onClick={() => {
+          logButtonClick('전화 문의');
+          window.location.href = `tel:${t.phoneInfo}`;
+        }}
           >
             <ContactTitle>{t.phoneTitle}</ContactTitle>
             <ContactInfo>{t.phoneInfo}</ContactInfo>
@@ -186,9 +202,10 @@ export const ContactSection: React.FC<ContractProps> = ({
 
           {/* 카카오톡 */}
           <ContactItem
-            onClick={() =>
-              window.open(t.kakaoLink, '_blank', 'noopener noreferrer')
-            }
+             onClick={() => {
+              logButtonClick('카카오톡 문의');
+              window.open(t.kakaoLink, '_blank', 'noopener noreferrer');
+            }}
           >
             <ContactTitle>{t.kakaoTitle}</ContactTitle>
             <ContactInfo>{t.kakaoInfo}</ContactInfo>

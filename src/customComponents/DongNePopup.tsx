@@ -4,7 +4,7 @@ import React from 'react';
 import { useLang } from '@/contexts/LangContext';
 import { ProjectPopupContent } from '@/customComponents/ProjectPopupContent';
 import { CustomPopupText } from './CustomPopupText';
-
+import { userStamp } from '@/lib/api/user/api';
 
 const TEXT = {
   ko: {

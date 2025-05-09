@@ -32,6 +32,9 @@ export const GradientButton: React.FC<GradientButtonProps> = ({
     transition: 'opacity 0.2s',
     boxShadow: 'none',
     cursor: 'pointer',
+    border: 'none',     
+    outline: 'none',     
+    appearance: 'none',     
   };
 
   const content = (

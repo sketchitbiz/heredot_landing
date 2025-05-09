@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import { VideoCard } from '@/components/Landing/VideoCard';
 import { CustomNavigator } from '@/customComponents/CustomNavigator';
 import { Breakpoints } from '@/constants/layoutConstants';
+import { userStamp } from '@/lib/api/user/api';
 
 // --- props 정의 ---
 interface VideoGridProps {

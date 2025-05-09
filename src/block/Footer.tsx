@@ -8,6 +8,7 @@ import { AppColors } from '@/styles/colors';
 import { AppTextStyles } from '@/styles/textStyles';
 import { Breakpoints } from '@/constants/layoutConstants';
 import { useEffect, useState } from 'react';
+import { userStamp } from '@/lib/api/user/api';
 
 
 
@@ -92,6 +93,7 @@ export const Footer: React.FC = () => {
   const { lang } = useLang();
   const t = dictionary[lang];
   const [isMobile, setIsMobile] = useState(false);
+  const [showMore, setShowMore] = useState(false);
 
   useEffect(() => {
     const handleResize = () => {
@@ -129,6 +131,36 @@ export const Footer: React.FC = () => {
           <InfoText>{t.footer.businessLicense}</InfoText>
           <InfoText>{t.footer.address}</InfoText>
           <InfoText>{t.footer.customerService}</InfoText>
+          <InfoText
+  as="button"
+  style={{
+    background: 'none',
+    border: 'none',
+    color: AppColors.onBackgroundDark,
+    cursor: 'pointer',
+    marginTop: '12px',
+    padding: 0,
+    fontSize: isMobile ? '11px' : '14px',
+    fontWeight: 'bold',
+  }}
+  onClick={() => {
+    setShowMore((prev) => !prev);
+    void userStamp({
+      uuid: localStorage.getItem("logId") ?? "anonymous",
+      category: "버튼",
+      content: "Footer",
+      memo: `더보기 ${!showMore ? '열기' : '닫기'}`,
+    });
+  }}
+>
+  {t.footer.moreButton}
+</InfoText>
+
+{showMore &&
+  t.footer.moreInfo.map((text, idx) => (
+    <InfoText key={idx}>{text}</InfoText>
+  ))}
+
         </InfoSection>
         <CopyrightText>{t.footer.copyright}</CopyrightText>
       </FooterContent>

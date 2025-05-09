@@ -23,6 +23,7 @@ import { RocketPopup } from '@/customComponents/RoketUpPopup';
 import { LimeFoodPopup } from '@/customComponents/LimeFoodPopup';
 import { LinkBPopup } from '@/customComponents/LinkBPopup';
 import { PopupContainer } from '@/components/PopupContainer';
+import { userStamp } from '@/lib/api/user/api'; 
 
 interface PortfolioGridProps {
   title: string;
@@ -88,6 +89,16 @@ export const PortfolioGrid: React.FC<PortfolioGridProps> = ({
   const handleCardClick = (index: number) => {
     setSelectedIndex(index);
     setPopupOpen(true);
+  
+    // 버튼 스탬프 추가
+    const card = cardData[index];
+    const title = (t.portfolioCards as Record<string, string>)[card.id];
+    void userStamp({
+      uuid: localStorage.getItem("logId") ?? "anonymous",
+      category: "버튼",
+      content: "Portfolio",
+      memo: `포트폴리오: ${title}`,
+    });
   };
 
   return (
@@ -117,7 +128,17 @@ export const PortfolioGrid: React.FC<PortfolioGridProps> = ({
         selectedIndex={selectedIndex}
         open={popupOpen}
         onClose={() => setPopupOpen(false)}
-        isFullScreen={isFullScreen} // ✅ 모바일일 때 전체화면
+        isFullScreen={isFullScreen} 
+        onChangeIndex={(index) => {
+          const card = cardData[index];
+          const title = (t.portfolioCards as Record<string, string>)[card.id];
+          void userStamp({
+            uuid: localStorage.getItem("logId") ?? "anonymous",
+            category: "버튼",
+            content: "Portfolio",
+            memo: `포트폴리오: ${title}`,
+          });
+        }}// ✅ 모바일일 때 전체화면
       >
         {cardData.map((item) => item.component)}
       </PopupContainer>

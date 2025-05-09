@@ -1,11 +1,12 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLang } from '@/contexts/LangContext';
 import { ProjectPopupContent } from '@/customComponents/ProjectPopupContent';
 import { GradientButton } from '@/components/GradientButton';
 import { CustomPopupText } from './CustomPopupText';
-
+import { userStamp } from '@/lib/api/user/api';
+import { Breakpoints } from '@/constants/layoutConstants';
 
 const hrefs = [
   'https://exitobiz.co.kr/',
@@ -15,8 +16,7 @@ const hrefs = [
 
 const TEXT = {
   ko: {
-    projectIntro:
-      '산재된 정부지원사업을 1일 단위 자동 수집을 통하여 창업팀에게 지원사업 안내 하는 솔루션 입니다',
+    projectIntro: '산재된 정부지원사업을 1일 단위 자동 수집을 통하여 창업팀에게 지원사업 안내 하는 솔루션 입니다',
     leftHeader: (
       <>
         <span style={{ color: '#FFFFFF' }}>지원사업</span>
@@ -72,6 +72,17 @@ export const ExitoPopup = () => {
   const { lang } = useLang();
   const t = TEXT[lang];
 
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const update = () => {
+      setIsMobile(window.innerWidth <= Breakpoints.mobile);
+    };
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
+
   return (
     <ProjectPopupContent
       imageUrl="/assets/portpolio_popup/exito.png"
@@ -79,10 +90,11 @@ export const ExitoPopup = () => {
         <div
           style={{
             position: 'absolute',
-            top: '160px',
-            left: '110px',
-            fontSize: '30px',
+            top: isMobile ? '80px' : '160px',
+            left: isMobile ? '50px' : '110px',
+            fontSize: isMobile ? '14px' : '30px',
             fontWeight: 700,
+            lineHeight: 1.4,
           }}
         >
           {t.leftHeader}
@@ -115,7 +127,15 @@ export const ExitoPopup = () => {
             <GradientButton
               key={i}
               title={title}
-              href={hrefs[i]}
+              onClick={() => {
+                void userStamp({
+                  uuid: localStorage.getItem('logId') ?? 'anonymous',
+                  category: '버튼',
+                  content: '엑시토',
+                  memo: `외부 링크: ${title}`,
+                });
+                window.open(hrefs[i], '_blank', 'noopener noreferrer');
+              }}
               titleColor="#FFFFFF"
               gradient="linear-gradient(to bottom, #4c5cd4, #27349D)"
             />

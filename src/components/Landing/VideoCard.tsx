@@ -4,6 +4,7 @@ import React from "react";
 import styled from "styled-components";
 import Image from "next/image";
 import { AppColors } from "@/styles/colors";
+import { userStamp } from "@/lib/api/user/api";
 
 interface VideoCardProps {
   imageUrl: string;
@@ -42,13 +43,22 @@ const CardImage = styled(Image)`
   object-fit: cover;
   transition: transform 0.3s ease;
 `;
-
 export const VideoCard: React.FC<VideoCardProps> = ({ imageUrl, videoUrl, title = "Video" }) => {
+  const handleClick = () => {
+    void userStamp({
+      uuid: localStorage.getItem("logId") ?? "anonymous",
+      category: "버튼",
+      content: "Video",
+      memo: `영상: ${title}`,
+    });
+  };
+
   return (
     <CardContainer
       href={videoUrl}
-      target="_blank" // ✅ 새 탭에서 열기
+      target="_blank"
       rel="noopener noreferrer"
+      onClick={handleClick} // ✅ 클릭시 스탬프 찍기
     >
       <CardImage
         src={imageUrl}

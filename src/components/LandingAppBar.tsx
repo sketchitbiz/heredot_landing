@@ -14,7 +14,8 @@ interface LandingAppBarProps {
   logoSrc: string;
   logoWidth?: string;
   logoHeight?: string;
-  navLinks: { label: string; targetId: string }[];
+  navLinks: { label: string; targetId: string; content: string; memo: string }[];
+  onNavigate: (targetId: string, content: string, memo: string) => void;
   appBarHeight?: string;
   appBarPadding?: string;
   hoverColor?: string;
@@ -85,15 +86,15 @@ const MobileAppBar = ({
   navLinks,
   hoverColor,
   isShowLanguageSwitcher,
+  onNavigate,
 }: LandingAppBarProps) => {
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const handleScrollTo = (targetId: string) => {
-    const element = document.getElementById(targetId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      setMenuOpen(false);
+  const handleScrollTo = (targetId: string, content: string, memo: string) => {
+    if (onNavigate) {
+      onNavigate(targetId, content, memo);
     }
+    setMenuOpen(false);
   };
 
   return (
@@ -121,22 +122,20 @@ const MobileAppBar = ({
   );
 };
 
-const DesktopAppBar = (props: LandingAppBarProps) => {
-  const {
-    logoSrc,
-    logoWidth,
-    logoHeight,
-    navLinks,
-    appBarHeight,
-    appBarPadding,
-    hoverColor,
-    isShowLanguageSwitcher,
-  } = props;
-
-  const handleScrollTo = (targetId: string) => {
-    const element = document.getElementById(targetId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+const DesktopAppBar = ({
+  logoSrc,
+  logoWidth,
+  logoHeight,
+  navLinks,
+  appBarHeight,
+  appBarPadding,
+  hoverColor,
+  isShowLanguageSwitcher,
+  onNavigate,
+}: LandingAppBarProps) => {
+  const handleScrollTo = (targetId: string, content: string, memo: string) => {
+    if (onNavigate) {
+      onNavigate(targetId, content, memo);
     }
   };
 
@@ -148,7 +147,7 @@ const DesktopAppBar = (props: LandingAppBarProps) => {
           {navLinks.map((link, index) => (
             <NavLink
               key={index}
-              onClick={() => handleScrollTo(link.targetId)}
+              onClick={() => handleScrollTo(link.targetId, link.content, link.memo)}
               hoverColor={hoverColor}
             >
               {link.label}

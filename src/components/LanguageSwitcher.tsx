@@ -4,6 +4,16 @@ import React from 'react';
 import { useLang } from '@/contexts/LangContext';
 import DropdownInput from '@/components/DropdownInput';
 import { AppColors } from '@/styles/colors';
+import { userStamp } from '@/lib/api/user/api';
+
+const logLanguageChange = (lang: 'ko' | 'en') => {
+  userStamp({
+    uuid: localStorage.getItem('logId') ?? 'anonymous',
+    category: '버튼',
+    content: 'LanguageSwitcher',
+    memo: `언어 변경: ${lang}`,
+  });
+};
 
 const LanguageSwitcher = () => {
   const { lang, setLang } = useLang();
@@ -16,7 +26,11 @@ const LanguageSwitcher = () => {
   return (
     <DropdownInput
       value={lang}
-      onChange={(value) => setLang(value as 'ko' | 'en')}
+      onChange={(value) => {
+        const selectedLang = value as 'ko' | 'en';
+        setLang(selectedLang);
+        logLanguageChange(selectedLang);
+      }}
       options={languageOptions}
       $triggerBackgroundColor={AppColors.background}
       $triggerFontSize='18px'

@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { useLang } from '@/contexts/LangContext';
 import { Breakpoints } from '@/constants/layoutConstants';
+import { userStamp } from '@/lib/api/user/api';
 
 interface ProjectPopupContentProps {
   imageUrl: string;
@@ -164,6 +165,11 @@ const TopSection = styled.div`
   position: relative;
   height: 350px;
   width: 100%;
+
+  @media (max-width: ${Breakpoints.mobile}px) {
+    height: 180px;
+  }
+    /* height: 200px; */
 `;
 
 const LeftHeader = styled.div`
@@ -187,7 +193,13 @@ const PreviewImage = styled.img`
   top: 0;
   left: 0;
   z-index: 0;
+
+  @media (max-width: ${Breakpoints.mobile}px) {
+    height: auto;
+    object-fit: cover;
+  }
 `;
+
 
 const ContentSection = styled.div`
   display: flex;

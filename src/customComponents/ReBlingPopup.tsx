@@ -5,6 +5,7 @@ import { useLang } from '@/contexts/LangContext';
 import { GradientButton } from '@/components/GradientButton';
 import { ProjectPopupContent } from '@/customComponents/ProjectPopupContent';
 import { CustomPopupText } from './CustomPopupText';
+import { userStamp } from '@/lib/api/user/api';
 
 const TEXT = {
   ko: {
@@ -110,11 +111,20 @@ export const ReBlingPopup = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {t.confirmButtons.map((btn, i) => (
             <GradientButton
-              key={i}
-              title={btn.title}
-              href={btn.href}
-              gradient="linear-gradient(to bottom, #e6dcc9, #ddc180)"
-            />
+  key={i}
+  title={btn.title}
+  gradient="linear-gradient(to bottom, #e6dcc9, #ddc180)"
+  onClick={() => {
+    void userStamp({
+      uuid: localStorage.getItem("logId") ?? "anonymous",
+      category: "버튼",
+      content: "명품역경매",
+      memo: `외부 링크: ${btn.title}`,
+    });
+    window.open(btn.href, "_blank", "noopener noreferrer");
+  }}
+/>
+
           ))}
         </div>
       }

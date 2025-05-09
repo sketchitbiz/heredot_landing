@@ -1,11 +1,13 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import React, { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { useLang } from "@/contexts/LangContext";
 import { dictionary } from "@/lib/i18n/lang";
 import { downloadLinks } from "@/lib/i18n/downloadLinks";
-
+import ResponsiveView from "@/layout/ResponsiveView";
+import DesignWeb from "@/block/DesignWeb";
+import DesignMobile from "@/block/DesignMobile";
 import LandingAppBar from "@/components/LandingAppBar";
 import LandingBaseWrapper from "@/layout/LandingBaseWrapper";
 
@@ -25,14 +27,76 @@ import { AppColors } from "@/styles/colors";
 import AppBlock from "@/block/AppBlock";
 import DesignBlock from "@/block/Design";
 import Consulting from "@/block/Consulting";
+import { v4 as uuidv4 } from "uuid";
+import { userStamp } from "@/lib/api/user/api";
+
+const getOrCreateLogId = () => {
+  const logIdKey = "logId";
+  const logId = localStorage.getItem(logIdKey);
+  if (logId) return logId;
+  const newLogId = uuidv4();
+  localStorage.setItem(logIdKey, newLogId);
+  return newLogId;
+};
+
+const sectionMap: Record<string, { content: string; memo: string }> = {
+  header: { content: "Header", memo: "header" },
+  // partner: { content: "Partner", memo: "anti_drone" },
+  // "partner-sensor": { content: "Partner", memo: "partner" },
+  consulting: { content: "Consulting", memo: "consulting" },
+  // design: { content: "Design", memo: "design" },
+  // "design-sensor": { content: "Design", memo: "design" },
+  appblock: { content: "AppBlock", memo: "appblock" },
+  community: { content: "Community", memo: "community" },
+  portfolio: { content: "Portfolio", memo: "portfolio" },
+  members: { content: "Members", memo: "members" },
+  video: { content: "Video", memo: "video" },
+  contact: { content: "Contact", memo: "contact" },
+};
+
+const logSectionView = async (content: string, memo: string, firstYn?: boolean) => {
+  try {
+    const res = await userStamp({
+      uuid: getOrCreateLogId(),
+      category: "스크롤",
+      content,
+      memo,
+      ...(firstYn ? { firstYn: "Y" } : {}), 
+    });
+  } catch (e) {
+  }
+};
+
+
+const logButtonClick = async (content: string, memo: string) => {
+  try {
+    const res = await userStamp({
+      uuid: getOrCreateLogId(),
+      category: "버튼",
+      content,
+      memo,
+    });
+  } catch (e) {
+  }
+};
 
 export default function HomePage() {
   const { lang } = useLang();
   const t = dictionary[lang];
   const pathname = usePathname();
-  const router = useRouter();
-
   const [currentSection, setCurrentSection] = useState(t.nav[0]);
+  const [isAutoScrolling, setIsAutoScrolling] = useState(false);
+  const isAutoScrollingRef = useRef(false);
+
+  const startAutoScroll = () => {
+    setIsAutoScrolling(true);
+    isAutoScrollingRef.current = true;
+  };
+
+  const endAutoScroll = () => {
+    setIsAutoScrolling(false);
+    isAutoScrollingRef.current = false;
+  };
 
   const aliasMap: Record<string, string> = {
     about: "header",
@@ -46,74 +110,130 @@ export default function HomePage() {
     const path = typeof window !== "undefined" ? window.location.pathname.split("/")[1] : "";
     const targetId = aliasMap[path];
     if (targetId) {
-      setTimeout(() => {
+      startAutoScroll();
+      const el = document.getElementById(targetId);
+      if (el) {
         requestAnimationFrame(() => {
-          const el = document.getElementById(targetId);
-          if (el) {
-            el.scrollIntoView({ behavior: "smooth", block: "start" });
-          }
+          el.scrollIntoView({ behavior: "smooth", block: "start" });
         });
-      }, 100);
+      }
+      let scrollTimer: ReturnType<typeof setTimeout>;
+      const handleScroll = () => {
+        clearTimeout(scrollTimer);
+        scrollTimer = setTimeout(() => {
+          endAutoScroll();
+        }, 300);
+      };
+      window.addEventListener("scroll", handleScroll);
+      return () => {
+        clearTimeout(scrollTimer);
+        window.removeEventListener("scroll", handleScroll);
+      };
     }
   }, []);
 
-  const scrollToTargetId = (targetId: string) => {
+  const scrollToTargetId = (targetId: string, content: string, memo: string) => {
     const element = document.getElementById(targetId);
     if (element) {
+      startAutoScroll();
       element.scrollIntoView({ behavior: "smooth", block: "start" });
+
+      let scrollTimer: ReturnType<typeof setTimeout>;
+      const handleScroll = () => {
+        clearTimeout(scrollTimer);
+        scrollTimer = setTimeout(() => {
+          endAutoScroll();
+          window.removeEventListener("scroll", handleScroll);
+        }, 300);
+      };
+      window.addEventListener("scroll", handleScroll);
+
+      void logButtonClick(content, memo);
     }
   };
 
+  const firstHeaderLogged = useRef(false);
+
   useEffect(() => {
-    const observer = new IntersectionObserver(
+    let lastScrollY = window.scrollY;
+    let lastLoggedId = "";
+  
+    const headerObserver = new IntersectionObserver(
       (entries) => {
-        const visible = entries.find((entry) => entry.isIntersecting);
-        if (visible) {
-          const id = visible.target.id;
-          switch (id) {
-            case "header":
-              setCurrentSection(t.nav[0]);
-              break;
-            case "portfolio":
-              setCurrentSection(t.nav[1]);
-              break;
-            case "members":
-              setCurrentSection(t.nav[2]);
-              break;
-            case "market":
-              setCurrentSection(t.customNavigator.event);
-              break;
-            case "contact":
-              setCurrentSection(t.customNavigator.contact);
-              break;
-            default:
-              break;
+        const entry = entries[0];
+        if (entry.isIntersecting && !isAutoScrollingRef.current) {
+          setCurrentSection("Header");
+  
+          if (!firstHeaderLogged.current) {
+            firstHeaderLogged.current = true;
+            logSectionView("Header", "header", true); // 👈 firstYn: true 전달
+          } else {
+            logSectionView("Header", "header");
           }
         }
       },
+      { threshold: 0 }
+    );
+  
+    // 👇 일반 섹션용 Observer
+    const generalObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const id = entry.target.id;
+          const isVisible = entry.isIntersecting;
+          const currentScrollY = window.scrollY;
+          const isScrollingDown = currentScrollY > lastScrollY;
+          lastScrollY = currentScrollY;
+  
+          if (
+            id !== "header" &&
+            isVisible &&
+            isScrollingDown &&
+            id !== lastLoggedId &&
+            !isAutoScrollingRef.current
+          ) {
+            lastLoggedId = id;
+            const section = sectionMap[id];
+            if (section) {
+              setCurrentSection(section.content);
+              logSectionView(section.content, section.memo);
+            }
+          }
+        });
+      },
       { threshold: 0.3 }
     );
-
-    const sectionElements = Object.values(aliasMap)
+  
+    const headerEl = document.getElementById("header");
+    if (headerEl) headerObserver.observe(headerEl);
+  
+    const otherEls = Object.keys(sectionMap)
+      .filter((id) => id !== "header")
       .map((id) => document.getElementById(id))
       .filter(Boolean);
-
-    sectionElements.forEach((el) => observer.observe(el!));
-    return () => sectionElements.forEach((el) => observer.unobserve(el!));
+  
+    otherEls.forEach((el) => generalObserver.observe(el!));
+  
+    return () => {
+      if (headerEl) headerObserver.unobserve(headerEl);
+      otherEls.forEach((el) => generalObserver.unobserve(el!));
+    };
   }, [t]);
+  ;
 
   const appBar = (
     <LandingAppBar
       logoSrc="/assets/logo.svg"
       logoWidth="169px"
       logoHeight="64px"
-      navLinks={[
-        { label: t.nav[0], targetId: "header" },
-        { label: t.nav[1], targetId: "portfolio" },
-        { label: t.nav[2], targetId: "members" },
-        { label: t.nav[3], targetId: "market" },
-      ]}
       isShowLanguageSwitcher={true}
+      navLinks={[
+        { label: t.nav[0], targetId: "partner", content: "appbar", memo: "partner" },
+        { label: t.nav[1], targetId: "portfolio", content: "appbar", memo: "portfolio" },
+        { label: t.nav[2], targetId: "members", content: "appbar", memo: "members" },
+        { label: t.nav[3], targetId: "market", content: "appbar", memo: "market" },
+      ]}
+      onNavigate={scrollToTargetId}
     />
   );
 
@@ -136,20 +256,27 @@ export default function HomePage() {
       content: <FirstMapBlock label={t.firstMap.label} />,
       $zIndex: 1001,
       $isOverLayout: true,
-       
     },
     {
       id: "partner",
       $backgroundColor: AppColors.surface,
       content: (
-        <Partner
-          title1={t.partner.title1}
-          title2={t.partner.title2}
-          subtitle={t.partner.subtitle}
-          tabs={t.partner.tabs}
-          slides={t.partner.slides}
-          downloadText={t.partner.downloadText}
-        />
+        <>
+          {/* <div id="partner-sensor" style={{ height: "1px" }} /> */}
+          <Partner
+            title1={t.partner.title1}
+            title2={t.partner.title2}
+            subtitle={t.partner.subtitle}
+            tabs={t.partner.tabs}
+            slides={t.partner.slides}
+            downloadText={t.partner.downloadText}
+            onEnterSection={(index, tab) => {
+              setCurrentSection("Partner");
+              if (isAutoScrollingRef.current) return;
+              void logSectionView("Partner", `스크롤: ${tab}`);
+            }}
+          />
+        </>
       ),
       $zIndex: 1001,
     },
@@ -178,15 +305,22 @@ export default function HomePage() {
       id: "design",
       $backgroundColor: AppColors.background,
       content: (
-        <DesignBlock
-          tabs={t.design.tabs}
-          tabNumbers={t.design.tabNumbers}
-          slides={t.design.slides}
-          title={t.design.title}
-          downloadText={t.design.downloadText}
-        />
+        <>
+          <div id="design-sensor" style={{ height: "1px" }} />
+          <DesignBlock
+            title={t.design.title}
+            tabs={t.design.tabs}
+            tabNumbers={t.design.tabNumbers}
+            slides={t.design.slides}
+            downloadText={t.design.downloadText}
+            onEnterSection={(index, tab) => {
+              setCurrentSection("Design");
+              if (isAutoScrollingRef.current) return;
+              void logSectionView("Design", `스크롤: ${tab}`);
+            }}
+          />
+        </>
       ),
-      $zIndex: 1001,
     },
     {
       id: "secondMap",
@@ -223,8 +357,8 @@ export default function HomePage() {
           onButtonClick={() => {
             window.open("https://open.kakao.com/o/g0u3dOrc", "_blank");
           }}
-          onTopArrowClick={() => scrollToTargetId("header")}
-          onBottomArrowClick={() => scrollToTargetId("portfolio")}
+          onTopArrowClick={() => scrollToTargetId("header", "community", "header")}
+          onBottomArrowClick={() => scrollToTargetId("portfolio", "community", "portfolio")}
         />
       ),
     },
@@ -238,8 +372,8 @@ export default function HomePage() {
           topLabel={t.customNavigator.community}
           centerLabel={t.customNavigator.portpolio}
           bottomLabel={t.customNavigator.member}
-          onTopArrowClick={() => scrollToTargetId("community")}
-          onBottomArrowClick={() => scrollToTargetId("members")}
+          onTopArrowClick={() => scrollToTargetId("community", "portfolio", "community")}
+          onBottomArrowClick={() => scrollToTargetId("members", "portfolio", "members")}
         />
       ),
     },
@@ -254,8 +388,8 @@ export default function HomePage() {
           topLabel={t.customNavigator.portpolio}
           centerLabel={t.customNavigator.member}
           bottomLabel={t.customNavigator.review}
-          onTopArrowClick={() => scrollToTargetId("portfolio")}
-          onBottomArrowClick={() => scrollToTargetId("video")}
+          onTopArrowClick={() => scrollToTargetId("portfolio", "members", "portfolio")}
+          onBottomArrowClick={() => scrollToTargetId("video", "members", "video")}
         />
       ),
     },
@@ -269,8 +403,8 @@ export default function HomePage() {
           bottomLabel={t.arrival}
           title={t.reviewSection.title}
           description={t.reviewSection.description}
-          onTopArrowClick={() => scrollToTargetId("members")}
-          onBottomArrowClick={() => scrollToTargetId("contact")}
+          onTopArrowClick={() => scrollToTargetId("members", "video", "members")}
+          onBottomArrowClick={() => scrollToTargetId("contact", "video", "contact")}
         />
       ),
     },
@@ -284,7 +418,7 @@ export default function HomePage() {
           bottomLabel={t.arrival}
           title={t.contract.title}
           description={t.contract.description}
-          onTopArrowClick={() => scrollToTargetId("video")}
+          onTopArrowClick={() => scrollToTargetId("video", "contact", "video")}
         />
       ),
     },
@@ -294,7 +428,6 @@ export default function HomePage() {
       content: <Footer />,
     },
   ];
-
 
   return <LandingBaseWrapper sections={sections} appBar={appBar} />;
 }

@@ -5,7 +5,7 @@ import { useLang } from '@/contexts/LangContext';
 import { GradientButton } from '@/components/GradientButton';
 import { ProjectPopupContent } from '@/customComponents/ProjectPopupContent';
 import { CustomPopupText } from './CustomPopupText';
-
+import { userStamp } from '@/lib/api/user/api';
 
 
 const TEXT = {
@@ -77,7 +77,15 @@ export const LimeFoodPopup = () => {
             <GradientButton
               key={i}
               title={btn.title}
-              href={btn.href}
+              onClick={() => {
+                                void userStamp({
+                                  uuid: localStorage.getItem("logId") ?? "anonymous",
+                                  category: "버튼",
+                                  content: "라임푸드",
+                                  memo: `외부 링크: ${btn.title}`,
+                                });
+                                window.open(btn.href, "_blank", "noopener noreferrer");
+                              }}
               titleColor="#FFFFFF"
               gradient="linear-gradient(to bottom, #5EC2A0, #40AD99)"
             />
