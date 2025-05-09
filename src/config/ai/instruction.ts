@@ -65,10 +65,10 @@ Generate the invoice JSON data (following the specified schema and format below)
     *   \`id\`: (String, Required) 기능에 대한 고유 식별자입니다. <DATA>에 ID가 있는 경우 해당 ID를 사용하고, 그렇지 않은 경우 간결하고 고유한 밑줄로 구분된 ID(예: \`custom_login_feature\`)를 생성합니다. 이 ID는 프론트엔드에서 사용됩니다.
     *   \`feature\`: (String, Required) 기능의 이름입니다. 해당하는 경우 <DATA>에 있는 이름과 동일해야 합니다. **사용자와 한국어로 대화하는 경우, 한국어 기능명을 사용하세요.**
     *   \`description\`: (String, Required) 기능에 대한 설명입니다. **한국어로 작성하세요.**
-    *   \`amount\`: (Number or String, Required) 기능에 대한 금액입니다. 숫자 값이 있는 경우 **숫자**로 제공합니다. 설정되지 않았거나 관리자 문의가 필요한 경우 "별도 문의" 또는 "견적 문의"와 같은 설명 문자열을 사용합니다.
+    *   \`amount\`: (Number or String, Required) 기능에 대한 금액입니다. 숫자 값이 있는 경우 **숫자**로 제공하거나, 문자열 "별도 문의" 또는 "견적 문의"를 사용합니다. (JSON에서는 숫자도 문자열로 전달될 수 있음을 인지)
     *   \`duration\`: (String, Required) 기능에 소요되는 기간입니다 (예: "5일"). 설정되지 않은 경우 "별도 문의"를 사용합니다. **한국어로 작성하세요 (예: "5일", "3주").**
     *   \`category\`: (String, Required) 기능의 카테고리입니다 (상위 그룹의 카테고리와 일치해야 함). **사용자와 한국어로 대화하는 경우, 한국어 카테고리명을 사용하세요.**
-    *   \`pages\`: (Number or String, Required) 기능에 필요한 페이지 수입니다. 숫자 값이 있는 경우 **숫자**로 제공합니다. 설정되지 않은 경우 "별도 문의"를 사용합니다.
+    *   \`pages\`: (String, Optional) 기능에 필요한 예상 페이지 수입니다. 숫자 값이 있는 경우 해당 숫자를 **문자열**로 제공하거나, 불필요하거나 알 수 없는 경우 이 필드를 생략하거나 "별도 문의" 문자열을 사용합니다.
     *   \`note\`: (String, Optional) 기능에 대한 선택적 참고 사항입니다. <DATA>의 기능 설명에 기본 가격 책정 세부 정보(예: 페이지당 비용)가 포함된 경우 여기에 해당 정보를 추가합니다. 참고 사항이 없는 경우 이 필드를 생략하거나 빈 문자열로 둘 수 있습니다. **한국어로 작성하세요.**
 *   **For \`invoiceGroup\` (this conceptual group structure is similar to your \`GROUP_FEATURE_SCHEMA\` in \`schema.ts\`):**
     *   \`category\`: (String, Required) 프로젝트에 포함된 기능의 카테고리 또는 공통 카테고리입니다. **한국어로 작성하세요.**
@@ -83,21 +83,9 @@ Generate the invoice JSON data (following the specified schema and format below)
     *   Ensure all string values in the JSON are properly escaped.
 
 **Post-JSON Output (Follows the JSON script tag):**
-*   **After** generating the natural language preface and the JSON script tag, **always** append the following options using Markdown and button placeholders:
+*   **AI는 이제 이 섹션을 생성하지 않습니다. 이 기능은 프론트엔드에서 처리됩니다.**
     \`\`\`markdown
-
-    **견적가 할인받기:** 견적가의 할인을 원하시면 다음 옵션을 선택할 수 있습니다:
-    1.  *개발 기간 8주 연장하고 20% 할인받기** <button data-action='discount_extend_3w_20p'> 선택 </button>
-    2.  **핵심 보조 기능 일부 제거하고 할인받기** (AI가 제거할 기능을 제안합니다) <button data-action='discount_remove_features'> 선택 </button>
-
-    **PDF로 저장:** <button data-action='download_pdf'>PDF 견적서 다운</button>
-    \`\`\`
-
-**Handling Discount Option 2:**
-*   If the user triggers the 'discount_remove_features' action, analyze the features currently in the invoice (based on the JSON data you would have generated). Identify 1-3 non-essential features that could be removed for a discount. Present these suggestions to the user along with the potential cost savings, and ask for confirmation before generating a revised invoice (as new JSON data).
-
-**Language:** Respond in the language used by the user (Korean or English). **If responding in Korean, all user-facing text, including JSON string values (like feature names, descriptions, notes, categories) should be in Korean.**
-
+    {/* 견적가 할인받기... PDF 견적서 다운 등 프론트엔드에서 구현될 내용 */}\n    \`\`\`\n\n**Handling Discount Option 2:**\n*   If the user triggers the 'discount_remove_features' action, analyze the features currently in the invoice (based on the JSON data you would have generated). Identify 1-3 non-essential features that could be removed for a discount. Present these suggestions to the user along with the potential cost savings, and ask for confirmation before generating a revised invoice (as new JSON data).\n
 
 Example Essential Features (For Discussion - Not immediate JSON output) - **모든 예시 값은 한국어로 제공합니다.**
 
@@ -184,8 +172,8 @@ To complete the task, you need to follow these steps based on the user interacti
 **Phase 3: Invoice JSON Generation (Conditional)**
 7.  **Only if triggered by step 6:**
     a. Provide a brief natural language introduction.
-    b. Generate the invoice details **strictly as a JSON object within a \`<script type="application/json" id="invoiceData">\` tag**, adhering to the main INVOICE_SCHEMA structure (and its implied use of feature details and grouped features, similar to your schema definitions in \`schema.ts\`) and related clarifications specified in PERSONA_INSTRUCTION. **Do NOT generate a Markdown table for the invoice.**
-8.  **Immediately after the JSON script tag, append the discount and download options** as specified in PERSONA_INSTRUCTION.
+    b. Generate the invoice details **strictly as a JSON object within a \`<script type="application/json" id="invoiceData">\` tag**, adhering to the main INVOICE_SCHEMA structure (and its implied use of feature details and grouped features, similar to your schema definitions in \`schema.ts\`) and related clarifications specified in PERSONA_INSTRUCTION. **Do NOT generate a Markdown table for the invoice. Ensure all string values (feature names, descriptions, notes, categories, etc.) within the JSON are in Korean if the user's primary language is Korean.**
+8.  **AI는 이 단계에서 할인 및 다운로드 옵션 마크다운을 생성하지 않습니다. 이 기능은 프론트엔드에서 처리됩니다.**
 9.  If the user requests unsupported features, reflect this in the JSON (e.g., "별도 문의" for amounts) and explain in the accompanying natural language text.
 10. **If the user triggers a discount or download action (<button data-action=...>), respond according to the specific instructions** in PERSONA_INSTRUCTION (e.g., process discount option 2, or inform about login for PDF).
 

@@ -802,24 +802,25 @@ export default function AiPageContent() {
       }
       // console.log("--- AI Streaming End ---"); // 로깅 제거
 
-      // console.log("✅✅✅ AI Full Response Received (aiResponseText):", aiResponseText); // 로깅 제거
+      console.log("AI 전체 응답 (aiResponseText):", aiResponseText); // AI 전체 응답 로깅 추가
 
       const jsonScriptRegex = /<script type="application\/json" id="invoiceData">([\s\S]*?)<\/script>/;
       const jsonMatch = aiResponseText.match(jsonScriptRegex);
 
-      // console.log("JSON Match Attempt:", jsonMatch ? "Found match" : "No match found"); // 로깅 제거
+      console.log("JSON 추출 시도 결과 (jsonMatch):", jsonMatch); // 정규식 매칭 결과 로깅 추가
 
       let parsedInvoiceData: InvoiceDataType | null = null; // 타입 명시
       let naturalLanguageText = aiResponseText;
 
       if (jsonMatch && jsonMatch[1]) {
         const jsonString = jsonMatch[1];
-        // console.log("✅ Extracted JSON String from <script> tag:", jsonString); // 로깅 제거
+        console.log("추출된 JSON 문자열 (jsonString):", jsonString); // 추출된 JSON 문자열 로깅 추가
         try {
           parsedInvoiceData = JSON.parse(jsonString) as InvoiceDataType;
-          // console.log("✅ Successfully Parsed Invoice JSON Object:", JSON.stringify(parsedInvoiceData, null, 2)); // 로깅 제거
+          console.log("파싱된 견적서 JSON 객체 (parsedInvoiceData):", parsedInvoiceData); // 파싱된 JSON 객체 로깅 추가
 
           naturalLanguageText = aiResponseText.replace(jsonScriptRegex, "").trim();
+          console.log("JSON 제거 후 자연어 텍스트 (naturalLanguageText):", naturalLanguageText); // JSON 제거 후 텍스트 로깅 추가
           // console.log("Natural Language Text (after removing JSON script):", naturalLanguageText); // 로깅 제거
 
           if (parsedInvoiceData && parsedInvoiceData.invoiceGroup) {
@@ -878,7 +879,7 @@ export default function AiPageContent() {
           });
         }
       } else {
-        // console.log("No invoice JSON data <script> tag found in AI response. Treating as natural language only."); // 로깅 제거
+        console.log("스크립트 태그에서 견적서 JSON 데이터를 찾지 못했습니다. AI 응답을 자연어로만 처리합니다."); // 로깅 메시지 수정
         setInvoiceDetails(null);
         setMessages((prevMessages: Message[]) => {
           return prevMessages.map((msg) =>

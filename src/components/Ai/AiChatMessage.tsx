@@ -554,6 +554,34 @@ export function AiChatMessage({
                 )}
               </tbody>
             </InvoiceTable>
+
+            {/* 할인 및 PDF 저장 옵션 추가 */}
+            <div style={{ marginTop: "1.5rem", paddingTop: "1rem", borderTop: `1px solid ${AppColors.border}` }}>
+              <h4 style={{ marginBottom: "0.75rem", fontSize: "1em" }}>견적가 할인받기</h4>
+              <p style={{ marginBottom: "0.5rem", fontSize: "0.9em" }}>
+                견적가의 할인을 원하시면 다음 옵션을 선택할 수 있습니다:
+              </p>
+              <ul style={{ listStyle: "none", paddingLeft: 0, marginBottom: "1rem" }}>
+                <li style={{ marginBottom: "0.5rem" }}>
+                  1. 개발 기간 8주 연장하고 20% 할인받기
+                  <ActionButton
+                    onClick={() => onActionClick("discount_extend_3w_20p")}
+                    style={{ marginLeft: "0.5rem" }}>
+                    선택
+                  </ActionButton>
+                </li>
+                <li style={{ marginBottom: "0.5rem" }}>
+                  2. 핵심 보조 기능 일부 제거하고 할인받기 (AI가 제거할 기능을 제안합니다)
+                  <ActionButton
+                    onClick={() => onActionClick("discount_remove_features")}
+                    style={{ marginLeft: "0.5rem" }}>
+                    선택
+                  </ActionButton>
+                </li>
+              </ul>
+              <h4 style={{ marginBottom: "0.75rem", fontSize: "1em" }}>PDF로 저장</h4>
+              <ActionButton onClick={() => onActionClick("download_pdf")}>PDF 견적서 다운</ActionButton>
+            </div>
           </StyledInvoiceContainer>
         )}
 

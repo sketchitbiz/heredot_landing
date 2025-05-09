@@ -17,9 +17,9 @@ export const FEATURE_SCHEMA = Schema.object({
     category: Schema.string({
       description: "기능의 카테고리입니다.",
     }),
-    pages: Schema.number({
+    pages: Schema.string({
       description:
-        "기능에 필요한 페이지 수입니다. 설정되지 않은 경우 '별도 문의' 또는 '관리자 문의'와 같은 문자열 처리가 필요할 수 있으나, 스키마는 숫자 타입입니다. (실제 구현 시 instruction.ts 참고)",
+        '(선택 사항) 기능에 필요한 예상 페이지 수입니다. 불필요하거나 알 수 없는 경우 생략하거나 "별도 문의"로 설정하세요.',
     }),
   },
 });
