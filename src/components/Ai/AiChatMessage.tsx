@@ -6,6 +6,7 @@ import { AppTextStyles } from "@/styles/textStyles";
 import ReactMarkdown, { Options } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
+import React from "react";
 
 // INVOICE_SCHEMA에 따른 타입 정의 (실제 schema.ts의 구조를 반영해야 함)
 // 이 타입들은 AiPageContent.tsx와 동기화되어야 하며, 한 곳에서 정의하고 공유하는 것이 좋음
@@ -49,12 +50,10 @@ export interface Message {
 
 // MessageProps 인터페이스에 계산된 총합 및 현재 아이템 목록 props 추가
 interface MessageProps extends Omit<Message, "id"> {
-  onActionClick: (action: string, data?: Record<string, any>) => void;
+  onActionClick: (action: string, data?: { featureId?: string }) => void;
   calculatedTotalAmount?: number;
   calculatedTotalDuration?: number;
   calculatedTotalPages?: number;
-  // currentItems는 InvoiceFeatureItem & { isDeleted: boolean } 형태의 배열이어야 함
-  // InvoiceFeatureItem은 InvoiceDataType 내부에 정의된 타입을 사용하거나, 여기서 다시 정의
   currentItems?: Array<InvoiceDataType["invoiceGroup"][number]["items"][number] & { isDeleted: boolean }>;
 }
 
@@ -378,18 +377,6 @@ export function AiChatMessage({
   calculatedTotalPages,
   currentItems,
 }: MessageProps) {
-  // ⭐ Props 로깅 추가
-  console.log("--- AiChatMessage Received Props ---");
-  console.log("Sender:", sender);
-  console.log("Text:", text);
-  console.log("Image URL:", imageUrl);
-  console.log("File Type:", fileType);
-  console.log("Invoice Data (exists?):", !!invoiceData);
-  if (invoiceData) {
-    console.log("Invoice Data Content:", JSON.stringify(invoiceData, null, 2));
-  }
-  console.log("---------------------------------");
-
   const isAiMessage = sender === "ai";
 
   const customComponents: Options["components"] = {
@@ -431,18 +418,11 @@ export function AiChatMessage({
     },
   };
 
-  // ⭐ 조건부 렌더링 로깅 추가
-  if (isAiMessage && invoiceData) {
-    console.log("✅ Condition met: Rendering Invoice UI with Invoice Data.");
-  } else if (isAiMessage) {
-    console.log("ℹ️ AI Message, but no Invoice Data to render invoice UI.");
-  }
-
   return (
     <MessageWrapper $sender={sender}>
       {isAiMessage && <ProfileImage src="/pretty.png" alt="AI 프로필" />}
       <MessageBox $sender={sender}>
-        {isAiMessage && !invoiceData && (
+        {isAiMessage && (
           <ProfileName style={{ marginBottom: "0.5rem" }}>
             <strong>강유하</strong>
           </ProfileName>
@@ -458,9 +438,6 @@ export function AiChatMessage({
           <StyledInvoiceContainer>
             <div style={{ display: "flex", alignItems: "center", marginBottom: "1rem" }}>
               <div>
-                <ProfileName style={{ fontSize: "1.1rem" }}>
-                  <strong>강유하</strong>
-                </ProfileName>
                 <InvoiceProjectTitle>{invoiceData.project || "프로젝트 견적"}</InvoiceProjectTitle>
               </div>
             </div>
@@ -476,48 +453,53 @@ export function AiChatMessage({
                 </tr>
               </thead>
               <tbody>
-                {(currentItems || invoiceData.invoiceGroup?.flatMap((g) => g.items) || []).map((item, index) => {
-                  const isDeleted = currentItems ? item.isDeleted : false;
-                  let itemCategory = "";
-
-                  return invoiceData.invoiceGroup?.map((group, groupIndex) =>
-                    group.items?.map((originalItem, itemIndex) => {
-                      const currentItemStatus = currentItems?.find((ci) => ci.id === originalItem.id);
+                {invoiceData.invoiceGroup?.map((group, groupIndex) => (
+                  <React.Fragment key={`group-${group.category}-${groupIndex}`}>
+                    {group.items?.map((item, itemIndex) => {
+                      const currentItemStatus = currentItems?.find((ci) => ci.id === item.id);
                       const isActuallyDeleted = currentItemStatus ? currentItemStatus.isDeleted : false;
-                      const categoryToShow = itemIndex === 0 ? group.category : "";
 
                       return (
-                        <tr key={originalItem.id || `feature-${groupIndex}-${itemIndex}`}>
+                        <tr key={item.id || `feature-${groupIndex}-${itemIndex}`}>
                           {itemIndex === 0 ? (
                             <td
                               className="col-category"
                               rowSpan={group.items.length || 1}
-                              style={{ textDecoration: isActuallyDeleted ? "line-through" : "none" }}>
+                              style={{
+                                textDecoration: isActuallyDeleted ? "line-through" : "none",
+                                color: isActuallyDeleted ? AppColors.disabled : AppColors.onBackground,
+                              }}>
                               {group.category}
                             </td>
                           ) : null}
                           <td
                             className="col-feature"
-                            style={{ textDecoration: isActuallyDeleted ? "line-through" : "none" }}>
-                            {originalItem.feature}
+                            style={{
+                              textDecoration: isActuallyDeleted ? "line-through" : "none",
+                              color: isActuallyDeleted ? AppColors.disabled : AppColors.onBackground,
+                            }}>
+                            {item.feature}
                           </td>
                           <td
                             className="col-description"
-                            style={{ textDecoration: isActuallyDeleted ? "line-through" : "none" }}>
-                            {originalItem.description}
-                            {originalItem.note && (
+                            style={{
+                              textDecoration: isActuallyDeleted ? "line-through" : "none",
+                              color: isActuallyDeleted ? AppColors.disabled : AppColors.onBackground,
+                            }}>
+                            {item.description}
+                            {item.note && (
                               <p style={{ fontSize: "0.9em", color: AppColors.onSurfaceVariant, marginTop: "0.3em" }}>
-                                <em>참고: {originalItem.note}</em>
+                                <em>참고: {item.note}</em>
                               </p>
                             )}
-                            {originalItem.duration && (
+                            {item.duration && (
                               <p style={{ fontSize: "0.9em", color: AppColors.onSurfaceVariant, marginTop: "0.3em" }}>
-                                예상 기간: {originalItem.duration}
+                                예상 기간: {item.duration}
                               </p>
                             )}
-                            {originalItem.pages && (
+                            {item.pages && (
                               <p style={{ fontSize: "0.9em", color: AppColors.onSurfaceVariant, marginTop: "0.3em" }}>
-                                예상 페이지: {originalItem.pages}
+                                예상 페이지: {item.pages}
                               </p>
                             )}
                           </td>
@@ -527,19 +509,18 @@ export function AiChatMessage({
                               textDecoration: isActuallyDeleted ? "line-through" : "none",
                               color: isActuallyDeleted ? AppColors.disabled : AppColors.onBackground,
                             }}>
-                            {formatAmount(originalItem.amount)}
+                            {formatAmount(item.amount)}
                           </td>
                           <td className="col-actions">
-                            <ActionButton
-                              onClick={() => onActionClick("delete_feature_json", { featureId: originalItem.id })}>
+                            <ActionButton onClick={() => onActionClick("delete_feature_json", { featureId: item.id })}>
                               {isActuallyDeleted ? "취소" : "삭제"}
                             </ActionButton>
                           </td>
                         </tr>
                       );
-                    })
-                  );
-                })}
+                    })}
+                  </React.Fragment>
+                ))}
                 <tr>
                   <td colSpan={3} className="total-label">
                     <strong>총 합계</strong>

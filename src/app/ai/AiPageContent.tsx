@@ -556,41 +556,42 @@ export default function AiPageContent() {
   };
 
   useEffect(() => {
-    if (invoiceDetails) {
-      console.log("✅ InvoiceDetails state updated by useEffect:", JSON.stringify(invoiceDetails, null, 2));
-    }
+    // invoiceDetails 상태 변경 로깅 제거
+    // if (invoiceDetails) {
+    //   console.log("✅ InvoiceDetails state updated by useEffect:", JSON.stringify(invoiceDetails, null, 2));
+    // }
   }, [invoiceDetails]);
 
   // --- 버튼 액션 처리 함수 수정 ---
   const handleActionClick = async (action: string, data?: { featureId?: string }) => {
-    console.log("🔵 handleActionClick - Action:", action, "Data:", data);
+    // console.log("🔵 handleActionClick - Action:", action, "Data:", data); // 로깅 제거
 
     if (action === "delete_feature_json" && data?.featureId && invoiceDetails) {
       const featureIdToDelete = data.featureId;
-      console.log(`Attempting to toggle delete for featureId: ${featureIdToDelete}`);
+      // console.log(`Attempting to toggle delete for featureId: ${featureIdToDelete}`); // 로깅 제거
 
-      // 아이템 찾기 로깅
-      const itemExists = invoiceDetails.items.some((item) => item.id === featureIdToDelete);
-      console.log(`Item with id '${featureIdToDelete}' exists in items array: ${itemExists}`);
+      // 아이템 찾기 로깅 제거
+      // const itemExists = invoiceDetails.items.some((item) => item.id === featureIdToDelete);
+      // console.log(`Item with id '${featureIdToDelete}' exists in items array: ${itemExists}`);
 
       const newItems = invoiceDetails.items.map((item) => {
         if (item.id === featureIdToDelete) {
-          console.log(`Found item to toggle: ${item.feature}, current isDeleted: ${item.isDeleted}`);
+          // console.log(`Found item to toggle: ${item.feature}, current isDeleted: ${item.isDeleted}`); // 로깅 제거
           return { ...item, isDeleted: !item.isDeleted };
         }
         return item;
       });
 
-      // isDeleted 상태 변경 확인 로깅
-      const changedItem = newItems.find((item) => item.id === featureIdToDelete);
-      console.log(`Item '${changedItem?.feature}' after toggle, new isDeleted: ${changedItem?.isDeleted}`);
-      console.log("newItems array after map:", JSON.stringify(newItems, null, 2));
+      // isDeleted 상태 변경 확인 로깅 제거
+      // const changedItem = newItems.find((item) => item.id === featureIdToDelete);
+      // console.log(`Item '${changedItem?.feature}' after toggle, new isDeleted: ${changedItem?.isDeleted}`);
+      // console.log("newItems array after map:", JSON.stringify(newItems, null, 2));
 
       const { totalAmount, totalDuration, totalPages } = calculateTotals(newItems);
-      console.log("Recalculated Totals:", { totalAmount, totalDuration, totalPages });
+      // console.log("Recalculated Totals:", { totalAmount, totalDuration, totalPages }); // 로깅 제거
 
       setInvoiceDetails((prev) => {
-        console.log("Calling setInvoiceDetails with new totals and items.");
+        // console.log("Calling setInvoiceDetails with new totals and items."); // 로깅 제거
         if (prev) {
           return {
             ...prev,
@@ -693,16 +694,16 @@ export default function AiPageContent() {
     const submissionPrompt = actionPrompt || prompt;
 
     if ((!submissionPrompt && uploadedFiles.length === 0) || loading) {
-      console.error("Submit prevented: No prompt or files, or already loading.");
+      // console.error("Submit prevented: No prompt or files, or already loading."); // 로깅 제거
       return;
     }
 
     if (!isFreeFormMode) {
-      console.error("Submit prevented: File upload only in free form mode.");
+      // console.error("Submit prevented: File upload only in free form mode."); // 로깅 제거
       return;
     }
 
-    console.log("handleGeminiSubmit called with prompt:", submissionPrompt, "Files:", uploadedFiles);
+    // console.log("handleGeminiSubmit called with prompt:", submissionPrompt, "Files:", uploadedFiles); // 로깅 제거
     setLoading(true);
     setError("");
 
@@ -761,13 +762,25 @@ export default function AiPageContent() {
       selectionSummary += "\n";
       if (selectionSummary.trim()) parts.push({ text: selectionSummary }); // trim() 추가
 
+      // 현재 견적서 상태 추가 (삭제된 항목 포함)
+      if (invoiceDetails && invoiceDetails.items && invoiceDetails.items.length > 0) {
+        let currentInvoiceStateText =
+          "현재 사용자가 보고 있는 견적서 상태입니다. 일부 항목은 사용자에 의해 삭제 처리되었을 수 있습니다 (isDeleted: true로 표시됨):\n";
+        invoiceDetails.items.forEach((item) => {
+          currentInvoiceStateText += `- 항목: ${item.feature}, 금액: ${item.amount}, 삭제됨: ${item.isDeleted}\n`;
+          // 필요시 다른 필드(description, duration, pages 등)도 추가 가능
+        });
+        currentInvoiceStateText += `현재 총액: ${invoiceDetails.currentTotal}, 총 기간: ${invoiceDetails.currentTotalDuration}일, 총 페이지: ${invoiceDetails.currentTotalPages}페이지\n`;
+        parts.push({ text: currentInvoiceStateText });
+      }
+
       if (submissionPrompt) parts.push({ text: submissionPrompt });
 
       currentFiles.forEach((file) => {
         parts.push({ fileData: { mimeType: file.mimeType, fileUri: file.fileUri } as FileData });
       });
 
-      console.log("Sending parts to AI via ChatSession:", JSON.stringify(parts, null, 2));
+      // console.log("Sending parts to AI via ChatSession:", JSON.stringify(parts, null, 2)); // 로깅 제거
 
       if (!chat.current) {
         throw new Error("AI chat session is not initialized.");
@@ -776,53 +789,53 @@ export default function AiPageContent() {
       const streamResult = await chat.current.sendMessageStream(parts);
 
       let aiResponseText = "";
-      console.log("--- AI Streaming Start ---");
+      // console.log("--- AI Streaming Start ---"); // 로깅 제거
       for await (const item of streamResult.stream) {
         const chunkText = item.candidates?.[0]?.content?.parts?.[0]?.text;
         if (chunkText) {
           aiResponseText += chunkText;
-          setMessages((prevMessages: Message[]) => {
-            return prevMessages.map((msg) => (msg.id === aiMessageId ? { ...msg, text: msg.text + chunkText } : msg));
-          });
+          // 스트리밍 중 메시지 업데이트 제거 - 전체 응답 후 한 번만 업데이트
+          // setMessages((prevMessages: Message[]) => {
+          //   return prevMessages.map((msg) => (msg.id === aiMessageId ? { ...msg, text: msg.text + chunkText } : msg));
+          // });
         }
       }
-      console.log("--- AI Streaming End ---");
+      // console.log("--- AI Streaming End ---"); // 로깅 제거
 
-      console.log("✅✅✅ AI Full Response Received (aiResponseText):", aiResponseText);
+      // console.log("✅✅✅ AI Full Response Received (aiResponseText):", aiResponseText); // 로깅 제거
 
       const jsonScriptRegex = /<script type="application\/json" id="invoiceData">([\s\S]*?)<\/script>/;
       const jsonMatch = aiResponseText.match(jsonScriptRegex);
 
-      console.log("JSON Match Attempt:", jsonMatch ? "Found match" : "No match found");
+      // console.log("JSON Match Attempt:", jsonMatch ? "Found match" : "No match found"); // 로깅 제거
 
       let parsedInvoiceData: InvoiceDataType | null = null; // 타입 명시
       let naturalLanguageText = aiResponseText;
 
       if (jsonMatch && jsonMatch[1]) {
         const jsonString = jsonMatch[1];
-        console.log("✅ Extracted JSON String from <script> tag:", jsonString);
+        // console.log("✅ Extracted JSON String from <script> tag:", jsonString); // 로깅 제거
         try {
           parsedInvoiceData = JSON.parse(jsonString) as InvoiceDataType;
-          console.log("✅ Successfully Parsed Invoice JSON Object:", JSON.stringify(parsedInvoiceData, null, 2));
+          // console.log("✅ Successfully Parsed Invoice JSON Object:", JSON.stringify(parsedInvoiceData, null, 2)); // 로깅 제거
 
           naturalLanguageText = aiResponseText.replace(jsonScriptRegex, "").trim();
-          console.log("Natural Language Text (after removing JSON script):", naturalLanguageText);
+          // console.log("Natural Language Text (after removing JSON script):", naturalLanguageText); // 로깅 제거
 
-          if (parsedInvoiceData && parsedInvoiceData.invoiceGroup && parsedInvoiceData.total?.amount !== undefined) {
-            // total.amount 검증은 이제 프론트에서 하므로 제거 가능
+          if (parsedInvoiceData && parsedInvoiceData.invoiceGroup) {
             const initialItems = parsedInvoiceData.invoiceGroup.flatMap((group) =>
               group.items.map((item) => ({ ...item, isDeleted: false }))
             );
             const { totalAmount, totalDuration, totalPages } = calculateTotals(initialItems);
 
-            console.log("Calculated Totals by Frontend:", { totalAmount, totalDuration, totalPages });
+            // console.log("Calculated Totals by Frontend:", { totalAmount, totalDuration, totalPages }); // 로깅 제거
 
             setInvoiceDetails({
-              parsedJson: parsedInvoiceData, // AI가 준 원본 JSON (total 포함할 수 있음)
+              parsedJson: parsedInvoiceData,
               items: initialItems,
-              currentTotal: totalAmount, // 프론트에서 계산한 총 금액
-              currentTotalDuration: totalDuration, // 프론트에서 계산한 총 기간
-              currentTotalPages: totalPages, // 프론트에서 계산한 총 페이지
+              currentTotal: totalAmount,
+              currentTotalDuration: totalDuration,
+              currentTotalPages: totalPages,
             });
 
             // Message 업데이트 시 invoiceData는 AI 원본을 전달할지, 프론트 계산값을 포함할지 결정.
@@ -832,38 +845,46 @@ export default function AiPageContent() {
             setMessages((prevMessages: Message[]) => {
               return prevMessages.map((msg) =>
                 msg.id === aiMessageId
-                  ? { ...msg, text: naturalLanguageText, invoiceData: parsedInvoiceData ?? undefined }
+                  ? { ...msg, text: naturalLanguageText, invoiceData: parsedInvoiceData ?? undefined } // 전체 응답으로 업데이트
                   : msg
               );
             });
           } else {
-            console.error(
-              "❌ Parsed JSON data is invalid or missing required fields (e.g., invoiceGroup, total.amount). Parsed Data:",
-              JSON.stringify(parsedInvoiceData, null, 2)
-            );
+            // console.error( // 로깅 제거
+            //   "❌ Parsed JSON data is invalid or missing required fields (e.g., invoiceGroup, total.amount). Parsed Data:",
+            //   JSON.stringify(parsedInvoiceData, null, 2)
+            // );
             setInvoiceDetails(null);
             setMessages((prevMessages: Message[]) => {
               return prevMessages.map((msg) =>
-                msg.id === aiMessageId ? { ...msg, text: naturalLanguageText, invoiceData: undefined } : msg
+                msg.id === aiMessageId
+                  ? { ...msg, text: naturalLanguageText, invoiceData: undefined } // 전체 응답으로 업데이트
+                  : msg
               );
             });
           }
-        } catch (e) {
-          console.error("❌ Error parsing invoice JSON from AI response:", e);
-          console.error("Invalid JSON String was:", jsonString);
+        } catch (parseError) {
+          console.error("❌ Error parsing invoice JSON from AI response:", parseError);
+          if (jsonString) {
+            console.error("Invalid JSON String was:", jsonString);
+          }
           setInvoiceDetails(null);
           setMessages((prevMessages: Message[]) => {
             return prevMessages.map((msg) =>
-              msg.id === aiMessageId ? { ...msg, text: aiResponseText, invoiceData: undefined } : msg
+              msg.id === aiMessageId
+                ? { ...msg, text: aiResponseText, invoiceData: undefined } // 전체 응답으로 업데이트
+                : msg
             );
           });
         }
       } else {
-        console.log("No invoice JSON data <script> tag found in AI response. Treating as natural language only.");
+        // console.log("No invoice JSON data <script> tag found in AI response. Treating as natural language only."); // 로깅 제거
         setInvoiceDetails(null);
         setMessages((prevMessages: Message[]) => {
           return prevMessages.map((msg) =>
-            msg.id === aiMessageId ? { ...msg, text: aiResponseText, invoiceData: undefined } : msg
+            msg.id === aiMessageId
+              ? { ...msg, text: aiResponseText, invoiceData: undefined } // 전체 응답으로 업데이트
+              : msg
           );
         });
       }
@@ -873,7 +894,9 @@ export default function AiPageContent() {
       console.error("❌ Error in handleGeminiSubmit's try block:", err);
       setMessages((prevMessages: Message[]) => {
         return prevMessages.map((msg) =>
-          msg.id === aiMessageId ? { ...msg, text: `오류: ${errorMessage}`, invoiceData: undefined } : msg
+          msg.id === aiMessageId
+            ? { ...msg, text: `오류: ${errorMessage}`, invoiceData: undefined } // 전체 응답으로 업데이트
+            : msg
         );
       });
       setInvoiceDetails(null);
