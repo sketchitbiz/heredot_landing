@@ -7,13 +7,44 @@ import ReactMarkdown, { Options } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
 
-// Message 인터페이스 export 추가
+// INVOICE_SCHEMA에 따른 타입 정의 (실제 schema.ts의 구조를 반영해야 함)
+// 이 타입들은 AiPageContent.tsx와 동기화되어야 하며, 한 곳에서 정의하고 공유하는 것이 좋음
+interface InvoiceFeatureItem {
+  id: string;
+  feature: string;
+  description: string;
+  amount: number | string;
+  duration?: string;
+  category?: string;
+  pages?: number | string;
+  note?: string;
+}
+
+interface InvoiceGroup {
+  category: string;
+  items: InvoiceFeatureItem[];
+}
+
+interface InvoiceTotal {
+  amount: number;
+  duration?: number;
+  pages?: number;
+}
+
+export interface InvoiceDataType {
+  project: string;
+  invoiceGroup: InvoiceGroup[];
+  total: InvoiceTotal;
+}
+
+// Message 인터페이스 export 추가 및 invoiceData 필드 추가
 export interface Message {
   id: number;
   sender: "user" | "ai";
   text: string;
   imageUrl?: string; // 이미지 URL (선택적)
   fileType?: string; // 파일 타입 (선택적)
+  invoiceData?: InvoiceDataType; // AI가 생성한 견적서 JSON 데이터
 }
 
 interface MessageProps extends Omit<Message, "id"> {
@@ -24,6 +55,14 @@ interface MessageProps extends Omit<Message, "id"> {
 interface StyledComponentProps {
   $sender: "user" | "ai";
 }
+
+// formatAmount 함수 정의 (컴포넌트 바깥 또는 유틸리티 파일로 이동 가능)
+const formatAmount = (amount: number | string) => {
+  if (typeof amount === "number") {
+    return `${amount.toLocaleString()} 원`;
+  }
+  return amount; // "별도 문의" 등 문자열 그대로 반환
+};
 
 const TableStyles = css`
   width: 100%;
@@ -231,7 +270,110 @@ type ButtonRendererProps = React.DetailedHTMLProps<React.ButtonHTMLAttributes<HT
   node?: unknown;
 };
 
-export function AiChatMessage({ sender, text, imageUrl, fileType, onActionClick }: MessageProps) {
+// 견적서 UI용 스타일 컴포넌트 (이전 제안 기반)
+const StyledInvoiceContainer = styled.div`
+  margin-top: 1.5rem;
+  padding: 1rem;
+  border: 1px solid ${AppColors.border};
+  border-radius: 8px;
+  background-color: #1c1c25;
+  color: ${AppColors.onBackground};
+  font-size: 0.9rem;
+`;
+
+const InvoiceProjectTitle = styled.h3`
+  font-size: 1.3em;
+  color: ${AppColors.primary};
+  margin-bottom: 1em;
+  /* text-align: center; */ // ProfileName 옆에 오도록 수정했으므로 주석 처리 또는 삭제
+`;
+
+const InvoiceTable = styled.table`
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+
+  th,
+  td {
+    border-bottom: 1px solid ${AppColors.border};
+    padding: 0.75em 0.5em;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  th {
+    font-weight: 600;
+    background-color: #2a2a3a;
+    color: ${AppColors.onPrimary};
+    white-space: nowrap;
+  }
+
+  td {
+    font-weight: 300;
+  }
+
+  .col-category {
+    width: 18%;
+    font-weight: 500;
+  }
+  .col-feature {
+    width: 25%;
+    font-weight: 500;
+  }
+  .col-description {
+    width: 32%;
+    font-size: 0.9em;
+    line-height: 1.5;
+  }
+  .col-amount {
+    width: 15%;
+    text-align: right;
+    white-space: nowrap;
+  }
+  .col-actions {
+    width: 10%;
+    text-align: center;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: none;
+    font-weight: bold;
+  }
+
+  .total-label {
+    text-align: right;
+    padding-right: 1em;
+  }
+`;
+
+const ActionButton = styled.button`
+  background-color: ${AppColors.onBackgroundGray};
+  color: #ffffff;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: ${AppColors.primary};
+  }
+`;
+
+export function AiChatMessage({ sender, text, imageUrl, fileType, onActionClick, invoiceData }: MessageProps) {
+  // ⭐ Props 로깅 추가
+  console.log("--- AiChatMessage Received Props ---");
+  console.log("Sender:", sender);
+  console.log("Text:", text);
+  console.log("Image URL:", imageUrl);
+  console.log("File Type:", fileType);
+  console.log("Invoice Data (exists?):", !!invoiceData);
+  if (invoiceData) {
+    console.log("Invoice Data Content:", JSON.stringify(invoiceData, null, 2));
+  }
+  console.log("---------------------------------");
+
   const isAiMessage = sender === "ai";
 
   const customComponents: Options["components"] = {
@@ -273,25 +415,122 @@ export function AiChatMessage({ sender, text, imageUrl, fileType, onActionClick 
     },
   };
 
+  // ⭐ 조건부 렌더링 로깅 추가
+  if (isAiMessage && invoiceData) {
+    console.log("✅ Condition met: Rendering Invoice UI with Invoice Data.");
+  } else if (isAiMessage) {
+    console.log("ℹ️ AI Message, but no Invoice Data to render invoice UI.");
+  }
+
   return (
     <MessageWrapper $sender={sender}>
       {isAiMessage && <ProfileImage src="/pretty.png" alt="AI 프로필" />}
       <MessageBox $sender={sender}>
+        {isAiMessage && !invoiceData && (
+          <ProfileName style={{ marginBottom: "0.5rem" }}>
+            <strong>강유하</strong>
+          </ProfileName>
+        )}
+
         <StyledMarkdownContainer>
-          {isAiMessage && (
-            <>
-              <ProfileName>
-                <strong>강유하</strong>
-              </ProfileName>
-            </>
-          )}
           <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} components={customComponents}>
             {text}
           </ReactMarkdown>
         </StyledMarkdownContainer>
-        {/* 이미지 표시 로직 추가 */}
+
+        {isAiMessage && invoiceData && (
+          <StyledInvoiceContainer>
+            <div style={{ display: "flex", alignItems: "center", marginBottom: "1rem" }}>
+              <div>
+                <ProfileName style={{ fontSize: "1.1rem" }}>
+                  <strong>강유하</strong>
+                </ProfileName>
+                <InvoiceProjectTitle>{invoiceData.project || "프로젝트 견적"}</InvoiceProjectTitle>
+              </div>
+            </div>
+
+            <InvoiceTable>
+              <thead>
+                <tr>
+                  <th className="col-category">구분</th>
+                  <th className="col-feature">항목</th>
+                  <th className="col-description">세부 내용</th>
+                  <th className="col-amount">예상 금액</th>
+                  <th className="col-actions">관리</th>
+                </tr>
+              </thead>
+              <tbody>
+                {invoiceData.invoiceGroup?.map((group, groupIndex) =>
+                  group.items?.map((item, itemIndex) => (
+                    <tr key={item.id || `feature-${groupIndex}-${itemIndex}`}>
+                      {itemIndex === 0 ? (
+                        <td className="col-category" rowSpan={group.items.length || 1}>
+                          {group.category}
+                        </td>
+                      ) : null}
+                      <td className="col-feature">{item.feature}</td>
+                      <td className="col-description">
+                        {item.description}
+                        {item.note && (
+                          <p style={{ fontSize: "0.9em", color: AppColors.onSurfaceVariant, marginTop: "0.3em" }}>
+                            <em>참고: {item.note}</em>
+                          </p>
+                        )}
+                        {item.duration && (
+                          <p style={{ fontSize: "0.9em", color: AppColors.onSurfaceVariant, marginTop: "0.3em" }}>
+                            예상 기간: {item.duration}
+                          </p>
+                        )}
+                        {item.pages && (
+                          <p style={{ fontSize: "0.9em", color: AppColors.onSurfaceVariant, marginTop: "0.3em" }}>
+                            예상 페이지: {item.pages}
+                          </p>
+                        )}
+                      </td>
+                      <td className="col-amount">{formatAmount(item.amount)}</td>
+                      <td className="col-actions">
+                        <ActionButton onClick={() => onActionClick("delete_feature_json", { featureId: item.id })}>
+                          삭제
+                        </ActionButton>
+                      </td>
+                    </tr>
+                  ))
+                )}
+                {/* 총계 행 */}
+                <tr>
+                  <td colSpan={3} className="total-label">
+                    <strong>총 합계</strong>
+                  </td>
+                  <td className="col-amount">
+                    <strong>{formatAmount(invoiceData.total?.amount)}</strong>
+                  </td>
+                  <td></td> {/* Action 컬럼 빈칸 */}
+                </tr>
+                {invoiceData.total?.duration !== undefined && (
+                  <tr>
+                    <td colSpan={3} className="total-label">
+                      총 예상 기간
+                    </td>
+                    <td className="col-amount">{invoiceData.total.duration} 일</td>
+                    <td></td>
+                  </tr>
+                )}
+                {invoiceData.total?.pages !== undefined && (
+                  <tr>
+                    <td colSpan={3} className="total-label">
+                      총 예상 페이지 수
+                    </td>
+                    <td className="col-amount">{invoiceData.total.pages} 페이지</td>
+                    <td></td>
+                  </tr>
+                )}
+              </tbody>
+            </InvoiceTable>
+          </StyledInvoiceContainer>
+        )}
+
         {imageUrl && fileType && fileType.startsWith("image/") && (
-          <div className="image-content" style={{ marginTop: "10px", textAlign: sender === "user" ? "right" : "left" }}>
+          <div style={{ marginTop: "10px", textAlign: sender === "user" ? "right" : "left" }}>
             <img
               src={imageUrl}
               alt="첨부 이미지"
@@ -299,17 +538,8 @@ export function AiChatMessage({ sender, text, imageUrl, fileType, onActionClick 
                 maxWidth: "300px",
                 maxHeight: "300px",
                 borderRadius: "8px",
-                border: "1px solid #eee",
-                display: "inline-block", // 오른쪽 정렬을 위해
               }}
             />
-          </div>
-        )}
-        {/* (선택 사항) PDF 등 다른 파일 타입에 대한 아이콘/링크 표시 */}
-        {fileType && !fileType.startsWith("image/") && text.includes("(첨부 파일:") && (
-          <div className="file-attachment-info" style={{ marginTop: "5px", fontSize: "0.9em", color: "#888" }}>
-            {/* 예: <p>첨부 파일: {text.substring(text.indexOf("(첨부 파일:") + 7, text.lastIndexOf(")"))}</p> */}
-            {/* 필요시 파일 아이콘 또는 다운로드 링크 등을 추가할 수 있습니다. */}
           </div>
         )}
       </MessageBox>

@@ -12,7 +12,7 @@ import { AiChatQuestion } from "@/components/Ai/AiChatQuestion";
 import { AiProgressBar } from "@/components/Ai/AiProgressBar";
 import { customScrollbar } from "@/styles/commonStyles";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import { AiChatMessage, Message } from "@/components/Ai/AiChatMessage";
+import { AiChatMessage, Message, InvoiceDataType } from "@/components/Ai/AiChatMessage";
 import useAI from "@/hooks/useAI"; // 경로 확인 필요
 
 // Material UI & File Upload Imports
@@ -23,6 +23,58 @@ import CloseIcon from "@mui/icons-material/Close";
 import { FileUploadData, uploadFiles } from "@/lib/firebase/firebase.functions"; // 경로 확인 필요
 import { Part, FileData } from "firebase/vertexai"; // FileDataPart 제거
 import TextareaAutosize from "react-textarea-autosize"; // 라이브러리 import
+
+// --- 타입 정의 추가 --- (AiChatMessage.tsx의 타입과 동기화 필요)
+// interface InvoiceFeatureItem {
+//   // schema.ts의 FEATURE_SCHEMA 대응
+//   id: string;
+//   feature: string;
+//   description: string;
+//   amount: number | string;
+//   duration?: string;
+//   category?: string;
+//   pages?: number | string;
+//   note?: string;
+// }
+
+// interface InvoiceGroup {
+//   // schema.ts의 GROUP_FEATURE_SCHEMA 대응
+//   category: string;
+//   items: InvoiceFeatureItem[];
+// }
+
+// interface InvoiceTotal {
+//   // schema.ts의 INVOICE_SCHEMA 내 total 객체 대응
+//   amount: number;
+//   duration?: number;
+//   pages?: number;
+// }
+
+// export interface InvoiceDataType {
+//   // schema.ts의 INVOICE_SCHEMA 전체 구조 대응
+//   project: string;
+//   invoiceGroup: InvoiceGroup[];
+//   total: InvoiceTotal;
+// }
+
+// export interface Message {
+//   // Message 인터페이스 업데이트
+//   id: number;
+//   sender: "user" | "ai";
+//   text: string;
+//   imageUrl?: string;
+//   fileType?: string;
+//   invoiceData?: InvoiceDataType; // 파싱된 JSON 데이터 추가
+// }
+
+// 견적서 상세 정보 상태 인터페이스 정의 (parsedJson 추가, markdown 제거 또는 주석)
+interface InvoiceDetails {
+  // markdown?: string; // AI가 보낸 원본 Markdown (이제 사용 안 함 또는 자연어 부분만 저장)
+  parsedJson?: InvoiceDataType; // 파싱된 JSON 데이터
+  items: Array<InvoiceDataType["invoiceGroup"][number]["items"][number] & { isDeleted: boolean }>; // items 타입 구체화
+  currentTotal: number;
+}
+// --- 타입 정의 끝 ---
 
 // --- 데이터 정의 ---
 const stepData = [
@@ -366,22 +418,6 @@ const DragDropOverlay = styled.div`
 `;
 // -------------------------
 
-// 견적서 항목 인터페이스 정의
-interface InvoiceItem {
-  id: string;
-  name: string;
-  amount: number;
-  isDeleted: boolean; // 삭제 여부 상태
-  // 필요시 category, description, note 등 추가
-}
-
-// 견적서 상세 정보 상태 인터페이스 정의
-interface InvoiceDetails {
-  markdown: string; // AI가 보낸 원본 Markdown (JSON 제외)
-  items: InvoiceItem[];
-  currentTotal: number;
-}
-
 // 컴포넌트 이름을 AiPageContent로 변경
 export default function AiPageContent() {
   const router = useRouter();
@@ -591,13 +627,11 @@ export default function AiPageContent() {
     e?.preventDefault();
     const submissionPrompt = actionPrompt || prompt;
 
-    // 파일 또는 프롬프트가 없으면 중단
     if ((!submissionPrompt && uploadedFiles.length === 0) || loading) {
       console.error("Submit prevented: No prompt or files, or already loading.");
       return;
     }
 
-    // 기존 isFreeFormMode 체크 유지 (파일 업로드는 자유 질문 모드에서만 가능하다고 가정)
     if (!isFreeFormMode) {
       console.error("Submit prevented: File upload only in free form mode.");
       return;
@@ -607,7 +641,6 @@ export default function AiPageContent() {
     setLoading(true);
     setError("");
 
-    // 사용자 메시지 생성 (프롬프트 + 파일 목록 텍스트 + 이미지 정보)
     let userMessageText = submissionPrompt;
     let userMessageImageUrl: string | undefined = undefined;
     let userMessageFileType: string | undefined = undefined;
@@ -619,13 +652,10 @@ export default function AiPageContent() {
         userMessageImageUrl = firstImageFile.fileUri;
         userMessageFileType = firstImageFile.mimeType;
       } else if (uploadedFiles.length > 0) {
-        // 이미지가 아니더라도 첫 번째 파일의 타입을 기록 (선택 사항)
         userMessageFileType = uploadedFiles[0].mimeType;
       }
     }
 
-    // Message 타입이 imageUrl 및 fileType을 포함하도록 업데이트되었다고 가정합니다.
-    // 사용자가 직접 해당 파일을 수정해야 합니다.
     const userMessage = {
       id: Date.now(),
       sender: "user" as const,
@@ -634,10 +664,8 @@ export default function AiPageContent() {
       fileType: userMessageFileType,
     };
 
-    // AI 메시지 객체도 일관성을 위해 동일한 구조를 가지지만, 여기서는 이미지 정보를 보내지 않습니다.
     const aiMessageId = Date.now() + 1;
-    const initialAiMessage: Message = { id: aiMessageId, sender: "ai", text: "" };
-    // Type assertion은 Message 타입이 업데이트된 후 제거해야 함
+    const initialAiMessage: Message = { id: aiMessageId, sender: "ai", text: "", invoiceData: undefined };
     setMessages((prev) => [...prev, userMessage as Message, initialAiMessage]);
 
     if (!actionPrompt) {
@@ -647,15 +675,12 @@ export default function AiPageContent() {
     setUploadedFiles([]);
     setUploadProgress(0);
 
-    // 새 메시지 전송 시 이전 견적서 상태 초기화 (show_invoice는 handleActionClick에서 처리)
-    if (actionPrompt !== "견적서를 보여줘") {
+    if (actionPrompt !== "견적서를 보여줘" && actionPrompt !== "견적 데이터 보기") {
       setInvoiceDetails(null);
     }
 
     try {
-      // --- AI 요청 구성 ---
-      const parts: Part[] = []; // 타입을 Part[]로 명시
-      // 1. 기초 조사 요약 추가 (Part 객체 형태로)
+      const parts: Part[] = [];
       let selectionSummary = "";
       Object.entries(selections).forEach(([stepId, selectedOptions]) => {
         const stepInfo = stepData.find((step) => step.id === stepId);
@@ -669,28 +694,24 @@ export default function AiPageContent() {
         }
       });
       selectionSummary += "\n";
-      if (selectionSummary) parts.push({ text: selectionSummary + "\n" });
+      if (selectionSummary.trim()) parts.push({ text: selectionSummary }); // trim() 추가
 
-      // 2. 텍스트 프롬프트 추가 (Part 객체 형태로)
       if (submissionPrompt) parts.push({ text: submissionPrompt });
 
-      // 3. 파일 데이터 추가 (기존 방식 유지 - 올바름)
       currentFiles.forEach((file) => {
         parts.push({ fileData: { mimeType: file.mimeType, fileUri: file.fileUri } as FileData });
       });
-      // --- AI 요청 구성 완료 ---
 
-      console.log("Sending parts to AI via ChatSession:", parts); // 로그 수정
+      console.log("Sending parts to AI via ChatSession:", JSON.stringify(parts, null, 2));
 
-      // chat 객체 존재 여부 확인
       if (!chat.current) {
         throw new Error("AI chat session is not initialized.");
       }
 
-      // chat.sendMessageStream 사용 (model.generateContentStream 대신)
       const streamResult = await chat.current.sendMessageStream(parts);
 
       let aiResponseText = "";
+      console.log("--- AI Streaming Start ---");
       for await (const item of streamResult.stream) {
         const chunkText = item.candidates?.[0]?.content?.parts?.[0]?.text;
         if (chunkText) {
@@ -700,70 +721,84 @@ export default function AiPageContent() {
           });
         }
       }
+      console.log("--- AI Streaming End ---");
 
-      // --- 스트림 종료 후 처리 ---
-      console.log("AI full response received:", aiResponseText);
+      console.log("✅✅✅ AI Full Response Received (aiResponseText):", aiResponseText);
 
-      // 1. JSON 데이터 추출 및 파싱
       const jsonScriptRegex = /<script type="application\/json" id="invoiceData">([\s\S]*?)<\/script>/;
       const jsonMatch = aiResponseText.match(jsonScriptRegex);
-      let parsedInvoiceData: {
-        items: Array<{ id: string; name: string; amount: number }>;
-        initialTotal: number;
-      } | null = null;
-      let markdownContent = aiResponseText; // 기본값은 전체 응답
+
+      console.log("JSON Match Attempt:", jsonMatch ? "Found match" : "No match found");
+
+      let parsedInvoiceData: InvoiceDataType | null = null; // 타입 명시
+      let naturalLanguageText = aiResponseText;
 
       if (jsonMatch && jsonMatch[1]) {
+        const jsonString = jsonMatch[1];
+        console.log("✅ Extracted JSON String from <script> tag:", jsonString);
         try {
-          parsedInvoiceData = JSON.parse(jsonMatch[1]);
-          markdownContent = aiResponseText.replace(jsonScriptRegex, "").trim(); // JSON 스크립트 제외
-          console.log("Parsed Invoice JSON:", parsedInvoiceData);
+          parsedInvoiceData = JSON.parse(jsonString) as InvoiceDataType;
+          console.log("✅ Successfully Parsed Invoice JSON Object:", JSON.stringify(parsedInvoiceData, null, 2));
 
-          // 2. invoiceDetails 상태 업데이트
-          if (parsedInvoiceData && parsedInvoiceData.items && typeof parsedInvoiceData.initialTotal === "number") {
-            const initialItems = parsedInvoiceData.items.map((item) => ({
-              ...item,
-              amount: Number(item.amount) || 0, // amount가 숫자인지 확인 및 변환
-              isDeleted: false,
-            }));
+          naturalLanguageText = aiResponseText.replace(jsonScriptRegex, "").trim();
+          console.log("Natural Language Text (after removing JSON script):", naturalLanguageText);
+
+          if (parsedInvoiceData && parsedInvoiceData.invoiceGroup && parsedInvoiceData.total?.amount !== undefined) {
+            console.log("Setting invoiceDetails with parsed JSON data.");
             setInvoiceDetails({
-              markdown: markdownContent,
-              items: initialItems,
-              currentTotal: parsedInvoiceData.initialTotal,
+              parsedJson: parsedInvoiceData,
+              items: parsedInvoiceData.invoiceGroup.flatMap((group) =>
+                group.items.map((item) => ({ ...item, isDeleted: false }))
+              ),
+              currentTotal: parsedInvoiceData.total.amount,
             });
-            console.log("Invoice details state updated.");
 
-            // 3. 메시지 업데이트 (파싱된 Markdown으로 최종 업데이트)
-            //    (스트리밍 업데이트가 이미 text를 만들었으므로, 원하면 여기서 markdownContent로 덮어쓸 수 있음)
             setMessages((prevMessages: Message[]) => {
-              return prevMessages.map((msg) => (msg.id === aiMessageId ? { ...msg, text: markdownContent } : msg));
+              return prevMessages.map((msg) =>
+                msg.id === aiMessageId ? { ...msg, text: naturalLanguageText, invoiceData: parsedInvoiceData } : msg
+              );
             });
           } else {
-            console.error("Parsed JSON data is invalid or missing required fields.");
-            setInvoiceDetails(null); // 유효하지 않으면 상태 초기화
+            console.error(
+              "❌ Parsed JSON data is invalid or missing required fields (e.g., invoiceGroup, total.amount). Parsed Data:",
+              JSON.stringify(parsedInvoiceData, null, 2)
+            );
+            setInvoiceDetails(null);
+            setMessages((prevMessages: Message[]) => {
+              return prevMessages.map((msg) =>
+                msg.id === aiMessageId ? { ...msg, text: naturalLanguageText, invoiceData: undefined } : msg
+              );
+            });
           }
         } catch (e) {
-          console.error("Error parsing invoice JSON from AI response:", e);
-          setInvoiceDetails(null); // 파싱 실패 시 상태 초기화
-          // Markdown만 있는 메시지로 처리
+          console.error("❌ Error parsing invoice JSON from AI response:", e);
+          console.error("Invalid JSON String was:", jsonString);
+          setInvoiceDetails(null);
           setMessages((prevMessages: Message[]) => {
-            return prevMessages.map((msg) => (msg.id === aiMessageId ? { ...msg, text: aiResponseText } : msg));
+            return prevMessages.map((msg) =>
+              msg.id === aiMessageId ? { ...msg, text: aiResponseText, invoiceData: undefined } : msg
+            );
           });
         }
       } else {
-        console.log("No invoice JSON data found in AI response.");
-        setInvoiceDetails(null); // JSON 없으면 상태 초기화
-        // Markdown만 있는 메시지로 처리 (스트리밍 완료된 상태 유지)
+        console.log("No invoice JSON data <script> tag found in AI response. Treating as natural language only.");
+        setInvoiceDetails(null);
+        setMessages((prevMessages: Message[]) => {
+          return prevMessages.map((msg) =>
+            msg.id === aiMessageId ? { ...msg, text: aiResponseText, invoiceData: undefined } : msg
+          );
+        });
       }
     } catch (err) {
-      // 오류 처리 (이전과 동일)
       const errorMessage = err instanceof Error ? err.message : "알 수 없는 오류가 발생했습니다.";
       setError(errorMessage);
-      console.error("Error sending message with files:", err);
+      console.error("❌ Error in handleGeminiSubmit's try block:", err);
       setMessages((prevMessages: Message[]) => {
-        return prevMessages.map((msg) => (msg.id === aiMessageId ? { ...msg, text: `오류: ${errorMessage}` } : msg));
+        return prevMessages.map((msg) =>
+          msg.id === aiMessageId ? { ...msg, text: `오류: ${errorMessage}`, invoiceData: undefined } : msg
+        );
       });
-      setInvoiceDetails(null); // 오류 발생 시 견적서 상태 초기화
+      setInvoiceDetails(null);
     } finally {
       setLoading(false);
     }
@@ -795,13 +830,11 @@ export default function AiPageContent() {
                       <strong>강유하</strong>
                     </ProfileName>
                     <div>
-                      {/* ... */}
                       <p style={{ marginTop: "1.5rem" }}>다음과 같은 기능도 지원됩니다.</p>
                       <ul>
                         <li>
                           URL: 네이버, 다음 등 원하는 사이트 링크
                           <br />
-                          {/* eslint-disable-next-line react/no-unescaped-entities */}
                           <span>ex) "www.naver.com 같은 사이트를 만들고 싶어요"</span>
                         </li>
                         <li>이미지: 캡처, JPG 등 이미지 파일</li>
@@ -825,7 +858,7 @@ export default function AiPageContent() {
                   <AiChatQuestion
                     key={currentStep}
                     {...currentStepData}
-                    gridColumns={gridColumnsForQuestion} // 수정된 변수 사용
+                    gridColumns={gridColumnsForQuestion}
                     selectionMode={currentStepData.selectionMode}
                     initialSelection={initialSelection}
                     onNext={handleNext}
@@ -834,15 +867,8 @@ export default function AiPageContent() {
                 </FlexContainer>
               )}
 
-              {/* 메시지 맵핑: id prop 제거 */}
               {messages.map((msg) => (
-                <AiChatMessage
-                  key={msg.id}
-                  {...msg} // msg 객체의 모든 속성 전달 (id, sender, text, imageUrl?, fileType?)
-                  onActionClick={handleActionClick}
-                  invoiceDetails={msg.sender === "ai" && invoiceDetails ? invoiceDetails : undefined}
-                  currentTotal={msg.sender === "ai" && invoiceDetails ? invoiceDetails.currentTotal : undefined}
-                />
+                <AiChatMessage key={msg.id} {...msg} onActionClick={handleActionClick} />
               ))}
 
               {loading && <StatusMessage>AI 응답을 생성 중입니다...</StatusMessage>}
@@ -853,7 +879,6 @@ export default function AiPageContent() {
           </ChatContent>
 
           <MessageInput>
-            {/* 업로드된 파일 목록 표시 */}
             {uploadedFiles.length > 0 && (
               <UploadedFilesContainer>
                 {uploadedFiles.map((file) => (
@@ -865,15 +890,13 @@ export default function AiPageContent() {
                         src={file.fileUri}
                         alt={file.name}
                         style={{
-                          width: "100%", // 부모 높이에 맞춰 꽉 채우도록 수정 (UploadedFilePreview 높이 기준)
+                          width: "100%",
                           height: "100%",
                           objectFit: "contain",
                           borderRadius: "4px",
-                          // marginRight는 UploadedFilePreview의 gap으로 처리되거나 필요시 유지
                         }}
                       />
                     ) : (
-                      // 이미지가 아닌 파일: 아이콘 + 파일 이름 중앙 정렬을 위한 Flexbox
                       <div
                         style={{
                           display: "flex",
@@ -883,7 +906,6 @@ export default function AiPageContent() {
                           height: "100%",
                           textAlign: "center",
                         }}>
-                        {/* TODO: 파일 타입별 아이콘 추가하면 좋음 */}
                         <span
                           title={file.name}
                           style={{
@@ -901,15 +923,13 @@ export default function AiPageContent() {
                       onClick={() => handleDeleteFile(file.fileUri)}
                       size="small"
                       style={{ padding: "2px", marginLeft: "auto" }}
-                      sx={{ color: "#FFFFFF" }} // 아이콘 색상을 흰색으로 변경
-                    >
+                      sx={{ color: "#FFFFFF" }}>
                       <CloseIcon fontSize="inherit" />
                     </IconButton>
                   </UploadedFilePreview>
                 ))}
               </UploadedFilesContainer>
             )}
-            {/* 업로드 진행률 표시 */}
             {uploadProgress > 0 && uploadProgress < 100 && (
               <div style={{ width: "100%", maxWidth: "48rem", margin: "0 auto 0.5rem auto" }}>
                 <progress value={uploadProgress} max="100" style={{ width: "100%" }} />
@@ -917,23 +937,20 @@ export default function AiPageContent() {
             )}
 
             <InputContainer onSubmit={handleGeminiSubmit} data-active={isFreeFormMode && !loading}>
-              {/* 숨겨진 파일 입력 */}
               <input
                 type="file"
                 multiple
-                accept="image/*,application/pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,.txt,text/plain,.hwp,application/x-hwp" // 다양한 문서 타입 추가
+                accept="image/*,application/pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,.txt,text/plain,.hwp,application/x-hwp"
                 ref={fileInputRef}
                 onChange={handleFileInputChange}
                 style={{ display: "none" }}
-                disabled={!isFreeFormMode || loading} // 자유모드 및 로딩 중 비활성화
+                disabled={!isFreeFormMode || loading}
               />
-              {/* 파일 업로드 아이콘 버튼 (스타일 수정) */}
               <IconButton
                 onClick={handleIconUploadClick}
                 size="small"
                 disabled={!isFreeFormMode || loading}
                 sx={{
-                  // sx prop으로 스타일 적용
                   padding: "0.5rem",
                   borderRadius: "50%",
                   background: AppColors.iconDisabled,
@@ -941,23 +958,20 @@ export default function AiPageContent() {
                     backgroundColor: AppColors.disabled,
                   },
                 }}>
-                <AddPhotoAlternateIcon sx={{ color: "#BBBBCF" }} /> {/* 아이콘 색상 적용 */}
+                <AddPhotoAlternateIcon sx={{ color: "#BBBBCF" }} />
               </IconButton>
-              {/* Input 대신 AutoSizeInput 사용 */}
               <AutoSizeInput
-                minRows={1} // 최소 줄 수
-                maxRows={12} // 최대 줄 수 (max-height와 연동)
+                minRows={1}
+                maxRows={12}
                 placeholder={isFreeFormMode ? "메시지 또는 파일 첨부..." : "기초자료 조사는 입력이 불가합니다."}
                 disabled={!isFreeFormMode || loading}
                 value={prompt}
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setPrompt(e.target.value)}
-                onKeyDown={handleKeyDown} // 기존 핸들러 유지
+                onKeyDown={handleKeyDown}
               />
               <IconContainer
                 type="submit"
                 disabled={!isFreeFormMode || loading || (!prompt && uploadedFiles.length === 0)}>
-                {" "}
-                {/* 파일 없을때도 비활성화 */}
                 <Send />
               </IconContainer>
             </InputContainer>

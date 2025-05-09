@@ -2,8 +2,12 @@
 
 import styled from "styled-components";
 import AiNavigationBar from "@/components/Ai/AiNavigationBar";
-import PageLoader from "@/components/PageLoader";
+// import PageLoader from "@/components/PageLoader"; // 일반 import 제거
 import { useState, useEffect } from "react";
+import dynamic from "next/dynamic"; // dynamic import 추가
+
+// PageLoader를 클라이언트 사이드에서만 렌더링하도록 dynamic import
+const ClientOnlyPageLoader = dynamic(() => import("@/components/PageLoader"), { ssr: false });
 
 // 임시 데이터
 const navigationItems = [
@@ -47,7 +51,8 @@ export default function AiLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <LayoutContainer>
-      <PageLoader isOpen={isLoading} />
+      {/* PageLoader 대신 ClientOnlyPageLoader 사용 */}
+      <ClientOnlyPageLoader isOpen={isLoading} />
       <AiNavigationBar navigationItems={navigationItems} />
       <MainContent>{children}</MainContent>
     </LayoutContainer>
@@ -61,5 +66,5 @@ const LayoutContainer = styled.div`
 
 const MainContent = styled.main`
   flex: 1;
-  background-color: white;
+  background-color: white; /* 기존 AppColors.background 대신 임시로 white 사용, 필요시 AppColors 참조 추가 */
 `;
