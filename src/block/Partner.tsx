@@ -210,9 +210,7 @@ const logButtonClick = async (content: string, memo: string) => {
       content,
       memo,
     });
-    console.log(`[logButtonClick] ${content} / ${memo}`);
   } catch (e) {
-    console.error(`[logButtonClick] Error logging ${content} / ${memo}`, e);
   }
 };
 

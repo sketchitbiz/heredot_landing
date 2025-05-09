@@ -63,9 +63,7 @@ const logSectionView = async (content: string, memo: string, firstYn?: boolean) 
       memo,
       ...(firstYn ? { firstYn: "Y" } : {}), 
     });
-    console.log(`[logSectionView] ${content} / ${memo}`, res);
   } catch (e) {
-    console.error(`[logSectionView] Error logging ${content} / ${memo}`, e);
   }
 };
 
@@ -78,9 +76,7 @@ const logButtonClick = async (content: string, memo: string) => {
       content,
       memo,
     });
-    console.log(`[logButtonClick] ${content} / ${memo}`, res);
   } catch (e) {
-    console.error(`[logButtonClick] Error logging ${content} / ${memo}`, e);
   }
 };
 
@@ -319,7 +315,6 @@ export default function HomePage() {
             downloadText={t.design.downloadText}
             onEnterSection={(index, tab) => {
               setCurrentSection("Design");
-              console.log("Design", index, tab);
               if (isAutoScrollingRef.current) return;
               void logSectionView("Design", `스크롤: ${tab}`);
             }}
