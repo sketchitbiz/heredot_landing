@@ -47,9 +47,15 @@ export interface Message {
   invoiceData?: InvoiceDataType; // AI가 생성한 견적서 JSON 데이터
 }
 
+// MessageProps 인터페이스에 계산된 총합 및 현재 아이템 목록 props 추가
 interface MessageProps extends Omit<Message, "id"> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onActionClick: (action: string, data?: Record<string, any>) => void;
+  calculatedTotalAmount?: number;
+  calculatedTotalDuration?: number;
+  calculatedTotalPages?: number;
+  // currentItems는 InvoiceFeatureItem & { isDeleted: boolean } 형태의 배열이어야 함
+  // InvoiceFeatureItem은 InvoiceDataType 내부에 정의된 타입을 사용하거나, 여기서 다시 정의
+  currentItems?: Array<InvoiceDataType["invoiceGroup"][number]["items"][number] & { isDeleted: boolean }>;
 }
 
 interface StyledComponentProps {
@@ -283,9 +289,8 @@ const StyledInvoiceContainer = styled.div`
 
 const InvoiceProjectTitle = styled.h3`
   font-size: 1.3em;
-  color: ${AppColors.primary};
+  color: ${AppColors.onBackground};
   margin-bottom: 1em;
-  /* text-align: center; */ // ProfileName 옆에 오도록 수정했으므로 주석 처리 또는 삭제
 `;
 
 const InvoiceTable = styled.table`
@@ -361,7 +366,18 @@ const ActionButton = styled.button`
   }
 `;
 
-export function AiChatMessage({ sender, text, imageUrl, fileType, onActionClick, invoiceData }: MessageProps) {
+export function AiChatMessage({
+  sender,
+  text,
+  imageUrl,
+  fileType,
+  onActionClick,
+  invoiceData,
+  calculatedTotalAmount,
+  calculatedTotalDuration,
+  calculatedTotalPages,
+  currentItems,
+}: MessageProps) {
   // ⭐ Props 로깅 추가
   console.log("--- AiChatMessage Received Props ---");
   console.log("Sender:", sender);
@@ -460,67 +476,98 @@ export function AiChatMessage({ sender, text, imageUrl, fileType, onActionClick,
                 </tr>
               </thead>
               <tbody>
-                {invoiceData.invoiceGroup?.map((group, groupIndex) =>
-                  group.items?.map((item, itemIndex) => (
-                    <tr key={item.id || `feature-${groupIndex}-${itemIndex}`}>
-                      {itemIndex === 0 ? (
-                        <td className="col-category" rowSpan={group.items.length || 1}>
-                          {group.category}
-                        </td>
-                      ) : null}
-                      <td className="col-feature">{item.feature}</td>
-                      <td className="col-description">
-                        {item.description}
-                        {item.note && (
-                          <p style={{ fontSize: "0.9em", color: AppColors.onSurfaceVariant, marginTop: "0.3em" }}>
-                            <em>참고: {item.note}</em>
-                          </p>
-                        )}
-                        {item.duration && (
-                          <p style={{ fontSize: "0.9em", color: AppColors.onSurfaceVariant, marginTop: "0.3em" }}>
-                            예상 기간: {item.duration}
-                          </p>
-                        )}
-                        {item.pages && (
-                          <p style={{ fontSize: "0.9em", color: AppColors.onSurfaceVariant, marginTop: "0.3em" }}>
-                            예상 페이지: {item.pages}
-                          </p>
-                        )}
-                      </td>
-                      <td className="col-amount">{formatAmount(item.amount)}</td>
-                      <td className="col-actions">
-                        <ActionButton onClick={() => onActionClick("delete_feature_json", { featureId: item.id })}>
-                          삭제
-                        </ActionButton>
-                      </td>
-                    </tr>
-                  ))
-                )}
-                {/* 총계 행 */}
+                {(currentItems || invoiceData.invoiceGroup?.flatMap((g) => g.items) || []).map((item, index) => {
+                  const isDeleted = currentItems ? item.isDeleted : false;
+                  let itemCategory = "";
+
+                  return invoiceData.invoiceGroup?.map((group, groupIndex) =>
+                    group.items?.map((originalItem, itemIndex) => {
+                      const currentItemStatus = currentItems?.find((ci) => ci.id === originalItem.id);
+                      const isActuallyDeleted = currentItemStatus ? currentItemStatus.isDeleted : false;
+                      const categoryToShow = itemIndex === 0 ? group.category : "";
+
+                      return (
+                        <tr key={originalItem.id || `feature-${groupIndex}-${itemIndex}`}>
+                          {itemIndex === 0 ? (
+                            <td
+                              className="col-category"
+                              rowSpan={group.items.length || 1}
+                              style={{ textDecoration: isActuallyDeleted ? "line-through" : "none" }}>
+                              {group.category}
+                            </td>
+                          ) : null}
+                          <td
+                            className="col-feature"
+                            style={{ textDecoration: isActuallyDeleted ? "line-through" : "none" }}>
+                            {originalItem.feature}
+                          </td>
+                          <td
+                            className="col-description"
+                            style={{ textDecoration: isActuallyDeleted ? "line-through" : "none" }}>
+                            {originalItem.description}
+                            {originalItem.note && (
+                              <p style={{ fontSize: "0.9em", color: AppColors.onSurfaceVariant, marginTop: "0.3em" }}>
+                                <em>참고: {originalItem.note}</em>
+                              </p>
+                            )}
+                            {originalItem.duration && (
+                              <p style={{ fontSize: "0.9em", color: AppColors.onSurfaceVariant, marginTop: "0.3em" }}>
+                                예상 기간: {originalItem.duration}
+                              </p>
+                            )}
+                            {originalItem.pages && (
+                              <p style={{ fontSize: "0.9em", color: AppColors.onSurfaceVariant, marginTop: "0.3em" }}>
+                                예상 페이지: {originalItem.pages}
+                              </p>
+                            )}
+                          </td>
+                          <td
+                            className="col-amount"
+                            style={{
+                              textDecoration: isActuallyDeleted ? "line-through" : "none",
+                              color: isActuallyDeleted ? AppColors.disabled : AppColors.onBackground,
+                            }}>
+                            {formatAmount(originalItem.amount)}
+                          </td>
+                          <td className="col-actions">
+                            <ActionButton
+                              onClick={() => onActionClick("delete_feature_json", { featureId: originalItem.id })}>
+                              {isActuallyDeleted ? "취소" : "삭제"}
+                            </ActionButton>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  );
+                })}
                 <tr>
                   <td colSpan={3} className="total-label">
                     <strong>총 합계</strong>
                   </td>
                   <td className="col-amount">
-                    <strong>{formatAmount(invoiceData.total?.amount)}</strong>
+                    <strong>
+                      {calculatedTotalAmount !== undefined
+                        ? formatAmount(calculatedTotalAmount)
+                        : formatAmount(invoiceData.total?.amount)}
+                    </strong>
                   </td>
-                  <td></td> {/* Action 컬럼 빈칸 */}
+                  <td></td>
                 </tr>
-                {invoiceData.total?.duration !== undefined && (
+                {calculatedTotalDuration !== undefined && (
                   <tr>
                     <td colSpan={3} className="total-label">
                       총 예상 기간
                     </td>
-                    <td className="col-amount">{invoiceData.total.duration} 일</td>
+                    <td className="col-amount">{calculatedTotalDuration} 일</td>
                     <td></td>
                   </tr>
                 )}
-                {invoiceData.total?.pages !== undefined && (
+                {calculatedTotalPages !== undefined && (
                   <tr>
                     <td colSpan={3} className="total-label">
                       총 예상 페이지 수
                     </td>
-                    <td className="col-amount">{invoiceData.total.pages} 페이지</td>
+                    <td className="col-amount">{calculatedTotalPages} 페이지</td>
                     <td></td>
                   </tr>
                 )}

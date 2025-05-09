@@ -67,12 +67,13 @@ import TextareaAutosize from "react-textarea-autosize"; // 라이브러리 impor
 //   invoiceData?: InvoiceDataType; // 파싱된 JSON 데이터 추가
 // }
 
-// 견적서 상세 정보 상태 인터페이스 정의 (parsedJson 추가, markdown 제거 또는 주석)
+// 견적서 상세 정보 상태 인터페이스 정의 수정
 interface InvoiceDetails {
-  // markdown?: string; // AI가 보낸 원본 Markdown (이제 사용 안 함 또는 자연어 부분만 저장)
-  parsedJson?: InvoiceDataType; // 파싱된 JSON 데이터
-  items: Array<InvoiceDataType["invoiceGroup"][number]["items"][number] & { isDeleted: boolean }>; // items 타입 구체화
+  parsedJson?: InvoiceDataType;
+  items: Array<InvoiceDataType["invoiceGroup"][number]["items"][number] & { isDeleted: boolean }>;
   currentTotal: number;
+  currentTotalDuration: number; // 총 예상 기간 (일 단위 숫자)
+  currentTotalPages: number; // 총 예상 페이지 수 (숫자)
 }
 // --- 타입 정의 끝 ---
 
@@ -526,25 +527,89 @@ export default function AiPageContent() {
     }
   };
 
+  // 숫자만 추출하는 헬퍼 함수
+  const extractNumber = (textWithUnit: string | number | undefined): number => {
+    if (typeof textWithUnit === "number") return textWithUnit;
+    if (typeof textWithUnit === "string") {
+      const match = textWithUnit.match(/\d+/);
+      return match ? parseInt(match[0], 10) : 0;
+    }
+    return 0;
+  };
+
+  // 총합 계산 함수
+  const calculateTotals = (
+    items: Array<InvoiceDataType["invoiceGroup"][number]["items"][number] & { isDeleted: boolean }>
+  ) => {
+    let totalAmount = 0;
+    let totalDuration = 0;
+    let totalPages = 0;
+
+    items.forEach((item) => {
+      if (!item.isDeleted) {
+        totalAmount += typeof item.amount === "number" ? item.amount : 0; // 숫자 아니면 0으로 처리
+        totalDuration += extractNumber(item.duration);
+        totalPages += extractNumber(item.pages);
+      }
+    });
+    return { totalAmount, totalDuration, totalPages };
+  };
+
+  useEffect(() => {
+    if (invoiceDetails) {
+      console.log("✅ InvoiceDetails state updated by useEffect:", JSON.stringify(invoiceDetails, null, 2));
+    }
+  }, [invoiceDetails]);
+
   // --- 버튼 액션 처리 함수 수정 ---
   const handleActionClick = async (action: string, data?: { featureId?: string }) => {
-    console.log("Action clicked:", action, "Data:", data);
+    console.log("🔵 handleActionClick - Action:", action, "Data:", data);
+
+    if (action === "delete_feature_json" && data?.featureId && invoiceDetails) {
+      const featureIdToDelete = data.featureId;
+      console.log(`Attempting to toggle delete for featureId: ${featureIdToDelete}`);
+
+      // 아이템 찾기 로깅
+      const itemExists = invoiceDetails.items.some((item) => item.id === featureIdToDelete);
+      console.log(`Item with id '${featureIdToDelete}' exists in items array: ${itemExists}`);
+
+      const newItems = invoiceDetails.items.map((item) => {
+        if (item.id === featureIdToDelete) {
+          console.log(`Found item to toggle: ${item.feature}, current isDeleted: ${item.isDeleted}`);
+          return { ...item, isDeleted: !item.isDeleted };
+        }
+        return item;
+      });
+
+      // isDeleted 상태 변경 확인 로깅
+      const changedItem = newItems.find((item) => item.id === featureIdToDelete);
+      console.log(`Item '${changedItem?.feature}' after toggle, new isDeleted: ${changedItem?.isDeleted}`);
+      console.log("newItems array after map:", JSON.stringify(newItems, null, 2));
+
+      const { totalAmount, totalDuration, totalPages } = calculateTotals(newItems);
+      console.log("Recalculated Totals:", { totalAmount, totalDuration, totalPages });
+
+      setInvoiceDetails((prev) => {
+        console.log("Calling setInvoiceDetails with new totals and items.");
+        if (prev) {
+          return {
+            ...prev,
+            items: newItems,
+            currentTotal: totalAmount,
+            currentTotalDuration: totalDuration,
+            currentTotalPages: totalPages,
+          };
+        }
+        return null;
+      });
+      return;
+    }
+
+    // 기존 액션 처리
     const invoiceRequestText = "견적서를 보여줘";
     const discountOption1Text = "할인 옵션 1 (기간 연장)을 선택합니다.";
     const discountOption2Text = "할인 옵션 2 (기능 제거)를 선택합니다.";
 
-    // 견적서 항목 삭제/복구 처리
-    if (action === "delete_feature" && data?.featureId && invoiceDetails) {
-      const featureId = data.featureId;
-      const newItems = invoiceDetails.items.map((item) =>
-        item.id === featureId ? { ...item, isDeleted: !item.isDeleted } : item
-      );
-      const newTotal = newItems.reduce((sum, item) => (item.isDeleted ? sum : sum + item.amount), 0);
-      setInvoiceDetails((prev) => (prev ? { ...prev, items: newItems, currentTotal: newTotal } : null));
-      return; // AI 호출 없이 함수 종료
-    }
-
-    // 기존 액션 처리
     switch (action) {
       case "show_invoice":
         setInvoiceDetails(null);
@@ -560,7 +625,7 @@ export default function AiPageContent() {
         alert("PDF 다운로드 기능은 로그인 후 사용할 수 있습니다. (구현 예정)");
         break;
       default:
-        if (action !== "delete_feature") {
+        if (action !== "delete_feature_json") {
           console.warn("Unknown button action:", action);
         }
     }
@@ -744,18 +809,31 @@ export default function AiPageContent() {
           console.log("Natural Language Text (after removing JSON script):", naturalLanguageText);
 
           if (parsedInvoiceData && parsedInvoiceData.invoiceGroup && parsedInvoiceData.total?.amount !== undefined) {
-            console.log("Setting invoiceDetails with parsed JSON data.");
+            // total.amount 검증은 이제 프론트에서 하므로 제거 가능
+            const initialItems = parsedInvoiceData.invoiceGroup.flatMap((group) =>
+              group.items.map((item) => ({ ...item, isDeleted: false }))
+            );
+            const { totalAmount, totalDuration, totalPages } = calculateTotals(initialItems);
+
+            console.log("Calculated Totals by Frontend:", { totalAmount, totalDuration, totalPages });
+
             setInvoiceDetails({
-              parsedJson: parsedInvoiceData,
-              items: parsedInvoiceData.invoiceGroup.flatMap((group) =>
-                group.items.map((item) => ({ ...item, isDeleted: false }))
-              ),
-              currentTotal: parsedInvoiceData.total.amount,
+              parsedJson: parsedInvoiceData, // AI가 준 원본 JSON (total 포함할 수 있음)
+              items: initialItems,
+              currentTotal: totalAmount, // 프론트에서 계산한 총 금액
+              currentTotalDuration: totalDuration, // 프론트에서 계산한 총 기간
+              currentTotalPages: totalPages, // 프론트에서 계산한 총 페이지
             });
 
+            // Message 업데이트 시 invoiceData는 AI 원본을 전달할지, 프론트 계산값을 포함할지 결정.
+            // AiChatMessage에서는 invoiceData.total 대신 invoiceDetails에서 계산된 값을 사용할 예정이므로,
+            // 여기서는 AI 원본 JSON을 전달해도 무방하나, 일관성을 위해 total을 업데이트한 객체를 만들 수도 있음.
+            // 지금은 AI 원본 JSON을 그대로 전달.
             setMessages((prevMessages: Message[]) => {
               return prevMessages.map((msg) =>
-                msg.id === aiMessageId ? { ...msg, text: naturalLanguageText, invoiceData: parsedInvoiceData } : msg
+                msg.id === aiMessageId
+                  ? { ...msg, text: naturalLanguageText, invoiceData: parsedInvoiceData ?? undefined }
+                  : msg
               );
             });
           } else {
@@ -835,7 +913,7 @@ export default function AiPageContent() {
                         <li>
                           URL: 네이버, 다음 등 원하는 사이트 링크
                           <br />
-                          <span>ex) "www.naver.com 같은 사이트를 만들고 싶어요"</span>
+                          <span>&quot;www.naver.com&quot; 같은 사이트를 만들고 싶어요</span>
                         </li>
                         <li>이미지: 캡처, JPG 등 이미지 파일</li>
                         <li>
@@ -868,7 +946,15 @@ export default function AiPageContent() {
               )}
 
               {messages.map((msg) => (
-                <AiChatMessage key={msg.id} {...msg} onActionClick={handleActionClick} />
+                <AiChatMessage
+                  key={msg.id}
+                  {...msg}
+                  onActionClick={handleActionClick}
+                  calculatedTotalAmount={invoiceDetails?.currentTotal}
+                  calculatedTotalDuration={invoiceDetails?.currentTotalDuration}
+                  calculatedTotalPages={invoiceDetails?.currentTotalPages}
+                  currentItems={invoiceDetails?.items}
+                />
               ))}
 
               {loading && <StatusMessage>AI 응답을 생성 중입니다...</StatusMessage>}
