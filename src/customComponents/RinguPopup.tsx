@@ -5,7 +5,7 @@ import { useLang } from '@/contexts/LangContext';
 import { GradientButton } from '@/components/GradientButton';
 import { ProjectPopupContent } from '@/customComponents/ProjectPopupContent';
 import { CustomPopupText } from './CustomPopupText';
-
+import { userStamp } from '@/lib/api/user/api';
 
 const TEXT = {
   ko: {
@@ -155,7 +155,15 @@ export const RinguPopup = () => {
             <GradientButton
               key={i}
               title={btn.title}
-              href={btn.href}
+              onClick={() => {
+                  void userStamp({
+                    uuid: localStorage.getItem("logId") ?? "anonymous",
+                    category: "버튼",
+                    content: "링구",
+                    memo: `외부 링크: ${btn.title}`,
+                  });
+                  window.open(btn.href, "_blank", "noopener noreferrer");
+                }}
               gradient="linear-gradient(to bottom, #CBD5E2, #A1C0E9)"
             />
           ))}

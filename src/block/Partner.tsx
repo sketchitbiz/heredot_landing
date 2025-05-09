@@ -12,6 +12,7 @@ import { AppTextStyles } from '@/styles/textStyles';
 import CustomBlockLayout from '@/customComponents/CustomBlockLayout';
 import ResponsiveView from '@/layout/ResponsiveView';
 import { Breakpoints } from '@/constants/layoutConstants';
+import { userStamp } from '@/lib/api/user/api';
 
 interface PartnerProps {
   title1: string;
@@ -25,6 +26,7 @@ interface PartnerProps {
     description: string;
   }[];
   downloadText: string;
+  onEnterSection?: (index: number, tab: string) => void;
 }
 
 const Title = styled.h2`
@@ -200,6 +202,19 @@ const SlideWrapper = styled.div`
     margin-bottom: 0;
   }
 `;
+const logButtonClick = async (content: string, memo: string) => {
+  try {
+    await userStamp({
+      uuid: localStorage.getItem('logId') ?? 'anonymous',
+      category: '버튼',
+      content,
+      memo,
+    });
+    console.log(`[logButtonClick] ${content} / ${memo}`);
+  } catch (e) {
+    console.error(`[logButtonClick] Error logging ${content} / ${memo}`, e);
+  }
+};
 
 
 const Partner: React.FC<PartnerProps> = ({
@@ -209,6 +224,7 @@ const Partner: React.FC<PartnerProps> = ({
   tabs,
   slides,
   downloadText,
+  onEnterSection,
 }) => {
   const { lang } = useLang();
   const [activeTab, setActiveTab] = useState(0);
@@ -219,6 +235,9 @@ const Partner: React.FC<PartnerProps> = ({
   const ignoreScroll = useRef(false);
   const activeTabRef = useRef(activeTab);
   const [isMobile, setIsMobile] = useState(false);
+  const lastLoggedIndex = useRef<number | null>(null);
+
+  const slideRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -235,11 +254,12 @@ const Partner: React.FC<PartnerProps> = ({
 
   useEffect(() => {
     if (isMobile || !leftRef.current || !rightRef.current || !sectionRef.current) return;
-  
+
     gsap.registerPlugin(ScrollTrigger);
     const slideHeight = window.innerHeight;
     const totalScroll = slideHeight * tabs.length;
-  
+
+    const lastScrollY = { current: window.scrollY };
     const ctx = gsap.context(() => {
       ScrollTrigger.create({
         id: 'partner-scroll',
@@ -252,40 +272,57 @@ const Partner: React.FC<PartnerProps> = ({
           const progress = self.progress;
           let index = Math.floor(progress * tabs.length);
           index = Math.min(index, tabs.length - 1);
-  
-          if (!ignoreScroll.current && index !== activeTabRef.current) {
-            setActiveTab(index);
+
+          const currentScrollY = window.scrollY;
+          const isScrollingDown = currentScrollY > lastScrollY.current;
+          lastScrollY.current = currentScrollY;
+
+          if (!ignoreScroll.current) {
+            if (index !== activeTabRef.current) {
+              setActiveTab(index);
+            }
+
+            if (
+              isScrollingDown &&
+              index !== lastLoggedIndex.current &&
+              currentScrollY > self.start
+            ) {
+              lastLoggedIndex.current = index;
+              onEnterSection?.(index, tabs[index]);
+            }
           }
         },
       });
-  
-      if (leftRef.current && rightRef.current) {
-        gsap.timeline({
-          scrollTrigger: {
-            trigger: sectionRef.current,
-            start: 'top bottom-=200',
-            end: 'top center+=150',
-            toggleActions: 'play none none reverse',
-          },
-        })
-          .fromTo(leftRef.current, { scale: 0.9, opacity: 0, y: 50 }, { scale: 1, opacity: 1, y: 0, duration: 1, ease: 'power3.out' })
-          .fromTo(rightRef.current, { scale: 0.95, opacity: 0, y: 60 }, { scale: 1, opacity: 1, y: 0, duration: 1, ease: 'power3.out' }, '-=0.6');
-      }
     }, sectionRef);
-  
+
     return () => ctx.revert();
   }, [isMobile, tabs.length]);
-  ;
 
-  const [scrollX, setScrollX] = useState(0);
+  useEffect(() => {
+    if (!isMobile || !onEnterSection) return;
 
-useEffect(() => {
-  const handleScroll = () => {
-    setScrollX(window.scrollX || window.pageXOffset);
-  };
-  window.addEventListener('scroll', handleScroll, { passive: true });
-  return () => window.removeEventListener('scroll', handleScroll);
-}, []);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const index = slideRefs.current.findIndex((el) => el === entry.target);
+          if (entry.isIntersecting && index !== -1 && index !== lastLoggedIndex.current) {
+            lastLoggedIndex.current = index;
+            onEnterSection(index, tabs[index]);
+          }
+        });
+      },
+      { threshold: 0.6 }
+    );
+
+    slideRefs.current.forEach((el) => {
+      if (el) observer.observe(el);
+    });
+    return () => {
+      slideRefs.current.forEach((el) => {
+        if (el) observer.unobserve(el);
+      });
+    };
+  }, [isMobile, tabs, onEnterSection]);
 
   const handleTabClick = (index: number) => {
     const trigger = ScrollTrigger.getById('partner-scroll');
@@ -293,13 +330,10 @@ useEffect(() => {
 
     ignoreScroll.current = true;
     setActiveTab(index);
-
     const scrollY = trigger.start + (trigger.end - trigger.start) * (index / tabs.length);
     window.scrollTo({ top: scrollY, behavior: 'smooth' });
-
-    setTimeout(() => {
-      ignoreScroll.current = false;
-    }, 1000);
+    logButtonClick('Partner', `탭: ${tabs[index]}`);
+    setTimeout(() => (ignoreScroll.current = false), 1000);
   };
 
   const getDownloadLink = (index: number) => {
@@ -316,36 +350,41 @@ useEffect(() => {
     <ResponsiveView
       desktopView={
         <Wrapper>
-        <CustomBlockLayout ref={sectionRef}>
-          <CustomBlockLayout.Left ref={leftRef}>
-            <Title>{`${title1}\n${title2}`}</Title>
-            <Subtitle>{subtitle}</Subtitle>
-          </CustomBlockLayout.Left>
-          <CustomBlockLayout.Right ref={rightRef}>
-            <Tabs>
-              {tabs.map((tab, index) => (
-                <Tab key={index} $active={activeTab === index} onClick={() => handleTabClick(index)}>
-                  {tab}
-                </Tab>
-              ))}
-            </Tabs>
-            <AnimatedDescription key={activeTab}>
-              <FlexRow>
-                <LeftColumn>
-                  <TabTitle>{currentSlide.subtitle}</TabTitle>
-                  <TabDescription dangerouslySetInnerHTML={{ __html: currentSlide.description }} />
-                </LeftColumn>
-                <RightColumn>
-                  <DownloadLink href={getDownloadLink(activeTab)} target="_blank" rel="noopener noreferrer">
-                    {downloadText}
-                    <DownloadIcon style={{ fontSize: '16px' }} />
-                  </DownloadLink>
-                </RightColumn>
-              </FlexRow>
-              <TabImage src={currentSlide.image} alt={currentSlide.title} />
-            </AnimatedDescription>
-          </CustomBlockLayout.Right>
-        </CustomBlockLayout>
+          <CustomBlockLayout ref={sectionRef}>
+            <CustomBlockLayout.Left ref={leftRef}>
+              <Title>{`${title1}\n${title2}`}</Title>
+              <Subtitle>{subtitle}</Subtitle>
+            </CustomBlockLayout.Left>
+            <CustomBlockLayout.Right ref={rightRef}>
+              <Tabs>
+                {tabs.map((tab, index) => (
+                  <Tab key={index} $active={activeTab === index} onClick={() => handleTabClick(index)}>
+                    {tab}
+                  </Tab>
+                ))}
+              </Tabs>
+              <AnimatedDescription key={activeTab}>
+                <FlexRow>
+                  <LeftColumn>
+                    <TabTitle>{currentSlide.subtitle}</TabTitle>
+                    <TabDescription dangerouslySetInnerHTML={{ __html: currentSlide.description }} />
+                  </LeftColumn>
+                  <RightColumn>
+                    <DownloadLink
+                      href={getDownloadLink(activeTab)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => logButtonClick('Partner', `다운로드: ${tabs[activeTab]}`)}
+                    >
+                      {downloadText}
+                      <DownloadIcon style={{ fontSize: '16px' }} />
+                    </DownloadLink>
+                  </RightColumn>
+                </FlexRow>
+                <TabImage src={currentSlide.image} alt={currentSlide.title} />
+              </AnimatedDescription>
+            </CustomBlockLayout.Right>
+          </CustomBlockLayout>
         </Wrapper>
       }
       mobileView={
@@ -353,12 +392,20 @@ useEffect(() => {
           <Title style={{ whiteSpace: 'pre-line' }}>{`${title1}\n${title2}`}</Title>
           <Subtitle>{subtitle}</Subtitle>
           {slides.map((slide, index) => (
-            <SlideWrapper key={index}>
+            <SlideWrapper
+              key={index}
+              ref={(el) => {
+                slideRefs.current[index] = el;
+              }}
+            >
               <TabTitle>{tabs[index]}</TabTitle>
-              <TabDescription>
-  {slide.description.replace(/<br\s*\/?>/gi, '')}
-</TabDescription>
-              <MobileDownloadButton href={getDownloadLink(index)} target="_blank" rel="noopener noreferrer">
+              <TabDescription>{slide.description.replace(/<br\s*\/?>/gi, '')}</TabDescription>
+              <MobileDownloadButton
+                href={getDownloadLink(index)}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => logButtonClick('Partner', `다운로드: ${tabs[index]}`)}
+              >
                 {downloadText}
                 <DownloadIcon style={{ fontSize: '16px' }} />
               </MobileDownloadButton>

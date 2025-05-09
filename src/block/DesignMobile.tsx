@@ -1,10 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import styled, { keyframes } from 'styled-components';
 import DownloadIcon from '@mui/icons-material/Download';
 import { useLang } from '@/contexts/LangContext';
 import { downloadLinks } from '@/lib/i18n/downloadLinks';
+import { userStamp } from '@/lib/api/user/api';
 
 interface DesignMobileBlockProps {
   title: string;
@@ -12,6 +13,7 @@ interface DesignMobileBlockProps {
   tabNumbers: string[];
   slides: { title: string; image: string }[];
   downloadText: string;
+  onEnterSection?: (index: number, tab: string) => void;
 }
 
 const bounce = keyframes`
@@ -29,7 +31,6 @@ const Wrapper = styled.section`
   position: relative;
   margin-bottom: 20px;
 `;
-
 
 const TitleWrapper = styled.div`
   position: sticky;
@@ -55,6 +56,7 @@ const Row = styled.div`
   width: 100%;
   margin-bottom: 16px;
 `;
+
 const MobileDownloadButton = styled.a`
   display: inline-flex;
   position: sticky;
@@ -92,17 +94,6 @@ const TabNumber = styled.span`
   opacity: 0.7;
 `;
 
-const DownloadWrapper = styled.div`
-  position: sticky;
-  bottom: 0;
-  width: 100%;
-  height: 56px;
-  padding-top: 20px;
-  margin-top: 50px;
-  background-color: #000;
-  z-index: 10;
-`;
-
 const DownloadLink = styled.a`
   font-size: 14px;
   color: #ffffff;
@@ -128,8 +119,50 @@ const DesignMobile: React.FC<DesignMobileBlockProps> = ({
   tabNumbers,
   slides,
   downloadText,
+  onEnterSection,
 }) => {
   const { lang } = useLang();
+  const observerRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const observer = useRef<IntersectionObserver | null>(null);
+  const enteredSet = useRef<Set<number>>(new Set());
+
+  useEffect(() => {
+    const visibleMap = new Map<number, boolean>();
+    const lastScrollY = { current: window.scrollY };
+  
+    observer.current = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const index = Number(entry.target.getAttribute('data-index'));
+          const isVisible = entry.isIntersecting;
+          const scrollY = window.scrollY;
+          const isScrollingDown = scrollY > lastScrollY.current;
+          lastScrollY.current = scrollY;
+  
+          const wasVisible = visibleMap.get(index) || false;
+  
+          // 조건: 아래로 스크롤 & 새롭게 진입
+          if (isVisible && !wasVisible && isScrollingDown) {
+            visibleMap.set(index, true);
+            onEnterSection?.(index, tabs[index]);
+          }
+  
+          // 업데이트: 영역 이탈 시 false로
+          if (!isVisible && wasVisible) {
+            visibleMap.set(index, false);
+          }
+        });
+      },
+      { threshold: Array.from({ length: 11 }, (_, i) => i * 0.1)  }
+    );
+  
+    observerRefs.current.forEach((el) => {
+      if (el) observer.current?.observe(el);
+    });
+  
+    return () => observer.current?.disconnect();
+  }, [onEnterSection, tabs]);
+  ;
 
   const getDownloadLink = () => {
     return downloadLinks.designProposal[lang];
@@ -145,20 +178,45 @@ const DesignMobile: React.FC<DesignMobileBlockProps> = ({
         <Title>{title}</Title>
       </TitleWrapper>
       {slides.map((slide, i) => (
-        <React.Fragment key={i}>
-          <Row>
-            <Tabs>
-              <Tab>
-                {tabs[i]} <TabNumber>{tabNumbers[i]}</TabNumber>
-              </Tab>
-            </Tabs>
-          </Row>
-          <Image src={convertImagePath(slide.image)} alt={slide.title} />
-        </React.Fragment>
-      ))}
-      <MobileDownloadButton href={getDownloadLink()} target="_blank" rel="noopener noreferrer">
-          {downloadText} <DownloadIcon style={{ fontSize: '16px' }} />
-      </MobileDownloadButton>
+  <React.Fragment key={i}>
+    <Row>
+      <Tabs>
+        <Tab>
+          {tabs[i]} <TabNumber>{tabNumbers[i]}</TabNumber>
+        </Tab>
+      </Tabs>
+    </Row>
+    <div
+      ref={(el) => {
+        observerRefs.current[i] = el;
+      }}
+      data-index={i}
+    >
+      <Image
+        id={`design-slide-${i}`}
+        src={convertImagePath(slide.image)}
+        alt={slide.title}
+      />
+    </div>
+  </React.Fragment>
+))}
+
+<MobileDownloadButton
+  href={getDownloadLink()}
+  target="_blank"
+  rel="noopener noreferrer"
+  onClick={() => {
+    userStamp({
+      uuid: localStorage.getItem("logId") ?? "anonymous",
+      category: "버튼",
+      content: "Design",
+      memo: "디자인 제안서 다운로드",
+    });
+  }}
+>
+  {downloadText} <DownloadIcon style={{ fontSize: '16px' }} />
+</MobileDownloadButton>
+
     </Wrapper>
   );
 };

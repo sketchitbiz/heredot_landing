@@ -1,11 +1,12 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLang } from '@/contexts/LangContext';
 import { GradientButton } from '@/components/GradientButton';
 import { ProjectPopupContent } from '@/customComponents/ProjectPopupContent';
 import { CustomPopupText } from './CustomPopupText';
-
+import { userStamp } from '@/lib/api/user/api';
+import { Breakpoints } from '@/constants/layoutConstants';
 
 const TEXT = {
   ko: {
@@ -60,22 +61,42 @@ export const LinkBPopup = () => {
   const { lang } = useLang();
   const t = TEXT[lang];
 
+    const [isMobile, setIsMobile] = useState(false);
+  
+    useEffect(() => {
+      const update = () => {
+        setIsMobile(window.innerWidth <= Breakpoints.mobile);
+      };
+      update();
+      window.addEventListener('resize', update);
+      return () => window.removeEventListener('resize', update);
+    }, []);
+
   return (
     <ProjectPopupContent
       imageUrl="/assets/portpolio_popup/link-b.png"
       projectIntro={<CustomPopupText>{t.projectIntro}</CustomPopupText>}
       leftHeader={
-        <div style={{ position: 'absolute', top: '150px', left: '60px' }}>
-          <div style={{
-            fontSize: '18px',
-            fontWeight: 600,
-            color: t.leftHeader.color,
-            marginBottom: '8px',
-          }}>
+        <div
+          style={{
+            position: 'absolute',
+            top: isMobile ? '80px' : '150px',
+            left: isMobile ? '30px' : '60px',
+          }}
+        >
+          <div
+            style={{
+              fontSize: isMobile ? '14px' : '18px',
+              fontWeight: 600,
+              color: t.leftHeader.color,
+              marginBottom: isMobile ? '6px' : '8px',
+            }}
+          >
             {t.leftHeader.line1}
           </div>
         </div>
       }
+      
       featureList={
         <>
           {t.features.map(([label, desc], i) => (
@@ -107,7 +128,15 @@ export const LinkBPopup = () => {
             <GradientButton
               key={i}
               title={btn.title}
-              href={btn.href}
+              onClick={() => {
+                                              void userStamp({
+                                                uuid: localStorage.getItem("logId") ?? "anonymous",
+                                                category: "버튼",
+                                                content: "링크B",
+                                                memo: `외부 링크: ${btn.title}`,
+                                              });
+                                              window.open(btn.href, "_blank", "noopener noreferrer");
+                                            }}
               titleColor="#FFFFFF"
               gradient="linear-gradient(to bottom, #3E403C, #3E403C)"
             />

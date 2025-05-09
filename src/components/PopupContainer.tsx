@@ -15,6 +15,7 @@ interface PopupContainerProps {
   selectedIndex: number;
   isFullScreen?: boolean;
   children: React.ReactNode | React.ReactNode[];
+  onChangeIndex?: (newIndex: number) => void;
 }
 
 const PopupPortal = ({ children }: { children: React.ReactNode }) => {
@@ -35,6 +36,7 @@ export const PopupContainer: React.FC<PopupContainerProps> = ({
   selectedIndex,
   isFullScreen = false,
   children,
+  onChangeIndex,
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
@@ -100,7 +102,11 @@ export const PopupContainer: React.FC<PopupContainerProps> = ({
       <NavZone $isMobile={isMobile} $position="left">
         <NavButton
           $isFullScreen={isFullScreen}
-          onClick={() => setCurrentIndex((prev) => Math.max(prev - 1, 0))}
+          onClick={() => {
+            const next = Math.max(currentIndex - 1, 0);
+            setCurrentIndex(next);
+            onChangeIndex?.(next); // ✅ 콜백 호출
+          }}
           disabled={currentIndex === 0}
         >
           <ArrowBackIos />
@@ -121,9 +127,11 @@ export const PopupContainer: React.FC<PopupContainerProps> = ({
       <NavZone $isMobile={isMobile} $position="right">
         <NavButton
           $isFullScreen={isFullScreen}
-          onClick={() =>
-            setCurrentIndex((prev) => Math.min(prev + 1, childArray.length - 1))
-          }
+          onClick={() => {
+            const next = Math.min(currentIndex + 1, childArray.length - 1);
+            setCurrentIndex(next);
+            onChangeIndex?.(next); // ✅ 콜백 호출
+          }}
           disabled={currentIndex === childArray.length - 1}
         >
           <ArrowForwardIos />

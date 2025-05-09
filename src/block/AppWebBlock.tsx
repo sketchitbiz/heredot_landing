@@ -213,6 +213,17 @@ const AppWebBlock: React.FC<AppBlockProps> = ({ title, description }) => {
   const [painted, setPainted] = useState(false);
   const canPlayRef = useRef(false);
 
+      const [isMobile, setIsMobile] = useState(false);
+    
+      useEffect(() => {
+        const checkMobile = () => {
+          setIsMobile(window.innerWidth < Breakpoints.mobile);
+        };
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+      }, []);
+
   const layers = [
     { ref: appBarRef, translateZ: -200 },
     { ref: searchBarRef, translateZ: 100 },
@@ -222,7 +233,7 @@ const AppWebBlock: React.FC<AppBlockProps> = ({ title, description }) => {
   ];
 
   useEffect(() => {
-    if (!sectionRef.current || !phoneRef.current || !topTriggerRef.current || !bottomTriggerRef.current) return;
+    if (isMobile || !sectionRef.current || !phoneRef.current || !topTriggerRef.current || !bottomTriggerRef.current) return;
 
     const resetState = async () => {
       if (phoneRef.current) {

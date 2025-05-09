@@ -226,6 +226,14 @@ export const dictionary = {
       customerService: '고객센터 : 031-8039-7981',
       copyright: 'Copyright ⓒ 2025 여기닷 All right reserved.',
       businessLicense: '통신판매업신고증 : 2025-성남 수정-0138 호',
+      moreButton: '더보기',
+      moreInfo: [
+        '여기닷은 판교에 위치한 IT 전문 기업으로, 웹사이트 제작, 모바일 앱 개발(외주), 맞춤형 플랫폼 및 솔루션 개발, IT 컨설팅과 아웃소싱 서비스를 제공합니다. React, Node.js, Flutter 등 다양한 기술 스택을 활용하여 고객의 비즈니스 성공을 돕습니다.',
+        '커뮤니티, O2O, 쇼핑몰(이커머스), 예약 시스템, 솔루션 등 다양한 비즈니스 모델에 최적화된 맞춤형 웹/앱 플랫폼을 기획, 설계, 개발합니다. 확장성과 안정성을 고려한 아키텍처로 판교 및 경기 지역 기업의 성공적인 디지털 전환을 지원합니다.',
+        'iOS 및 Android 네이티브 앱, Flutter/React Native 크로스플랫폼 앱 개발 외주 서비스를 제공합니다. 사용자 중심 UI/UX 설계와 안정적인 성능으로 병원, 교육, 커머스 등 다양한 산업 분야의 앱 개발 프로젝트를 수행합니다.',
+        '반응형 웹사이트 제작, 기업용 웹 솔루션 개발, Node.js 기반 백엔드 시스템 구축 등 웹 기반 프로젝트 전문입니다. React, Vue 등 최신 프론트엔드 기술과 안정적인 백엔드 연동으로 최적의 사용자 경험을 제공하는 웹사이트를 제작합니다.',
+        '신규 사업 기획, 기술 스택 선정, 개발 프로세스 최적화 등 IT 컨설팅을 제공하며, 프로젝트 단위 또는 장기적인 IT 개발 아웃소싱(프로젝트 수주)을 통해 기업의 개발 역량 강화를 지원합니다.',
+      ],
     },
   },
   en: {
@@ -470,6 +478,14 @@ export const dictionary = {
       customerService: 'Customer Service: 031-8039-7981',
       copyright: 'Copyright ⓒ 2025 Heredot. All rights reserved.',
       businessLicense: 'E-commerce License: 2025-성남 수정-0138 호',
+      moreButton: 'Read More',
+      moreInfo: [
+        "Heredot is an IT company located in Pangyo, specializing in website development, outsourced mobile app development, custom platforms, IT consulting, and outsourcing. We use modern stacks such as React, Node.js, and Flutter to support client success.",
+        "We plan, design, and develop custom web/app platforms optimized for business models like communities, O2O, e-commerce, booking systems, and solutions. Our scalable architecture supports digital transformation for companies in Pangyo and Gyeonggi areas.",
+        "We offer native app development for iOS and Android as well as cross-platform apps using Flutter and React Native. Our projects span various industries including healthcare, education, and commerce with stable performance and user-centered UI/UX.",
+        "We specialize in responsive website creation, enterprise web solutions, and backend systems using Node.js. Our expertise includes modern frontend frameworks like React and Vue to deliver optimal UX through stable backend integration.",
+        "We provide IT consulting such as new business planning, tech stack selection, and development process optimization. We also support enterprise development through project-based or long-term outsourcing partnerships.",
+      ]
     },
     
     

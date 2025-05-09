@@ -18,7 +18,6 @@ export const DeviceProvider = ({ children }: { children: React.ReactNode }) => {
       const width = window.innerWidth;
       const ua = navigator.userAgent;
 
-      console.log('User Agent:', ua); // User Agent 로그 추가
 
       const isIPad = /iPad/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); 
       const isMobileUA = /iPhone|Android.*Mobile/.test(ua);

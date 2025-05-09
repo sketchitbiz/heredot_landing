@@ -9,6 +9,7 @@ import { useLang } from '@/contexts/LangContext';
 import { downloadLinks } from '@/lib/i18n/downloadLinks';
 import CustomBlockLayout from '@/customComponents/CustomBlockLayout';
 import { Breakpoints } from '@/constants/layoutConstants';
+import { userStamp } from '@/lib/api/user/api';
 
 interface ConsultingProps {
   title: string;
@@ -20,6 +21,19 @@ interface ConsultingProps {
 
 gsap.registerPlugin(ScrollTrigger);
 
+const logButtonClick = async (content: string, memo: string) => {
+  try {
+    await userStamp({
+      uuid: localStorage.getItem('logId') ?? 'anonymous',
+      category: '버튼',
+      content,
+      memo,
+    });
+    console.log(`[logButtonClick] ${content} / ${memo}`);
+  } catch (e) {
+    console.error(`[logButtonClick] Error logging ${content} / ${memo}`, e);
+  }
+};
 
 
 const TitleContainer = styled.div`
@@ -225,15 +239,26 @@ const ConsultingWeb: React.FC<ConsultingProps> = ({
   const verticalStart = 150;
   const centerTop = 780 / 2 - size / 2;
   const centerLeft = 780 / 2;
+    const [isMobile, setIsMobile] = useState(false);
 
-  const handleDownloadClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    e.preventDefault();
-    const link = downloadLinks.functionalSpecification[lang];
-    window.open(link, '_blank');
-  };
+      useEffect(() => {
+        const checkMobile = () => {
+          setIsMobile(window.innerWidth < Breakpoints.mobile);
+        };
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+      }, []);
+
+      const handleDownloadClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+        e.preventDefault();
+        const link = downloadLinks.functionalSpecification[lang];
+        logButtonClick('다운로드', '기능명세');
+        window.open(link, '_blank');
+      };
 
   useEffect(() => {
-    if (!wrapperRef.current) return;
+    if (isMobile ||!wrapperRef.current) return;
 
     const initialMap = Array(3).fill([0, 0, 0, 0]);
 

@@ -5,7 +5,7 @@ import { useLang } from '@/contexts/LangContext';
 import { ProjectPopupContent } from '@/customComponents/ProjectPopupContent';
 import { GradientButton } from '@/components/GradientButton';
 import { CustomPopupText } from './CustomPopupText';
-
+import { userStamp } from '@/lib/api/user/api';
 
 const TEXT = {
   ko: {
@@ -106,7 +106,15 @@ export const IotPopup = () => {
             <GradientButton
               key={i}
               title={btn.title}
-              href={btn.href}
+              onClick={() => {
+                                              void userStamp({
+                                                uuid: localStorage.getItem("logId") ?? "anonymous",
+                                                category: "버튼",
+                                                content: "엉따",
+                                                memo: `외부 링크: ${btn.title}`,
+                                              });
+                                              window.open(btn.href, "_blank", "noopener noreferrer");
+                                            }}
               titleColor="#FFFFFF"
               gradient="linear-gradient(to bottom, #485DA6, #6D5977)"
             />

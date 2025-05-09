@@ -1,11 +1,12 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLang } from '@/contexts/LangContext';
 import { ProjectPopupContent } from '@/customComponents/ProjectPopupContent';
 import { GradientButton } from '@/components/GradientButton';
 import { CustomPopupText } from './CustomPopupText';
-
+import { userStamp } from '@/lib/api/user/api';
+import { Breakpoints } from '@/constants/layoutConstants';
 
 const TEXT = {
   ko: {
@@ -60,20 +61,51 @@ export const FmgPopup = () => {
   const { lang } = useLang();
   const t = TEXT[lang];
 
+    const [isMobile, setIsMobile] = useState(false);
+  
+    useEffect(() => {
+      const update = () => {
+        setIsMobile(window.innerWidth <= Breakpoints.mobile);
+      };
+      update();
+      window.addEventListener('resize', update);
+      return () => window.removeEventListener('resize', update);
+    }, []);
+
   return (
     <ProjectPopupContent
       imageUrl="/assets/portpolio_popup/fmg.png"
       projectIntro={<CustomPopupText>{t.projectIntro}</CustomPopupText>}
       leftHeader={
-        <div style={{ position: 'absolute', top: '50px', left: '20px' }}>
-          <div style={{ fontSize: '18px', fontWeight: 600, color: '#7d7d7d', marginBottom: '8px' }}>
+        <div
+          style={{
+            position: 'absolute',
+            top: isMobile ? '30px' : '50px',
+            left: isMobile ? '10px' : '20px',
+          }}
+        >
+          <div
+            style={{
+              fontSize: isMobile ? '14px' : '18px',
+              fontWeight: 600,
+              color: '#7d7d7d',
+              marginBottom: isMobile ? '6px' : '8px',
+            }}
+          >
             {t.leftHeader.line1}
           </div>
-          <div style={{ fontSize: '30px', fontWeight: 700, color: '#463F40' }}>
+          <div
+            style={{
+              fontSize: isMobile ? '22px' : '30px',
+              fontWeight: 700,
+              color: '#463F40',
+            }}
+          >
             {t.leftHeader.line2}
           </div>
         </div>
       }
+      
       featureList={
         <>
           {t.features.map(([label, desc], i) => (
@@ -104,7 +136,15 @@ export const FmgPopup = () => {
             <GradientButton
               key={i}
               title={btn.title}
-              href={btn.href}
+              onClick={() => {
+                                              void userStamp({
+                                                uuid: localStorage.getItem("logId") ?? "anonymous",
+                                                category: "버튼",
+                                                content: "파미골",
+                                                memo: `외부 링크: ${btn.title}`,
+                                              });
+                                              window.open(btn.href, "_blank", "noopener noreferrer");
+                                            }}
               gradient="linear-gradient(to bottom, #CFFFE4, #ABE8C6)"
             />
           ))}

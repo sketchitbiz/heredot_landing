@@ -57,9 +57,9 @@ const MenuItem = styled.button`
 `;
 
 interface MobileMenuOverlayProps {
-  navLinks: { label: string; targetId: string }[];
+  navLinks: { label: string; targetId: string; content: string; memo: string }[];
   onClose: () => void;
-  onNavigate: (targetId: string) => void;
+  onNavigate: (targetId: string, content: string, memo: string) => void;
 }
 
 const MobileMenuOverlay: React.FC<MobileMenuOverlayProps> = ({ navLinks, onClose, onNavigate }) => {
@@ -73,7 +73,7 @@ const MobileMenuOverlay: React.FC<MobileMenuOverlayProps> = ({ navLinks, onClose
       </Header>
       <MenuList>
         {navLinks.map((link, index) => (
-          <MenuItem key={index} onClick={() => onNavigate(link.targetId)}>
+          <MenuItem key={index} onClick={() => onNavigate(link.targetId, link.content, link.memo)}>
             {link.label}
           </MenuItem>
         ))}

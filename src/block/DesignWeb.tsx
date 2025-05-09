@@ -9,6 +9,8 @@ import { useLang } from '@/contexts/LangContext';
 import { downloadLinks } from '@/lib/i18n/downloadLinks';
 import { Breakpoints } from '@/constants/layoutConstants';
 import { AppColors } from "@/styles/colors";
+import { userStamp } from '@/lib/api/user/api';
+
 
 interface DesignProps {
   title: string;
@@ -16,9 +18,11 @@ interface DesignProps {
   tabNumbers: string[];
   slides: { title: string; image: string }[];
   downloadText: string;
+  onEnterSection?: (index: number, tab: string) => void;
 }
 
 gsap.registerPlugin(ScrollTrigger);
+
 
 const Container = styled.div`
   width: ${Breakpoints.desktop}px; // 고정된 콘텐츠 너비
@@ -55,8 +59,10 @@ const ArcTrack = styled.div`
 
 const ArcItem = styled.div<{ $active: boolean; $offset: number }>`
   position: absolute;
+  cursor: pointer;
   top: 50%;
   left: 50%;
+  
   transform:
     translateX(${({ $offset }) => {
       const base = -50;
@@ -121,7 +127,6 @@ const DownloadLink = styled.a`
 const PageWrapper = styled.div`
   width: 100%;
   min-width: ${Breakpoints.desktop}px; // 데스크탑 이하로 안 줄어들게
-
   background-color: ${AppColors.background};
 `;
 
@@ -145,103 +150,161 @@ const TabNumber = styled.span<{ $active: boolean }>`
   font-weight: 400;
 `;
 
-const DesignWeb: React.FC<DesignProps> = ({ title, tabs, tabNumbers, slides, downloadText }) => {
-    const { lang } = useLang();
+const DesignWeb: React.FC<DesignProps> = ({
+  title,
+  tabs,
+  tabNumbers,
+  slides,
+  downloadText,
+  onEnterSection,
+}) => {
+  const { lang } = useLang();
   const [activeTab, setActiveTab] = useState(0);
   const [hoverEnabled, setHoverEnabled] = useState(true);
   const [isHovering, setIsHovering] = useState(false);
-
   const sectionRef = useRef<HTMLDivElement>(null);
   const activeTabRef = useRef(activeTab);
+  const lastLoggedIndex = useRef<number | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+  const ignoreScroll = useRef(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < Breakpoints.mobile);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   useEffect(() => {
     activeTabRef.current = activeTab;
   }, [activeTab]);
 
   useEffect(() => {
-    const totalScroll = window.innerHeight * (tabs.length - 1);
+    if (isMobile || !sectionRef.current) return;
 
-    const trigger = ScrollTrigger.create({
-      id: 'design',
-      trigger: sectionRef.current,
-      start: 'top top',
-      end: `+=${totalScroll}`,
-      scrub: true,
-      pin: true,
-      // pinType: 'transform',
-      onUpdate: (self) => {
-        const progress = self.progress;
-        let index = Math.round(progress * (tabs.length - 1));
-        index = Math.min(tabs.length - 1, Math.max(0, index));
-        if (index !== activeTabRef.current) {
-          setActiveTab(index);
-        }
-      },
+    const slideHeight = window.innerHeight;
+    const totalScroll = slideHeight * (tabs.length - 1);
+    const lastScrollY = { current: window.scrollY };
+
+    const ctx = gsap.context(() => {
+      ScrollTrigger.create({
+        id: "design",
+        trigger: sectionRef.current,
+        start: "top top",
+        end: `+=${totalScroll}`,
+        scrub: true,
+        pin: true,
+        onUpdate: (self) => {
+          const progress = self.progress;
+          let index = Math.floor(progress * tabs.length);
+          index = Math.min(index, tabs.length - 1);
+
+          const currentScrollY = window.scrollY;
+          const isScrollingDown = currentScrollY > lastScrollY.current;
+          lastScrollY.current = currentScrollY;
+
+          if (!ignoreScroll.current) {
+            if (index !== activeTabRef.current) {
+              setActiveTab(index);
+            }
+
+            if (
+              isScrollingDown &&
+              index !== lastLoggedIndex.current &&
+              currentScrollY > self.start
+            ) {
+              lastLoggedIndex.current = index;
+              onEnterSection?.(index, tabs[index]); // ✅ 부모에 콜백 위임
+            }
+          }
+        },
+      });
+    }, sectionRef);
+
+    return () => ctx.revert();
+  }, [tabs.length, isMobile]);
+
+  const handleTabClick = (index: number) => {
+    const trigger = ScrollTrigger.getById("design");
+    if (!trigger) return;
+
+    ignoreScroll.current = true;
+    setActiveTab(index);
+
+    const scrollY = trigger.start + (trigger.end - trigger.start) * (index / tabs.length);
+    window.scrollTo({ top: scrollY, behavior: "smooth" });
+
+    // 버튼 로그는 여전히 여기서 찍을 수 있음 (옵션)
+    userStamp({
+      uuid: localStorage.getItem("logId") ?? "anonymous",
+      category: "버튼",
+      content: "Design",
+      memo: `탭: ${tabs[index]}`,
     });
 
-    return () => trigger.kill();
-  }, [tabs.length]);
-
-  const getDownloadLink = () => {
-    return downloadLinks.designProposal[lang];
+    setTimeout(() => {
+      ignoreScroll.current = false;
+    }, 1000);
   };
 
-  const handleMouseEnter = () => {
-    if (hoverEnabled) {
-      setIsHovering(true);
-    }
-  };
-
-  const handleMouseLeave = () => {
-    if (hoverEnabled) {
-      setIsHovering(false);
-    }
-  };
-
-  const handleClick = () => {
-    setHoverEnabled(false);
-    setIsHovering(false);
-  };
+  const getDownloadLink = () => downloadLinks.designProposal[lang];
 
   return (
-    <PageWrapper ref={sectionRef}>
-      <StickySection>
-        <Container>
-          <ArcTrack>
-            <ActiveDot />
-            {tabs.map((tab, i) => {
-              const offset = i - activeTab;
-              const isActive = activeTab === i;
-              return (
-                <ArcItem key={i} $active={isActive} $offset={offset}>
-                  {tab}
-                  <TabNumber $active={isActive}>{tabNumbers[i]}</TabNumber>
-                </ArcItem>
-              );
-            })}
-          </ArcTrack>
+    <PageWrapper>
+      <div ref={sectionRef}>
+        <StickySection>
+          <Container>
+            <ArcTrack>
+              <ActiveDot />
+              {tabs.map((tab, i) => {
+                const offset = i - activeTab;
+                const isActive = activeTab === i;
+                return (
+                  <ArcItem key={i} $active={isActive} $offset={offset} onClick={() => handleTabClick(i)}>
+                    {tab}
+                    <TabNumber $active={isActive}>{tabNumbers[i]}</TabNumber>
+                  </ArcItem>
+                );
+              })}
+            </ArcTrack>
 
-          <FixedTitle
-            dangerouslySetInnerHTML={{
-              __html: title.replace(/\n/g, '<br />'),
-            }}
-          />
+            <FixedTitle
+              dangerouslySetInnerHTML={{
+                __html: title.replace(/\n/g, "<br />"),
+              }}
+            />
 
-<DownloadLink href={getDownloadLink()} target="_blank" rel="noopener noreferrer">
-            {downloadText}
-            <DownloadIcon style={{ fontSize: '16px' }} />
-          </DownloadLink>
+            <DownloadLink
+              href={getDownloadLink()}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() =>
+                userStamp({
+                  uuid: localStorage.getItem("logId") ?? "anonymous",
+                  category: "버튼",
+                  content: "Design",
+                  memo: "디자인 제안서 다운로드",
+                })
+              }
+            >
+              {downloadText}
+              <DownloadIcon style={{ fontSize: "16px" }} />
+            </DownloadLink>
 
-          <TabImage
-            src={slides[activeTab].image}
-            alt={slides[activeTab].title}
-            $hovered={isHovering}
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
-            onClick={handleClick}
-          />
-        </Container>
-      </StickySection>
+            <TabImage
+              src={slides[activeTab].image}
+              alt={slides[activeTab].title}
+              $hovered={isHovering}
+              onMouseEnter={() => hoverEnabled && setIsHovering(true)}
+              onMouseLeave={() => setIsHovering(false)}
+              onClick={() => {
+                setHoverEnabled(false);
+                setIsHovering(false);
+              }}
+            />
+          </Container>
+        </StickySection>
+      </div>
     </PageWrapper>
   );
 };

@@ -8,6 +8,7 @@ import { FiDownload } from 'react-icons/fi';
 import Gap from '@/components/Gap';
 import CommonButton from '@/components/CommonButton'; // ✅ 추가
 import { Breakpoints } from '@/constants/layoutConstants';
+import { userStamp } from '@/lib/api/user/api';
 
 const HeaderBlockWrapper = styled.div`
   position: relative;
@@ -140,6 +141,14 @@ const HeaderBlock: React.FC<HeaderBlockProps> = ({ title, subtitle, downloadLabe
           target="_blank"
           rel="noopener noreferrer"
           style={{ textDecoration: 'none' }}
+          onClick={() =>
+            userStamp({
+              uuid: localStorage.getItem('logId') ?? 'anonymous',
+              category: '버튼',
+              content: 'Header',
+              memo: '기업 소개서 다운로드',
+            })
+          }
         >
           <CommonButton
             text={downloadLabel}

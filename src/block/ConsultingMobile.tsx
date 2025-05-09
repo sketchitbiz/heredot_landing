@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import DownloadIcon from '@mui/icons-material/Download';
 import { downloadLinks } from '@/lib/i18n/downloadLinks';
 import { useLang } from '@/contexts/LangContext';
+import { userStamp } from '@/lib/api/user/api';
 
 interface ConsultingProps {
   title: string;
@@ -12,7 +13,19 @@ interface ConsultingProps {
   downloadText: string;
 }
 
-
+const logButtonClick = async (content: string, memo: string) => {
+  try {
+    await userStamp({
+      uuid: localStorage.getItem('logId') ?? 'anonymous',
+      category: '버튼',
+      content,
+      memo,
+    });
+    console.log(`[logButtonClick] ${content} / ${memo}`);
+  } catch (e) {
+    console.error(`[logButtonClick] Error logging ${content} / ${memo}`, e);
+  }
+};
 
 const highlightKeywordsList = [
   'USB',
@@ -173,11 +186,13 @@ const ConsultingMobile: React.FC<ConsultingProps> = ({
 
     const { lang } = useLang();
 
-  const handleDownloadClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    e.preventDefault();
-    const link = downloadLinks.functionalSpecification[lang];
-    window.open(link, '_blank');
-  };
+    const handleDownloadClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+      e.preventDefault();
+      const link = downloadLinks.functionalSpecification[lang];
+      logButtonClick('다운로드', '기능명세');
+      window.open(link, '_blank');
+    };
+
   return (
     <Container>
       <Title>
