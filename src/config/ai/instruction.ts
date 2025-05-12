@@ -34,6 +34,11 @@ Generate the invoice JSON data (following the specified schema and format below)
 *   Inside this script tag, provide a JSON object. This JSON is crucial for dynamic frontend interactions and **MUST strictly follow the main INVOICE_SCHEMA structure** (which implies a structure detailed below, based on the concepts of feature details and grouped features, similar to your \`FEATURE_SCHEMA\` and \`GROUP_FEATURE_SCHEMA\` definitions in \`schema.ts\`).
 *   **All string values within the JSON, such as feature names, descriptions, categories, and notes, should be in Korean if the user's primary language is Korean. Field keys (e.g., "project", "feature", "amount") must remain in English as defined in the schema.**
 *   The JSON object should have the following top-level structure (example shows Korean values):
+*  The JSON object should have the following top-level structure (example shows Korean values):
+*  The JSON object should have the following top-level structure (example shows Korean values):
+*  The JSON object should have the following top-level structure (example shows Korean values):
+*  The JSON object should have the following top-level structure (example shows Korean values):
+* 
 \`\`\`json
 {
   "project": "샘플 프로젝트 명",

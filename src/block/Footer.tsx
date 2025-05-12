@@ -1,16 +1,14 @@
-'use client';
+"use client";
 
-import styled from 'styled-components';
-import Image from 'next/image';
-import { useLang } from '@/contexts/LangContext';
-import { dictionary } from '@/lib/i18n/lang'; // ✅ 국제화 추가
-import { AppColors } from '@/styles/colors';
-import { AppTextStyles } from '@/styles/textStyles';
-import { Breakpoints } from '@/constants/layoutConstants';
-import { useEffect, useState } from 'react';
-import { userStamp } from '@/lib/api/user/api';
-
-
+import styled from "styled-components";
+import Image from "next/image";
+import { useLang } from "@/contexts/LangContext";
+import { dictionary } from "@/lib/i18n/lang"; // ✅ 국제화 추가
+import { AppColors } from "@/styles/colors";
+import { AppTextStyles } from "@/styles/textStyles";
+import { Breakpoints } from "@/constants/layoutConstants";
+import { useEffect, useState } from "react";
+import { userStamp } from "@/lib/api/user/api";
 
 const FooterContainer = styled.footer`
   color: ${AppColors.onBackground};
@@ -23,8 +21,6 @@ const FooterContainer = styled.footer`
   }
 `;
 
-
-
 const FooterContent = styled.div`
   margin: 0 auto;
   padding: 0 20px;
@@ -33,8 +29,6 @@ const FooterContent = styled.div`
     padding: 0; // 데스크탑 사이즈 이상에서는 패딩 제거
   }
 `;
-
-
 
 const LogoImageWrapper = styled.div`
   margin-bottom: 16px;
@@ -102,11 +96,11 @@ export const Footer: React.FC = () => {
 
     // 초기 실행 및 이벤트 리스너 등록
     handleResize();
-    window.addEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
 
     // 클린업
     return () => {
-      window.removeEventListener('resize', handleResize);
+      window.removeEventListener("resize", handleResize);
     };
   }, []);
 
@@ -125,42 +119,40 @@ export const Footer: React.FC = () => {
         <Separator />
         <InfoSection>
           <InfoTitle>@HEREDOT</InfoTitle>
-          <InfoText>{t.footer.companyName}</InfoText>
+          <InfoText>
+            {t.footer.companyName}{" "}
+            <InfoText
+              as="button"
+              style={{
+                background: "none",
+                border: "none",
+                color: AppColors.onBackgroundDark,
+                cursor: "pointer",
+                padding: 0,
+                fontSize: isMobile ? "11px" : "14px",
+                fontWeight: "bold",
+                marginLeft: "8px", // 회사명과의 간격
+                verticalAlign: "baseline", // 텍스트와 수직 정렬
+              }}
+              onClick={() => {
+                setShowMore((prev) => !prev);
+                void userStamp({
+                  uuid: localStorage.getItem("logId") ?? "anonymous",
+                  category: "버튼",
+                  content: "Footer",
+                  memo: `더보기 ${!showMore ? "열기" : "닫기"}`,
+                });
+              }}>
+              {t.footer.moreButton}
+            </InfoText>
+          </InfoText>
+
+          {showMore && t.footer.moreInfo.map((text, idx) => <InfoText key={idx}>{text}</InfoText>)}
           <InfoText>{t.footer.ceo}</InfoText>
           <InfoText>{t.footer.businessNumber}</InfoText>
           <InfoText>{t.footer.businessLicense}</InfoText>
           <InfoText>{t.footer.address}</InfoText>
           <InfoText>{t.footer.customerService}</InfoText>
-          <InfoText
-  as="button"
-  style={{
-    background: 'none',
-    border: 'none',
-    color: AppColors.onBackgroundDark,
-    cursor: 'pointer',
-    marginTop: '12px',
-    padding: 0,
-    fontSize: isMobile ? '11px' : '14px',
-    fontWeight: 'bold',
-  }}
-  onClick={() => {
-    setShowMore((prev) => !prev);
-    void userStamp({
-      uuid: localStorage.getItem("logId") ?? "anonymous",
-      category: "버튼",
-      content: "Footer",
-      memo: `더보기 ${!showMore ? '열기' : '닫기'}`,
-    });
-  }}
->
-  {t.footer.moreButton}
-</InfoText>
-
-{showMore &&
-  t.footer.moreInfo.map((text, idx) => (
-    <InfoText key={idx}>{text}</InfoText>
-  ))}
-
         </InfoSection>
         <CopyrightText>{t.footer.copyright}</CopyrightText>
       </FooterContent>

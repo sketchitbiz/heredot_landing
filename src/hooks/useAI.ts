@@ -7,6 +7,7 @@ import {
   getVertexAI, // 함수 사용
 } from "firebase/vertexai"; // 미리보기(-preview) 제거
 import { useEffect, useRef } from "react";
+import apiClient from "@/lib/apiClient"; // apiClient import 추가
 
 // GenerativeModelType, ChatSessionType 제거
 
@@ -35,17 +36,18 @@ export default function useAI() {
           console.log(`[useAI] API Host: ${apiHost}`);
 
           // 1. 지침(Instructions) 데이터 가져오기 (API 사용 - POST 요청)
-          const instructionsApiUrl = `${apiHost}/ai/instructions/get-list`;
-          console.log(`[useAI] Fetching instructions from: ${instructionsApiUrl}`);
+          // const instructionsApiUrl = `${apiHost}/ai/instructions/get-list`; // apiClient 사용으로 변경
+          console.log(`[useAI] Fetching instructions from: /ai/instructions/get-list`);
           let instructionsResponse;
           try {
-            instructionsResponse = await fetch(instructionsApiUrl, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({}), // 빈 객체라도 body를 포함
-            });
+            // instructionsResponse = await fetch(instructionsApiUrl, { // apiClient 사용으로 변경
+            //   method: "POST",
+            //   headers: {
+            //     "Content-Type": "application/json",
+            //   },
+            //   body: JSON.stringify({}), // 빈 객체라도 body를 포함
+            // });
+            instructionsResponse = await apiClient.post("/ai/instructions/get-list", {}); // apiClient 사용
             console.log("[useAI] Instructions API response received. Status:", instructionsResponse.status);
           } catch (fetchError) {
             console.error(
@@ -72,7 +74,7 @@ export default function useAI() {
           }
 
           console.log("[useAI] Instructions API response is OK. Parsing JSON...");
-          const instructionsResult = await instructionsResponse.json();
+          const instructionsResult = instructionsResponse.data; // .json() 대신 .data 사용
           console.log("[useAI] Successfully parsed instructions JSON:", JSON.stringify(instructionsResult, null, 2));
 
           // 모든 instruction의 content를 합치기
@@ -107,17 +109,18 @@ export default function useAI() {
           console.log("[useAI] Combined allInstructionsContent. Length:", allInstructionsContent.length);
 
           // 2. 기능(Features) 데이터 가져오기 (API 사용 - POST 요청)
-          const featuresApiUrl = `${apiHost}/ai/features/get-list`;
-          console.log(`[useAI] Fetching features from: ${featuresApiUrl}`);
+          // const featuresApiUrl = `${apiHost}/ai/features/get-list`; // apiClient 사용으로 변경
+          console.log(`[useAI] Fetching features from: /ai/features/get-list`);
           let featuresResponse;
           try {
-            featuresResponse = await fetch(featuresApiUrl, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({}), // 빈 객체라도 body를 포함
-            });
+            // featuresResponse = await fetch(featuresApiUrl, { // apiClient 사용으로 변경
+            //   method: "POST",
+            //   headers: {
+            //     "Content-Type": "application/json",
+            //   },
+            //   body: JSON.stringify({}), // 빈 객체라도 body를 포함
+            // });
+            featuresResponse = await apiClient.post("/ai/features/get-list", {}); // apiClient 사용
             console.log("[useAI] Features API response received. Status:", featuresResponse.status);
           } catch (fetchError) {
             console.error(
@@ -144,7 +147,7 @@ export default function useAI() {
           }
 
           console.log("[useAI] Features API response is OK. Parsing JSON...");
-          const featuresResult = await featuresResponse.json();
+          const featuresResult = featuresResponse.data; // .json() 대신 .data 사용
           console.log("[useAI] Successfully parsed features JSON:", JSON.stringify(featuresResult, null, 2));
 
           // 기능 데이터 추출 및 문자열 변환 (응답 구조에 대한 더 강력한 확인 추가)

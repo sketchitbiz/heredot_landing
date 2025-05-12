@@ -5,6 +5,7 @@ import ButtonElement from "@/elements/ButtonElement";
 import { Edit, Search } from "@mui/icons-material";
 import { AppColors } from "../../styles/colors";
 import { AppTextStyles } from "@/styles/textStyles";
+import useAuthStore from "@/store/authStore";
 
 interface NavigationItem {
   title: string;
@@ -18,10 +19,52 @@ interface AiNavigationBarProps {
   navigationItems: NavigationItem[];
 }
 
+const BlurredOverlay = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: white;
+`;
+
+const LoginPromptText = styled.p`
+  ${AppTextStyles.body1}
+  font-size: 1.1rem;
+  margin-bottom: 24px;
+  line-height: 1.6;
+`;
+
+const CenteredLoginButton = styled(ButtonElement)`
+  background-color: ${AppColors.surface};
+  color: ${AppColors.onSurface};
+  padding: 12px 32px;
+  font-size: 1.1rem;
+  border-radius: 24px;
+  font-weight: 600;
+
+  &:hover:not(:disabled) {
+    background-color: ${AppColors.primary};
+    color: ${AppColors.onPrimary};
+  }
+`;
+
 const AiNavigationBar = ({ navigationItems }: AiNavigationBarProps) => {
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>(
     navigationItems.reduce((acc, item) => ({ ...acc, [item.title]: true }), {})
   );
+
+  const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
+  const openLoginModal = useAuthStore((state) => state.openLoginModal);
 
   const toggleSection = (title: string) => {
     setExpandedSections((prev) => ({
@@ -29,6 +72,25 @@ const AiNavigationBar = ({ navigationItems }: AiNavigationBarProps) => {
       [title]: !prev[title],
     }));
   };
+
+  if (!isLoggedIn) {
+    return (
+      <Container>
+        <Sidebar>
+          <BlurredOverlay>
+            <LoginPromptText>
+              로그인 시, <br />
+              저장된 대화기록을 <br />
+              불러올 수 있습니다.
+            </LoginPromptText>
+            <CenteredLoginButton onClick={openLoginModal} isRounded={false}>
+              Login
+            </CenteredLoginButton>
+          </BlurredOverlay>
+        </Sidebar>
+      </Container>
+    );
+  }
 
   return (
     <Container>
@@ -101,6 +163,7 @@ const Container = styled.div`
   display: flex;
   height: 100vh;
   background-color: #f8f9fa;
+  position: relative;
 `;
 
 const Sidebar = styled.div`
@@ -110,6 +173,7 @@ const Sidebar = styled.div`
   display: flex;
   flex-direction: column;
   height: 100vh;
+  position: relative;
 `;
 
 const Flex = styled.div`

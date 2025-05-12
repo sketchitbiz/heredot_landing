@@ -23,6 +23,9 @@ import CloseIcon from "@mui/icons-material/Close";
 import { FileUploadData, uploadFiles } from "@/lib/firebase/firebase.functions"; // 경로 확인 필요
 import { Part, FileData } from "firebase/vertexai"; // FileDataPart 제거
 import TextareaAutosize from "react-textarea-autosize"; // 라이브러리 import
+import { SocialLoginModal } from "./SocialLoginModal";
+import authStore, { AuthState } from "@/store/authStore"; // useAuthStore를 default import로 변경
+import AdditionalInfoModal from "./AdditionalInfoModal";
 
 // --- 타입 정의 추가 --- (AiChatMessage.tsx의 타입과 동기화 필요)
 // interface InvoiceFeatureItem {
@@ -299,7 +302,7 @@ const IconContainer = styled.button`
   transition: background-color 0.2s;
 
   &:hover {
-    background-color: ${AppColors.disabled}; // disabledHover -> disabled
+    background-color: ${AppColors.secondary}; // AppColors.primaryDark 대신 secondary 사용
   }
 
   .MuiSvgIcon-root {
@@ -417,7 +420,6 @@ const DragDropOverlay = styled.div`
   pointer-events: none; /* Prevent interference */
   z-index: 10;
 `;
-// -------------------------
 
 // 컴포넌트 이름을 AiPageContent로 변경
 export default function AiPageContent() {
@@ -426,14 +428,14 @@ export default function AiPageContent() {
   const searchParams = useSearchParams();
   const chatEndRef = useRef<HTMLDivElement>(null);
 
-  const { chat } = useAI(); // chat 변수 주석 해제
+  const { chat } = useAI();
 
   const [currentStep, setCurrentStep] = useState(0);
   const [selections, setSelections] = useState<Record<string, string[]>>({});
   const [isFreeFormMode, setIsFreeFormMode] = useState(false);
 
   const [messages, setMessages] = useState<Message[]>([]);
-  const [prompt, setPrompt] = useState("");
+  const [promptText, setPromptText] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -444,7 +446,50 @@ export default function AiPageContent() {
 
   // 견적서 상태 추가
   const [invoiceDetails, setInvoiceDetails] = useState<InvoiceDetails | null>(null);
-  // -------------------------
+
+  // authStore에서 모달 상태 및 액션 가져오기
+  const isLoginModalOpen = authStore((state: AuthState) => state.isLoginModalOpen);
+  const closeLoginModal = authStore((state: AuthState) => state.closeLoginModal);
+  const login = authStore((state: AuthState) => state.login);
+  const openAdditionalInfoModal = authStore((state: AuthState) => state.openAdditionalInfoModal);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // 로컬 스토리지에서 로그인 데이터 확인
+  useEffect(() => {
+    try {
+      const loginDataStr = localStorage.getItem("loginData");
+      if (loginDataStr) {
+        console.log("로컬 스토리지에서 로그인 데이터 발견");
+        const loginData = JSON.parse(loginDataStr);
+
+        // 로그인 데이터 처리
+        if (Array.isArray(loginData) && loginData.length > 0) {
+          const result = loginData[0];
+          if (result.statusCode === 200 && result.data && Array.isArray(result.data) && result.data.length > 0) {
+            const userData = result.data[0];
+
+            // Zustand 스토어에 로그인 정보 저장
+            login(userData);
+
+            // cellphone 값이 없는 경우에만 추가 정보 입력 모달 표시
+            if (!userData.cellphone) {
+              console.log("전화번호 정보가 없어 추가 정보 모달 표시");
+              openAdditionalInfoModal();
+            } else {
+              console.log("전화번호 정보가 이미 존재함");
+            }
+
+            // 처리 후 로컬 스토리지에서 삭제
+            localStorage.removeItem("loginData");
+            console.log("로그인 처리 완료 및 로컬 스토리지 데이터 삭제");
+          }
+        }
+      }
+    } catch (error) {
+      console.error("로그인 데이터 처리 오류:", error);
+    }
+  }, [login, openAdditionalInfoModal]);
 
   // URL 파라미터 -> 상태 동기화 Effect
   useEffect(() => {
@@ -452,7 +497,6 @@ export default function AiPageContent() {
     const selectionsParam = searchParams.get("selections");
     const modeParam = searchParams.get("mode");
 
-    // Step 파싱 및 유효성 검사
     let step = 0;
     if (stepParam) {
       const parsedStep = parseInt(stepParam, 10);
@@ -461,25 +505,21 @@ export default function AiPageContent() {
       }
     }
 
-    // Selections 파싱
     let sels = {};
     if (selectionsParam) {
       try {
         sels = JSON.parse(selectionsParam);
       } catch (error) {
         console.error("Error parsing selections from URL:", error);
-        // 파싱 오류 시 빈 객체 사용
       }
     }
 
-    // Mode 확인
     const freeForm = modeParam === "freeform";
 
-    // 상태 업데이트
     setCurrentStep(step);
     setSelections(sels);
     setIsFreeFormMode(freeForm);
-  }, [searchParams]); // searchParams가 변경될 때마다 실행
+  }, [searchParams]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -489,7 +529,6 @@ export default function AiPageContent() {
   const progressSteps = stepData.map((step) => step.progress);
   const initialSelection = currentStepData ? selections[currentStepData.id] || [] : [];
 
-  // URL 업데이트 헬퍼 함수
   const updateUrlParams = (newParams: Record<string, string | number | undefined>) => {
     const currentParams = new URLSearchParams(searchParams.toString());
     Object.entries(newParams).forEach(([key, value]) => {
@@ -504,30 +543,24 @@ export default function AiPageContent() {
 
   const handleNext = (selectedIds: string[]) => {
     if (!currentStepData) return;
-
     const updatedSelections = { ...selections, [currentStepData.id]: selectedIds };
     const selectionsString = JSON.stringify(updatedSelections);
-
     if (currentStep < stepData.length - 1) {
       const nextStep = currentStep + 1;
       updateUrlParams({ selections: selectionsString, step: nextStep, mode: undefined });
     } else {
-      // 마지막 단계 완료 시: mode=freeform 추가, step 제거
       updateUrlParams({ selections: selectionsString, mode: "freeform", step: undefined });
     }
   };
 
   const handlePrevious = () => {
-    if (isFreeFormMode) return; // 자유 질문 모드에서는 이전 불가
-
+    if (isFreeFormMode) return;
     if (currentStep > 0) {
       const prevStep = currentStep - 1;
-      // 이전 단계로 이동 시 selections는 유지하고 step만 변경, mode 제거
       updateUrlParams({ step: prevStep, mode: undefined });
     }
   };
 
-  // 숫자만 추출하는 헬퍼 함수
   const extractNumber = (textWithUnit: string | number | undefined): number => {
     if (typeof textWithUnit === "number") return textWithUnit;
     if (typeof textWithUnit === "string") {
@@ -537,17 +570,15 @@ export default function AiPageContent() {
     return 0;
   };
 
-  // 총합 계산 함수
   const calculateTotals = (
     items: Array<InvoiceDataType["invoiceGroup"][number]["items"][number] & { isDeleted: boolean }>
   ) => {
     let totalAmount = 0;
     let totalDuration = 0;
     let totalPages = 0;
-
     items.forEach((item) => {
       if (!item.isDeleted) {
-        totalAmount += typeof item.amount === "number" ? item.amount : 0; // 숫자 아니면 0으로 처리
+        totalAmount += typeof item.amount === "number" ? item.amount : 0;
         totalDuration += extractNumber(item.duration);
         totalPages += extractNumber(item.pages);
       }
@@ -555,43 +586,19 @@ export default function AiPageContent() {
     return { totalAmount, totalDuration, totalPages };
   };
 
-  useEffect(() => {
-    // invoiceDetails 상태 변경 로깅 제거
-    // if (invoiceDetails) {
-    //   console.log("✅ InvoiceDetails state updated by useEffect:", JSON.stringify(invoiceDetails, null, 2));
-    // }
-  }, [invoiceDetails]);
+  useEffect(() => {}, [invoiceDetails]);
 
-  // --- 버튼 액션 처리 함수 수정 ---
   const handleActionClick = async (action: string, data?: { featureId?: string }) => {
-    // console.log("🔵 handleActionClick - Action:", action, "Data:", data); // 로깅 제거
-
     if (action === "delete_feature_json" && data?.featureId && invoiceDetails) {
       const featureIdToDelete = data.featureId;
-      // console.log(`Attempting to toggle delete for featureId: ${featureIdToDelete}`); // 로깅 제거
-
-      // 아이템 찾기 로깅 제거
-      // const itemExists = invoiceDetails.items.some((item) => item.id === featureIdToDelete);
-      // console.log(`Item with id '${featureIdToDelete}' exists in items array: ${itemExists}`);
-
       const newItems = invoiceDetails.items.map((item) => {
         if (item.id === featureIdToDelete) {
-          // console.log(`Found item to toggle: ${item.feature}, current isDeleted: ${item.isDeleted}`); // 로깅 제거
           return { ...item, isDeleted: !item.isDeleted };
         }
         return item;
       });
-
-      // isDeleted 상태 변경 확인 로깅 제거
-      // const changedItem = newItems.find((item) => item.id === featureIdToDelete);
-      // console.log(`Item '${changedItem?.feature}' after toggle, new isDeleted: ${changedItem?.isDeleted}`);
-      // console.log("newItems array after map:", JSON.stringify(newItems, null, 2));
-
       const { totalAmount, totalDuration, totalPages } = calculateTotals(newItems);
-      // console.log("Recalculated Totals:", { totalAmount, totalDuration, totalPages }); // 로깅 제거
-
       setInvoiceDetails((prev) => {
-        // console.log("Calling setInvoiceDetails with new totals and items."); // 로깅 제거
         if (prev) {
           return {
             ...prev,
@@ -605,12 +612,9 @@ export default function AiPageContent() {
       });
       return;
     }
-
-    // 기존 액션 처리
     const invoiceRequestText = "견적서를 보여줘";
     const discountOption1Text = "할인 옵션 1 (기간 연장)을 선택합니다.";
     const discountOption2Text = "할인 옵션 2 (기능 제거)를 선택합니다.";
-
     switch (action) {
       case "show_invoice":
         setInvoiceDetails(null);
@@ -632,19 +636,15 @@ export default function AiPageContent() {
     }
   };
 
-  // --- 파일 처리 핸들러 ---
   const handleIconUploadClick = () => {
     fileInputRef.current?.click();
   };
 
-  // 엔터 키 처리 함수
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    // Enter 키 단독 입력 시 (Shift 키 X)
     if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault(); // textarea의 기본 Enter 동작(줄바꿈) 막기
-      handleGeminiSubmit(null); // 메시지 전송 함수 호출 (이벤트 객체 불필요)
+      e.preventDefault();
+      handleGeminiSubmit(null);
     }
-    // Shift + Enter는 기본 동작(줄바꿈) 수행
   };
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -682,35 +682,22 @@ export default function AiPageContent() {
 
   const handleDeleteFile = (fileUri: string) => {
     setUploadedFiles((prev) => prev.filter((f) => f.fileUri !== fileUri));
-    // TODO: Optionally delete from Firebase Storage using deleteImage function
-    // import { deleteImage } from '@/lib/firebase/firebase.functions';
-    // deleteImage(fileUri, { onSuccess: () => console.log('Deleted from storage') });
   };
-  // ------------------------
 
-  // --- Gemini API 호출 함수 수정 (AI 응답 처리 부분) ---
   const handleGeminiSubmit = async (e?: React.FormEvent | null, actionPrompt?: string) => {
     e?.preventDefault();
-    const submissionPrompt = actionPrompt || prompt;
-
+    const submissionPrompt = actionPrompt || promptText;
     if ((!submissionPrompt && uploadedFiles.length === 0) || loading) {
-      // console.error("Submit prevented: No prompt or files, or already loading."); // 로깅 제거
       return;
     }
-
     if (!isFreeFormMode) {
-      // console.error("Submit prevented: File upload only in free form mode."); // 로깅 제거
       return;
     }
-
-    // console.log("handleGeminiSubmit called with prompt:", submissionPrompt, "Files:", uploadedFiles); // 로깅 제거
     setLoading(true);
     setError("");
-
     let userMessageText = submissionPrompt;
     let userMessageImageUrl: string | undefined = undefined;
     let userMessageFileType: string | undefined = undefined;
-
     if (uploadedFiles.length > 0) {
       userMessageText += `\n\n(첨부 파일: ${uploadedFiles.map((f) => f.name).join(", ")})`;
       const firstImageFile = uploadedFiles.find((file) => file.mimeType.startsWith("image/"));
@@ -721,7 +708,6 @@ export default function AiPageContent() {
         userMessageFileType = uploadedFiles[0].mimeType;
       }
     }
-
     const userMessage = {
       id: Date.now(),
       sender: "user" as const,
@@ -729,22 +715,18 @@ export default function AiPageContent() {
       imageUrl: userMessageImageUrl,
       fileType: userMessageFileType,
     };
-
     const aiMessageId = Date.now() + 1;
     const initialAiMessage: Message = { id: aiMessageId, sender: "ai", text: "", invoiceData: undefined };
     setMessages((prev) => [...prev, userMessage as Message, initialAiMessage]);
-
     if (!actionPrompt) {
-      setPrompt("");
+      setPromptText("");
     }
     const currentFiles = [...uploadedFiles];
     setUploadedFiles([]);
     setUploadProgress(0);
-
     if (actionPrompt !== "견적서를 보여줘" && actionPrompt !== "견적 데이터 보기") {
       setInvoiceDetails(null);
     }
-
     try {
       const parts: Part[] = [];
       let selectionSummary = "";
@@ -760,77 +742,50 @@ export default function AiPageContent() {
         }
       });
       selectionSummary += "\n";
-      if (selectionSummary.trim()) parts.push({ text: selectionSummary }); // trim() 추가
-
-      // 현재 견적서 상태 추가 (삭제된 항목 포함)
+      if (selectionSummary.trim()) parts.push({ text: selectionSummary });
       if (invoiceDetails && invoiceDetails.items && invoiceDetails.items.length > 0) {
         let currentInvoiceStateText =
           "현재 사용자가 보고 있는 견적서 상태입니다. 일부 항목은 사용자에 의해 삭제 처리되었을 수 있습니다 (isDeleted: true로 표시됨):\n";
         invoiceDetails.items.forEach((item) => {
           currentInvoiceStateText += `- 항목: ${item.feature}, 금액: ${item.amount}, 삭제됨: ${item.isDeleted}\n`;
-          // 필요시 다른 필드(description, duration, pages 등)도 추가 가능
         });
         currentInvoiceStateText += `현재 총액: ${invoiceDetails.currentTotal}, 총 기간: ${invoiceDetails.currentTotalDuration}일, 총 페이지: ${invoiceDetails.currentTotalPages}페이지\n`;
         parts.push({ text: currentInvoiceStateText });
       }
-
       if (submissionPrompt) parts.push({ text: submissionPrompt });
-
       currentFiles.forEach((file) => {
         parts.push({ fileData: { mimeType: file.mimeType, fileUri: file.fileUri } as FileData });
       });
-
-      // console.log("Sending parts to AI via ChatSession:", JSON.stringify(parts, null, 2)); // 로깅 제거
-
       if (!chat.current) {
         throw new Error("AI chat session is not initialized.");
       }
-
       const streamResult = await chat.current.sendMessageStream(parts);
-
       let aiResponseText = "";
-      // console.log("--- AI Streaming Start ---"); // 로깅 제거
       for await (const item of streamResult.stream) {
         const chunkText = item.candidates?.[0]?.content?.parts?.[0]?.text;
         if (chunkText) {
           aiResponseText += chunkText;
-          // 스트리밍 중 메시지 업데이트 제거 - 전체 응답 후 한 번만 업데이트
-          // setMessages((prevMessages: Message[]) => {
-          //   return prevMessages.map((msg) => (msg.id === aiMessageId ? { ...msg, text: msg.text + chunkText } : msg));
-          // });
         }
       }
-      // console.log("--- AI Streaming End ---"); // 로깅 제거
-
-      console.log("AI 전체 응답 (aiResponseText):", aiResponseText); // AI 전체 응답 로깅 추가
-
+      console.log("AI 전체 응답 (aiResponseText):", aiResponseText);
       const jsonScriptRegex = /<script type="application\/json" id="invoiceData">([\s\S]*?)<\/script>/;
       const jsonMatch = aiResponseText.match(jsonScriptRegex);
-
-      console.log("JSON 추출 시도 결과 (jsonMatch):", jsonMatch); // 정규식 매칭 결과 로깅 추가
-
-      let parsedInvoiceData: InvoiceDataType | null = null; // 타입 명시
+      console.log("JSON 추출 시도 결과 (jsonMatch):", jsonMatch);
+      let parsedInvoiceData: InvoiceDataType | null = null;
       let naturalLanguageText = aiResponseText;
-
       if (jsonMatch && jsonMatch[1]) {
         const jsonString = jsonMatch[1];
-        console.log("추출된 JSON 문자열 (jsonString):", jsonString); // 추출된 JSON 문자열 로깅 추가
+        console.log("추출된 JSON 문자열 (jsonString):", jsonString);
         try {
           parsedInvoiceData = JSON.parse(jsonString) as InvoiceDataType;
-          console.log("파싱된 견적서 JSON 객체 (parsedInvoiceData):", parsedInvoiceData); // 파싱된 JSON 객체 로깅 추가
-
+          console.log("파싱된 견적서 JSON 객체 (parsedInvoiceData):", parsedInvoiceData);
           naturalLanguageText = aiResponseText.replace(jsonScriptRegex, "").trim();
-          console.log("JSON 제거 후 자연어 텍스트 (naturalLanguageText):", naturalLanguageText); // JSON 제거 후 텍스트 로깅 추가
-          // console.log("Natural Language Text (after removing JSON script):", naturalLanguageText); // 로깅 제거
-
+          console.log("JSON 제거 후 자연어 텍스트 (naturalLanguageText):", naturalLanguageText);
           if (parsedInvoiceData && parsedInvoiceData.invoiceGroup) {
             const initialItems = parsedInvoiceData.invoiceGroup.flatMap((group) =>
               group.items.map((item) => ({ ...item, isDeleted: false }))
             );
             const { totalAmount, totalDuration, totalPages } = calculateTotals(initialItems);
-
-            // console.log("Calculated Totals by Frontend:", { totalAmount, totalDuration, totalPages }); // 로깅 제거
-
             setInvoiceDetails({
               parsedJson: parsedInvoiceData,
               items: initialItems,
@@ -838,29 +793,18 @@ export default function AiPageContent() {
               currentTotalDuration: totalDuration,
               currentTotalPages: totalPages,
             });
-
-            // Message 업데이트 시 invoiceData는 AI 원본을 전달할지, 프론트 계산값을 포함할지 결정.
-            // AiChatMessage에서는 invoiceData.total 대신 invoiceDetails에서 계산된 값을 사용할 예정이므로,
-            // 여기서는 AI 원본 JSON을 전달해도 무방하나, 일관성을 위해 total을 업데이트한 객체를 만들 수도 있음.
-            // 지금은 AI 원본 JSON을 그대로 전달.
             setMessages((prevMessages: Message[]) => {
               return prevMessages.map((msg) =>
                 msg.id === aiMessageId
-                  ? { ...msg, text: naturalLanguageText, invoiceData: parsedInvoiceData ?? undefined } // 전체 응답으로 업데이트
+                  ? { ...msg, text: naturalLanguageText, invoiceData: parsedInvoiceData ?? undefined }
                   : msg
               );
             });
           } else {
-            // console.error( // 로깅 제거
-            //   "❌ Parsed JSON data is invalid or missing required fields (e.g., invoiceGroup, total.amount). Parsed Data:",
-            //   JSON.stringify(parsedInvoiceData, null, 2)
-            // );
             setInvoiceDetails(null);
             setMessages((prevMessages: Message[]) => {
               return prevMessages.map((msg) =>
-                msg.id === aiMessageId
-                  ? { ...msg, text: naturalLanguageText, invoiceData: undefined } // 전체 응답으로 업데이트
-                  : msg
+                msg.id === aiMessageId ? { ...msg, text: naturalLanguageText, invoiceData: undefined } : msg
               );
             });
           }
@@ -872,20 +816,16 @@ export default function AiPageContent() {
           setInvoiceDetails(null);
           setMessages((prevMessages: Message[]) => {
             return prevMessages.map((msg) =>
-              msg.id === aiMessageId
-                ? { ...msg, text: aiResponseText, invoiceData: undefined } // 전체 응답으로 업데이트
-                : msg
+              msg.id === aiMessageId ? { ...msg, text: aiResponseText, invoiceData: undefined } : msg
             );
           });
         }
       } else {
-        console.log("스크립트 태그에서 견적서 JSON 데이터를 찾지 못했습니다. AI 응답을 자연어로만 처리합니다."); // 로깅 메시지 수정
+        console.log("스크립트 태그에서 견적서 JSON 데이터를 찾지 못했습니다. AI 응답을 자연어로만 처리합니다.");
         setInvoiceDetails(null);
         setMessages((prevMessages: Message[]) => {
           return prevMessages.map((msg) =>
-            msg.id === aiMessageId
-              ? { ...msg, text: aiResponseText, invoiceData: undefined } // 전체 응답으로 업데이트
-              : msg
+            msg.id === aiMessageId ? { ...msg, text: aiResponseText, invoiceData: undefined } : msg
           );
         });
       }
@@ -895,9 +835,7 @@ export default function AiPageContent() {
       console.error("❌ Error in handleGeminiSubmit's try block:", err);
       setMessages((prevMessages: Message[]) => {
         return prevMessages.map((msg) =>
-          msg.id === aiMessageId
-            ? { ...msg, text: `오류: ${errorMessage}`, invoiceData: undefined } // 전체 응답으로 업데이트
-            : msg
+          msg.id === aiMessageId ? { ...msg, text: `오류: ${errorMessage}`, invoiceData: undefined } : msg
         );
       });
       setInvoiceDetails(null);
@@ -905,7 +843,6 @@ export default function AiPageContent() {
       setLoading(false);
     }
   };
-  // ----------------------------------------------------
 
   // gridColumns 타입 수정 및 기본값 설정
   const stepGridColumns = currentStepData?.gridColumns;
@@ -914,8 +851,6 @@ export default function AiPageContent() {
     typeof stepGridColumns === "number" && [1, 2, 3, 4, 5].includes(stepGridColumns)
       ? (stepGridColumns as 1 | 2 | 3 | 4 | 5)
       : 3; // 기본값 3
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   return (
     <Container>
@@ -1075,13 +1010,13 @@ export default function AiPageContent() {
                 maxRows={12}
                 placeholder={isFreeFormMode ? "메시지 또는 파일 첨부..." : "기초자료 조사는 입력이 불가합니다."}
                 disabled={!isFreeFormMode || loading}
-                value={prompt}
-                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setPrompt(e.target.value)}
+                value={promptText}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setPromptText(e.target.value)}
                 onKeyDown={handleKeyDown}
               />
               <IconContainer
                 type="submit"
-                disabled={!isFreeFormMode || loading || (!prompt && uploadedFiles.length === 0)}>
+                disabled={!isFreeFormMode || loading || (!promptText && uploadedFiles.length === 0)}>
                 <Send />
               </IconContainer>
             </InputContainer>
@@ -1090,6 +1025,9 @@ export default function AiPageContent() {
       </MainContent>
 
       {!isFreeFormMode && <AiProgressBar steps={progressSteps} currentStep={currentStep} />}
+
+      <SocialLoginModal isOpen={isLoginModalOpen} onClose={closeLoginModal} />
+      <AdditionalInfoModal />
     </Container>
   );
 }

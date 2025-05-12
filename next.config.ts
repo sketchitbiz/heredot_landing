@@ -1,20 +1,27 @@
 import type { NextConfig } from "next";
- 
+import type { Configuration as WebpackConfig } from "webpack";
+import path from "path";
+
 const nextConfig: NextConfig = {
-  /* config options here */
   compiler: {
-    styledComponents: true, // styled-components 사용 설정
+    styledComponents: true,
   },
   eslint: {
-    // 경고: 빌드 시 ESLint 오류를 무시합니다.
-    // 모든 ESLint 관련 오류를 무시하며, 잠재적인 코드 품질 문제를 가릴 수 있습니다.
     ignoreDuringBuilds: true,
   },
   typescript: {
-    // 경고: 빌드 시 TypeScript 오류를 무시합니다.
-    // 타입 관련 오류를 무시하며, 런타임 오류로 이어질 수 있습니다.
     ignoreBuildErrors: true,
   },
+  webpack(config: WebpackConfig) {
+    config.resolve = {
+      ...config.resolve,
+      alias: {
+        ...(config.resolve?.alias || {}),
+        "@": path.resolve(__dirname, "src"),
+      },
+    };
+    return config;
+  },
 };
- 
+
 export default nextConfig;
