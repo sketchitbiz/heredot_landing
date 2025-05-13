@@ -147,8 +147,17 @@ export const TextField = ({
         )}
       </InputWrapper>
       {errorMessage && (
-        <span style={{ color: AppColors.error }}>{errorMessage}</span>
-      )}
+  <span
+    style={{
+      color: AppColors.error,
+      marginLeft: '8px', // 왼쪽 여백
+      marginTop: '8px',  // 위쪽 여백
+      display: 'block',  // 줄바꿈을 강제하여 아래로 배치
+    }}
+  >
+    {errorMessage}
+  </span>
+)}
     </Container>
   );
 };

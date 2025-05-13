@@ -1,5 +1,3 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import { GlobalWrapper } from "./global-wrapper";
 import StyledComponentsRegistry from "@/lib/registry";
 import "@/lib/firebase/firebase.config";
@@ -12,16 +10,6 @@ import "@/lib/firebase/firebase.config";
  * It includes the base HTML structure, global fonts, and wraps the app with global context and styles.
  */
 
-// ✅ Google Fonts 설정 | Configure Google Fonts with CSS variables
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata = {
   title: 'HereDot',

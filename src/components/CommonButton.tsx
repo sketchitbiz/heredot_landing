@@ -5,47 +5,56 @@ import styled from 'styled-components';
 import { AppColors } from '@/styles/colors';
 import { AppTextStyles } from '@/styles/textStyles';
 import { Breakpoints } from '@/constants/layoutConstants';
+import { useDevice } from '@/contexts/DeviceContext';
+import type { DeviceType } from '@/types/device';
+import { ButtonStyles } from '@/constants/componentConstants'; // 추가
 
 interface CommonButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   text: string;
   icon?: React.ReactNode;
   $iconPosition?: 'left' | 'right';
+
+  // 🎨 스타일 오버라이드 props
+  width?: string;
+  height?: string;
+  borderRadius?: string;
+  padding?: string;
+  fontSize?: string;
 }
 
-
-const StyledButton = styled.button`
-  ${AppTextStyles.label2};
+const StyledButton = styled.button<{
+  $width?: string;
+  $maxWidth: string;
+  $height: string;
+  $borderRadius: string;
+  $padding: string;
+  $fontSize: string;
+}>`
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 10px 25px;
-  color: ${AppColors.onBackground};
-  background: ${AppColors.background};
-  border: 2px solid ${AppColors.borderLight};
-  border-radius: 75px;
-  height: 50px;
-  letter-spacing: 0.08em;
+  width: ${({ $width }) => $width || '100%'};
+  max-width: ${({ $maxWidth }) => $maxWidth};
+  height: ${({ $height }) => $height};
+  padding: ${({ $padding }) => $padding};
+  border-radius: ${({ $borderRadius }) => $borderRadius};
+  font-size: ${({ $fontSize }) => $fontSize};
+  font-weight: ${AppTextStyles.label2.fontWeight};
+  letter-spacing: ${AppTextStyles.label2.letterSpacing};
+
+  background: ${AppColors.primary};
+  color: ${AppColors.onPrimary};
+  border: none;
   cursor: pointer;
-  transition: border-color 0.3s;
+  transition: color 0.3s ease;
 
   &:hover {
-    border: 2px solid ${AppColors.primary};
+    color: ${AppColors.hoverText};
   }
 
   svg {
     font-size: 25px;
-    color: ${AppColors.onBackground};
-  }
-
-  @media (max-width: ${Breakpoints.mobile}px) {
-    font-size: 14px;
-    font-weight: 700;
-    padding: 8px 20px;
-    height: 44px;
-
-    svg {
-      font-size: 20px;
-    }
+    color: inherit; // 텍스트 색상과 동일하게
   }
 `;
 
@@ -60,13 +69,32 @@ const CommonButton: React.FC<CommonButtonProps> = ({
   text,
   icon,
   $iconPosition = 'left',
-  ...buttonProps // This now excludes $iconPosition
+  width,
+  height,
+  borderRadius,
+  padding,
+  fontSize,
+  ...buttonProps
 }) => {
+  const device = useDevice();
+
   return (
-    <StyledButton {...buttonProps}>
-      {icon && $iconPosition === 'left' && <IconWrapper $position="left">{icon}</IconWrapper>}
+    <StyledButton
+      {...buttonProps}
+      $width={width}
+      $maxWidth={ButtonStyles.containerMaxWidth[device]}
+      $height={height || ButtonStyles.height[device]}
+      $borderRadius={borderRadius || ButtonStyles.radius[device]}
+      $padding={padding || ButtonStyles.padding[device]}
+      $fontSize={fontSize || ButtonStyles.fontSize[device]}
+    >
+      {icon && $iconPosition === 'left' && (
+        <IconWrapper $position="left">{icon}</IconWrapper>
+      )}
       {text}
-      {icon && $iconPosition === 'right' && <IconWrapper $position="right">{icon}</IconWrapper>}
+      {icon && $iconPosition === 'right' && (
+        <IconWrapper $position="right">{icon}</IconWrapper>
+      )}
     </StyledButton>
   );
 };

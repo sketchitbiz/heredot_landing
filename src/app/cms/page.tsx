@@ -1,108 +1,89 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { TextField } from '@/components/TextField';
-import ResponsiveView from '@/layout/ResponsiveView';
-import { AppTextStyles } from '@/styles/textStyles';
-import { loginAdminService } from '@/lib/services/loginAdminService';
-import { usePageLoaderContext } from '@/contexts/PageLoaderContext';
-import ScreenWrapper from '@/layout/ScreenWrapper';
-import { useAdminAuth } from '@/contexts/AdminAuthContext';
+import React, { useState } from "react";
+import styled from "styled-components"; // 스타일링을 위해 추가
+import CustomSidebar, { MenuItemConfig } from "../../components/CustomSidebar/CustomSidebar";
+import CustomSidebarHeader from "../../components/CustomSidebar/CustomSidebarHeader";
+import GenericListGuide from "../../components/CustomList/GenericListGuide";
+import DashboardIcon from "@mui/icons-material/Dashboard";
+import GroupIcon from "@mui/icons-material/Group";
+import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
+import StorageIcon from "@mui/icons-material/Storage";
+import SettingsApplicationsIcon from "@mui/icons-material/SettingsApplications";
+import DataUsageIcon from "@mui/icons-material/DataUsage";
+import ContactSupportIcon from "@mui/icons-material/ContactSupport";
+import DescriptionIcon from "@mui/icons-material/Description";
 
-export default function HomePage() {
-  const [userId, setUserId] = useState('');
-  const [password, setPassword] = useState('');
-  const [loginMessage, setLoginMessage] = useState<string | null>(null);
 
-  const router = useRouter();
+// 아이콘 임포트 (예시, 실제 아이콘으로 교체 필요)
+import HomeIcon from "@mui/icons-material/Home";
+import SettingsIcon from "@mui/icons-material/Settings";
+import LogoutIcon from "@mui/icons-material/Logout";
 
-  const { login } = useAdminAuth();
+// 메인 콘텐츠 영역 스타일링
+const MainContent = styled.div<{ $isSidebarCollapsed: boolean }>`
+  margin-left: ${({ $isSidebarCollapsed }) => ($isSidebarCollapsed ? "80px" : "250px")};
+  padding: 20px; // 콘텐츠 내부 여백
+  transition: margin-left 0.3s ease;
+  height: 100vh; // 필요에 따라 조정
+  overflow-y: auto; // 콘텐츠가 길어질 경우 스크롤
+`;
 
-  const handleLogin = async () => {
-    setLoginMessage(null);
-  
-    await loginAdminService({
-      id: userId,
-      password,
-      showMessage: (msg) => setLoginMessage(msg),
-      onSuccess: (response) => {
-        // response에서 id, token 받아서 context 로그인 호출
-        login(response.id, response.accessToken);
-        router.push('/cms/dashboard');
-      },
-    });
+const TestPage = () => {
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
+  const toggleSidebar = () => {
+    setIsCollapsed(!isCollapsed);
   };
 
-//   const handleLogin = async () => {
-//   setLoginMessage(null);
+  const menuItems: MenuItemConfig[] = [
+    { icon: <DashboardIcon />, title: "대시보드", path: "/" }, // 대시보드
+    { icon: <GroupIcon />, title: "관리자회원관리", path: "/adminMng" }, // 관리자 회원 관리
+    { icon: <PeopleAltIcon />, title: "고객관리", path: "/userMng" }, // 고객 관리
+    { icon: <StorageIcon />, title: "AI 데이터 관리", path: "/aiData" }, // AI 데이터 관리
+    { icon: <SettingsApplicationsIcon />, title: "AI 설정", path: "/aiSetting" 
+      ,subMenu: [
+        { icon: <SettingsIcon />, title: "AI 모델 설정", path: "/aiModel" }, // AI 모델 설정
+        { icon: <SettingsIcon />, title: "AI 학습 설정", path: "/aiLearning" }, // AI 학습 설정
+        { icon: <SettingsIcon />, title: "AI API 설정", path: "/aiAPI" }, // AI API 설정
+        { icon: <SettingsIcon />, title: "AI 보안 설정", path: "/aiSecurity" }, // AI 보안 설정
+      ],
+    }, // AI 설정
+    { icon: <DataUsageIcon />, title: "고객 데이터 관리", path: "/userData" }, // 고객 데이터 관리
+    { icon: <ContactSupportIcon />, title: "견적 문의 관리", path: "/inquiry" }, // 견적 문의 관리
+    { icon: <DescriptionIcon />, title: "이용 약관 관리", path: "/terms" }, // 이용 약관 관리
+  ];
 
-//   // 로딩 테스트만 수행
-//   open(); // 로더 열기
-//   console.log('로딩 시작 (이벤트 차단 테스트)');
-
-//   setTimeout(() => {
-//     close(); // 5초 후 로더 닫기
-//     console.log('로딩 종료');
-//   }, 5000);
-// };
-  
+  // 예시 푸터 아이콘 클릭 핸들러
+  const handleLogout = () => {
+    console.log("Logout clicked");
+    // 로그아웃 로직 구현
+  };
 
   return (
-    <ScreenWrapper>
-      <ResponsiveView
-        mobileView={<h1 style={{ ...AppTextStyles.headline3 }}>cms (mobile)</h1>}
-        tabletView={<h1 style={{ ...AppTextStyles.headline2 }}>cms (tablet)</h1>}
-        desktopView={<h1 style={{ ...AppTextStyles.headline1 }}>cms (desktop)</h1>}
-      />
+    <>
+      <CustomSidebar
+        isCollapsed={isCollapsed}
+        toggleSidebar={toggleSidebar}
+        menuItems={menuItems}
+        footerIcon={<LogoutIcon />}
+        onFooterClick={handleLogout}>
+        {/* CustomSidebarHeader를 children으로 전달 */}
+        <CustomSidebarHeader
+  isCollapsed={isCollapsed}
+  name="테스트 사용자"
+  iconSrc="favicon.ico" // logo.svg 경로 설정
+/>
+      </CustomSidebar>
 
-      <TextField
-        value={userId}
-        onChange={(e) => setUserId(e.target.value)}
-        placeholder="아이디를 입력하세요"
-        type="text"
-        showSuffixIcon={false}
-      />
-
-      <TextField
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        placeholder="비밀번호를 입력하세요"
-        type="password"
-        showSuffixIcon={true}
-      />
-
-      {/* 로그인 실패 메시지: 버튼 위에 표시 */}
-      {loginMessage && (
-        <div
-          style={{
-            marginTop: '12px',
-            marginBottom: '8px',
-            padding: '10px',
-            backgroundColor: '#fff4f4',
-            color: '#d32f2f',
-            borderRadius: '6px',
-            textAlign: 'center',
-          }}
-        >
-          {loginMessage}
-        </div>
-      )}
-
-      <button
-        onClick={handleLogin}
-        style={{
-          marginTop: '12px',
-          padding: '12px 20px',
-          backgroundColor: '#1976D2',
-          color: 'white',
-          border: 'none',
-          borderRadius: '8px',
-          cursor: 'pointer',
-        }}
-      >
-        로그인
-      </button>
-    </ScreenWrapper>
+      {/* 메인 콘텐츠 영역 */}
+      <MainContent $isSidebarCollapsed={isCollapsed}>
+        {/* 기존 페이지 콘텐츠 */}
+        <GenericListGuide />
+        {/* 페이지의 다른 콘텐츠들... */}
+      </MainContent>
+    </>
   );
-}
+};
+
+export default TestPage; // 컴포넌트 이름 변경 (optional but recommended)

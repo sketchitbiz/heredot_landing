@@ -29,7 +29,7 @@ export async function loginAdminService({
       message,
       showMessage,
       onSuccess: () => {
-        const token = response?.[0]?.data?.[0]?.access_token ?? '';
+        const token = response?.[0]?.data?.[0]?.token ?? '';
         if (!token) {
           showMessage('엑세스 토큰이 존재하지 않습니다');
           return;

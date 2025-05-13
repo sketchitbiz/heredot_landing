@@ -11,17 +11,19 @@ import { Breakpoints } from '@/constants/layoutConstants';
 const TEXT = {
   ko: {
     projectIntro:
-      '2차전지 배터리팩 관제 솔루션을 통한\n실시간 배터리 위험 실시간감지 및 수명 예측 기능을 통한 제품 판매 상승 전략 시장 검증 과제 입니다',
+      '2차전지 배터리팩 관제 솔루션을 통한\n실시간 배터리 위험 감지 및 수명 예측 기능을 통한 제품 판매 상승 전략 시장 검증 과제 입니다',
     leftHeader: {
       line1: '배터리 관리 솔루션',
       color: '#FFFFFF',
     },
     features: [
+  
       ['[산업IoT]', 'BMS내 DATA를 KT IoT 단말을 통한 Data 전송'],
       ['[무선 OTA]', '상시 최신 펌웨어 업데이트 지원'],
       ['[원격제어]', '유사 긴급 상황 시 BMS 전류 차단'],
       ['[배터리팩 교체 요청]', '수명 저하 시 배터리팩 교체 지원'],
       ['[배터리팩 관제]', '배터리 상태, 위치, 온도, 수명 관제'],
+      ['[대시보드]', '배터리 위치별 현황 데이터, 화재감지, 이상감지, 수명 관제 지표'],
     ],
     screenshots: ['모바일 & PC 화면'],
     confirmButtons: [
@@ -40,11 +42,13 @@ const TEXT = {
       color: '#FFFFFF',
     },
     features: [
+    
       ['[Industrial IoT]', 'Send BMS data via KT IoT devices'],
       ['[Wireless OTA]', 'Support for always-on firmware updates'],
       ['[Remote Control]', 'Shutdown current in emergency-like situations'],
       ['[Battery Pack Replacement]', 'Support for pack replacement when degraded'],
       ['[Monitoring]', 'Status, location, temperature, and lifespan monitoring'],
+      ['[Dashboard]', 'Battery location status data, fire detection, anomaly detection, and lifespan monitoring indicators'],
     ],
     screenshots: ['Mobile & PC Screen'],
     confirmButtons: [

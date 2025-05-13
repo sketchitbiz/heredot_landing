@@ -12,6 +12,34 @@ import { AppTextStyles } from "@/styles/textStyles";
  * 
  */
 
+export const ButtonStyles = {
+  containerMaxWidth: {
+    mobile: "100%",
+    tablet: "360px",
+    desktop: "400px",
+  },
+  height: {
+    mobile: "44px",
+    tablet: "48px",
+    desktop: "50px",
+  },
+  radius: {
+    mobile: "12px",
+    tablet: "14px",
+    desktop: "16px",
+  },
+  padding: {
+    mobile: "8px 20px",
+    tablet: "10px 24px",
+    desktop: "10px 25px",
+  },
+  fontSize: {
+    mobile: "14px",
+    tablet: AppTextStyles.label2.fontSize,
+    desktop: AppTextStyles.label2.fontSize,
+  },
+};
+
 export const InputStyles = {
   containerMaxWidth: {
     mobile: "100%",
@@ -24,9 +52,9 @@ export const InputStyles = {
     desktop: "6px 0",
   },
   height: {
-    mobile: "500px",
+    mobile: "48px",
     tablet: "48px",
-    desktop: "100px",
+    desktop: "48px",
   },
   radius: {
     mobile: "12px",
@@ -36,12 +64,12 @@ export const InputStyles = {
   padding: {
     mobile: "8px",
     tablet: "9px",
-    desktop: "10px",
+    desktop: "20px",
   },
   paddingRightWithSuffix: {
     mobile: "32px",
     tablet: "36px",
-    desktop: "40px",
+    desktop: "20px",
   },
   suffixIconRight: {
     mobile: "8px",

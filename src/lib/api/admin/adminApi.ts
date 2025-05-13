@@ -11,7 +11,7 @@ export async function adminLogin(
   params: AdminLoginParams) {
   return callAdminApi({
     title: '로그인',
-    url: `${BASE_URL}/api/cms/login`,
+    url: `${BASE_URL}/cms/admin/login`,
     body: { adminId: params.userId, password: params.password },
     isCallPageLoader: true,
   });
