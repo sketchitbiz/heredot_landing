@@ -756,9 +756,30 @@ export default function AiPageContent() {
       currentFiles.forEach((file) => {
         parts.push({ fileData: { mimeType: file.mimeType, fileUri: file.fileUri } as FileData });
       });
+
+      // chat 객체가 아직 초기화되지 않았는지 확인
       if (!chat.current) {
-        throw new Error("AI chat session is not initialized.");
+        console.error("[AI] Chat session is not initialized. Waiting for initialization...");
+
+        // 5초간 초기화 대기 (최대 10회 시도)
+        let retryCount = 0;
+        const maxRetries = 10;
+        const waitForInitialization = async (): Promise<boolean> => {
+          if (chat.current) return true;
+          if (retryCount >= maxRetries) return false;
+
+          await new Promise((resolve) => setTimeout(resolve, 500)); // 500ms 대기
+          retryCount++;
+          return waitForInitialization();
+        };
+
+        // 초기화 대기
+        const initialized = await waitForInitialization();
+        if (!initialized || !chat.current) {
+          throw new Error("AI 채팅 세션이 초기화되지 않았습니다. 페이지를 새로고침한 후 다시 시도해주세요.");
+        }
       }
+
       const streamResult = await chat.current.sendMessageStream(parts);
       let aiResponseText = "";
       for await (const item of streamResult.stream) {
@@ -861,7 +882,7 @@ export default function AiPageContent() {
             <ChatMessagesContainer>
               {isFreeFormMode && (
                 <FlexContainer>
-                  <ProfileImage src="/pretty.png" alt="AI 프로필" />
+                  <ProfileImage src="/ai/pretty.png" alt="AI 프로필" />
                   <FreeFormGuide>
                     <ProfileName>
                       <strong>강유하</strong>
@@ -891,7 +912,7 @@ export default function AiPageContent() {
 
               {!isFreeFormMode && currentStepData && (
                 <FlexContainer>
-                  <ProfileImage src="/pretty.png" alt="AI 프로필" />
+                  <ProfileImage src="/ai/pretty.png" alt="AI 프로필" />
                   <AiChatQuestion
                     key={currentStep}
                     {...currentStepData}

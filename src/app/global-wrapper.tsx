@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/firebase/firebase.config";
 import useAuthStore from "@/store/authStore";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 
 /**
  * GlobalWrapper는 애플리케이션 전역에 필요한 컨텍스트와 스타일을 감싸주는 최상위 Provider 컴포넌트입니다.
@@ -42,13 +43,15 @@ export function GlobalWrapper({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <PageLoaderProvider>
-      <LangProvider>
-        <DeviceProvider>
-          <GlobalStyle />
-          {children}
-        </DeviceProvider>
-      </LangProvider>
-    </PageLoaderProvider>
+    <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""}>
+      <PageLoaderProvider>
+        <LangProvider>
+          <DeviceProvider>
+            <GlobalStyle />
+            {children}
+          </DeviceProvider>
+        </LangProvider>
+      </PageLoaderProvider>
+    </GoogleOAuthProvider>
   );
 }

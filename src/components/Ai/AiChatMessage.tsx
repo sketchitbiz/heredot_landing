@@ -420,13 +420,9 @@ export function AiChatMessage({
 
   return (
     <MessageWrapper $sender={sender}>
-      {isAiMessage && <ProfileImage src="/pretty.png" alt="AI 프로필" />}
+      {isAiMessage && <ProfileImage src="/ai/pretty.png" alt="AI 프로필" />}
       <MessageBox $sender={sender}>
-        {isAiMessage && (
-          <ProfileName style={{ marginBottom: "0.5rem" }}>
-            <strong>강유하</strong>
-          </ProfileName>
-        )}
+        {isAiMessage && <ProfileName style={{ marginBottom: "0.5rem" }}>강유하</ProfileName>}
 
         <StyledMarkdownContainer>
           <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} components={customComponents}>

@@ -25,9 +25,9 @@ const BlurredOverlay = styled.div`
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(5px);
-  -webkit-backdrop-filter: blur(5px);
+  background-color: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   z-index: 10;
   display: flex;
   flex-direction: column;
@@ -77,6 +77,57 @@ const AiNavigationBar = ({ navigationItems }: AiNavigationBarProps) => {
     return (
       <Container>
         <Sidebar>
+          <ProfileSection>
+            <ProfileInfo>
+              <Flex>
+                <Avatar />
+                <Username>홍길동님</Username>
+              </Flex>
+              <ProfileActions>
+                <ProfileIconButton variant="text" size="small">
+                  <Edit sx={{ color: AppColors.iconPrimary, fontSize: "1.5rem" }} />
+                </ProfileIconButton>
+                <ProfileIconButton variant="text" size="small">
+                  <Search sx={{ color: AppColors.iconPrimary, fontSize: "1.5rem" }} />
+                </ProfileIconButton>
+              </ProfileActions>
+            </ProfileInfo>
+          </ProfileSection>
+          
+          <NavigationContent>
+          {navigationItems.map((period, index) => (
+            <NavigationSection key={index}>
+              <SectionHeader onClick={() => toggleSection(period.title)}>
+                <SectionTitle>{period.title}</SectionTitle>
+                <SectionContent>
+                  여기닷에게
+                  {/* {expandedSections[period.title] ? <ExpandLess /> : <ExpandMore />} */}
+                </SectionContent>
+              </SectionHeader>
+
+              {expandedSections[period.title] && (
+                <ItemList>
+                  {period.items.map((item, itemIndex) => (
+                    <NavigationItem key={itemIndex}>
+                      <ItemText>{item.name}</ItemText>
+                      <NavigationStatusButton size="small" isRounded>
+                        견적 요청
+                      </NavigationStatusButton>
+                    </NavigationItem>
+                  ))}
+                </ItemList>
+              )}
+            </NavigationSection>
+          ))}
+        </NavigationContent>
+
+        {/* 로그아웃 버튼 */}
+        <LogoutButtonContainer>
+          <NavigationStatusButton size="small" isRounded>
+            로그아웃
+          </NavigationStatusButton>
+        </LogoutButtonContainer>
+        
           <BlurredOverlay>
             <LoginPromptText>
               로그인 시, <br />

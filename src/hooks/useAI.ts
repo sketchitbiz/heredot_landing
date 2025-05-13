@@ -63,16 +63,6 @@ export default function useAI() {
             );
           }
 
-          if (!instructionsResponse.ok) {
-            const errorText = await instructionsResponse.text().catch(() => "Could not read error response text");
-            console.error(
-              `[useAI] Error fetching instructions. Status: ${instructionsResponse.status}, StatusText: ${instructionsResponse.statusText}, URL: ${instructionsResponse.url}, Response: ${errorText}`
-            );
-            throw new Error(
-              `Failed to fetch instructions: ${instructionsResponse.statusText} (Status: ${instructionsResponse.status})`
-            );
-          }
-
           console.log("[useAI] Instructions API response is OK. Parsing JSON...");
           const instructionsResult = instructionsResponse.data; // .json() 대신 .data 사용
           console.log("[useAI] Successfully parsed instructions JSON:", JSON.stringify(instructionsResult, null, 2));
@@ -136,16 +126,6 @@ export default function useAI() {
             );
           }
 
-          if (!featuresResponse.ok) {
-            const errorText = await featuresResponse.text().catch(() => "Could not read error response text");
-            console.error(
-              `[useAI] Error fetching features. Status: ${featuresResponse.status}, StatusText: ${featuresResponse.statusText}, URL: ${featuresResponse.url}, Response: ${errorText}`
-            );
-            throw new Error(
-              `Failed to fetch features: ${featuresResponse.statusText} (Status: ${featuresResponse.status})`
-            );
-          }
-
           console.log("[useAI] Features API response is OK. Parsing JSON...");
           const featuresResult = featuresResponse.data; // .json() 대신 .data 사용
           console.log("[useAI] Successfully parsed features JSON:", JSON.stringify(featuresResult, null, 2));
@@ -191,12 +171,30 @@ export default function useAI() {
           initialized.current = true; // 초기화 완료 플래그 설정
         } catch (error) {
           console.error("[useAI] CRITICAL ERROR during AI initialization process:", error);
+          initialized.current = false; // 초기화 실패 명시적으로 표시
         }
       };
 
-      initializeAI();
+      // 비동기 초기화 함수 호출
+      console.log("[useAI] Starting AI initialization process...");
+      initializeAI()
+        .then(() => {
+          console.log("[useAI] AI initialization completed, initialized.current =", initialized.current);
+        })
+        .catch((e) => {
+          console.error("[useAI] AI initialization FAILED with error:", e);
+          initialized.current = false;
+        });
     }
   }, []); // 빈 의존성 배열로 마운트 시 한 번만 실행
+
+  // 초기화 상태를 콘솔에 기록하여 디버깅 (개발 중에만 필요하면 process.env.NODE_ENV === 'development' 조건 추가 가능)
+  useEffect(() => {
+    console.log("[useAI] Current initialization status:", initialized.current);
+    return () => {
+      console.log("[useAI] Component using useAI is unmounting, initialized =", initialized.current);
+    };
+  }, []);
 
   // 초기화된 model과 chat ref 반환
   // isInitialized 상태도 반환하여 AiPageContent에서 AI 준비 상태를 명확히 알 수 있도록 함

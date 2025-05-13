@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import styled from "styled-components";
-import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import axios from "axios";
 
+// 기존 스타일 컴포넌트 정의 ... (Container, Message, DebugInfo, etc.)
 const Container = styled.div`
   display: flex;
   flex-direction: column;
@@ -84,9 +85,9 @@ const GoBackButton = styled.button`
   }
 `;
 
-export default function LoginCallbackPage() {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const router = useRouter();
+// 컴포넌트 이름 변경
+export default function LoginCallbackContent() {
+  const searchParams = useSearchParams();
   const [status, setStatus] = useState<"processing" | "success" | "error">("processing");
   const [message, setMessage] = useState<string>("로그인 처리 중입니다. 잠시만 기다려주세요...");
   const [debugInfo, setDebugInfo] = useState<string>("");
@@ -157,121 +158,133 @@ export default function LoginCallbackPage() {
 
     // 페이지가 로드될 때 실행
     try {
-      // 쿠키에서 accessToken 가져오기
-      const accessToken = getCookie("accessToken");
-      console.log("쿠키에서 accessToken 추출:", accessToken ? "성공" : "실패");
+      // 1. URL 쿼리 파라미터에서 accessToken 가져오기
+      const urlAccessToken = searchParams.get("accessToken");
+      console.log("URL 파라미터에서 accessToken 추출 시도:", urlAccessToken ? "성공" : "실패", urlAccessToken);
 
-      if (accessToken) {
-        // accessToken으로 user/info API 호출
-        callUserInfo(accessToken);
-      } else {
-        // HTML 문서에서 JSON 데이터 찾는 기존 로직 유지 (백업 메커니즘)
-        const jsonContent = document.body.textContent || document.body.innerText || "";
-        console.log("페이지 내용 길이:", jsonContent.length);
-        console.log("페이지 내용 미리보기:", jsonContent.substring(0, 100));
+      if (urlAccessToken) {
+        // URL에 accessToken이 있으면 user/info API 호출
+        callUserInfo(urlAccessToken);
+        return; // API 호출 후 종료
+      }
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        let extractedData: any = null;
-        let dataSource = "";
+      // 2. 쿠키에서 accessToken 가져오기 (URL에 없을 경우 시도)
+      const cookieAccessToken = getCookie("accessToken");
+      console.log("쿠키에서 accessToken 추출 시도:", cookieAccessToken ? "성공" : "실패", cookieAccessToken);
 
-        try {
-          // 첫 번째 방법: 전체 내용을 JSON으로 파싱 시도
-          console.log("전체 콘텐츠 파싱 시도...");
-          extractedData = JSON.parse(jsonContent.trim());
-          dataSource = "전체 콘텐츠";
-          console.log("전체 콘텐츠 파싱 성공");
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        } catch (e1) {
-          console.log("전체 콘텐츠 파싱 실패, 대괄호 패턴 시도...");
-          // 두 번째 방법: 대괄호로 시작하는 JSON 찾기 시도
-          const jsonMatch = jsonContent.match(/\[\s*\{[\s\S]*\}\s*\]/);
-          if (jsonMatch) {
-            console.log("대괄호 패턴 찾음:", jsonMatch[0].substring(0, 100));
-            try {
-              extractedData = JSON.parse(jsonMatch[0]);
-              dataSource = "대괄호 패턴 추출";
-              console.log("대괄호 패턴 파싱 성공");
-              // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            } catch (e2) {
-              console.log("대괄호 패턴 파싱 실패");
-            }
-          } else {
-            console.log("대괄호 패턴 못 찾음");
-          }
+      if (cookieAccessToken) {
+        // 쿠키에 accessToken이 있으면 user/info API 호출
+        callUserInfo(cookieAccessToken);
+        return; // API 호출 후 종료
+      }
 
-          // 세 번째 방법: pre 태그에서 찾기
-          if (!extractedData) {
-            console.log("pre 태그 검색 시도...");
-            const preTags = document.querySelectorAll("pre");
-            console.log("pre 태그 수:", preTags.length);
-            for (let i = 0; i < preTags.length; i++) {
-              try {
-                const preContent = preTags[i].textContent || "";
-                console.log(`pre 태그 ${i + 1} 내용 미리보기:`, preContent.substring(0, 100));
-                extractedData = JSON.parse(preContent.trim());
-                dataSource = "pre 태그 추출";
-                console.log(`pre 태그 ${i + 1} 파싱 성공`);
-                break;
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
-              } catch (e3) {
-                console.log(`pre 태그 ${i + 1} 파싱 실패`);
-              }
-            }
-          }
-        }
+      // 3. HTML 문서에서 JSON 데이터 찾는 기존 로직 (URL과 쿠키 모두 없을 경우)
+      setMessage("토큰을 찾을 수 없어 페이지 내용을 분석합니다...");
+      const jsonContent = document.body.textContent || document.body.innerText || "";
+      console.log("페이지 내용 분석 시작. 길이:", jsonContent.length);
+      console.log("페이지 내용 미리보기:", jsonContent.substring(0, 100));
 
-        // 디버깅 정보 설정
-        const debugText =
-          `페이지 URL: ${window.location.href}\n` +
-          `문서 길이: ${jsonContent.length} 자\n` +
-          `추출 방법: ${dataSource || "추출 실패"}\n\n` +
-          `원본 콘텐츠 미리보기 (처음 500자):\n${jsonContent.substring(0, 500)}...\n\n` +
-          `파싱된 데이터:\n${extractedData ? JSON.stringify(extractedData, null, 2) : "파싱 실패"}`;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let extractedData: any = null;
+      let dataSource = "";
 
-        setDebugInfo(debugText);
-        console.log("디버그 정보 설정 완료");
-
-        if (extractedData) {
-          console.log("데이터 추출 성공");
-
-          // 로컬 스토리지에 데이터 저장
+      try {
+        // 첫 번째 방법: 전체 내용을 JSON으로 파싱 시도
+        console.log("전체 콘텐츠 파싱 시도...");
+        extractedData = JSON.parse(jsonContent.trim());
+        dataSource = "전체 콘텐츠";
+        console.log("전체 콘텐츠 파싱 성공");
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      } catch (e1) {
+        console.log("전체 콘텐츠 파싱 실패, 대괄호 패턴 시도...");
+        // 두 번째 방법: 대괄호로 시작하는 JSON 찾기 시도
+        const jsonMatch = jsonContent.match(/\[\s*\{[\s\S]*\}\s*\]/);
+        if (jsonMatch) {
+          console.log("대괄호 패턴 찾음:", jsonMatch[0].substring(0, 100));
           try {
-            localStorage.setItem("loginData", JSON.stringify(extractedData));
-            console.log("로컬 스토리지에 데이터 저장 완료");
-
-            // 사용자 데이터에서 cellphone 확인
-            const userData = extractedData[0]?.data?.[0];
-            if (userData) {
-              setStatus("success");
-              setMessage("로그인 성공! 리다이렉트 중...");
-
-              // cellphone 유무에 따라 리다이렉션
-              setTimeout(() => {
-                if (!userData.cellphone) {
-                  // 전화번호가 없는 경우 추가 정보 입력 모달이 있는 /ai 페이지로 이동
-                  console.log("전화번호 정보가 없어 추가 정보 모달 표시를 위해 /ai로 이동");
-                  window.location.href = "/ai";
-                } else {
-                  // 전화번호가 있는 경우 바로 /ai 페이지로 이동
-                  console.log("전화번호 정보가 있어 바로 /ai로 이동");
-                  window.location.href = "/ai";
-                }
-              }, 1500);
-            } else {
-              throw new Error("유효하지 않은 사용자 데이터 형식");
-            }
-          } catch (storageErr) {
-            console.error("로컬 스토리지 저장 오류:", storageErr);
-            setStatus("error");
-            setMessage("로그인 데이터 저장 중 오류가 발생했습니다. 디버그 정보를 확인해주세요.");
-            setShowDebug(true);
+            extractedData = JSON.parse(jsonMatch[0]);
+            dataSource = "대괄호 패턴 추출";
+            console.log("대괄호 패턴 파싱 성공");
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          } catch (e2) {
+            console.log("대괄호 패턴 파싱 실패");
           }
         } else {
-          console.log("데이터 추출 실패");
+          console.log("대괄호 패턴 못 찾음");
+        }
+
+        // 세 번째 방법: pre 태그에서 찾기
+        if (!extractedData) {
+          console.log("pre 태그 검색 시도...");
+          const preTags = document.querySelectorAll("pre");
+          console.log("pre 태그 수:", preTags.length);
+          for (let i = 0; i < preTags.length; i++) {
+            try {
+              const preContent = preTags[i].textContent || "";
+              console.log(`pre 태그 ${i + 1} 내용 미리보기:`, preContent.substring(0, 100));
+              extractedData = JSON.parse(preContent.trim());
+              dataSource = "pre 태그 추출";
+              console.log(`pre 태그 ${i + 1} 파싱 성공`);
+              break;
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            } catch (e3) {
+              console.log(`pre 태그 ${i + 1} 파싱 실패`);
+            }
+          }
+        }
+      }
+
+      // 디버깅 정보 설정
+      const debugText =
+        `페이지 URL: ${window.location.href}\n` +
+        `문서 길이: ${jsonContent.length} 자\n` +
+        `추출 방법: ${dataSource || "추출 실패"}\n\n` +
+        `원본 콘텐츠 미리보기 (처음 500자):\n${jsonContent.substring(0, 500)}...\n\n` +
+        `파싱된 데이터:\n${extractedData ? JSON.stringify(extractedData, null, 2) : "파싱 실패"}`;
+
+      setDebugInfo(debugText);
+      console.log("디버그 정보 설정 완료");
+
+      if (extractedData) {
+        console.log("데이터 추출 성공");
+
+        // 로컬 스토리지에 데이터 저장
+        try {
+          localStorage.setItem("loginData", JSON.stringify(extractedData));
+          console.log("로컬 스토리지에 데이터 저장 완료");
+
+          // 사용자 데이터에서 cellphone 확인
+          const userData = extractedData[0]?.data?.[0];
+          if (userData) {
+            setStatus("success");
+            setMessage("로그인 성공! 리다이렉트 중...");
+
+            // cellphone 유무에 따라 리다이렉션
+            setTimeout(() => {
+              if (!userData.cellphone) {
+                // 전화번호가 없는 경우 추가 정보 입력 모달이 있는 /ai 페이지로 이동
+                console.log("전화번호 정보가 없어 추가 정보 모달 표시를 위해 /ai로 이동");
+                window.location.href = "/ai";
+              } else {
+                // 전화번호가 있는 경우 바로 /ai 페이지로 이동
+                console.log("전화번호 정보가 있어 바로 /ai로 이동");
+                window.location.href = "/ai";
+              }
+            }, 1500);
+          } else {
+            throw new Error("유효하지 않은 사용자 데이터 형식");
+          }
+        } catch (storageErr) {
+          console.error("로컬 스토리지 저장 오류:", storageErr);
           setStatus("error");
-          setMessage("오류: 유효한 JSON 데이터를 찾을 수 없습니다. 디버그 정보를 확인해주세요.");
+          setMessage("로그인 데이터 저장 중 오류가 발생했습니다. 디버그 정보를 확인해주세요.");
           setShowDebug(true);
         }
+      } else {
+        console.log("데이터 추출 실패");
+        setStatus("error");
+        setMessage("오류: 유효한 JSON 데이터를 찾을 수 없습니다. 디버그 정보를 확인해주세요.");
+        setShowDebug(true);
       }
     } catch (error) {
       console.error("전체 처리 오류:", error);
@@ -279,7 +292,7 @@ export default function LoginCallbackPage() {
       setMessage("처리 중 오류가 발생했습니다. 디버그 정보를 확인해주세요.");
       setShowDebug(true);
     }
-  }, []);
+  }, [searchParams]);
 
   const copyToClipboard = () => {
     navigator.clipboard

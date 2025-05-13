@@ -4,9 +4,11 @@ import styled from "styled-components";
 import { AppColors } from "@/styles/colors";
 import { AppTextStyles } from "@/styles/textStyles";
 import CloseIcon from "@mui/icons-material/Close";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import useAuthStore from "@/store/authStore";
 import type { UserData } from "@/store/authStore";
+import { GoogleLogin, useGoogleLogin } from "@react-oauth/google";
+import apiClient from "@/lib/apiClient";
 
 interface SocialLoginModalProps {
   isOpen: boolean;
@@ -32,26 +34,11 @@ const ModalContent = styled.div`
   padding: 0;
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-  width: 800px;
+  width: 450px;
   height: 500px;
   display: flex;
   overflow: hidden;
   position: relative;
-`;
-
-const LeftPanel = styled.div`
-  flex: 1;
-  background-color: #1a1a2e; // 어두운 남색 계열 배경
-  background-image: url("/ai/login_bg.webp"); // 배경 이미지 추가
-  background-size: cover; // 배경 이미지 크기 설정
-  background-position: center; // 배경 이미지 위치 설정
-  padding: 40px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center; // 가로축 가운데 정렬 추가
-  text-align: center; // 텍스트 가운데 정렬 추가
-  color: white;
 `;
 
 const RightPanel = styled.div`
@@ -63,20 +50,6 @@ const RightPanel = styled.div`
   justify-content: center;
   align-items: center;
   color: ${AppColors.onSurface}; // 오른쪽 패널 텍스트 색상
-`;
-
-const ModalTitle = styled.h2`
-  ${AppTextStyles.title1}
-  font-size: 28px;
-  margin-bottom: 12px;
-  color: white; // 왼쪽 패널 타이틀 색상
-`;
-
-const ModalSubtitle = styled.p`
-  ${AppTextStyles.body1}
-  font-size: 18px;
-  color: #e0e0e0; // 약간 밝은 회색
-  margin-bottom: 32px;
 `;
 
 const RightPanelTitle = styled.h3`
@@ -108,6 +81,12 @@ const GoogleLoginButton = styled.button`
   img {
     width: 20px;
     height: 20px;
+  }
+
+  &:disabled {
+    background-color: #f5f5f5;
+    color: #888;
+    cursor: not-allowed;
   }
 `;
 
@@ -206,61 +185,88 @@ export const SocialLoginModal: React.FC<SocialLoginModalProps> = ({ isOpen, onCl
   const { login, openAdditionalInfoModal } = useAuthStore();
   const [manualJsonInput, setManualJsonInput] = useState("");
 
-  const popupWindowRef = useRef<Window | null>(null); // 팝업창 참조
-  const popupIntervalRef = useRef<NodeJS.Timeout | null>(null); // 인터벌 참조
+  // 구글 로그인 API 엔드포인트 (백엔드)
+  // baseURL에 이미 /api가 포함되어 있으므로 /api 제거
+  const LOGIN_ENDPOINT = "/user/login";
 
+  // Google 로그인 성공 후 처리 함수
+  const handleLoginSuccess = (userData: UserData, responseData: any) => {
+    // 로컬 스토리지에 사용자 데이터와 토큰 저장
+    localStorage.setItem("loginData", JSON.stringify(responseData));
+
+    // 전역 상태 업데이트
+    login(userData);
+
+    // name이 null인 경우 추가 정보 모달 표시
+    if (!userData.name) {
+      openAdditionalInfoModal();
+    } else {
+      // name이 있으면 AI 페이지로 이동
+      window.location.href = "/ai";
+    }
+  };
+
+  // Google 로그인 버튼 클릭 핸들러 (useGoogleLogin 훅 사용)
+  const handleGoogleLogin = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      setIsLoading(true);
+      try {
+        // Google에서 사용자 정보 가져오기
+        const userInfoResponse = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+          headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
+        });
+
+        const userInfo = await userInfoResponse.json();
+
+        // 백엔드로 필요한 정보만 전송 (providerId, profileUrl)
+        const response = await apiClient.post(LOGIN_ENDPOINT, {
+          providerId: userInfo.sub,
+          profileUrl: userInfo.picture,
+        });
+
+        if (response.data && Array.isArray(response.data) && response.data.length > 0) {
+          const result = response.data[0];
+          if (result.statusCode === 200 && result.data && Array.isArray(result.data) && result.data.length > 0) {
+            const userData: UserData = result.data[0];
+            handleLoginSuccess(userData, response.data);
+          } else {
+            setLoginError(result.message || "로그인에 실패했습니다.");
+          }
+        } else {
+          setLoginError("서버에서 올바른 응답을 받지 못했습니다.");
+        }
+      } catch (error) {
+        console.error("Google 로그인 에러:", error);
+        setLoginError("로그인 처리 중 오류가 발생했습니다.");
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    onError: (error) => {
+      console.error("Google 로그인 에러:", error);
+      setLoginError("Google 로그인 중 오류가 발생했습니다.");
+    },
+    flow: "implicit", // 암시적 흐름 사용
+  });
+
+  // 기존의 백엔드 리다이렉트 방식 로그인
   const openGoogleLoginPopup = () => {
     setIsLoading(true);
     setLoginError(null);
 
     // 리다이렉트 URI는 항상 현재 도메인 기준으로 설정 (로컬호스트 또는 실제 도메인)
-    // 백엔드가 예상하는 경로인 /api/user/login/callback으로 변경
     const redirectUri = encodeURIComponent(`${window.location.origin}/api/user/login/callback`);
 
-    // 항상 실제 서버의 로그인 API 사용 (로컬 서버에는 이 API가 없음)
-    const googleLoginUrl = `https://heredotcorp.com/api/user/login?redirect_uri=${redirectUri}`;
+    // 환경 변수에 API 호스트가 설정됨
+    const apiHost = process.env.NEXT_PUBLIC_API_HOST || "";
+
+    // 리다이렉트 방식의 경우 전체 URL 필요
+    const googleLoginUrl = `${apiHost}${LOGIN_ENDPOINT}?redirect_uri=${redirectUri}`;
 
     console.log(`로그인 URL: ${googleLoginUrl}`);
 
-    // 팝업 방식 대신 현재 창에서 직접 리다이렉트
+    // 현재 창에서 직접 리다이렉트
     window.location.href = googleLoginUrl;
-
-    // 아래 팝업 관련 코드는 더 이상 사용하지 않음
-    /*
-    const width = 600;
-    const height = 700;
-    const left = window.screen.width / 2 - width / 2;
-    const top = window.screen.height / 2 - height / 2;
-
-    popupWindowRef.current = window.open(
-      googleLoginUrl,
-      "googleLoginPopup",
-      `width=${width},height=${height},left=${left},top=${top}`
-    );
-
-    if (
-      !popupWindowRef.current ||
-      popupWindowRef.current.closed ||
-      typeof popupWindowRef.current.closed === "undefined"
-    ) {
-      alert("팝업이 차단되었습니다. 팝업 차단을 해제하고 다시 시도해주세요.");
-      setIsLoading(false);
-      return;
-    }
-
-    // 팝업이 닫혔는지 주기적으로 확인
-    if (popupIntervalRef.current) clearInterval(popupIntervalRef.current);
-    popupIntervalRef.current = setInterval(() => {
-      if (popupWindowRef.current && popupWindowRef.current.closed) {
-        if (popupIntervalRef.current) clearInterval(popupIntervalRef.current);
-        // 사용자가 직접 팝업을 닫았고, 아직 로그인 처리가 완료되지 않은 경우
-        if (isLoading) {
-          setIsLoading(false);
-          setLoginError("로그인 프로세스가 완료되지 않았습니다.");
-        }
-      }
-    }, 500);
-    */
   };
 
   // JSON 수동 처리 함수
@@ -275,8 +281,10 @@ export const SocialLoginModal: React.FC<SocialLoginModalProps> = ({ isOpen, onCl
         const result = jsonData[0];
         if (result.statusCode === 200 && result.data && Array.isArray(result.data) && result.data.length > 0) {
           const userData: UserData = result.data[0];
-          login(userData);
-          openAdditionalInfoModal();
+
+          // 처리 함수로 전달
+          handleLoginSuccess(userData, jsonData);
+
           setManualJsonInput("");
           setLoginError(null);
         } else {
@@ -290,18 +298,11 @@ export const SocialLoginModal: React.FC<SocialLoginModalProps> = ({ isOpen, onCl
     }
   };
 
+  // 콜백 메시지 수신
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
-      // API 호스트의 origin을 정확히 지정하는 것이 좋습니다.
-      // 와일드카드(*)는 개발 중에만 사용하고, 실제 배포 시에는 구체적인 origin으로 변경하세요.
-      // 예: if (event.origin !== process.env.NEXT_PUBLIC_API_HOST) return;
-
       if (event.data && event.data.type === "GOOGLE_LOGIN_SUCCESS") {
-        if (popupIntervalRef.current) clearInterval(popupIntervalRef.current); // 인터벌 정리
         setIsLoading(false);
-        if (popupWindowRef.current && !popupWindowRef.current.closed) {
-          popupWindowRef.current.close();
-        }
 
         const responseData = event.data.payload;
         if (responseData && Array.isArray(responseData) && responseData.length > 0) {
@@ -309,8 +310,8 @@ export const SocialLoginModal: React.FC<SocialLoginModalProps> = ({ isOpen, onCl
           if (result.statusCode === 200 && result.data && Array.isArray(result.data) && result.data.length > 0) {
             const userData: UserData = result.data[0];
 
-            login(userData);
-            openAdditionalInfoModal(); // 추가 정보 입력 모달 열기
+            // 처리 함수로 전달
+            handleLoginSuccess(userData, responseData);
           } else {
             setLoginError(result.message || "로그인에 실패했거나 유효하지 않은 데이터 형식입니다.");
           }
@@ -318,11 +319,7 @@ export const SocialLoginModal: React.FC<SocialLoginModalProps> = ({ isOpen, onCl
           setLoginError("잘못된 응답 데이터 형식입니다.");
         }
       } else if (event.data && event.data.type === "GOOGLE_LOGIN_FAILURE") {
-        if (popupIntervalRef.current) clearInterval(popupIntervalRef.current); // 인터벌 정리
         setIsLoading(false);
-        if (popupWindowRef.current && !popupWindowRef.current.closed) {
-          popupWindowRef.current.close();
-        }
         setLoginError(event.data.message || "Google 로그인 중 오류가 발생했습니다.");
       }
     };
@@ -330,28 +327,14 @@ export const SocialLoginModal: React.FC<SocialLoginModalProps> = ({ isOpen, onCl
     window.addEventListener("message", handleMessage);
     return () => {
       window.removeEventListener("message", handleMessage);
-      if (popupIntervalRef.current) {
-        clearInterval(popupIntervalRef.current);
-      }
-      // 컴포넌트 언마운트 시 열려있는 팝업이 있다면 닫기 (선택적)
-      // if (popupWindowRef.current && !popupWindowRef.current.closed) {
-      //   popupWindowRef.current.close();
-      // }
     };
-  }, [login, isLoading, openAdditionalInfoModal]); // 의존성 배열에서 setIsLoggedIn, closeModalFromStore 제거 (login에 통합)
+  }, [login, openAdditionalInfoModal]);
 
-  // 모달이 닫힐 때 로딩 상태와 에러 메시지 초기화 (부모 컴포넌트의 onClose와 연동)
+  // 모달이 닫힐 때 상태 초기화
   useEffect(() => {
     if (!isOpen) {
       setIsLoading(false);
       setLoginError(null);
-      if (popupIntervalRef.current) {
-        clearInterval(popupIntervalRef.current);
-      }
-      // 팝업이 열려있고 모달이 닫히면 팝업도 닫기
-      if (popupWindowRef.current && !popupWindowRef.current.closed) {
-        popupWindowRef.current.close();
-      }
     }
   }, [isOpen]);
 
@@ -363,20 +346,68 @@ export const SocialLoginModal: React.FC<SocialLoginModalProps> = ({ isOpen, onCl
     <ModalOverlay
       isOpen={isOpen}
       onClick={() => {
-        if (isLoading) return; // 로딩 중에는 닫기 방지 (선택적)
+        if (isLoading) return; // 로딩 중에는 닫기 방지
         onClose();
       }}>
       <ModalContent onClick={(e) => e.stopPropagation()}>
         <StyledCloseButton onClick={onClose} disabled={isLoading}>
           <CloseIcon />
         </StyledCloseButton>
-        <LeftPanel>
-          <ModalSubtitle>복잡한 견적, AI로 간단하게.</ModalSubtitle>
-          <ModalTitle>에이고(AIGO) AI 견적서</ModalTitle>
-        </LeftPanel>
         <RightPanel>
           <RightPanelTitle>간편 구글 로그인으로 즐겨보세요</RightPanelTitle>
-          <GoogleLoginButton onClick={openGoogleLoginPopup} disabled={isLoading}>
+
+          {/* @react-oauth/google의 GoogleLogin 컴포넌트 사용 */}
+          <div style={{ marginBottom: "20px" }}>
+            <GoogleLogin
+              onSuccess={(credentialResponse) => {
+                setIsLoading(true);
+                // 백엔드로 ID 토큰에서 필요한 정보만 전송
+                apiClient
+                  .post(LOGIN_ENDPOINT, {
+                    providerId: credentialResponse.clientId, // 또는 credentialResponse에서 추출 가능한 다른 ID
+                    profileUrl: "", // ID 토큰에서는 프로필 URL을 직접 얻을 수 없으므로 빈 값으로 설정
+                  })
+                  .then((response) => {
+                    if (response.data && Array.isArray(response.data) && response.data.length > 0) {
+                      const result = response.data[0];
+                      if (
+                        result.statusCode === 200 &&
+                        result.data &&
+                        Array.isArray(result.data) &&
+                        result.data.length > 0
+                      ) {
+                        const userData: UserData = result.data[0];
+
+                        // 처리 함수로 전달
+                        handleLoginSuccess(userData, response.data);
+                      } else {
+                        setLoginError(result.message || "로그인에 실패했습니다.");
+                      }
+                    } else {
+                      setLoginError("서버에서 올바른 응답을 받지 못했습니다.");
+                    }
+                  })
+                  .catch((error) => {
+                    console.error("로그인 처리 에러:", error);
+                    setLoginError("로그인 처리 중 오류가 발생했습니다.");
+                  })
+                  .finally(() => {
+                    setIsLoading(false);
+                  });
+              }}
+              onError={() => {
+                setLoginError("Google 로그인 중 오류가 발생했습니다.");
+              }}
+              locale="ko"
+              theme="filled_blue"
+              text="signin_with"
+              shape="rectangular"
+              width="250"
+            />
+          </div>
+
+          {/* 커스텀 버튼 (useGoogleLogin 사용) */}
+          <GoogleLoginButton onClick={() => handleGoogleLogin()} disabled={isLoading}>
             {isLoading ? (
               "로그인 진행 중..."
             ) : (
@@ -385,7 +416,7 @@ export const SocialLoginModal: React.FC<SocialLoginModalProps> = ({ isOpen, onCl
                   src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg"
                   alt="Google logo"
                 />
-                Google 계정으로 로그인
+                커스텀 Google 로그인
               </>
             )}
           </GoogleLoginButton>
@@ -393,6 +424,21 @@ export const SocialLoginModal: React.FC<SocialLoginModalProps> = ({ isOpen, onCl
           <OrDivider>
             <span>또는</span>
           </OrDivider>
+
+          {/* 기존 로그인 방식 버튼 */}
+          <GoogleLoginButton onClick={openGoogleLoginPopup} disabled={isLoading} style={{ marginBottom: "20px" }}>
+            {isLoading ? (
+              "로그인 진행 중..."
+            ) : (
+              <>
+                <img
+                  src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg"
+                  alt="Google logo"
+                />
+                기존 방식으로 로그인
+              </>
+            )}
+          </GoogleLoginButton>
 
           <div style={{ width: "100%" }}>
             <p style={{ fontSize: "14px", marginBottom: "5px", textAlign: "center" }}>
@@ -403,9 +449,19 @@ export const SocialLoginModal: React.FC<SocialLoginModalProps> = ({ isOpen, onCl
               value={manualJsonInput}
               onChange={(e) => setManualJsonInput(e.target.value)}
             />
-            <ManualJsonButton onClick={handleManualJsonSubmit} disabled={!manualJsonInput.trim()}>
-              데이터로 로그인
-            </ManualJsonButton>
+            <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
+              <ManualJsonButton onClick={handleManualJsonSubmit} disabled={!manualJsonInput.trim()}>
+                데이터로 로그인
+              </ManualJsonButton>
+              <ManualJsonButton
+                onClick={() => {
+                  onClose();
+                  openAdditionalInfoModal();
+                }}
+                style={{ backgroundColor: AppColors.primary }}>
+                추가 정보 입력
+              </ManualJsonButton>
+            </div>
           </div>
 
           {loginError && <p style={{ color: "red", marginTop: "10px" }}>{loginError}</p>}
