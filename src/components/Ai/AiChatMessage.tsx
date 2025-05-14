@@ -1,74 +1,178 @@
-"use client";
+'use client';
 
-import styled, { css } from "styled-components";
-import { AppColors } from "@/styles/colors";
-import { AppTextStyles } from "@/styles/textStyles";
-import ReactMarkdown, { Options } from "react-markdown";
-import remarkGfm from "remark-gfm";
-import rehypeRaw from "rehype-raw";
-import React from "react";
+import styled, { css } from 'styled-components';
+import { AppColors } from '@/styles/colors';
+import { AppTextStyles } from '@/styles/textStyles';
+import ReactMarkdown, { Options } from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import rehypeRaw from 'rehype-raw';
+import React, { useMemo } from 'react';
+import useAuthStore from '@/store/authStore';
+import { useLang } from '@/contexts/LangContext';
+import { aiChatDictionary } from '@/lib/i18n/aiChat';
 
+/**
+ * AiChatMessage 컴포넌트
+ *
+ * 이 컴포넌트는 채팅 메시지를 표시하는 역할을 합니다.
+ * 사용자와 AI의 메시지를 구분하여 다른 스타일로 표시하며,
+ * AI가 생성한 견적서를 테이블 형태로 표시합니다.
+ */
+
+// 견적서 데이터 타입 정의
 // INVOICE_SCHEMA에 따른 타입 정의 (실제 schema.ts의 구조를 반영해야 함)
 // 이 타입들은 AiPageContent.tsx와 동기화되어야 하며, 한 곳에서 정의하고 공유하는 것이 좋음
 interface InvoiceFeatureItem {
   id: string;
-  feature: string;
-  description: string;
-  amount: number | string;
-  duration?: string;
-  category?: string;
-  pages?: number | string;
-  note?: string;
+  feature: string; // 기능 이름
+  description: string; // 기능 설명
+  amount: number | string; // 금액 (숫자 또는 "별도 문의" 등의 문자열)
+  duration?: string; // 개발 기간 (선택적)
+  category?: string; // 카테고리 (선택적)
+  pages?: number | string; // 페이지 수 (선택적)
+  note?: string; // 추가 참고사항 (선택적)
 }
 
 interface InvoiceGroup {
-  category: string;
-  items: InvoiceFeatureItem[];
+  category: string; // 그룹 카테고리(구분)
+  items: InvoiceFeatureItem[]; // 해당 카테고리에 속한 기능 항목들
 }
 
 interface InvoiceTotal {
-  amount: number;
-  duration?: number;
-  pages?: number;
+  amount: number; // 총 금액
+  duration?: number; // 총 개발 기간 (선택적)
+  pages?: number; // 총 페이지 수 (선택적)
 }
 
 export interface InvoiceDataType {
-  project: string;
-  invoiceGroup: InvoiceGroup[];
-  total: InvoiceTotal;
+  project: string; // 프로젝트 이름
+  invoiceGroup: InvoiceGroup[]; // 기능 그룹 배열
+  total: InvoiceTotal; // 총계 정보
 }
 
-// Message 인터페이스 export 추가 및 invoiceData 필드 추가
+// 메시지 인터페이스 정의
 export interface Message {
-  id: number;
-  sender: "user" | "ai";
-  text: string;
+  id: number; // 메시지 고유 ID
+  sender: 'user' | 'ai'; // 발신자 구분 (사용자/AI)
+  text: string; // 메시지 텍스트
   imageUrl?: string; // 이미지 URL (선택적)
   fileType?: string; // 파일 타입 (선택적)
-  invoiceData?: InvoiceDataType; // AI가 생성한 견적서 JSON 데이터
+  invoiceData?: InvoiceDataType; // AI가 생성한 견적서 JSON 데이터 (선택적)
 }
 
-// MessageProps 인터페이스에 계산된 총합 및 현재 아이템 목록 props 추가
-interface MessageProps extends Omit<Message, "id"> {
-  onActionClick: (action: string, data?: { featureId?: string }) => void;
-  calculatedTotalAmount?: number;
-  calculatedTotalDuration?: number;
-  calculatedTotalPages?: number;
-  currentItems?: Array<InvoiceDataType["invoiceGroup"][number]["items"][number] & { isDeleted: boolean }>;
+// MessageProps - 컴포넌트의 속성 인터페이스
+interface MessageProps extends Omit<Message, 'id'> {
+  onActionClick: (action: string, data?: { featureId?: string }) => void; // 버튼 클릭 핸들러
+  calculatedTotalAmount?: number; // 계산된 총 금액 (삭제된 항목 제외)
+  calculatedTotalDuration?: number; // 계산된 총 기간 (삭제된 항목 제외)
+  calculatedTotalPages?: number; // 계산된 총 페이지 수 (삭제된 항목 제외)
+  currentItems?: Array<
+    InvoiceDataType['invoiceGroup'][number]['items'][number] & {
+      isDeleted: boolean;
+    }
+  >; // 현재 항목 상태
 }
 
+// 스타일드 컴포넌트의 props 타입
 interface StyledComponentProps {
-  $sender: "user" | "ai";
+  $sender: 'user' | 'ai'; // 발신자 구분 (스타일 적용용)
 }
 
-// formatAmount 함수 정의 (컴포넌트 바깥 또는 유틸리티 파일로 이동 가능)
-const formatAmount = (amount: number | string) => {
-  if (typeof amount === "number") {
-    return `${amount.toLocaleString()} 원`;
-  }
-  return amount; // "별도 문의" 등 문자열 그대로 반환
+// 통화 변환 기능 추가
+// 각 국가 코드별 환율 정보 (2023년 기준)
+const exchangeRates = {
+  USD: 1350, // 1 USD = 1,350 KRW
+  JPY: 9, // 1 JPY = 9 KRW
+  CNY: 190, // 1 CNY = 190 KRW
+  EUR: 1450, // 1 EUR = 1,450 KRW
+  GBP: 1700, // 1 GBP = 1,700 KRW
 };
 
+// 국가 코드별 통화 기호
+const currencySymbols = {
+  KR: '₩',
+  US: '$',
+  JP: '¥',
+  CN: '¥',
+  GB: '£',
+  EU: '€',
+  default: '$',
+};
+
+// 국가 코드를 통화 코드로 변환
+const getCountryCurrency = (countryCode: string | null): string => {
+  if (!countryCode) return 'USD';
+
+  switch (countryCode) {
+    case 'KR':
+      return 'KRW';
+    case 'US':
+      return 'USD';
+    case 'JP':
+      return 'JPY';
+    case 'CN':
+      return 'CNY';
+    case 'GB':
+      return 'GBP';
+    // EU 국가들
+    case 'DE':
+    case 'FR':
+    case 'IT':
+    case 'ES':
+    case 'NL':
+    case 'BE':
+    case 'AT':
+    case 'FI':
+    case 'PT':
+    case 'IE':
+    case 'GR':
+    case 'SK':
+    case 'SI':
+    case 'LU':
+    case 'LV':
+    case 'LT':
+    case 'EE':
+    case 'CY':
+    case 'MT':
+      return 'EUR';
+    default:
+      return 'USD'; // 기본값은 USD
+  }
+};
+
+// 통화 심볼 가져오기
+const getCurrencySymbol = (countryCode: string | null): string => {
+  if (!countryCode) return currencySymbols.default;
+
+  const code = countryCode as keyof typeof currencySymbols;
+  return currencySymbols[code] || currencySymbols.default;
+};
+
+// 금액 포맷 함수 - 통화 변환 및 표시 기능 추가
+const formatAmount = (amount: number | string, countryCode: string | null) => {
+  // 금액이 숫자가 아닌 경우 (예: "별도 문의") 그대로 반환
+  if (typeof amount !== 'number') {
+    return amount;
+  }
+
+  // 한국의 경우 원화만 표시
+  if (countryCode === 'KR') {
+    return `${amount.toLocaleString()} 원`;
+  }
+
+  // 다른 국가의 경우 변환된 금액과 원래 금액 모두 표시
+  const currency = getCountryCurrency(countryCode);
+  const symbol = getCurrencySymbol(countryCode);
+
+  // 환율 적용 (기본값은 USD)
+  const rate =
+    exchangeRates[currency as keyof typeof exchangeRates] || exchangeRates.USD;
+  const convertedAmount = Math.round(amount / rate);
+
+  return `${symbol}${convertedAmount.toLocaleString()} (₩${amount.toLocaleString()})`;
+};
+
+// 테이블 스타일 정의 - 견적서에 사용되는 공통 테이블 스타일
 const TableStyles = css`
   width: 100%;
   border: none;
@@ -171,6 +275,7 @@ const TableStyles = css`
   }
 `;
 
+// 마크다운 컨테이너 스타일 - AI 메시지 내 마크다운 포맷팅을 위한 컨테이너
 const StyledMarkdownContainer = styled.div`
   table {
     ${TableStyles}
@@ -205,16 +310,20 @@ const StyledMarkdownContainer = styled.div`
   }
 `;
 
+// 메시지 래퍼 스타일 - 메시지 전체를 감싸는 컨테이너
 const MessageWrapper = styled.div<StyledComponentProps>`
   display: flex;
   width: 100%;
   margin-bottom: 1rem;
 
-  justify-content: ${(props) => (props.$sender === "user" ? "flex-end" : "flex-start")};
+  // 발신자에 따라 정렬 방향 설정 (사용자: 오른쪽, AI: 왼쪽)
+  justify-content: ${(props) =>
+    props.$sender === 'user' ? 'flex-end' : 'flex-start'};
 `;
 
+// 메시지 박스 스타일 - 실제 메시지 내용을 담는 말풍선
 const MessageBox = styled.div<StyledComponentProps>`
-  max-width: 75%;
+  max-width: 100%;
   padding: 0.3rem 1rem;
   border-radius: 12px;
   ${AppTextStyles.body1}
@@ -222,13 +331,13 @@ const MessageBox = styled.div<StyledComponentProps>`
   letter-spacing: normal;
 
   ${(props) =>
-    props.$sender === "user"
+    props.$sender === 'user'
       ? css`
           background-color: ${AppColors.primary};
           color: ${AppColors.onPrimary};
           border-bottom-right-radius: 0;
           white-space: pre-wrap;
-          padding: 0.75rem 1rem;
+          padding: 0.75rem 1rem; // 사용자 메시지 패딩 (위아래 동일하게 조정)
         `
       : css`
           background-color: ${AppColors.background};
@@ -236,6 +345,7 @@ const MessageBox = styled.div<StyledComponentProps>`
         `};
 `;
 
+// 프로필 이미지 스타일 - AI 프로필 이미지
 const ProfileImage = styled.img`
   height: 2.5rem;
   width: 2.5rem;
@@ -245,6 +355,7 @@ const ProfileImage = styled.img`
   align-self: flex-start;
 `;
 
+// 프로필 이름 스타일 - AI 이름 표시
 const ProfileName = styled.p`
   font-size: 20px;
   color: ${AppColors.onBackground};
@@ -252,7 +363,7 @@ const ProfileName = styled.p`
   margin: 0;
 `;
 
-// --- 새 버튼 스타일 컴포넌트 정의 ---
+// 버튼 스타일 - 마크다운 내부에서 사용되는 버튼
 const StyledActionButton = styled.button`
   background-color: ${AppColors.onBackgroundGray};
   color: white;
@@ -268,14 +379,16 @@ const StyledActionButton = styled.button`
     background-color: ${AppColors.primary};
   }
 `;
-// -------------------------------------
 
-// button 렌더러 props 타입 정의 (unknown 사용)
-type ButtonRendererProps = React.DetailedHTMLProps<React.ButtonHTMLAttributes<HTMLButtonElement>, HTMLButtonElement> & {
+// 버튼 렌더러의 props 타입 정의
+type ButtonRendererProps = React.DetailedHTMLProps<
+  React.ButtonHTMLAttributes<HTMLButtonElement>,
+  HTMLButtonElement
+> & {
   node?: unknown;
 };
 
-// 견적서 UI용 스타일 컴포넌트 (이전 제안 기반)
+// 견적서 컨테이너 스타일 - 견적서 전체를 감싸는 컨테이너
 const StyledInvoiceContainer = styled.div`
   margin-top: 1.5rem;
   padding: 1rem;
@@ -284,14 +397,18 @@ const StyledInvoiceContainer = styled.div`
   background-color: #1c1c25;
   color: ${AppColors.onBackground};
   font-size: 0.9rem;
+  max-width: 100%; // 컨테이너가 최대 너비를 사용하도록 설정
+  margin-right: 0; // 오른쪽 마진 제거
 `;
 
+// 견적서 프로젝트 제목 스타일
 const InvoiceProjectTitle = styled.h3`
   font-size: 1.3em;
   color: ${AppColors.onBackground};
   margin-bottom: 1em;
 `;
 
+// 견적서 테이블 스타일
 const InvoiceTable = styled.table`
   width: 100%;
   border-collapse: collapse;
@@ -316,6 +433,7 @@ const InvoiceTable = styled.table`
     font-weight: 300;
   }
 
+  // 각 열의 너비 및 스타일 지정
   .col-category {
     width: 18%;
     font-weight: 500;
@@ -339,6 +457,7 @@ const InvoiceTable = styled.table`
     text-align: center;
   }
 
+  // 마지막 행(합계) 스타일
   tbody tr:last-child td {
     border-bottom: none;
     font-weight: bold;
@@ -350,6 +469,7 @@ const InvoiceTable = styled.table`
   }
 `;
 
+// 액션 버튼 스타일 - 견적서 내 항목 삭제/취소 버튼
 const ActionButton = styled.button`
   background-color: ${AppColors.onBackgroundGray};
   color: #ffffff;
@@ -365,6 +485,20 @@ const ActionButton = styled.button`
   }
 `;
 
+/**
+ * AiChatMessage 컴포넌트 함수
+ *
+ * @param sender - 발신자 (user/ai)
+ * @param text - 메시지 텍스트
+ * @param imageUrl - 첨부 이미지 URL (선택적)
+ * @param fileType - 첨부 파일 타입 (선택적)
+ * @param onActionClick - 버튼 클릭 핸들러
+ * @param invoiceData - 견적서 데이터 (선택적)
+ * @param calculatedTotalAmount - 계산된 총 금액 (선택적)
+ * @param calculatedTotalDuration - 계산된 총 기간 (선택적)
+ * @param calculatedTotalPages - 계산된 총 페이지 수 (선택적)
+ * @param currentItems - 현재 견적서 항목 상태 (선택적)
+ */
 export function AiChatMessage({
   sender,
   text,
@@ -377,26 +511,41 @@ export function AiChatMessage({
   calculatedTotalPages,
   currentItems,
 }: MessageProps) {
-  const isAiMessage = sender === "ai";
+  const isAiMessage = sender === 'ai';
 
-  const customComponents: Options["components"] = {
+  // 언어 정보 가져오기
+  const { lang } = useLang();
+  const t = aiChatDictionary[lang]; // 현재 언어에 해당하는 번역 텍스트
+
+  // 사용자 국적 정보 가져오기
+  const user = useAuthStore((state) => state.user);
+  const countryCode = user?.countryCode || 'KR'; // 기본값은 한국
+
+  // 메모이제이션된 통화 포맷 함수
+  const formatAmountWithCurrency = useMemo(
+    () => (amount: number | string) => formatAmount(amount, countryCode),
+    [countryCode]
+  );
+
+  // 마크다운 내 커스텀 컴포넌트 정의 (버튼 등)
+  const customComponents: Options['components'] = {
     button: ({ node, ...props }: ButtonRendererProps) => {
       let action: string | undefined;
       let featureId: string | undefined;
-      let buttonText: string = "Button";
+      let buttonText: string = 'Button';
 
-      // 타입 가드 및 속성 접근
-      if (typeof node === "object" && node !== null) {
+      // 노드 데이터에서 액션 정보 추출
+      if (typeof node === 'object' && node !== null) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        action = (node as any).properties?.["data-action"];
+        action = (node as any).properties?.['data-action'];
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        featureId = (node as any).properties?.["data-feature-id"];
+        featureId = (node as any).properties?.['data-feature-id'];
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        buttonText = (node as any).children?.[0]?.value || "Button";
+        buttonText = (node as any).children?.[0]?.value || 'Button';
       }
 
+      // 액션이 있는 경우 클릭 핸들러 연결
       if (action) {
-        // StyledActionButton 사용
         return (
           <StyledActionButton
             onClick={() => {
@@ -404,112 +553,198 @@ export function AiChatMessage({
                 onActionClick(action, featureId ? { featureId } : undefined);
               } else if (featureId && onActionClick) {
                 // data-action이 없고 data-feature-id만 있는 경우 (예: 삭제 버튼)
-                onActionClick("delete_feature", { featureId });
+                onActionClick('delete_feature', { featureId });
               }
             }}
-            {...props}>
+            {...props}
+          >
             {buttonText}
           </StyledActionButton>
         );
       }
-      // 기본 버튼 (스타일 없는) 또는 StyledActionButton 중 선택
-      // 여기서는 일관성을 위해 data-action 없는 버튼도 Styled 적용 (클릭 액션은 없음)
+      // 액션이 없는 버튼 - 기본 스타일 적용
       return <StyledActionButton {...props}>{buttonText}</StyledActionButton>;
     },
   };
 
   return (
     <MessageWrapper $sender={sender}>
+      {/* AI 메시지인 경우에만 프로필 이미지 표시 */}
       {isAiMessage && <ProfileImage src="/ai/pretty.png" alt="AI 프로필" />}
       <MessageBox $sender={sender}>
-        {isAiMessage && <ProfileName style={{ marginBottom: "0.5rem" }}>강유하</ProfileName>}
+        {/* AI 메시지인 경우에만 이름 표시 */}
+        {isAiMessage && (
+          <ProfileName style={{ marginBottom: '0.5rem' }}>
+            {t.profileName}
+          </ProfileName>
+        )}
 
+        {/* 메시지 내용 - 마크다운 지원 */}
         <StyledMarkdownContainer>
-          <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} components={customComponents}>
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            rehypePlugins={[rehypeRaw]}
+            components={customComponents}
+          >
             {text}
           </ReactMarkdown>
         </StyledMarkdownContainer>
 
+        {/* AI 메시지이면서 견적서 데이터가 있는 경우 견적서 UI 표시 */}
         {isAiMessage && invoiceData && (
           <StyledInvoiceContainer>
-            <div style={{ display: "flex", alignItems: "center", marginBottom: "1rem" }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                marginBottom: '1rem',
+              }}
+            >
               <div>
-                <InvoiceProjectTitle>{invoiceData.project || "프로젝트 견적"}</InvoiceProjectTitle>
+                <InvoiceProjectTitle>
+                  {invoiceData.project || t.invoiceTitle}
+                </InvoiceProjectTitle>
               </div>
             </div>
 
+            {/* 견적서 테이블 */}
             <InvoiceTable>
               <thead>
                 <tr>
-                  <th className="col-category">구분</th>
-                  <th className="col-feature">항목</th>
-                  <th className="col-description">세부 내용</th>
-                  <th className="col-amount">예상 금액</th>
-                  <th className="col-actions">관리</th>
+                  <th className="col-category">{t.tableHeaders.category}</th>
+                  <th className="col-feature">{t.tableHeaders.item}</th>
+                  <th className="col-description">{t.tableHeaders.detail}</th>
+                  <th className="col-amount">{t.tableHeaders.amount}</th>
+                  <th className="col-actions">{t.tableHeaders.management}</th>
                 </tr>
               </thead>
               <tbody>
+                {/* 견적서 그룹 및 항목 반복 렌더링 */}
                 {invoiceData.invoiceGroup?.map((group, groupIndex) => (
                   <React.Fragment key={`group-${group.category}-${groupIndex}`}>
                     {group.items?.map((item, itemIndex) => {
-                      const currentItemStatus = currentItems?.find((ci) => ci.id === item.id);
-                      const isActuallyDeleted = currentItemStatus ? currentItemStatus.isDeleted : false;
+                      // 현재 항목의 삭제 상태 확인
+                      const currentItemStatus = currentItems?.find(
+                        (ci) => ci.id === item.id
+                      );
+                      const isActuallyDeleted = currentItemStatus
+                        ? currentItemStatus.isDeleted
+                        : false;
 
                       return (
-                        <tr key={item.id || `feature-${groupIndex}-${itemIndex}`}>
+                        <tr
+                          key={item.id || `feature-${groupIndex}-${itemIndex}`}
+                        >
+                          {/* 첫 항목의 경우만 카테고리 열 표시 (rowspan 사용) */}
                           {itemIndex === 0 ? (
                             <td
                               className="col-category"
                               rowSpan={group.items.length || 1}
                               style={{
-                                textDecoration: isActuallyDeleted ? "line-through" : "none",
-                                color: isActuallyDeleted ? AppColors.disabled : AppColors.onBackground,
-                              }}>
+                                textDecoration: isActuallyDeleted
+                                  ? 'line-through'
+                                  : 'none',
+                                color: isActuallyDeleted
+                                  ? AppColors.disabled
+                                  : AppColors.onBackground,
+                              }}
+                            >
                               {group.category}
                             </td>
                           ) : null}
+                          {/* 항목명 */}
                           <td
                             className="col-feature"
                             style={{
-                              textDecoration: isActuallyDeleted ? "line-through" : "none",
-                              color: isActuallyDeleted ? AppColors.disabled : AppColors.onBackground,
-                            }}>
+                              textDecoration: isActuallyDeleted
+                                ? 'line-through'
+                                : 'none',
+                              color: isActuallyDeleted
+                                ? AppColors.disabled
+                                : AppColors.onBackground,
+                            }}
+                          >
                             {item.feature}
                           </td>
+                          {/* 세부 내용 */}
                           <td
                             className="col-description"
                             style={{
-                              textDecoration: isActuallyDeleted ? "line-through" : "none",
-                              color: isActuallyDeleted ? AppColors.disabled : AppColors.onBackground,
-                            }}>
+                              textDecoration: isActuallyDeleted
+                                ? 'line-through'
+                                : 'none',
+                              color: isActuallyDeleted
+                                ? AppColors.disabled
+                                : AppColors.onBackground,
+                            }}
+                          >
                             {item.description}
+                            {/* 참고사항 표시 */}
                             {item.note && (
-                              <p style={{ fontSize: "0.9em", color: AppColors.onSurfaceVariant, marginTop: "0.3em" }}>
-                                <em>참고: {item.note}</em>
+                              <p
+                                style={{
+                                  fontSize: '0.9em',
+                                  color: AppColors.onSurfaceVariant,
+                                  marginTop: '0.3em',
+                                }}
+                              >
+                                <em>
+                                  {t.estimateInfo.note}: {item.note}
+                                </em>
                               </p>
                             )}
+                            {/* 예상 기간 표시 */}
                             {item.duration && (
-                              <p style={{ fontSize: "0.9em", color: AppColors.onSurfaceVariant, marginTop: "0.3em" }}>
-                                예상 기간: {item.duration}
+                              <p
+                                style={{
+                                  fontSize: '0.9em',
+                                  color: AppColors.onSurfaceVariant,
+                                  marginTop: '0.3em',
+                                }}
+                              >
+                                {t.estimateInfo.estimatedDuration}:{' '}
+                                {item.duration}
                               </p>
                             )}
+                            {/* 예상 페이지 수 표시 */}
                             {item.pages && (
-                              <p style={{ fontSize: "0.9em", color: AppColors.onSurfaceVariant, marginTop: "0.3em" }}>
-                                예상 페이지: {item.pages}
+                              <p
+                                style={{
+                                  fontSize: '0.9em',
+                                  color: AppColors.onSurfaceVariant,
+                                  marginTop: '0.3em',
+                                }}
+                              >
+                                {t.estimateInfo.estimatedPages}: {item.pages}
                               </p>
                             )}
                           </td>
+                          {/* 예상 금액 */}
                           <td
                             className="col-amount"
                             style={{
-                              textDecoration: isActuallyDeleted ? "line-through" : "none",
-                              color: isActuallyDeleted ? AppColors.disabled : AppColors.onBackground,
-                            }}>
-                            {formatAmount(item.amount)}
+                              textDecoration: isActuallyDeleted
+                                ? 'line-through'
+                                : 'none',
+                              color: isActuallyDeleted
+                                ? AppColors.disabled
+                                : AppColors.onBackground,
+                            }}
+                          >
+                            {formatAmountWithCurrency(item.amount)}
                           </td>
+                          {/* 관리 버튼 */}
                           <td className="col-actions">
-                            <ActionButton onClick={() => onActionClick("delete_feature_json", { featureId: item.id })}>
-                              {isActuallyDeleted ? "취소" : "삭제"}
+                            <ActionButton
+                              onClick={() =>
+                                onActionClick('delete_feature_json', {
+                                  featureId: item.id,
+                                })
+                              }
+                            >
+                              {isActuallyDeleted
+                                ? t.buttons.cancel
+                                : t.buttons.delete}
                             </ActionButton>
                           </td>
                         </tr>
@@ -517,79 +752,113 @@ export function AiChatMessage({
                     })}
                   </React.Fragment>
                 ))}
+                {/* 총 합계 행 */}
                 <tr>
                   <td colSpan={3} className="total-label">
-                    <strong>총 합계</strong>
+                    <strong>{t.estimateInfo.totalSum}</strong>
                   </td>
                   <td className="col-amount">
                     <strong>
+                      {/* 계산된 값이 있으면 계산된 값 사용, 없으면 원본 데이터 사용 */}
                       {calculatedTotalAmount !== undefined
-                        ? formatAmount(calculatedTotalAmount)
-                        : formatAmount(invoiceData.total?.amount)}
+                        ? formatAmountWithCurrency(calculatedTotalAmount)
+                        : formatAmountWithCurrency(invoiceData.total?.amount)}
                     </strong>
                   </td>
                   <td></td>
                 </tr>
+                {/* 총 예상 기간 행 (있는 경우만) */}
                 {calculatedTotalDuration !== undefined && (
                   <tr>
                     <td colSpan={3} className="total-label">
-                      총 예상 기간
+                      {t.estimateInfo.totalDuration}
                     </td>
-                    <td className="col-amount">{calculatedTotalDuration} 일</td>
+                    <td className="col-amount">
+                      {calculatedTotalDuration} {t.estimateInfo.day}
+                    </td>
                     <td></td>
                   </tr>
                 )}
+                {/* 총 예상 페이지 수 행 (있는 경우만) */}
                 {calculatedTotalPages !== undefined && (
                   <tr>
                     <td colSpan={3} className="total-label">
-                      총 예상 페이지 수
+                      {t.estimateInfo.totalPages}
                     </td>
-                    <td className="col-amount">{calculatedTotalPages} 페이지</td>
+                    <td className="col-amount">
+                      {calculatedTotalPages} {t.estimateInfo.page}
+                    </td>
                     <td></td>
                   </tr>
                 )}
               </tbody>
             </InvoiceTable>
 
-            {/* 할인 및 PDF 저장 옵션 추가 */}
-            <div style={{ marginTop: "1.5rem", paddingTop: "1rem", borderTop: `1px solid ${AppColors.border}` }}>
-              <h4 style={{ marginBottom: "0.75rem", fontSize: "1em" }}>견적가 할인받기</h4>
-              <p style={{ marginBottom: "0.5rem", fontSize: "0.9em" }}>
-                견적가의 할인을 원하시면 다음 옵션을 선택할 수 있습니다:
+            {/* 할인 및 PDF 저장 옵션 */}
+            <div
+              style={{
+                marginTop: '1.5rem',
+                paddingTop: '1rem',
+                borderTop: `1px solid ${AppColors.border}`,
+              }}
+            >
+              <h4 style={{ marginBottom: '0.75rem', fontSize: '1em' }}>
+                {t.discount.title}
+              </h4>
+              <p style={{ marginBottom: '0.5rem', fontSize: '0.9em' }}>
+                {t.discount.description}
               </p>
-              <ul style={{ listStyle: "none", paddingLeft: 0, marginBottom: "1rem" }}>
-                <li style={{ marginBottom: "0.5rem" }}>
-                  1. 개발 기간 8주 연장하고 20% 할인받기
+              <ul
+                style={{
+                  listStyle: 'none',
+                  paddingLeft: 0,
+                  marginBottom: '1rem',
+                }}
+              >
+                <li style={{ marginBottom: '0.5rem' }}>
+                  {t.discount.options[0]}
                   <ActionButton
-                    onClick={() => onActionClick("discount_extend_3w_20p")}
-                    style={{ marginLeft: "0.5rem" }}>
-                    선택
+                    onClick={() => onActionClick('discount_extend_3w_20p')}
+                    style={{ marginLeft: '0.5rem' }}
+                  >
+                    {t.buttons.select}
                   </ActionButton>
                 </li>
-                <li style={{ marginBottom: "0.5rem" }}>
-                  2. 핵심 보조 기능 일부 제거하고 할인받기 (AI가 제거할 기능을 제안합니다)
+                <li style={{ marginBottom: '0.5rem' }}>
+                  {t.discount.options[1]}
                   <ActionButton
-                    onClick={() => onActionClick("discount_remove_features")}
-                    style={{ marginLeft: "0.5rem" }}>
-                    선택
+                    onClick={() => onActionClick('discount_remove_features')}
+                    style={{ marginLeft: '0.5rem' }}
+                  >
+                    {t.buttons.select}
                   </ActionButton>
                 </li>
               </ul>
-              <h4 style={{ marginBottom: "0.75rem", fontSize: "1em" }}>PDF로 저장</h4>
-              <ActionButton onClick={() => onActionClick("download_pdf")}>PDF 견적서 다운</ActionButton>
+              <h4 style={{ marginBottom: '0.75rem', fontSize: '1em' }}>
+                {t.pdf.title}
+              </h4>
+              <ActionButton onClick={() => onActionClick('download_pdf')}>
+                {t.buttons.downloadPdf}
+              </ActionButton>
             </div>
           </StyledInvoiceContainer>
         )}
 
-        {imageUrl && fileType && fileType.startsWith("image/") && (
-          <div style={{ marginTop: "10px", textAlign: sender === "user" ? "right" : "left" }}>
+        {/* 첨부된 이미지가 있는 경우 표시 */}
+        {imageUrl && fileType && fileType.startsWith('image/') && (
+          <div
+            style={{
+              marginTop: '10px',
+              textAlign: sender === 'user' ? 'right' : 'left',
+            }}
+          >
             <img
               src={imageUrl}
               alt="첨부 이미지"
               style={{
-                maxWidth: "300px",
-                maxHeight: "300px",
-                borderRadius: "8px",
+                maxWidth: '300px',
+                maxHeight: '300px',
+                borderRadius: '8px',
               }}
             />
           </div>

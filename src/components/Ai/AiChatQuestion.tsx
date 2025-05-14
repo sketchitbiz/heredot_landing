@@ -1,9 +1,11 @@
-"use client";
+'use client';
 
-import styled, { css } from "styled-components";
-import { AppColors } from "@/styles/colors";
-import { AppTextStyles } from "@/styles/textStyles";
-import { useState, useEffect } from "react";
+import styled, { css } from 'styled-components';
+import { AppColors } from '@/styles/colors';
+import { AppTextStyles } from '@/styles/textStyles';
+import { useState, useEffect } from 'react';
+import { useLang } from '@/contexts/LangContext'; // 다국어 지원을 위한 훅 임포트
+import { aiChatDictionary } from '@/lib/i18n/aiChat'; // 다국어 사전 임포트
 
 // 옵션 인터페이스
 export interface QuestionOption {
@@ -18,7 +20,7 @@ interface AiChatQuestionProps {
   selectionTitle: string; // 예: "중복 선택 가능", "중복 선택 불가"
   options: QuestionOption[];
   gridColumns: 1 | 2 | 3 | 4 | 5; // 컬럼 수
-  selectionMode: "single" | "multiple"; // 선택 모드
+  selectionMode: 'single' | 'multiple'; // 선택 모드
   showWebAppComponent?: boolean; // WEB/APP 섹션 표시 여부
   infoText?: string; // 하단 안내 문구
   onNext: (selectedIds: string[]) => void; // 다음 버튼 클릭 핸들러
@@ -126,7 +128,7 @@ const WebAppSection = styled.div`
 
 const WebAppButton = styled(OptionButton)`
   // OptionButton 스타일 상속 및 수정
-  flex-grow: ${(props) => (props.id === "web" ? 2 : 3)}; // 2:3 비율
+  flex-grow: ${(props) => (props.id === 'web' ? 2 : 3)}; // 2:3 비율
   flex-basis: 0; // flex-grow 비율에 따라 너비 조절
 `;
 
@@ -138,11 +140,12 @@ const ButtonGroup = styled.div`
   margin-bottom: 3rem; // 간격 조절
 `;
 
-const Button = styled.button<{ variant?: "primary" | "secondary" }>`
+const Button = styled.button<{ variant?: 'primary' | 'secondary' }>`
   padding: 0.5rem 1.5rem;
   border-radius: 0.375rem;
   border: none;
-  background-color: ${(props) => (props.variant === "primary" ? AppColors.primary : AppColors.disabled)};
+  background-color: ${(props) =>
+    props.variant === 'primary' ? AppColors.primary : AppColors.disabled};
   color: white; // 필요시 AppColors.onPrimary 등 사용
   transition: background-color 0.2s;
   cursor: pointer;
@@ -150,7 +153,7 @@ const Button = styled.button<{ variant?: "primary" | "secondary" }>`
   &:hover {
     background-color: ${
       (props) =>
-        props.variant === "primary"
+        props.variant === 'primary'
           ? AppColors.primary /* primaryHover 대신 primary */
           : AppColors.disabled /* disabledHover 대신 disabled */
     };
@@ -186,6 +189,8 @@ export const AiChatQuestion: React.FC<AiChatQuestionProps> = ({
   initialSelection = [],
 }) => {
   const [selectedIds, setSelectedIds] = useState<string[]>(initialSelection);
+  const { lang } = useLang(); // 언어 설정 가져오기
+  const t = aiChatDictionary[lang]; // 현재 언어에 해당하는 번역 텍스트
 
   // initialSelection이 변경되면 상태 업데이트
   useEffect(() => {
@@ -194,7 +199,7 @@ export const AiChatQuestion: React.FC<AiChatQuestionProps> = ({
 
   const handleOptionClick = (id: string) => {
     setSelectedIds((prevSelectedIds) => {
-      if (selectionMode === "single") {
+      if (selectionMode === 'single') {
         return [id]; // 단일 선택 모드: 클릭한 것만 선택
       } else {
         // 다중 선택 모드: 이미 선택된 경우 제거, 아닌 경우 추가
@@ -207,8 +212,8 @@ export const AiChatQuestion: React.FC<AiChatQuestionProps> = ({
     });
   };
 
-  const handleWebClick = () => handleOptionClick("web");
-  const handleAppClick = () => handleOptionClick("app");
+  const handleWebClick = () => handleOptionClick('web');
+  const handleAppClick = () => handleOptionClick('app');
 
   const isNextDisabled = selectedIds.length === 0; // 선택된 항목이 없으면 다음 버튼 비활성화
 
@@ -221,10 +226,18 @@ export const AiChatQuestion: React.FC<AiChatQuestionProps> = ({
       {/* WEB/APP 섹션 */}
       {showWebAppComponent && (
         <WebAppSection>
-          <WebAppButton id="web" selected={selectedIds.includes("web")} onClick={handleWebClick}>
+          <WebAppButton
+            id="web"
+            selected={selectedIds.includes('web')}
+            onClick={handleWebClick}
+          >
             WEB
           </WebAppButton>
-          <WebAppButton id="app" selected={selectedIds.includes("app")} onClick={handleAppClick}>
+          <WebAppButton
+            id="app"
+            selected={selectedIds.includes('app')}
+            onClick={handleAppClick}
+          >
             APP
           </WebAppButton>
         </WebAppSection>
@@ -236,8 +249,9 @@ export const AiChatQuestion: React.FC<AiChatQuestionProps> = ({
           <OptionButton
             key={option.id}
             selected={selectedIds.includes(option.id)}
-            onClick={() => handleOptionClick(option.id)}>
-            {selectionMode === "multiple" && <span className="prefix">+</span>}
+            onClick={() => handleOptionClick(option.id)}
+          >
+            {selectionMode === 'multiple' && <span className="prefix">+</span>}
             {/* 다중 선택 시 + 아이콘 표시 (선택 여부와 관계 없이) */}
             {option.label}
           </OptionButton>
@@ -247,14 +261,14 @@ export const AiChatQuestion: React.FC<AiChatQuestionProps> = ({
       {/* 버튼 그룹 */}
       <ButtonGroup>
         <Button variant="secondary" onClick={onPrevious}>
-          이전
+          {t.buttons.previous}
         </Button>
         <Button
           variant="primary"
           onClick={() => onNext(selectedIds)}
           disabled={isNextDisabled} // 비활성화 조건 적용
         >
-          다음
+          {t.buttons.next}
         </Button>
       </ButtonGroup>
 

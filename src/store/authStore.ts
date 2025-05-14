@@ -13,6 +13,7 @@ export interface UserData {
   updateTime: string | null;
   lastLoginTime: string;
   accessToken: string;
+  profileUrl?: string;
 }
 
 export interface AuthState {
