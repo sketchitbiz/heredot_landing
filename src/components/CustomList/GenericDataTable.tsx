@@ -1,8 +1,8 @@
 'use client'
 
+import { THEME_COLORS, ThemeMode } from "@/styles/theme_colors";
 import React from "react";
 import styled from "styled-components";
-import { ThemeMode, THEME_COLORS } from "./GenericListUI"; // 테마 타입 임포트
 // 열 정의를 위한 더 일반적인 타입 정의
 export interface ColumnDefinition<T> {
   header: string; // 헤더에 표시할 텍스트
@@ -100,23 +100,26 @@ const GenericDataTable = <T extends object>({
   return (
     <Table $themeMode={themeMode}>
       <thead>
-        <tr>
-          {columns.map((column, headerIndex) => {
-            const isSortable = column.sortable && onHeaderClick;
-            const isSortedColumn = isSortable && column.accessor === sortKey;
-            return (
-              <Th
-                key={`header-${String(column.accessor)}-${headerIndex}`}
-                onClick={isSortable ? () => onHeaderClick(column.accessor) : undefined}
-                style={{ ...column.headerStyle, cursor: isSortable ? "pointer" : "default" }}
-                $isSortable={!!isSortable}
-                $themeMode={themeMode}>
-                {column.header}
-                {isSortedColumn && <SortIcon $themeMode={themeMode}>{sortOrder === "asc" ? " ▲" : " ▼"}</SortIcon>}
-              </Th>
-            );
-          })}
-        </tr>
+      <tr>
+  {columns.map((column, headerIndex) => {
+    // column.sortable가 undefined일 경우 기본값 true로 설정
+    const isSortable = (column.sortable ?? true) && onHeaderClick;
+    const isSortedColumn = isSortable && column.accessor === sortKey;
+
+    return (
+      <Th
+        key={`header-${String(column.accessor)}-${headerIndex}`}
+        onClick={isSortable ? () => onHeaderClick(column.accessor) : undefined}
+        style={{ ...column.headerStyle, cursor: isSortable ? "pointer" : "default" }}
+        $isSortable={!!isSortable}
+        $themeMode={themeMode}
+      >
+        {column.header}
+        {isSortedColumn && <SortIcon $themeMode={themeMode}>{sortOrder === "asc" ? " ▲" : " ▼"}</SortIcon>}
+      </Th>
+    );
+  })}
+</tr>
       </thead>
       <tbody>
         {displayData.map((item, rowIndex) => (

@@ -77,7 +77,7 @@ export const AppColors = {
 
   // 보더
   // Border Colors
-  border: "#5E5E5E",
+  border: "#B5B5EA",
   borderLight: "#E0E0E0",
   borderDark: "#9E9E9E",
   borderError: "#B00020",

@@ -11,10 +11,12 @@ const TEXT = {
     projectIntro:
       '하드웨어 센서 기반으로 자폭 · 공격 드론을 식별·탐지한 뒤, 이를 무력화하는 시스템으로, 국방 및 주요 국가 시설에 납품되는 제품입니다.',
     features: [
+
       ['[RabbitMQ]', '센싱 데이터를 실시간 연계 및 활용'],
       ['[Web Push]', '드론 침입 · 무력화 시 실시간 알림'],
       ['[3D Map]', '드론 위치를 실시간으로 3D 맵 이동 구현'],
       ['[RealTime]', 'Streaming API를 통한 실시간 이동 식별'],
+      ['[Dashboard]', '드론 위치별 현황 데이터, 침입현황, 처리현황, 드론정보관련 지표'],
     ],
     screenshots: ['사용자 화면', '관리자 화면'],
     volume: '화면 분량 30장 내외',
@@ -26,10 +28,12 @@ const TEXT = {
     projectIntro:
       'A system that detects and disables suicide or attack drones using hardware sensors. Delivered to national defense and key government facilities.',
     features: [
+     
       ['[RabbitMQ]', 'Real-time data integration from sensors'],
       ['[Web Push]', 'Instant alerts when drones are neutralized'],
       ['[3D Map]', 'Live drone movement on 3D maps'],
       ['[RealTime]', 'Live tracking using streaming APIs'],
+      ['[Dashboard]', 'Drone location status data, intrusion status, processing status, and drone information indicators'],
     ],
     screenshots: ['User View', 'Admin View'],
     volume: 'Approximately 30 screens',
@@ -59,6 +63,7 @@ export const AntiDronePopup = () => {
       }
       projectScreenshots={
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {/* 기존 스크린샷 렌더링 */}
           {t.screenshots.map((title, i) => (
             <div key={i}>
               <h4 style={{ fontWeight: 700, fontSize: 16, color: '#3f4347' }}>{title}</h4>
@@ -69,6 +74,15 @@ export const AntiDronePopup = () => {
               />
             </div>
           ))}
+      
+          {/* antidron_4 이미지 추가 */}
+          <div>
+            <img
+              src="/assets/portpolio_popup/antidron_4.png"
+              alt="Additional Screenshot"
+              style={{ width: '100%' }}
+            />
+          </div>
         </div>
       }
       pjtVolume={<CustomPopupText>{t.volume}</CustomPopupText>}

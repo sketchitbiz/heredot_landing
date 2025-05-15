@@ -1,132 +1,15 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
-import styled, { css } from "styled-components";
+import React, {useImperativeHandle, forwardRef,  useState, useEffect, useMemo, useCallback, useRef } from "react";
+import styled from "styled-components";
 import dayjs from "dayjs";
 import * as XLSX from "xlsx";
 import GenericDataTable, { ColumnDefinition } from "./GenericDataTable"; // 경로 확인
 import GenericDateRangePicker from "./GenericDateRangePicker"; // 경로 확인
 import DropdownCustom from "./DropdownCustom";
+import { THEME_COLORS, ThemeMode } from "@/styles/theme_colors";
+import ActionButton from "../ActionButton";
 
-// --- IconClick 컴포넌트 내재화 ---
-interface IconProps {
-  src: string;
-  alt: string;
-  width?: number;
-  height?: number;
-  onClick?: () => void;
-  className?: string;
-  $flip?: boolean; // 좌우 반전 여부
-  disabled?: boolean;
-}
-
-const IconClick: React.FC<IconProps> = ({
-  src,
-  alt,
-  width = 16, // 기본 크기 조정
-  height = 16, // 기본 크기 조정
-  onClick,
-  className,
-  $flip = false,
-  disabled = false,
-}) => {
-  const handleClick = () => {
-    if (!disabled && onClick) {
-      onClick();
-    }
-  };
-  return (
-    <StyledIconWrapper onClick={handleClick} className={className} $flip={$flip} disabled={disabled}>
-      <img src={src} alt={alt} width={width} height={height} />
-    </StyledIconWrapper>
-  );
-};
-
-const StyledIconWrapper = styled.div<{ $flip: boolean; disabled: boolean }>`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px; // 크기 고정 (GenericListUI 스타일과 유사하게)
-  height: 30px; // 크기 고정
-  cursor: ${({ disabled }) => (disabled ? "not-allowed" : "pointer")};
-  transform: ${({ $flip }) => ($flip ? "scaleX(-1)" : "none")};
-  opacity: ${({ disabled }) => (disabled ? 0.5 : 1)}; // 비활성화 시 투명도
-  border: 1px solid #ccc; // GenericListUI 스타일과 유사하게 테두리 추가
-  background-color: #fff; // GenericListUI 스타일과 유사하게 배경색 추가
-  border-radius: 4px; // GenericListUI 스타일과 유사하게 둥근 모서리 추가
-
-  &:hover {
-    opacity: ${({ disabled }) => (disabled ? 0.5 : 0.8)};
-    border-color: ${({ disabled }) => (disabled ? "#ccc" : "#999")};
-    background-color: ${({ disabled }) => (disabled ? "#fff" : "#f8f8f8")};
-  }
-
-  img {
-    display: block;
-  }
-`;
-// --- IconClick 컴포넌트 내재화 끝 ---
-
-// 테마 정의
-export type ThemeMode = "dark" | "light";
-
-// 색상 테마 객체 정의
-export const THEME_COLORS = {
-  dark: {
-    background: "#4a4d59",
-    text: "#FFFFFF",
-    primary: "#333544",
-    secondary: "#4b4d59",
-    accent: "#4EFF63",
-    tableBackground: "#333544",
-    tableHeaderBackground: "#333544",
-    tableRowEven: "#333544",
-    tableRowOdd: "#333544",
-    tableText: "#FFFFFF",
-    tableHeaderText: "#FFFFFF",
-    borderColor: "#4b4d59",
-    inputBackground: "#333544",
-    inputText: "#FFFFFF",
-    buttonBackground: "#333544",
-    buttonText: "#FFFFFF",
-    titleColor: "#4EFF63",
-  },
-  light: {
-    background: "#E6E7E9",
-    text: "#000000",
-    primary: "#214A72", // 버튼 등에 사용될 기본 색상
-    secondary: "#F0F0F0",
-    accent: "#214A72", // 강조 색상
-    tableBackground: "#FFFFFF",
-    tableHeaderBackground: "#FFFFFF",
-    tableRowEven: "#FFFFFF",
-    tableRowOdd: "#F0F0F0", // 약간 다른 회색으로 변경
-    tableText: "#000000",
-    tableHeaderText: "#000000",
-    borderColor: "#E0E0E0",
-    inputBackground: "#FFFFFF", // 입력 배경 흰색
-    inputText: "#000000",
-    buttonBackground: "#214A72", // 기본 버튼 배경
-    buttonText: "#FFFFFF", // 기본 버튼 텍스트
-    titleColor: "#000000",
-  },
-};
-
-// --- Helper Function ---
-// 간단한 디바운스 함수
-function debounce<F extends (...args: any[]) => any>(func: F, waitFor: number) {
-  let timeout: ReturnType<typeof setTimeout> | null = null;
-
-  const debounced = (...args: Parameters<F>) => {
-    if (timeout !== null) {
-      clearTimeout(timeout);
-      timeout = null;
-    }
-    timeout = setTimeout(() => func(...args), waitFor);
-  };
-
-  return debounced as (...args: Parameters<F>) => ReturnType<F>;
-}
 
 // Helper: getPropertyValue (기존 유지, UserListPage 버전 개선 적용)
 const getPropertyValue = <T extends object>(obj: T, path: keyof T | string): any => {
@@ -160,14 +43,9 @@ interface BaseRecord {
 
 // API Fetch 함수 타입 정의 (수정: 페이지/정렬 파라미터 제거)
 export interface FetchParams {
-  // page: number; // 제거
-  // size: number; // 제거
-  // sortKey: string | null; // 제거
-  // sortOrder: "asc" | "desc"; // 제거
   fromDate?: string; // Optional
   toDate?: string; // Optional
   keyword?: string; // Optional
-  // fetchAll?: boolean; // 제거 (fetchData는 항상 전체 데이터를 가져옴)
 }
 
 export interface FetchResult<T> {
@@ -213,26 +91,28 @@ interface GenericListUIProps<T extends BaseRecord> {
 }
 
 // --- The Component --- (상태 및 로직 대폭 수정)
-const GenericListUI = <T extends BaseRecord>({
-  // 필수
-  title,
-  columns,
-  fetchData,
-  excelFileName = "DataExport",
-  // 옵션
-  initialState = {},
-  keyExtractor,
-  enableSearch = true,
-  searchPlaceholder = "검색어를 입력해주세요",
-  enableDateFilter = true,
-  itemsPerPageOptions = [12, 30, 50, 100],
-  themeMode = "light",
-  onRowClick,
-  renderHeaderActionButton,
-  renderTabs,
-  noDataMessage = "데이터가 없습니다.",
-  noDataComponent,
-}: GenericListUIProps<T>) => {
+const GenericListUIInner = <T extends BaseRecord>(
+  {
+    title,
+    columns,
+    fetchData,
+    excelFileName = "DataExport",
+    initialState = {},
+    keyExtractor,
+    enableSearch = true,
+    searchPlaceholder = "검색어를 입력해주세요",
+    enableDateFilter = true,
+    itemsPerPageOptions = [12, 30, 50, 100],
+    themeMode = "light",
+    onRowClick,
+    renderHeaderActionButton,
+    renderTabs,
+    noDataMessage = "데이터가 없습니다.",
+    noDataComponent,
+  }: GenericListUIProps<T>,
+  ref: React.Ref<{ refetch: () => void }>
+) => {
+
   // --- 내부 상태 --- (데이터 상태 추가, API 호출 관련 상태 제거)
   const [allData, setAllData] = useState<T[]>([]); // API로부터 받은 전체 데이터
   const [totalItems, setTotalItems] = useState(0); // 필터링된 아이템 수 (API 메타데이터 기준)
@@ -278,7 +158,13 @@ const GenericListUI = <T extends BaseRecord>({
       setIsLoading(false);
     }
   }, [searchKeyword, fromDate, toDate, enableDateFilter, fetchData]); // keyword, date 변경 시 호출
-
+  
+  useImperativeHandle(ref, () => ({
+    refetch: () => {
+      fetchDataCallback(); // 내부 API 호출
+    },
+  }));
+  
   // 초기 로딩
   useEffect(() => {
     fetchDataCallback();
@@ -428,8 +314,6 @@ const GenericListUI = <T extends BaseRecord>({
     return (item: T, index: number) => item.id ?? item.index ?? `row-${index}`;
   }, [keyExtractor]);
 
-  const hasTabs = !!renderTabs;
-  const colors = themeMode === "light" ? THEME_COLORS.light : THEME_COLORS.dark;
 
   return (
     <Container $themeMode={themeMode}>
@@ -545,6 +429,11 @@ const GenericListUI = <T extends BaseRecord>({
     </Container>
   );
 };
+
+const GenericListUI = forwardRef(GenericListUIInner) as <T extends BaseRecord>(
+  props: GenericListUIProps<T> & { ref?: React.Ref<{ refetch: () => void }> }
+) => React.ReactElement;
+
 
 export default GenericListUI;
 
@@ -671,13 +560,6 @@ const SearchButton = styled.button<{ $themeMode: ThemeMode }>`
   }
 `;
 
-const PaginationContainer = styled.div`
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 15px;
-`;
-
 const ListInfo = styled.div<{ $themeMode: ThemeMode }>`
   display: flex;
   justify-content: space-between;
@@ -688,28 +570,7 @@ const ListInfo = styled.div<{ $themeMode: ThemeMode }>`
   font-size: 14px;
 `;
 
-const ActionButton = styled.button<{ $themeMode: ThemeMode }>`
-  padding: 8px 15px;
-  height: 36px;
-  border-radius: 0px;
-  border: none;
-  background-color: ${({ $themeMode }) => ($themeMode === "light" ? "#FFFFFF" : THEME_COLORS.dark.secondary)};
-  color: ${({ $themeMode }) => ($themeMode === "light" ? THEME_COLORS.light.text : THEME_COLORS.dark.text)};
-  font-weight: 500;
-  font-size: 14px;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background-color 0.2s, border-color 0.2s;
 
-  &:hover:not(:disabled) {
-    background-color: ${({ $themeMode }) => ($themeMode === "light" ? "#f0f0f0" : "#424451")};
-  }
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-`;
 
 const ExcelButton = styled(ActionButton)`
   background: ${({ $themeMode }) => ($themeMode === "light" ? "#f8f8f8" : THEME_COLORS.dark.primary)};

@@ -5,7 +5,7 @@ import styled from "styled-components";
 import dayjs from "dayjs";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { ThemeMode, THEME_COLORS } from "./GenericListUI";
+import { THEME_COLORS, ThemeMode } from "@/styles/theme_colors";
 
 interface GenericDateRangePickerProps {
   initialFromDate: string;
