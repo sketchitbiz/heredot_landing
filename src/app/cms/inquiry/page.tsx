@@ -1,8 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { getAdminDashboard, getProductDetail } from '@/lib/api/admin/adminApi';
-import type { GetProductDetailParams } from '@/lib/api/admin/adminApi.types';
 import { devError } from '@/lib/utils/devLogger';
 import LandingBaseWrapper from '@/layout/LandingBaseWrapper';
 import ScreenWrapper from '@/layout/ScreenWrapper';
@@ -50,36 +48,7 @@ export default function DashboardPage() {
 
   const router = useRouter(); // Next.js의 useRouter 훅 사용
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const dashboardResult = await getAdminDashboard({
-          fromDate: '2024-01-01',
-          toDate: '2024-12-31',
-        });
-        setDashboardData(dashboardResult);
-
-        const detail1Params: GetProductDetailParams = {
-          productIndex: '25',
-          keyword: '',
-        };
-        const detail1 = await getProductDetail(detail1Params);
-        setProductDetail1(detail1);
-
-        const detail9999Params: GetProductDetailParams = {
-          productIndex: '9999',
-          keyword: '아무거나',
-        };
-        const detail9999 = await getProductDetail(detail9999Params);
-        setProductDetail9999(detail9999);
-      } catch (err) {
-        setDashboardError('데이터를 불러오는 중 오류가 발생했습니다.');
-        devError('Dashboard fetch error:', err);
-      }
-    };
-
-    fetchData();
-  }, []);
+  ;
 
   const { logout } = useAdminAuth();
 

@@ -38,9 +38,14 @@ interface InputElementProps {
   paddingRight?: string;      // 우측 패딩 오버라이드 | Optional override for right padding
   $hasSuffix?: boolean;       // 서픽스 아이콘 여부 | Indicates if input has a suffix icon
   $device: DeviceType;        // 디바이스 타입 | Device type (mobile/tablet/desktop)
+  background?: string;     // 배경색 오버라이드 | Optional override for background color
+  autoComplete?: string;      // 자동 완성 속성 | Auto-complete attribute
 }
 
 const InputElement = styled.input<InputElementProps>`
+  background: ${({ background }) =>
+    background || AppColors.surface}; // 배경색 | Background color
+  color: ${AppColors.onSurface}; // 텍스트 색상 | Text color
   padding: ${({ padding, $device }) => 
     padding || InputStyles.padding[$device]}; // 기본 내부 여백 | Inner padding
 

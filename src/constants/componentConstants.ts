@@ -80,9 +80,9 @@ export const InputStyles = {
 
 export const LabelStyles = {
   fontSize: {
-    mobile: AppTextStyles.body2.fontSize,
+    mobile: AppTextStyles.body1.fontSize,
     tablet: AppTextStyles.body1.fontSize,
-    desktop: AppTextStyles.title3.fontSize,
+    desktop: AppTextStyles.body1.fontSize,
   },
   color: AppColors.onBackground,
   marginBottom: {

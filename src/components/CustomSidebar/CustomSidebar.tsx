@@ -3,7 +3,7 @@
 import React from 'react';
 import styled, { css } from 'styled-components';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
 export interface MenuItemConfig {
   icon: React.ReactElement;
@@ -30,20 +30,27 @@ const CustomSidebar: React.FC<CustomSidebarProps> = ({
   children,
 }) => {
   const pathname = usePathname();
+  const router = useRouter();
   const [expandedMenu, setExpandedMenu] = React.useState<string | null>(null);
 
-  const isActive = (path: string) =>
-    pathname === path || (path !== '/' && pathname.startsWith(path));
+  const isActive = (itemPath: string) => pathname === itemPath;
+
+  const isMenuExpanded = (subMenu?: MenuItemConfig[] | null) => {
+    if (!subMenu) return false;
+    return subMenu.some((sub) => pathname.startsWith(sub.path));
+  };
 
   const handleMenuClick = (path: string, hasSubMenu: boolean) => {
     if (hasSubMenu) {
       setExpandedMenu(expandedMenu === path ? null : path);
+      router.push(path); // ⬅ 이동 추가: 리다이렉트 트리거
     }
   };
 
   return (
     <SidebarContainer $isCollapsed={isCollapsed}>
       {children}
+
       <ToggleButton
         onClick={toggleSidebar}
         $isCollapsed={isCollapsed}
@@ -62,13 +69,16 @@ const CustomSidebar: React.FC<CustomSidebarProps> = ({
         {menuItems.map((item) => {
           const hasSubMenu = !!item.subMenu;
           const active = isActive(item.path);
+          const expanded = expandedMenu === item.path || isMenuExpanded(item.subMenu);
+          const shouldBeActive = active || isMenuExpanded(item.subMenu);
+
           return (
             <React.Fragment key={item.path}>
               {hasSubMenu ? (
                 <MenuItem
                   as="div"
                   $isCollapsed={isCollapsed}
-                  $active={active}
+                  $active={shouldBeActive}
                   onClick={() => handleMenuClick(item.path, true)}
                 >
                   <Center>
@@ -87,11 +97,11 @@ const CustomSidebar: React.FC<CustomSidebarProps> = ({
                 </Link>
               )}
 
-              {expandedMenu === item.path && item.subMenu && (
+              {expanded && item.subMenu && (
                 <SubMenuList>
                   {item.subMenu.map((subItem) => (
                     <Link key={subItem.path} href={subItem.path} passHref legacyBehavior>
-                      <SubMenuItem $active={isActive(subItem.path)} as="a">
+                      <SubMenuItem $active={pathname === subItem.path}>
                         <IconWrapper>{subItem.icon}</IconWrapper>
                         {subItem.title}
                       </SubMenuItem>
@@ -183,13 +193,13 @@ const MenuItem = styled.li<{ $active?: boolean; $isCollapsed: boolean }>`
   display: flex;
   justify-content: ${({ $isCollapsed }) => ($isCollapsed ? 'center' : 'flex-start')};
   align-items: center;
-  color: ${({ $active }) => ($active ? '#4eff63' : '#8d8e96')};
+  color: ${({ $active }) => ($active ? '#fff' : '#8d8e96')};
   font-size: 15px;
   font-weight: 500;
   cursor: pointer;
   border-bottom: 1px solid #252736;
   transition: background 0.2s, color 0.2s;
-  background-color: ${({ $active }) => ($active ? '#1543cb' : '#2c2e3c')};
+  background-color: ${({ $active }) => ($active ? '#4071ed' : '#2c2e3c')};
   padding-left: ${({ $isCollapsed }) => ($isCollapsed ? '0' : '20px')};
   width: 100%;
   text-decoration: none;
@@ -270,18 +280,18 @@ const SubMenuList = styled.ul`
   list-style: none;
   padding: 0;
   margin: 0;
-  padding-left: 20px;
+  /* padding-left: 20px; */
 `;
 
 const SubMenuItem = styled.li<{ $active?: boolean }>`
   height: 40px;
   display: flex;
   align-items: center;
-  color: ${({ $active }) => ($active ? '#4eff63' : '#b0b0b0')};
+  color: ${({ $active }) => ($active ? '#fff' : '#797878')};
   font-size: 14px;
   cursor: pointer;
   transition: background 0.2s, color 0.2s;
-  padding-left: 20px;
+  padding-left: 80px;
   background-color: ${({ $active }) => ($active ? '#3a3f4e' : 'transparent')};
 
   &:hover {

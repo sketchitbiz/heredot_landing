@@ -9,6 +9,7 @@ import ScreenWrapper from '@/layout/ScreenWrapper';
 import CommonButton from '@/components/CommonButton';
 import Image from 'next/image';
 import { toast, ToastContainer } from 'react-toastify';
+
 import Gap from '@/components/Gap';
 
 export default function LoginPage() {
@@ -81,18 +82,18 @@ export default function LoginPage() {
 
         <TextField
           value={userId}
+          label='아이디'
           onChange={(e) => setUserId(e.target.value)}
           placeholder="아이디를 입력하세요"
-          type="text"
           showSuffixIcon={false}
           errorMessage={idError || undefined}
         />
 
         <TextField
           value={password}
+          label='비밀번호'
           onChange={(e) => setPassword(e.target.value)}
           placeholder="비밀번호를 입력하세요"
-          type="password"
           showSuffixIcon={true}
           errorMessage={pwdError || undefined}
         />

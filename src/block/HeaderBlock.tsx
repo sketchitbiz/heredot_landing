@@ -152,6 +152,8 @@ const HeaderBlock: React.FC<HeaderBlockProps> = ({ title, subtitle, downloadLabe
         >
           <CommonButton
             text={downloadLabel}
+            backgroundColor={AppColors.background}
+            borderRadius='75px'
             icon={<FiDownload />}
             $iconPosition="left"
           />
