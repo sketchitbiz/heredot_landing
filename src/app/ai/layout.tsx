@@ -90,7 +90,7 @@ const navigationItems = [
 export default function AiLayout({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const user = useAuthStore((state) => state.user);
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
   const { lang } = useLang();
@@ -136,25 +136,34 @@ export default function AiLayout({ children }: { children: React.ReactNode }) {
           <LeftSection>
             <MenuButton onClick={toggleSidebar}>
               <Menu />
-            </MenuButton>{' '}
-            <HeaderLanguageSwitcher />
-          </LeftSection>
-          <HeaderTitle>
-            {isLoggedIn && user?.name
-              ? lang === 'ko'
-                ? `${user.name}님의 견적서`
-                : `${user.name}'s Quote`
-              : lang === 'ko'
-              ? 'AI 견적서'
-              : 'AI Quote'}
-          </HeaderTitle>
-          <RightSection>
-            <EditButton>
+            </MenuButton>
+            <EditButton onClick={() => (window.location.href = '/ai')}>
               <Edit />
             </EditButton>
-            <SearchButton>
-              <Search />
-            </SearchButton>
+          </LeftSection>
+          <HeaderTitle>
+            {isLoggedIn && user?.name ? (
+              <>
+                {user?.profileUrl ? (
+                  <UserAvatar
+                    src={user.profileUrl}
+                    alt={user.name || '사용자'}
+                  />
+                ) : (
+                  <Avatar />
+                )}
+                {lang === 'ko'
+                  ? `${user.name}님의 견적서`
+                  : `${user.name}'s Quote`}
+              </>
+            ) : lang === 'ko' ? (
+              'AI 견적서'
+            ) : (
+              'AI Quote'
+            )}
+          </HeaderTitle>
+          <RightSection>
+            <HeaderLanguageSwitcher />
           </RightSection>
         </FixedHeader>
       )}
@@ -211,7 +220,6 @@ const ActionButton = styled.button`
 
 const MenuButton = styled(ActionButton)`
   margin-right: 0px;
-  padding-rigth: 0px;
 `;
 const EditButton = styled(ActionButton)``;
 const SearchButton = styled(ActionButton)``;
@@ -222,7 +230,7 @@ const LeftSection = styled.div`
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  margin-right: 0px;
+  gap: 8px;
 `;
 
 // 오른쪽 영역
@@ -231,15 +239,34 @@ const RightSection = styled.div`
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 5px;
+  gap: 8px;
 `;
 
-const HeaderTitle = styled.h1`
+const HeaderTitle = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
   ${AppTextStyles.title3}
   margin: 0;
   font-size: 18px;
   text-align: center;
   white-space: nowrap;
+`;
+
+const Avatar = styled.div`
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: white;
+  margin-right: 10px;
+`;
+
+const UserAvatar = styled.img`
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 10px;
 `;
 
 const LayoutContainer = styled.div<{ $isMobile: boolean }>`

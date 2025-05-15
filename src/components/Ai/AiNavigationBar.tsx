@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { ProfileDataContainer } from '@/components/ProfileDataContainer';
 import ButtonElement from '@/elements/ButtonElement';
@@ -12,20 +12,22 @@ import {
 import { AppColors } from '../../styles/colors';
 import { AppTextStyles } from '@/styles/textStyles';
 import useAuthStore from '@/store/authStore';
-import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { useLang } from '@/contexts/LangContext';
 import { aiChatDictionary } from '@/lib/i18n/aiChat';
+import { ChatDictionary } from '@/app/ai/components/StepData';
 
-interface NavigationItem {
+interface NavigationItemData {
+  name: string;
+  status: string;
+}
+
+interface NavigationGroup {
   title: string;
-  items: {
-    name: string;
-    status: '진행' | '완료';
-  }[];
+  items: NavigationItemData[];
 }
 
 interface AiNavigationBarProps {
-  navigationItems: NavigationItem[];
+  navigationItems: NavigationGroup[];
   isMobile?: boolean;
   isSidebarOpen?: boolean;
   toggleSidebar?: () => void;
@@ -169,10 +171,6 @@ const ProfileIconButton = styled(ButtonElement)`
   border-radius: 4px;
 `;
 
-const LanguageSwitcherWrapper = styled.div`
-  margin-right: 8px;
-`;
-
 const NavigationContent = styled.div`
   flex: 1;
   overflow-y: scroll;
@@ -223,7 +221,11 @@ const SectionTitle = styled.h3`
 const SectionContent = styled.div`
   ${AppTextStyles.label2};
   color: ${AppColors.onPrimaryGray};
-  font-size: 16px;
+  font-size: 14px;
+  text-align: right;
+  white-space: pre-line;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `;
 
 const ItemList = styled.div`
@@ -259,6 +261,8 @@ const NavigationStatusButton = styled(ButtonElement)`
   border-radius: 10px;
   font-size: 14px;
   font-weight: 400;
+  display: flex;
+  align-items: center;
 
   &:hover:not(:disabled) {
     background-color: ${AppColors.primary};
@@ -276,21 +280,36 @@ const LogoutButtonContainer = styled.div`
 const AiNavigationBar = ({
   navigationItems,
   isMobile = false,
-  isSidebarOpen = true,
+  isSidebarOpen = false,
   toggleSidebar = () => {},
 }: AiNavigationBarProps) => {
-  const [expandedSections, setExpandedSections] = useState<
-    Record<string, boolean>
-  >(
-    navigationItems.reduce((acc, item) => ({ ...acc, [item.title]: true }), {})
-  );
+  const { lang } = useLang();
+  const t = aiChatDictionary[lang] as ChatDictionary;
 
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
   const openLoginModal = useAuthStore((state) => state.openLoginModal);
   const user = useAuthStore((state) => state.user);
 
-  const { lang } = useLang();
-  const t = aiChatDictionary[lang];
+  const [expandedSections, setExpandedSections] = useState<
+    Record<string, boolean>
+  >({});
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      const allSectionTitles = navigationItems.reduce((acc, item) => {
+        acc[item.title] = true;
+        return acc;
+      }, {} as Record<string, boolean>);
+      setExpandedSections(allSectionTitles);
+    } else {
+      const todayTitle =
+        navigationItems.find((item) => item.title === t.navigation.period.today)
+          ?.title ||
+        navigationItems[0]?.title ||
+        '오늘';
+      setExpandedSections({ [todayTitle]: true });
+    }
+  }, [isLoggedIn, navigationItems, t.navigation.period.today]);
 
   const toggleSection = (title: string) => {
     setExpandedSections((prev) => ({
@@ -299,132 +318,183 @@ const AiNavigationBar = ({
     }));
   };
 
-  const renderSidebarContent = () => (
-    <>
-      <ProfileSection>
-        {isLoggedIn ? (
-          <ProfileDataContainer
-            message="success"
-            successChild={
-              <>
-                <ProfileInfo>
-                  <Flex>
-                    {user?.profileUrl ? (
-                      <UserAvatar
-                        src={user.profileUrl}
-                        alt={user.name || '사용자'}
-                      />
-                    ) : (
-                      <Avatar />
+  const renderSidebarContent = () => {
+    return (
+      <>
+        <ProfileSection>
+          {isLoggedIn ? (
+            <ProfileDataContainer
+              message="success"
+              successChild={
+                <>
+                  <ProfileInfo>
+                    <Flex>
+                      {user?.profileUrl ? (
+                        <UserAvatar
+                          src={user.profileUrl}
+                          alt={user.name || t.commonUser}
+                        />
+                      ) : (
+                        <Avatar />
+                      )}
+                      <Username>
+                        {user?.name ? `${user.name}님` : t.commonUser}
+                      </Username>
+                    </Flex>
+                    <ProfileActions>
+                      <ProfileIconButton
+                        variant="text"
+                        size="small"
+                        onClick={() => (window.location.href = '/ai')}
+                      >
+                        <Edit
+                          sx={{
+                            color: AppColors.iconPrimary,
+                            fontSize: '1.5rem',
+                          }}
+                        />
+                      </ProfileIconButton>
+                      <ProfileIconButton variant="text" size="small">
+                        <Search
+                          sx={{
+                            color: AppColors.iconPrimary,
+                            fontSize: '1.5rem',
+                          }}
+                        />
+                      </ProfileIconButton>
+                    </ProfileActions>
+                  </ProfileInfo>
+                </>
+              }
+            />
+          ) : (
+            <ProfileInfo>
+              <Flex>
+                <Avatar />
+                <Username>{t.commonUser}</Username>
+              </Flex>
+              <ProfileActions>
+                <ProfileIconButton
+                  variant="text"
+                  size="small"
+                  onClick={() => (window.location.href = '/ai')}
+                >
+                  <Edit
+                    sx={{ color: AppColors.iconPrimary, fontSize: '1.5rem' }}
+                  />
+                </ProfileIconButton>
+                <ProfileIconButton variant="text" size="small">
+                  <Search
+                    sx={{ color: AppColors.iconPrimary, fontSize: '1.5rem' }}
+                  />
+                </ProfileIconButton>
+              </ProfileActions>
+            </ProfileInfo>
+          )}
+        </ProfileSection>
+
+        <NavigationContent>
+          {isLoggedIn
+            ? (() => {
+                const todayNavigationGroup = navigationItems.find(
+                  (group) => group.title === t.navigation.period.today
+                ) || { title: t.navigation.period.today, items: [] };
+                const itemsToDisplay: NavigationItemData[] = [
+                  {
+                    name: t.navigation.customEstimateInProgress,
+                    status: t.buttons.estimate,
+                  },
+                ];
+                return (
+                  <NavigationSection key={todayNavigationGroup.title}>
+                    <SectionHeader
+                      onClick={() => toggleSection(todayNavigationGroup.title)}
+                    >
+                      <SectionTitle>{todayNavigationGroup.title}</SectionTitle>
+                      <SectionContent>{t.navigation.estimate}</SectionContent>
+                    </SectionHeader>
+                    {expandedSections[todayNavigationGroup.title] && (
+                      <ItemList>
+                        {itemsToDisplay.map((item, itemIndex) => (
+                          <NavigationItem key={itemIndex}>
+                            <ItemText>{item.name}</ItemText>
+                            {item.status && (
+                              <NavigationStatusButton size="small" isRounded>
+                                {item.status}
+                              </NavigationStatusButton>
+                            )}
+                          </NavigationItem>
+                        ))}
+                      </ItemList>
                     )}
-                    <Username>
-                      {user?.name ? `${user.name}님` : '사용자'}
-                    </Username>
-                  </Flex>
-                  <ProfileActions>
-                    <LanguageSwitcherWrapper>
-                      <LanguageSwitcher />
-                    </LanguageSwitcherWrapper>
-                    <ProfileIconButton variant="text" size="small">
-                      <Edit
-                        sx={{
-                          color: AppColors.iconPrimary,
-                          fontSize: '1.5rem',
-                        }}
-                      />
-                    </ProfileIconButton>
-                    <ProfileIconButton variant="text" size="small">
-                      <Search
-                        sx={{
-                          color: AppColors.iconPrimary,
-                          fontSize: '1.5rem',
-                        }}
-                      />
-                    </ProfileIconButton>
-                  </ProfileActions>
-                </ProfileInfo>
-              </>
-            }
-          />
-        ) : (
-          <ProfileInfo>
-            <Flex>
-              <Avatar>{/* 기본 프로필 아이콘 */}</Avatar>
-              <Username>{t.navigation.login.required}</Username>
-            </Flex>
-            <ProfileActions>
-              <LanguageSwitcherWrapper>
-                <LanguageSwitcher />
-              </LanguageSwitcherWrapper>
-              <ProfileIconButton variant="text" size="small">
-                <Edit
-                  sx={{ color: AppColors.iconPrimary, fontSize: '1.5rem' }}
-                />
-              </ProfileIconButton>
-              <ProfileIconButton variant="text" size="small">
-                <Search
-                  sx={{ color: AppColors.iconPrimary, fontSize: '1.5rem' }}
-                />
-              </ProfileIconButton>
-            </ProfileActions>
-          </ProfileInfo>
+                  </NavigationSection>
+                );
+              })()
+            : navigationItems.map((period, index) => {
+                let periodTitle = period.title;
+                if (period.title === '오늘')
+                  periodTitle = t.navigation.period.today;
+                else if (period.title === '일주일 전')
+                  periodTitle = t.navigation.period.lastWeek;
+                else if (period.title === '3월')
+                  periodTitle = t.navigation.period.month;
+
+                return (
+                  <NavigationSection key={index}>
+                    <SectionHeader onClick={() => toggleSection(period.title)}>
+                      <SectionTitle>{periodTitle}</SectionTitle>
+                      <SectionContent>{t.navigation.estimate}</SectionContent>
+                    </SectionHeader>
+                    {expandedSections[period.title] && (
+                      <ItemList>
+                        {period.items.map((item, itemIndex) => (
+                          <NavigationItem key={itemIndex}>
+                            <ItemText>{item.name}</ItemText>
+                            {item.status && (
+                              <NavigationStatusButton size="small" isRounded>
+                                {item.status}
+                              </NavigationStatusButton>
+                            )}
+                          </NavigationItem>
+                        ))}
+                      </ItemList>
+                    )}
+                  </NavigationSection>
+                );
+              })}
+        </NavigationContent>
+
+        <LogoutButtonContainer>
+          {isLoggedIn ? (
+            <NavigationStatusButton
+              size="small"
+              isRounded
+              onClick={() => useAuthStore.getState().logout()}
+            >
+              <Logout
+                fontSize="small"
+                style={{
+                  marginRight: '8px',
+                  verticalAlign: 'middle',
+                  fontSize: '18px',
+                }}
+              />
+              {t.buttons.logout}
+            </NavigationStatusButton>
+          ) : null}
+        </LogoutButtonContainer>
+
+        {!isLoggedIn && (
+          <BlurredOverlay>
+            <LoginPromptText>{t.navigation.login.benefits}</LoginPromptText>
+            <CenteredLoginButton onClick={openLoginModal} isRounded={false}>
+              {t.buttons.login}
+            </CenteredLoginButton>
+          </BlurredOverlay>
         )}
-      </ProfileSection>
-
-      <NavigationContent>
-        {navigationItems.map((period, index) => {
-          let periodTitle = period.title;
-          if (period.title === '오늘') {
-            periodTitle = t.navigation.period.today;
-          } else if (period.title === '일주일 전') {
-            periodTitle = t.navigation.period.lastWeek;
-          } else if (period.title === '3월') {
-            periodTitle = t.navigation.period.month;
-          }
-
-          return (
-            <NavigationSection key={index}>
-              <SectionHeader onClick={() => toggleSection(period.title)}>
-                <SectionTitle>{periodTitle}</SectionTitle>
-                <SectionContent>{t.navigation.estimate}</SectionContent>
-              </SectionHeader>
-
-              {expandedSections[period.title] && (
-                <ItemList>
-                  {period.items.map((item, itemIndex) => (
-                    <NavigationItem key={itemIndex}>
-                      <ItemText>{item.name}</ItemText>
-                      <NavigationStatusButton size="small" isRounded>
-                        {t.buttons.estimate}
-                      </NavigationStatusButton>
-                    </NavigationItem>
-                  ))}
-                </ItemList>
-              )}
-            </NavigationSection>
-          );
-        })}
-      </NavigationContent>
-
-      <LogoutButtonContainer>
-        {isLoggedIn ? (
-          <NavigationStatusButton size="small" isRounded>
-            <Logout fontSize="small" style={{ marginRight: '4px' }} />
-            {t.buttons.logout}
-          </NavigationStatusButton>
-        ) : null}
-      </LogoutButtonContainer>
-
-      {!isLoggedIn && (
-        <BlurredOverlay>
-          <LoginPromptText>{t.navigation.login.benefits}</LoginPromptText>
-          <CenteredLoginButton onClick={openLoginModal} isRounded={false}>
-            {t.buttons.login}
-          </CenteredLoginButton>
-        </BlurredOverlay>
-      )}
-    </>
-  );
+      </>
+    );
+  };
 
   return (
     <Container>
@@ -434,7 +504,6 @@ const AiNavigationBar = ({
             {isSidebarOpen ? <ChevronLeft /> : <ChevronRight />}
           </SidebarToggleButton>
         )}
-
         {isSidebarOpen && renderSidebarContent()}
       </Sidebar>
     </Container>

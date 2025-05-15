@@ -15,7 +15,7 @@ import { FileUploadData } from '@/lib/firebase/firebase.functions';
 
 // 스타일 컴포넌트
 const MessageInputContainer = styled.div`
-  padding: 2rem 2rem;
+  padding: 1rem 2rem;
   border-top: 1px solid ${AppColors.border};
   background-color: ${AppColors.background};
   margin-top: auto;
@@ -86,10 +86,23 @@ const IconContainer = styled.button`
   }
 `;
 
+const RemainingCountText = styled.p`
+  ${AppTextStyles.caption1}
+  color: ${AppColors.onSurfaceVariant};
+  text-align: center;
+  margin-top: 0.5rem;
+  margin-bottom: -1rem;
+  font-size: 0.8rem;
+`;
+
 interface MessageInputProps {
   promptText: string;
   setPromptText: (text: string) => void;
-  handleGeminiSubmit: (e?: React.FormEvent | null) => void;
+  handleGeminiSubmit: (
+    e?: React.FormEvent | null,
+    actionPrompt?: string,
+    isSystemInitiatedPrompt?: boolean
+  ) => void;
   handleKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
   isFreeFormMode: boolean;
   loading: boolean;
@@ -99,6 +112,9 @@ interface MessageInputProps {
   handleFileInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleIconUploadClick: () => void;
   lang: 'ko' | 'en';
+  remainingCount: number;
+  isLoggedIn: boolean;
+  isApiLimitInitialized: boolean;
 }
 
 const MessageInput: React.FC<MessageInputProps> = ({
@@ -114,9 +130,21 @@ const MessageInput: React.FC<MessageInputProps> = ({
   handleFileInputChange,
   handleIconUploadClick,
   lang,
+  remainingCount,
+  isLoggedIn,
+  isApiLimitInitialized,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const t = aiChatDictionary[lang];
+
+  const showRemainingCount =
+    !isLoggedIn && isFreeFormMode && isApiLimitInitialized;
+
+  // remainingAttempts 함수가 aiChatDictionary에 실제로 정의되어 있어야 합니다.
+  // 예시: remainingAttempts: (count) => `오늘 남은 횟수 (비회원): ${count}회`
+  const remainingAttemptsText = t.input.remainingAttempts
+    ? t.input.remainingAttempts(remainingCount)
+    : `오늘 남은 횟수 (비회원): ${remainingCount}회`;
 
   return (
     <MessageInputContainer>
@@ -128,7 +156,9 @@ const MessageInput: React.FC<MessageInputProps> = ({
       />
 
       <InputContainer
-        onSubmit={handleGeminiSubmit}
+        onSubmit={(e) => {
+          handleGeminiSubmit(e, undefined, false);
+        }}
         data-active={isFreeFormMode && !loading}
       >
         <input
@@ -177,6 +207,9 @@ const MessageInput: React.FC<MessageInputProps> = ({
           <Send />
         </IconContainer>
       </InputContainer>
+      {showRemainingCount && (
+        <RemainingCountText>{remainingAttemptsText}</RemainingCountText>
+      )}
     </MessageInputContainer>
   );
 };

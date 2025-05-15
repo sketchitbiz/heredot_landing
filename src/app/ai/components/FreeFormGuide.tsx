@@ -8,7 +8,7 @@ import { aiChatDictionary } from '@/lib/i18n/aiChat';
 // 스타일 컴포넌트
 const FreeFormGuideContainer = styled.div<{ $isNarrowScreen?: boolean }>`
   width: 100%;
-  max-width: 48rem;
+  /* max-width: 48rem; */
   font-weight: 300;
   padding: 0;
   background-color: ${AppColors.background};
@@ -19,7 +19,8 @@ const FreeFormGuideContainer = styled.div<{ $isNarrowScreen?: boolean }>`
   line-height: 1.6;
 
   .content {
-    margin-top: ${(props) => (props.$isNarrowScreen ? '1.2rem' : '1.5rem')};
+    margin-top: ${(props) => (props.$isNarrowScreen ? '0.8rem' : '1.5rem')};
+    padding-left: 4rem;
   }
 
   p {
@@ -74,8 +75,8 @@ const ProfileContainer = styled.div<{ $isNarrowScreen?: boolean }>`
 `;
 
 const ProfileImage = styled.img<{ $isNarrowScreen?: boolean }>`
-  height: 3rem;
-  width: 3rem;
+  height: 2.5rem;
+  width: 2.5rem;
   border-radius: 50%;
   object-fit: cover;
   margin-right: 1rem; /* 항상 오른쪽 여백 유지 */
@@ -86,6 +87,7 @@ const ProfileName = styled.p`
   color: ${AppColors.onBackground};
   font-weight: bold;
   margin: 0; /* 마진 제거 */
+  margin-top:16px;
 `;
 
 interface FreeFormGuideProps {

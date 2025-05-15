@@ -15,6 +15,10 @@ import { Part, FileData } from 'firebase/vertexai';
 import { SocialLoginModal } from './SocialLoginModal';
 import authStore, { AuthState } from '@/store/authStore';
 import AdditionalInfoModal from './AdditionalInfoModal';
+import { useApiLimit } from '@/hooks/useApiLimit';
+import useAiFlowStore from '@/store/aiFlowStore';
+import DropdownInput from '@/components/DropdownInput';
+import { userStamp } from '@/lib/api/user/api';
 
 // 컴포넌트 임포트
 import { getStepData, ChatDictionary } from './components/StepData';
@@ -43,6 +47,7 @@ const Container = styled.div<{ $isNarrowScreen?: boolean }>`
   background-color: ${AppColors.background};
   color: ${AppColors.onBackground};
   ${customScrollbar()}
+  position: relative;
 `;
 
 const MainContent = styled.div<{ $isNarrowScreen?: boolean }>`
@@ -65,65 +70,90 @@ const ChatContainer = styled.div`
   overflow: hidden;
 `;
 
-// 헤더 스타일
-const Header = styled.div`
-  padding: 1rem 2rem;
-  border-bottom: 1px solid ${AppColors.border};
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+// 언어 변경 아이콘을 위한 스타일 컴포넌트
+const AbsoluteLanguageSwitcherWrapper = styled.div`
+  position: absolute;
+  top: 20px;
+  right: 0px;
+  z-index: 10;
 `;
 
-const HeaderTitle = styled.h1`
-  color: ${AppColors.onBackground};
-  margin: 0;
-  font-size: 1.5rem;
-  font-weight: 600;
-`;
+// AiPageContent 내에서 사용할 언어 변경 컴포넌트
+const PageLanguageSwitcher = () => {
+  const { lang, setLang } = useLang();
 
-const HeaderControls = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-`;
+  const languageOptions = [
+    { label: '한국어', value: 'ko' },
+    { label: 'English', value: 'en' },
+  ];
 
-// 컴포넌트 이름을 AiPageContent로 변경
+  const logLanguageChange = (selectedLang: 'ko' | 'en') => {
+    userStamp({
+      uuid: localStorage.getItem('logId') ?? 'anonymous',
+      category: '버튼',
+      content: 'PageLanguageSwitcher',
+      memo: `언어 변경: ${selectedLang}`,
+    });
+  };
+
+  return (
+    <DropdownInput
+      value={lang}
+      onChange={(value) => {
+        const newLang = value as 'ko' | 'en';
+        setLang(newLang);
+        logLanguageChange(newLang);
+      }}
+      options={languageOptions}
+      $triggerBackgroundColor="transparent"
+      $triggerFontSize="18px"
+      $triggerTextColor="#BBBBCF"
+      $contentBackgroundColor="#1a1b1e"
+      $contentTextColor="#BBBBCF"
+      $itemHoverBackgroundColor="#546ACB"
+      $itemHoverTextColor="#FFFFFF"
+      $triggerContent={
+        <img src="/globe.svg" alt="Language Selector" width={28} height={28} />
+      }
+      width="auto"
+    />
+  );
+};
+
 export default function AiPageContent() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const chatEndRef = useRef<HTMLDivElement>(null);
 
-  // 언어 설정 가져오기
   const { lang } = useLang();
   const t = aiChatDictionary[lang] as ChatDictionary;
-  t.lang = lang; // 언어 설정 추가
+  t.lang = lang;
 
-  // 현재 언어에 맞는 stepData 생성
   const stepData = getStepData(t);
+  const { chat, setCurrentModelIdentifier, modelName, isInitialized } = useAI();
 
-  const { chat } = useAI();
-
-  const [currentStep, setCurrentStep] = useState(0);
-  const [selections, setSelections] = useState<Record<string, string[]>>({});
-  const [isFreeFormMode, setIsFreeFormMode] = useState(false);
+  const {
+    currentStep,
+    isFreeFormMode,
+    selections,
+    setCurrentStep,
+    setIsFreeFormMode,
+    setSelections: setAiFlowStoreSelections,
+    updateSelection,
+  } = useAiFlowStore();
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [promptText, setPromptText] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-
-  // --- File Upload State ---
   const [uploadedFiles, setUploadedFiles] = useState<FileUploadData[]>([]);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [isDragging, setIsDragging] = useState<boolean>(false);
-
-  // 견적서 상태 추가
   const [invoiceDetails, setInvoiceDetails] = useState<InvoiceDetails | null>(
     null
   );
 
-  // authStore에서 모달 상태 및 액션 가져오기
   const isLoginModalOpen = authStore(
     (state: AuthState) => state.isLoginModalOpen
   );
@@ -134,18 +164,21 @@ export default function AiPageContent() {
   const openAdditionalInfoModal = authStore(
     (state: AuthState) => state.openAdditionalInfoModal
   );
+  const isLoggedIn = authStore((state: AuthState) => state.isLoggedIn);
+  const openLoginModal = authStore((state: AuthState) => state.openLoginModal);
+  const user = authStore((state: AuthState) => state.user);
+
+  const { remainingCount, decreaseCount, isLimitInitialized } =
+    useApiLimit(isLoggedIn);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // 로컬 스토리지에서 로그인 데이터 확인
   useEffect(() => {
     try {
       const loginDataStr = localStorage.getItem('loginData');
       if (loginDataStr) {
         console.log('로컬 스토리지에서 로그인 데이터 발견');
         const loginData = JSON.parse(loginDataStr);
-
-        // 로그인 데이터 처리
         if (Array.isArray(loginData) && loginData.length > 0) {
           const result = loginData[0];
           if (
@@ -155,19 +188,13 @@ export default function AiPageContent() {
             result.data.length > 0
           ) {
             const userData = result.data[0];
-
-            // Zustand 스토어에 로그인 정보 저장
             login(userData);
-
-            // cellphone 값이 없는 경우에만 추가 정보 입력 모달 표시
             if (!userData.cellphone) {
               console.log('전화번호 정보가 없어 추가 정보 모달 표시');
               openAdditionalInfoModal();
             } else {
               console.log('전화번호 정보가 이미 존재함');
             }
-
-            // 처리 후 로컬 스토리지에서 삭제
             localStorage.removeItem('loginData');
             console.log('로그인 처리 완료 및 로컬 스토리지 데이터 삭제');
           }
@@ -178,7 +205,6 @@ export default function AiPageContent() {
     }
   }, [login, openAdditionalInfoModal]);
 
-  // URL 파라미터 -> 상태 동기화 Effect
   useEffect(() => {
     const stepParam = searchParams.get('step');
     const selectionsParam = searchParams.get('selections');
@@ -195,6 +221,7 @@ export default function AiPageContent() {
         step = parsedStep;
       }
     }
+    setCurrentStep(step);
 
     let sels = {};
     if (selectionsParam) {
@@ -204,13 +231,17 @@ export default function AiPageContent() {
         console.error('Error parsing selections from URL:', error);
       }
     }
+    setAiFlowStoreSelections(sels);
 
     const freeForm = modeParam === 'freeform';
-
-    setCurrentStep(step);
-    setSelections(sels);
     setIsFreeFormMode(freeForm);
-  }, [searchParams, stepData.length]);
+  }, [
+    searchParams,
+    stepData.length,
+    setCurrentStep,
+    setAiFlowStoreSelections,
+    setIsFreeFormMode,
+  ]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -238,11 +269,12 @@ export default function AiPageContent() {
 
   const handleNext = (selectedIds: string[]) => {
     if (!currentStepData) return;
+    updateSelection(currentStepData.id, selectedIds);
     const updatedSelections = {
-      ...selections,
-      [currentStepData.id]: selectedIds,
+      ...useAiFlowStore.getState().selections,
     };
     const selectionsString = JSON.stringify(updatedSelections);
+
     if (currentStep < stepData.length - 1) {
       const nextStep = currentStep + 1;
       updateUrlParams({
@@ -283,68 +315,133 @@ export default function AiPageContent() {
       }
     >
   ) => {
-    let totalAmount = 0;
-    let totalDuration = 0;
-    let totalPages = 0;
+    let amount = 0;
+    let duration = 0;
+    let pages = 0;
+
     items.forEach((item) => {
       if (!item.isDeleted) {
-        totalAmount += typeof item.amount === 'number' ? item.amount : 0;
-        totalDuration += extractNumber(item.duration);
-        totalPages += extractNumber(item.pages);
+        if (typeof item.amount === 'number') {
+          amount += item.amount;
+        }
+        duration += extractNumber(item.duration);
+        pages += extractNumber(item.pages);
       }
     });
-    return { totalAmount, totalDuration, totalPages };
+    return { amount, duration, pages };
   };
 
   const handleActionClick = async (
     action: string,
     data?: { featureId?: string }
   ) => {
-    if (action === 'delete_feature_json' && data?.featureId && invoiceDetails) {
-      const featureIdToDelete = data.featureId;
-      const newItems = invoiceDetails.items.map((item) => {
-        if (item.id === featureIdToDelete) {
-          return { ...item, isDeleted: !item.isDeleted };
-        }
-        return item;
+    console.log('[AiPageContent] handleActionClick called with:', action, data);
+
+    const addMessageToChat = (newMessage: Message) => {
+      setMessages((prevMessages) => [...prevMessages, newMessage]);
+    };
+
+    if (action === 'delete_feature_json') {
+      if (data?.featureId && invoiceDetails) {
+        const updatedItems = invoiceDetails.items.map((item) =>
+          item.id === data.featureId
+            ? { ...item, isDeleted: !item.isDeleted }
+            : item
+        );
+        const {
+          amount: currentTotal,
+          duration: currentTotalDuration,
+          pages: currentTotalPages,
+        } = calculateTotals(updatedItems);
+
+        setInvoiceDetails({
+          ...invoiceDetails,
+          items: updatedItems,
+          currentTotal,
+          currentTotalDuration,
+          currentTotalPages,
+        });
+      }
+    } else if (action === 'download_pdf') {
+      console.log('PDF 다운로드 요청');
+      addMessageToChat({
+        id: Date.now(),
+        sender: 'ai',
+        text: 'PDF 다운로드 기능은 현재 준비 중입니다.',
       });
-      const { totalAmount, totalDuration, totalPages } =
-        calculateTotals(newItems);
-      setInvoiceDetails((prev) => {
-        if (prev) {
-          return {
-            ...prev,
-            items: newItems,
-            currentTotal: totalAmount,
-            currentTotalDuration: totalDuration,
-            currentTotalPages: totalPages,
-          };
-        }
-        return null;
+    } else if (action === 'discount_extend_8w_20p') {
+      const feedbackMsg =
+        t.userActionFeedback?.discountExtend8w20p ||
+        '첫 번째 할인 옵션을 선택했습니다.';
+      addMessageToChat({ id: Date.now(), sender: 'user', text: feedbackMsg });
+      await handleGeminiSubmit(
+        null,
+        `${feedbackMsg} 이 옵션을 적용하여 견적을 조정해주세요. 사용자의 현재 견적서는 다음과 같습니다: ${JSON.stringify(
+          invoiceDetails?.parsedJson
+        )}`
+      );
+    } else if (action === 'discount_remove_features_budget') {
+      const feedbackMsg =
+        t.userActionFeedback?.discountRemoveFeaturesBudget ||
+        '두 번째 할인 옵션을 선택했습니다.';
+      addMessageToChat({ id: Date.now(), sender: 'user', text: feedbackMsg });
+      await handleGeminiSubmit(
+        null,
+        `${feedbackMsg} 현재 견적서에서 제거할 만한 핵심 보조 기능들을 제안해주세요. 사용자의 현재 견적서는 다음과 같습니다: ${JSON.stringify(
+          invoiceDetails?.parsedJson
+        )}`
+      );
+    } else if (action === 'discount_ai_suggestion') {
+      const feedbackMsg =
+        t.userActionFeedback?.discountAiSuggestion ||
+        'AI 심층 분석 및 기능 제안을 요청했습니다.';
+      addMessageToChat({ id: Date.now(), sender: 'user', text: feedbackMsg });
+      setCurrentModelIdentifier('gemini-2.5-flash-preview-04-17');
+      console.log(
+        '[AiPageContent] Switched model for AI suggestion to gemini-2.5-flash-preview-04-17.'
+      );
+      await new Promise<void>((resolve) => {
+        const interval = setInterval(() => {
+          if (
+            isInitialized.current &&
+            modelName === 'gemini-2.5-flash-preview-04-17'
+          ) {
+            clearInterval(interval);
+            console.log(
+              '[AiPageContent] Advanced model initialized for suggestion.'
+            );
+            resolve();
+          }
+        }, 100);
       });
-      return;
-    }
-    const invoiceRequestText = '견적서를 보여줘';
-    const discountOption1Text = '할인 옵션 1 (기간 연장)을 선택합니다.';
-    const discountOption2Text = '할인 옵션 2 (기능 제거)를 선택합니다.';
-    switch (action) {
-      case 'show_invoice':
-        setInvoiceDetails(null);
-        await handleGeminiSubmit(null, invoiceRequestText);
-        break;
-      case 'discount_extend_3w_20p':
-        await handleGeminiSubmit(null, discountOption1Text);
-        break;
-      case 'discount_remove_features':
-        await handleGeminiSubmit(null, discountOption2Text);
-        break;
-      case 'download_pdf':
-        alert('PDF 다운로드 기능은 로그인 후 사용할 수 있습니다. (구현 예정)');
-        break;
-      default:
-        if (action !== 'delete_feature_json') {
-          console.warn('Unknown button action:', action);
-        }
+      let analysisPrompt = `현재 이 사용자의 견적서 정보는 다음과 같습니다: ${JSON.stringify(
+        invoiceDetails?.parsedJson
+      )}. 이 정보를 바탕으로 비즈니스 성장을 위해 추가적으로 필요하거나 개선할 수 있는 기능들을 심층적으로 분석하여 제안해주세요. 제안 시에는 각 기능의 필요성, 기대 효과, 예상되는 개발 규모 (간단, 보통, 복잡 등)를 포함해주세요.`;
+      if (lang === 'en') {
+        analysisPrompt = `The user\'s current estimate details are as follows: ${JSON.stringify(
+          invoiceDetails?.parsedJson
+        )}. Based on this information, please conduct an in-depth analysis and suggest additional features or improvements that could contribute to business growth. When making suggestions, include the necessity of each feature, expected benefits, and an estimated development scale (e.g., simple, moderate, complex).`;
+      }
+      try {
+        await handleGeminiSubmit(null, analysisPrompt, true);
+      } catch (error) {
+        console.error(
+          '[AiPageContent] Error during AI suggestion submission:',
+          error
+        );
+        const errorMsg =
+          lang === 'ko'
+            ? 'AI 제안 기능 처리 중 오류가 발생했습니다.'
+            : 'An error occurred while processing the AI suggestion.';
+        addMessageToChat({ id: Date.now(), sender: 'ai', text: errorMsg });
+      } finally {
+        setCurrentModelIdentifier('gemini-2.0-flash');
+        console.log(
+          '[AiPageContent] Switched back to default model gemini-2.0-flash.'
+        );
+      }
+    } else {
+      console.warn(`[AiPageContent] Unknown button action: ${action}`);
     }
   };
 
@@ -398,15 +495,27 @@ export default function AiPageContent() {
 
   const handleGeminiSubmit = async (
     e?: React.FormEvent | null,
-    actionPrompt?: string
+    actionPrompt?: string,
+    isSystemInitiatedPrompt?: boolean
   ) => {
     e?.preventDefault();
+    if (!isLoggedIn && isLimitInitialized && remainingCount <= 0) {
+      openLoginModal();
+      return;
+    }
     const submissionPrompt = actionPrompt || promptText;
     if ((!submissionPrompt && uploadedFiles.length === 0) || loading) {
       return;
     }
     if (!isFreeFormMode) {
       return;
+    }
+    if (!isLoggedIn && isLimitInitialized) {
+      const canProceed = decreaseCount();
+      if (!canProceed) {
+        openLoginModal();
+        return;
+      }
     }
     setLoading(true);
     setError('');
@@ -441,8 +550,12 @@ export default function AiPageContent() {
       text: '',
       invoiceData: undefined,
     };
-    setMessages((prev) => [...prev, userMessage as Message, initialAiMessage]);
-    if (!actionPrompt) {
+    const messagesToAdd = [initialAiMessage];
+    if (!isSystemInitiatedPrompt) {
+      messagesToAdd.unshift(userMessage as Message);
+    }
+    setMessages((prev) => [...prev, ...messagesToAdd]);
+    if (!actionPrompt && !isSystemInitiatedPrompt) {
       setPromptText('');
     }
     const currentFiles = [...uploadedFiles];
@@ -492,26 +605,19 @@ export default function AiPageContent() {
           } as FileData,
         });
       });
-
-      // chat 객체가 아직 초기화되지 않았는지 확인
       if (!chat.current) {
         console.error(
           '[AI] Chat session is not initialized. Waiting for initialization...'
         );
-
-        // 5초간 초기화 대기 (최대 10회 시도)
         let retryCount = 0;
         const maxRetries = 10;
         const waitForInitialization = async (): Promise<boolean> => {
           if (chat.current) return true;
           if (retryCount >= maxRetries) return false;
-
-          await new Promise((resolve) => setTimeout(resolve, 500)); // 500ms 대기
+          await new Promise((resolve) => setTimeout(resolve, 500));
           retryCount++;
           return waitForInitialization();
         };
-
-        // 초기화 대기
         const initialized = await waitForInitialization();
         if (!initialized || !chat.current) {
           throw new Error(
@@ -519,7 +625,6 @@ export default function AiPageContent() {
           );
         }
       }
-
       const streamResult = await chat.current.sendMessageStream(parts);
       let aiResponseText = '';
       for await (const item of streamResult.stream) {
@@ -554,16 +659,15 @@ export default function AiPageContent() {
           if (parsedInvoiceData && parsedInvoiceData.invoiceGroup) {
             const initialItems = parsedInvoiceData.invoiceGroup.flatMap(
               (group) =>
-                group.items.map((item) => ({ ...item, isDeleted: false }))
+              group.items.map((item) => ({ ...item, isDeleted: false }))
             );
-            const { totalAmount, totalDuration, totalPages } =
-              calculateTotals(initialItems);
+            const { amount, duration, pages } = calculateTotals(initialItems);
             setInvoiceDetails({
               parsedJson: parsedInvoiceData,
               items: initialItems,
-              currentTotal: totalAmount,
-              currentTotalDuration: totalDuration,
-              currentTotalPages: totalPages,
+              currentTotal: amount,
+              currentTotalDuration: duration,
+              currentTotalPages: pages,
             });
             setMessages((prevMessages: Message[]) => {
               return prevMessages.map((msg) =>
@@ -641,19 +745,13 @@ export default function AiPageContent() {
   const [isMobile, setIsMobile] = useState(false);
   const [isNarrowScreen, setIsNarrowScreen] = useState(false);
 
-  // 화면 크기 감지하여 모바일 여부 설정
   useEffect(() => {
     const checkScreenSize = () => {
       setIsMobile(window.innerWidth <= 770);
       setIsNarrowScreen(window.innerWidth <= 1200);
     };
-
-    // 초기 체크
     checkScreenSize();
-
-    // 리사이즈 이벤트 리스너
     window.addEventListener('resize', checkScreenSize);
-
     return () => {
       window.removeEventListener('resize', checkScreenSize);
     };
@@ -661,9 +759,13 @@ export default function AiPageContent() {
 
   return (
     <Container $isNarrowScreen={isNarrowScreen}>
+      {!isNarrowScreen && (
+        <AbsoluteLanguageSwitcherWrapper>
+          <PageLanguageSwitcher />
+        </AbsoluteLanguageSwitcherWrapper>
+      )}
       <MainContent $isNarrowScreen={isNarrowScreen}>
         <ChatContainer>
-          {/* 모바일에서는 프로그래스바를 상단에 표시 */}
           {!isFreeFormMode && isMobile && (
             <AiProgressBar steps={progressSteps} currentStep={currentStep} />
           )}
@@ -672,7 +774,7 @@ export default function AiPageContent() {
             isNarrowScreen={isNarrowScreen}
             isFreeFormMode={isFreeFormMode}
             currentStepData={currentStepData}
-            initialSelection={initialSelection}
+                    initialSelection={initialSelection}
             isDragging={isDragging}
             messages={messages}
             loading={loading}
@@ -699,12 +801,14 @@ export default function AiPageContent() {
             handleDeleteFile={handleDeleteFile}
             handleFileInputChange={handleFileInputChange}
             handleIconUploadClick={handleIconUploadClick}
+            remainingCount={remainingCount}
+            isLoggedIn={isLoggedIn}
+            isApiLimitInitialized={isLimitInitialized}
             lang={lang}
           />
         </ChatContainer>
       </MainContent>
 
-      {/* 데스크톱에서만 오른쪽에 프로그래스바 표시 */}
       {!isFreeFormMode && !isMobile && (
         <AiProgressBar steps={progressSteps} currentStep={currentStep} />
       )}

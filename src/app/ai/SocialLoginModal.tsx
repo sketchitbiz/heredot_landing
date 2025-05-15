@@ -1,14 +1,17 @@
 'use client';
 
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 import { AppColors } from '@/styles/colors';
 import { AppTextStyles } from '@/styles/textStyles';
 import CloseIcon from '@mui/icons-material/Close';
 import { useEffect, useState } from 'react';
 import useAuthStore from '@/store/authStore';
 import type { UserData } from '@/store/authStore';
-import { GoogleLogin, useGoogleLogin } from '@react-oauth/google';
+import { useGoogleLogin } from '@react-oauth/google';
 import apiClient from '@/lib/apiClient';
+import { useLang } from '@/contexts/LangContext';
+import { aiChatDictionary } from '@/lib/i18n/aiChat';
+import { ChatDictionary } from './components/StepData';
 
 interface SocialLoginModalProps {
   isOpen: boolean;
@@ -29,41 +32,65 @@ const ModalOverlay = styled.div<{ isOpen: boolean }>`
 `;
 
 const ModalContent = styled.div`
-  background-color: ${AppColors.background};
-  color: ${AppColors.onBackground};
+  background-color: white;
+  color: ${AppColors.onSurface};
   padding: 0;
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
   width: 450px;
   height: 500px;
   display: flex;
+  flex-direction: column;
   overflow: hidden;
   position: relative;
 `;
 
 const RightPanel = styled.div`
   flex: 1;
-  background-color: ${AppColors.surface}; // 밝은 배경색 (흰색)
+  background-color: white;
   padding: 40px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  color: ${AppColors.onSurface}; // 오른쪽 패널 텍스트 색상
+  color: ${AppColors.onSurface};
+  text-align: center;
 `;
 
-const RightPanelTitle = styled.h3`
-  ${AppTextStyles.title2} // 기존 스타일 활용 또는 커스텀
+const PageSubtitle = styled.p`
+  ${AppTextStyles.body2}
+  font-size: 14px;
+  color: ${AppColors.onSurfaceVariant};
+  margin-bottom: 8px;
+  margin-left:4px;
+`;
+
+const GradientTitleText = styled.h2`
+  ${AppTextStyles.headline2}
+  font-size: 32px;
+  font-weight: bold;
+  background: linear-gradient(to right, #63a4ff, #8e54e9);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  margin-top: 0;
+  margin-bottom: 16px;
+  line-height: 1.2;
+`;
+
+const MainSloganText = styled.h3`
+  ${AppTextStyles.title1}
   font-size: 24px;
   font-weight: bold;
-  margin-bottom: 30px;
-  color: ${AppColors.onSurface}; // 오른쪽 패널 타이틀 색상
+  color: ${AppColors.onSurface};
+  margin-bottom: 40px;
+  line-height: 1.3;
 `;
 
 const GoogleLoginButton = styled.button`
   background-color: white;
-  color: #333;
-  border: 1px solid #e0e0e0;
+  color: #3c4043;
+  border: 1px solid #dadce0;
   border-radius: 8px;
   padding: 12px 24px;
   font-size: 16px;
@@ -71,11 +98,14 @@ const GoogleLoginButton = styled.button`
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: center;
+  gap: 12px;
   transition: background-color 0.2s;
+  width: 100%;
+  max-width: 320px;
 
   &:hover {
-    background-color: #f5f5f5;
+    background-color: #f8f9fa;
   }
 
   img {
@@ -84,9 +114,10 @@ const GoogleLoginButton = styled.button`
   }
 
   &:disabled {
-    background-color: #f5f5f5;
-    color: #888;
+    background-color: #f1f3f4;
+    color: #bdc1c6;
     cursor: not-allowed;
+    border-color: #f1f3f4;
   }
 `;
 
@@ -97,24 +128,23 @@ const StyledCloseButton = styled.button`
   background: none;
   border: none;
   cursor: pointer;
-  color: ${AppColors.onSurfaceVariant}; // 오른쪽 패널 기준 아이콘 색상
+  color: ${AppColors.onSurfaceVariant};
 
   .MuiSvgIcon-root {
     font-size: 28px;
   }
 
   &:hover {
-    color: ${AppColors.onSurface}; // 오른쪽 패널 기준 호버 색상
+    color: ${AppColors.onSurface};
   }
 `;
 
-// 수동 입력용 스타일 추가
 const ManualJsonInput = styled.textarea`
   width: 100%;
   height: 120px;
   margin-top: 20px;
   padding: 10px;
-  border: 1px solid #cccccc; // AppColors.outline 대신 직접 색상 지정
+  border: 1px solid #cccccc;
   border-radius: 8px;
   font-size: 14px;
   font-family: monospace;
@@ -137,11 +167,11 @@ const ManualJsonButton = styled.button`
   cursor: pointer;
 
   &:hover {
-    background-color: #3f51b5; // AppColors.primaryDark 대신 직접 색상 지정
+    background-color: #3f51b5;
   }
 
   &:disabled {
-    background-color: #cccccc; // AppColors.outlineVariant 대신 직접 색상 지정
+    background-color: #cccccc;
     cursor: not-allowed;
   }
 `;
@@ -159,7 +189,7 @@ const OrDivider = styled.div`
     top: 50%;
     width: 45%;
     height: 1px;
-    background-color: #cccccc; // AppColors.outline 대신 직접 색상 지정
+    background-color: #cccccc;
   }
 
   &::before {
@@ -171,7 +201,7 @@ const OrDivider = styled.div`
   }
 
   span {
-    background-color: ${AppColors.surface};
+    background-color: white;
     padding: 0 10px;
     position: relative;
     z-index: 1;
@@ -186,52 +216,41 @@ export const SocialLoginModal: React.FC<SocialLoginModalProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
   const { login, openAdditionalInfoModal } = useAuthStore();
-  const [manualJsonInput, setManualJsonInput] = useState('');
 
-  // 구글 로그인 API 엔드포인트 (백엔드)
-  // baseURL에 이미 /api가 포함되어 있으므로 /api 제거
+  const { lang } = useLang();
+  const t = aiChatDictionary[lang] as ChatDictionary;
+
   const LOGIN_ENDPOINT = '/user/login';
 
-  // Google 로그인 성공 후 처리 함수
-  const handleLoginSuccess = (userData: UserData, responseData: any) => {
-    // 로컬 스토리지에 사용자 데이터와 토큰 저장
+  const handleLoginSuccess = (userData: UserData, responseData: unknown) => {
     localStorage.setItem('loginData', JSON.stringify(responseData));
-
-    // 전역 상태 업데이트
+    if (userData.accessToken) {
+      localStorage.setItem('accessToken', userData.accessToken);
+    }
     login(userData);
-
-    // name이 null, undefined 또는 빈 문자열인 경우 추가 정보 모달 표시
     if (!userData.name || userData.name.trim() === '') {
-      console.log('사용자 이름이 없어 추가 정보 모달을 표시합니다:', userData);
       openAdditionalInfoModal();
     } else {
-      // name이 있으면 AI 페이지로 이동
-      console.log('사용자 이름이 있어 AI 페이지로 이동합니다:', userData);
-      window.location.href = '/ai';
+      // window.location.href = '/ai';
     }
   };
 
-  // Google 로그인 버튼 클릭 핸들러 (useGoogleLogin 훅 사용)
   const handleGoogleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       setIsLoading(true);
+      setLoginError(null);
       try {
-        // Google에서 사용자 정보 가져오기
         const userInfoResponse = await fetch(
           'https://www.googleapis.com/oauth2/v3/userinfo',
           {
             headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
           }
         );
-
         const userInfo = await userInfoResponse.json();
-
-        // 백엔드로 필요한 정보만 전송 (providerId, profileUrl)
         const response = await apiClient.post(LOGIN_ENDPOINT, {
           providerId: userInfo.sub,
           profileUrl: userInfo.picture,
         });
-
         if (
           response.data &&
           Array.isArray(response.data) &&
@@ -262,40 +281,34 @@ export const SocialLoginModal: React.FC<SocialLoginModalProps> = ({
     onError: (error) => {
       console.error('Google 로그인 에러:', error);
       setLoginError('Google 로그인 중 오류가 발생했습니다.');
+      setIsLoading(false);
     },
-    flow: 'implicit', // 암시적 흐름 사용
+    flow: 'implicit',
   });
 
-  // 기존의 백엔드 리다이렉트 방식 로그인
   const openGoogleLoginPopup = () => {
     setIsLoading(true);
     setLoginError(null);
 
-    // 리다이렉트 URI는 항상 현재 도메인 기준으로 설정 (로컬호스트 또는 실제 도메인)
     const redirectUri = encodeURIComponent(
       `${window.location.origin}/api/user/login/callback`
     );
 
-    // 환경 변수에 API 호스트가 설정됨
     const apiHost = process.env.NEXT_PUBLIC_API_HOST || '';
 
-    // 리다이렉트 방식의 경우 전체 URL 필요
     const googleLoginUrl = `${apiHost}${LOGIN_ENDPOINT}?redirect_uri=${redirectUri}`;
 
     console.log(`로그인 URL: ${googleLoginUrl}`);
 
-    // 현재 창에서 직접 리다이렉트
     window.location.href = googleLoginUrl;
   };
 
-  // JSON 수동 처리 함수
   const handleManualJsonSubmit = () => {
     if (!manualJsonInput.trim()) return;
 
     try {
       const jsonData = JSON.parse(manualJsonInput);
 
-      // 실제 응답 구조에 맞게 파싱
       if (Array.isArray(jsonData) && jsonData.length > 0) {
         const result = jsonData[0];
         if (
@@ -306,7 +319,6 @@ export const SocialLoginModal: React.FC<SocialLoginModalProps> = ({
         ) {
           const userData: UserData = result.data[0];
 
-          // 처리 함수로 전달
           handleLoginSuccess(userData, jsonData);
 
           setManualJsonInput('');
@@ -322,7 +334,6 @@ export const SocialLoginModal: React.FC<SocialLoginModalProps> = ({
     }
   };
 
-  // 콜백 메시지 수신
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (event.data && event.data.type === 'GOOGLE_LOGIN_SUCCESS') {
@@ -343,7 +354,6 @@ export const SocialLoginModal: React.FC<SocialLoginModalProps> = ({
           ) {
             const userData: UserData = result.data[0];
 
-            // 처리 함수로 전달
             handleLoginSuccess(userData, responseData);
           } else {
             setLoginError(
@@ -368,7 +378,6 @@ export const SocialLoginModal: React.FC<SocialLoginModalProps> = ({
     };
   }, [login, openAdditionalInfoModal]);
 
-  // 모달이 닫힐 때 상태 초기화
   useEffect(() => {
     if (!isOpen) {
       setIsLoading(false);
@@ -384,7 +393,7 @@ export const SocialLoginModal: React.FC<SocialLoginModalProps> = ({
     <ModalOverlay
       isOpen={isOpen}
       onClick={() => {
-        if (isLoading) return; // 로딩 중에는 닫기 방지
+        if (isLoading) return;
         onClose();
       }}
     >
@@ -393,67 +402,34 @@ export const SocialLoginModal: React.FC<SocialLoginModalProps> = ({
           <CloseIcon />
         </StyledCloseButton>
         <RightPanel>
-          <RightPanelTitle>간편 구글 로그인으로 즐겨보세요</RightPanelTitle>
+          <PageSubtitle>{t.socialLogin.pageSubtitle}</PageSubtitle>
+          <GradientTitleText>{t.socialLogin.gradientTitle}</GradientTitleText>
+          <MainSloganText>{t.socialLogin.mainSlogan}</MainSloganText>
 
-          {/* @react-oauth/google의 GoogleLogin 컴포넌트 사용 */}
-          <div style={{ marginBottom: '20px' }}>
-            <GoogleLogin
-              onSuccess={(credentialResponse) => {
-                setIsLoading(true);
-                // 백엔드로 ID 토큰에서 필요한 정보만 전송
-                apiClient
-                  .post(LOGIN_ENDPOINT, {
-                    providerId: credentialResponse.clientId, // 또는 credentialResponse에서 추출 가능한 다른 ID
-                    profileUrl: '', // ID 토큰에서는 프로필 URL을 직접 얻을 수 없으므로 빈 값으로 설정
-                  })
-                  .then((response) => {
-                    if (
-                      response.data &&
-                      Array.isArray(response.data) &&
-                      response.data.length > 0
-                    ) {
-                      const result = response.data[0];
-                      if (
-                        result.statusCode === 200 &&
-                        result.data &&
-                        Array.isArray(result.data) &&
-                        result.data.length > 0
-                      ) {
-                        const userData: UserData = result.data[0];
-
-                        // 처리 함수로 전달
-                        handleLoginSuccess(userData, response.data);
-                      } else {
-                        setLoginError(
-                          result.message || '로그인에 실패했습니다.'
-                        );
-                      }
-                    } else {
-                      setLoginError('서버에서 올바른 응답을 받지 못했습니다.');
-                    }
-                  })
-                  .catch((error) => {
-                    console.error('로그인 처리 에러:', error);
-                    setLoginError('로그인 처리 중 오류가 발생했습니다.');
-                  })
-                  .finally(() => {
-                    setIsLoading(false);
-                  });
-              }}
-              onError={() => {
-                setLoginError('Google 로그인 중 오류가 발생했습니다.');
-              }}
-              locale="ko"
-              theme="filled_blue"
-              text="signin_with"
-              shape="rectangular"
-              width="250"
-            />
-          </div>
+          <GoogleLoginButton
+            onClick={() => handleGoogleLogin()}
+            disabled={isLoading}
+          >
+            <img src="/ai/google.png" alt="Google_logo" />
+            <span>{t.socialLogin.googleLoginButtonText}</span>
+          </GoogleLoginButton>
 
           {loginError && (
-            <p style={{ color: 'red', marginTop: '10px' }}>{loginError}</p>
+            <p style={{ color: 'red', marginTop: '20px', fontSize: '14px' }}>
+              {loginError}
+            </p>
           )}
+
+          {/* 수동 JSON 입력 부분 (개발/테스트용으로 유지한다면) */}
+          {/* <OrDivider><span>OR</span></OrDivider>
+          <ManualJsonInput 
+            value={manualJsonInput} 
+            onChange={(e) => setManualJsonInput(e.target.value)}
+            placeholder='로그인 응답 JSON 붙여넣기' 
+          />
+          <ManualJsonButton onClick={handleManualJsonSubmit} disabled={isLoading}>
+            수동 로그인
+          </ManualJsonButton> */}
         </RightPanel>
       </ModalContent>
     </ModalOverlay>

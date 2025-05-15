@@ -42,6 +42,7 @@ interface InvoiceTotal {
   amount: number; // 총 금액
   duration?: number; // 총 개발 기간 (선택적)
   pages?: number; // 총 페이지 수 (선택적)
+  totalConvertedDisplay?: string; // AI가 제공하는 변환된 총액 문자열 (추가)
 }
 
 export interface InvoiceDataType {
@@ -149,27 +150,55 @@ const getCurrencySymbol = (countryCode: string | null): string => {
 };
 
 // 금액 포맷 함수 - 통화 변환 및 표시 기능 추가
-const formatAmount = (amount: number | string, countryCode: string | null) => {
+const formatAmount = (
+  amount: number | string,
+  countryCode: string | null,
+  forceDetailed: boolean = false
+) => {
   // 금액이 숫자가 아닌 경우 (예: "별도 문의") 그대로 반환
   if (typeof amount !== 'number') {
     return amount;
   }
 
-  // 한국의 경우 원화만 표시
-  if (countryCode === 'KR') {
-    return `${amount.toLocaleString()} 원`;
+  // forceDetailed가 true이거나 한국이 아닌 경우 (그리고 amount가 숫자일 때)
+  if (forceDetailed || countryCode !== 'KR') {
+    const localCurrency = getCountryCurrency(countryCode);
+    const localSymbol = getCurrencySymbol(countryCode);
+
+    // 항상 KRW를 기준으로 다른 통화와 함께 표시
+    // 만약 사용자가 KR이 아니면, 해당 국가 통화와 KRW를 함께 표시
+    // 만약 사용자가 KR이지만 forceDetailed가 true이면, USD와 KRW를 함께 표시
+
+    let displayCurrency = 'USD'; // 기본 상세 표시는 USD와 KRW
+    let displaySymbol = currencySymbols.US;
+    let convertedAmountForDisplay = Math.round(
+      amount / (exchangeRates['USD'] || 1350)
+    ); // KRW -> USD
+
+    if (countryCode !== 'KR') {
+      // 한국이 아닌 경우, 해당 국가 통화로 표시
+      displayCurrency = localCurrency;
+      displaySymbol = localSymbol;
+      if (exchangeRates[localCurrency as keyof typeof exchangeRates]) {
+        convertedAmountForDisplay = Math.round(
+          amount / exchangeRates[localCurrency as keyof typeof exchangeRates]
+        );
+      } else if (localCurrency === 'KRW') {
+        // 혹시 getCountryCurrency가 KRW를 반환하는 경우
+        displayCurrency = 'USD';
+        displaySymbol = currencySymbols.US;
+        convertedAmountForDisplay = Math.round(
+          amount / (exchangeRates['USD'] || 1350)
+        );
+      }
+    }
+    // 한국 사용자이고 forceDetailed=true인 경우, USD (₩...) 형식으로 표시
+    // 그 외 국가 사용자는 LocalCurrency (₩...) 형식으로 표시
+    return `${displaySymbol}${convertedAmountForDisplay.toLocaleString()} (₩${amount.toLocaleString()})`;
   }
 
-  // 다른 국가의 경우 변환된 금액과 원래 금액 모두 표시
-  const currency = getCountryCurrency(countryCode);
-  const symbol = getCurrencySymbol(countryCode);
-
-  // 환율 적용 (기본값은 USD)
-  const rate =
-    exchangeRates[currency as keyof typeof exchangeRates] || exchangeRates.USD;
-  const convertedAmount = Math.round(amount / rate);
-
-  return `${symbol}${convertedAmount.toLocaleString()} (₩${amount.toLocaleString()})`;
+  // 한국이면서 forceDetailed가 false인 경우 원화만 표시
+  return `${amount.toLocaleString()} 원`;
 };
 
 // 테이블 스타일 정의 - 견적서에 사용되는 공통 테이블 스타일
@@ -325,7 +354,7 @@ const MessageWrapper = styled.div<StyledComponentProps>`
 const MessageBox = styled.div<StyledComponentProps>`
   max-width: 100%;
   padding: 0.3rem 1rem;
-  border-radius: 12px;
+  border-radius: 24px;
   ${AppTextStyles.body1}
   line-height: 1.7;
   letter-spacing: normal;
@@ -335,9 +364,9 @@ const MessageBox = styled.div<StyledComponentProps>`
       ? css`
           background-color: ${AppColors.primary};
           color: ${AppColors.onPrimary};
-          border-bottom-right-radius: 0;
+          border-bottom-right-radius: 0px;
           white-space: pre-wrap;
-          padding: 0.75rem 1rem; // 사용자 메시지 패딩 (위아래 동일하게 조정)
+          padding: 0.25rem 1.25rem 0.5rem 1.25rem; // 사용자 메시지 패딩 (위아래 동일하게 조정)
         `
       : css`
           background-color: ${AppColors.background};
@@ -417,39 +446,54 @@ const InvoiceTable = styled.table`
   th,
   td {
     border-bottom: 1px solid ${AppColors.border};
-    padding: 0.75em 0.5em;
+    
+    height: 4em;
     text-align: left;
     vertical-align: top;
   }
 
   th {
+    padding: 1em 1em;
     font-weight: 600;
     background-color: #2a2a3a;
     color: ${AppColors.onPrimary};
     white-space: nowrap;
+    &:nth-child(3) {
+      // "세부 내용" 헤더
+      text-align: center;
+    }
   }
 
   td {
+    padding: 2em 1em;
     font-weight: 300;
   }
+
+  td:nth-last-child(-n + 3) {
+  padding-bottom: 3em 1em;
+  
+}
 
   // 각 열의 너비 및 스타일 지정
   .col-category {
     width: 18%;
+    text-align: center;
     font-weight: 500;
   }
   .col-feature {
-    width: 25%;
+    width: 25%;    
+    text-align: center;
     font-weight: 500;
   }
   .col-description {
     width: 32%;
     font-size: 0.9em;
     line-height: 1.5;
+    vertical-align: middle;
   }
   .col-amount {
     width: 15%;
-    text-align: right;
+    text-align: center;
     white-space: nowrap;
   }
   .col-actions {
@@ -472,6 +516,7 @@ const InvoiceTable = styled.table`
 // 액션 버튼 스타일 - 견적서 내 항목 삭제/취소 버튼
 const ActionButton = styled.button`
   background-color: ${AppColors.onBackgroundGray};
+  width: 100px;
   color: #ffffff;
   border: none;
   padding: 0.4rem 0.8rem;
@@ -523,7 +568,9 @@ export function AiChatMessage({
 
   // 메모이제이션된 통화 포맷 함수
   const formatAmountWithCurrency = useMemo(
-    () => (amount: number | string) => formatAmount(amount, countryCode),
+    () =>
+      (amount: number | string, forceDetailed: boolean = false) =>
+        formatAmount(amount, countryCode, forceDetailed),
     [countryCode]
   );
 
@@ -679,45 +726,23 @@ export function AiChatMessage({
                             }}
                           >
                             {item.description}
-                            {/* 참고사항 표시 */}
-                            {item.note && (
-                              <p
-                                style={{
-                                  fontSize: '0.9em',
-                                  color: AppColors.onSurfaceVariant,
-                                  marginTop: '0.3em',
-                                }}
-                              >
-                                <em>
-                                  {t.estimateInfo.note}: {item.note}
-                                </em>
-                              </p>
-                            )}
-                            {/* 예상 기간 표시 */}
-                            {item.duration && (
-                              <p
-                                style={{
-                                  fontSize: '0.9em',
-                                  color: AppColors.onSurfaceVariant,
-                                  marginTop: '0.3em',
-                                }}
-                              >
-                                {t.estimateInfo.estimatedDuration}:{' '}
-                                {item.duration}
-                              </p>
-                            )}
-                            {/* 예상 페이지 수 표시 */}
-                            {item.pages && (
-                              <p
-                                style={{
-                                  fontSize: '0.9em',
-                                  color: AppColors.onSurfaceVariant,
-                                  marginTop: '0.3em',
-                                }}
-                              >
-                                {t.estimateInfo.estimatedPages}: {item.pages}
-                              </p>
-                            )}
+                            {/* 참고사항 표시 - 단, 화폐 변환 노트가 아닐 경우에만 */}
+                            {item.note &&
+                              !/^[A-Z]{3}\s[\d,.]+\s\(₩[\d,.]+\)$/.test(
+                                item.note
+                              ) && (
+                                <p
+                                  style={{
+                                    fontSize: '0.9em',
+                                    color: AppColors.onSurfaceVariant,
+                                    marginTop: '0.3em',
+                                  }}
+                                >
+                                  <em>
+                                    {t.estimateInfo.note}: {item.note}
+                                  </em>
+                                </p>
+                              )}
                           </td>
                           {/* 예상 금액 */}
                           <td
@@ -731,7 +756,11 @@ export function AiChatMessage({
                                 : AppColors.onBackground,
                             }}
                           >
-                            {formatAmountWithCurrency(item.amount)}
+                            {/* item.note가 통화 변환 문자열이면 그것을 사용, 아니면 기존 formatAmountWithCurrency 사용 */}
+                            {item.note &&
+                            /^[A-Z]{3}\s[\d,.]+\s\(₩[\d,.]+\)$/.test(item.note)
+                              ? item.note
+                              : formatAmountWithCurrency(item.amount, true)}
                           </td>
                           {/* 관리 버튼 */}
                           <td className="col-actions">
@@ -759,10 +788,17 @@ export function AiChatMessage({
                   </td>
                   <td className="col-amount">
                     <strong>
-                      {/* 계산된 값이 있으면 계산된 값 사용, 없으면 원본 데이터 사용 */}
-                      {calculatedTotalAmount !== undefined
-                        ? formatAmountWithCurrency(calculatedTotalAmount)
-                        : formatAmountWithCurrency(invoiceData.total?.amount)}
+                      {/* AI가 제공하는 totalConvertedDisplay 문자열이 있으면 우선 사용, 없으면 기존 로직 */}
+                      {invoiceData.total?.totalConvertedDisplay &&
+                      typeof invoiceData.total.totalConvertedDisplay ===
+                        'string'
+                        ? invoiceData.total.totalConvertedDisplay
+                        : calculatedTotalAmount !== undefined
+                        ? formatAmountWithCurrency(calculatedTotalAmount, true)
+                        : formatAmountWithCurrency(
+                            invoiceData.total?.amount,
+                            true
+                          )}
                     </strong>
                   </td>
                   <td></td>
@@ -774,7 +810,11 @@ export function AiChatMessage({
                       {t.estimateInfo.totalDuration}
                     </td>
                     <td className="col-amount">
-                      {calculatedTotalDuration} {t.estimateInfo.day}
+                      {typeof calculatedTotalDuration === 'number'
+                        ? `${Math.ceil(calculatedTotalDuration / 5)} ${
+                            t.estimateInfo.week
+                          }`
+                        : `${calculatedTotalDuration} ${t.estimateInfo.day}`}
                     </td>
                     <td></td>
                   </tr>
@@ -813,31 +853,88 @@ export function AiChatMessage({
                   listStyle: 'none',
                   paddingLeft: 0,
                   marginBottom: '1rem',
+                  display: 'flex',
+                  flexDirection: 'column',
                 }}
               >
-                <li style={{ marginBottom: '0.5rem' }}>
-                  {t.discount.options[0]}
-                  <ActionButton
-                    onClick={() => onActionClick('discount_extend_3w_20p')}
-                    style={{ marginLeft: '0.5rem' }}
-                  >
-                    {t.buttons.select}
-                  </ActionButton>
-                </li>
-                <li style={{ marginBottom: '0.5rem' }}>
-                  {t.discount.options[1]}
-                  <ActionButton
-                    onClick={() => onActionClick('discount_remove_features')}
-                    style={{ marginLeft: '0.5rem' }}
-                  >
-                    {t.buttons.select}
-                  </ActionButton>
-                </li>
+                {t.discount.options.map((optionText, index) => {
+                  let action = '';
+                  if (index === 0) {
+                    action = 'discount_extend_8w_20p'; // 8주 연장 및 20% 할인
+                  } else if (index === 1) {
+                    action = 'discount_remove_features_budget'; // 예산 절감 기능 제거
+                  } else if (index === 2) {
+                    action = 'discount_ai_suggestion'; // AI 기능 제안
+                  }
+
+                  // AI 제안 텍스트 처리 (이전과 동일)
+                  let mainText = optionText;
+                  let subText = '';
+                  if (
+                    index === 2 &&
+                    optionText.includes('(') &&
+                    optionText.includes(')')
+                  ) {
+                    const match = optionText.match(/(.*)\\s*\\((.*)\\)/);
+                    if (match) {
+                      mainText = match[1].trim();
+                      subText = `(${match[2].trim()})`;
+                    }
+                  }
+
+                  return (
+                    <li
+                      key={index}
+                      style={{
+                        marginBottom: '0.5rem',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                      }}
+                    >
+                      {index === 2 && subText ? (
+                        <span
+                          style={{ display: 'flex', flexDirection: 'column' }}
+                        >
+                          <span>{mainText}</span>
+                          <span
+                            style={{
+                              fontSize: '0.9em',
+                              color: AppColors.onSurfaceVariant,
+                            }}
+                          >
+                            {subText}
+                          </span>
+                        </span>
+                      ) : (
+                        <span>{optionText}</span>
+                      )}
+                      <ActionButton
+                        onClick={() => {
+                          console.log(
+                            `[AiChatMessage] ActionButton clicked. Action: ${action}, Index: ${index}`
+                          );
+                          onActionClick(action);
+                        }}
+                        style={{ marginLeft: '0.5rem' }}
+                      >
+                        {t.discount.optionsButtonTexts[index] ||
+                          t.buttons.select}
+                      </ActionButton>
+                    </li>
+                  );
+                })}
               </ul>
               <h4 style={{ marginBottom: '0.75rem', fontSize: '1em' }}>
                 {t.pdf.title}
               </h4>
-              <ActionButton onClick={() => onActionClick('download_pdf')}>
+              <ActionButton
+                onClick={() => onActionClick('download_pdf')}
+                style={{
+                  backgroundColor: '#2E7D32', // 어두운 초록색 배경
+                  width: '150px', // 가로 150px
+                }}
+              >
                 {t.buttons.downloadPdf}
               </ActionButton>
             </div>

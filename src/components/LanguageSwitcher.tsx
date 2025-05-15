@@ -32,8 +32,8 @@ const LanguageSwitcher = () => {
         logLanguageChange(selectedLang);
       }}
       options={languageOptions}
-      $triggerBackgroundColor={'#121315'}
-      $triggerFontSize="18px"
+      $triggerBackgroundColor={AppColors.background}
+      $triggerFontSize='18px'
       $triggerTextColor={AppColors.onBackground}
       $contentBackgroundColor={AppColors.background}
       $contentTextColor={AppColors.onBackground}
@@ -45,6 +45,7 @@ const LanguageSwitcher = () => {
           alt="Language Selector"
           width={24}
           height={24}
+          
         />
       }
       width="auto"

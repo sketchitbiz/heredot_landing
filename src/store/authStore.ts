@@ -1,5 +1,5 @@
-import { create } from "zustand";
-import { persist, createJSONStorage } from "zustand/middleware";
+import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
 
 export interface UserData {
   uuid: string;
@@ -37,8 +37,21 @@ const useAuthStore = create<AuthState>()(
       isLoggedIn: false,
       isLoginModalOpen: false,
       isAdditionalInfoModalOpen: false,
-      login: (userData) => set({ user: userData, isLoggedIn: true, isLoginModalOpen: false }),
-      logout: () => set({ user: null, isLoggedIn: false, isAdditionalInfoModalOpen: false }),
+      login: (userData) =>
+        set({ user: userData, isLoggedIn: true, isLoginModalOpen: false }),
+      logout: () => {
+        // 로컬 스토리지에서 사용자 관련 데이터 모두 삭제
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('logId');
+        localStorage.removeItem('loginData');
+
+        // 스토어 상태 초기화
+        set({
+          user: null,
+          isLoggedIn: false,
+          isAdditionalInfoModalOpen: false,
+        });
+      },
       openLoginModal: () => set({ isLoginModalOpen: true }),
       closeLoginModal: () => set({ isLoginModalOpen: false }),
       openAdditionalInfoModal: () => set({ isAdditionalInfoModalOpen: true }),
@@ -46,9 +59,12 @@ const useAuthStore = create<AuthState>()(
       setIsLoggedIn: (isLoggedIn) => set({ isLoggedIn }),
     }),
     {
-      name: "auth-storage",
+      name: 'auth-storage',
       storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({ user: state.user, isLoggedIn: state.isLoggedIn }),
+      partialize: (state) => ({
+        user: state.user,
+        isLoggedIn: state.isLoggedIn,
+      }),
     }
   )
 );

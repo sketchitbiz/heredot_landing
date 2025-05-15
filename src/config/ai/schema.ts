@@ -11,12 +11,12 @@ export const FEATURE_SCHEMA = Schema.object({
     amount: Schema.string({
       description: "기능에 대한 금액입니다. 설정되지 않은 경우 '별도 문의' 또는 '관리자 문의'로 설정하세요.",
     }),
-    duration: Schema.string({
-      description: "기능에 소요되는 기간입니다. 설정되지 않은 경우 '별도 문의' 또는 '관리자 문의'로 설정하세요.",
-    }),
-    category: Schema.string({
-      description: "기능의 카테고리입니다.",
-    }),
+    // duration: Schema.string({
+    //   description: "기능에 소요되는 기간입니다. 설정되지 않은 경우 '별도 문의' 또는 '관리자 문의'로 설정하세요.",
+    // }),
+    // category: Schema.string({
+    //   description: "기능의 카테고리입니다.",
+    // }),
     pages: Schema.string({
       description:
         '(선택 사항) 기능에 필요한 예상 페이지 수입니다. 불필요하거나 알 수 없는 경우 생략하거나 "별도 문의"로 설정하세요.',
@@ -52,12 +52,12 @@ export const INVOICE_SCHEMA = Schema.object({
         amount: Schema.number({
           description: "프로젝트의 총 금액입니다.",
         }),
-        duration: Schema.number({
-          description: "프로젝트의 총 소요 기간입니다 (일 단위 숫자).",
-        }),
-        pages: Schema.number({
-          description: "프로젝트의 총 페이지 수입니다.",
-        }),
+        // duration: Schema.number({
+        //   description: "프로젝트의 총 소요 기간입니다 (일 단위 숫자).",
+        // }),
+        // pages: Schema.number({
+        //   description: "프로젝트의 총 페이지 수입니다.",
+        // }),
       },
     }),
   },
