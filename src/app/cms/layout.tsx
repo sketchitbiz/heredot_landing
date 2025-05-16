@@ -96,6 +96,7 @@ function ProtectedCmsLayout({ children }: { children: React.ReactNode }) {
         { icon: <ChatIcon />, title: "AI 대화이력 관리", path: "/cms/aiData/conversationHistory" }, // AI 대화이력 관리
       ],
     },
+    
     {
       icon: <SettingsApplicationsIcon />,
       title: "AI 설정",
@@ -119,6 +120,7 @@ function ProtectedCmsLayout({ children }: { children: React.ReactNode }) {
 
   // 로그인 준비 전이거나, 로그인 안 된 상태인데 로그인 페이지가 아닌 경우 → 아무 것도 렌더링하지 않음
   if (!ready || (!isLoggedIn && !isLoginPage)) return null;
+
 
   // 로그인 페이지는 레이아웃 없이 children만 반환
   if (isLoginPage) return <>{children}</>;
