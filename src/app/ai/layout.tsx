@@ -11,6 +11,8 @@ import React from 'react';
 import { useLang } from '@/contexts/LangContext';
 import DropdownInput from '@/components/DropdownInput';
 import { userStamp } from '@/lib/api/user/api';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '@/lib/firebase/firebase.config';
 
 // PageLoader를 클라이언트 사이드에서만 렌더링하도록 dynamic import
 const ClientOnlyPageLoader = dynamic(() => import('@/components/PageLoader'), {
@@ -94,6 +96,74 @@ export default function AiLayout({ children }: { children: React.ReactNode }) {
   const user = useAuthStore((state) => state.user);
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
   const { lang } = useLang();
+  const { login, logout } = useAuthStore();
+
+  // Firebase Auth State Listener (GlobalWrapper에서 이동해 온 로직)
+  useEffect(() => {
+    console.log('[AiLayout] useEffect for onAuthStateChanged - mounting');
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      console.log(
+        '[AiLayout] onAuthStateChanged triggered. Firebase user:',
+        firebaseUser
+      );
+      if (firebaseUser) {
+        try {
+          console.log(
+            '[AiLayout] Firebase user found. Attempting to get ID token.'
+          );
+          const token = await firebaseUser.getIdToken();
+          console.log(
+            '[AiLayout] ID token obtained. Preparing UserData for login.'
+          );
+          const userDataForStore = {
+            uuid: firebaseUser.uid,
+            email: firebaseUser.email || '',
+            accessToken: token,
+            name: firebaseUser.displayName || '',
+            countryCode: null,
+            cellphone: firebaseUser.phoneNumber || null,
+            providerId: firebaseUser.providerData[0]?.providerId || '',
+            withdrawYn: 'N',
+            createdTime: firebaseUser.metadata.creationTime
+              ? new Date(firebaseUser.metadata.creationTime).toISOString()
+              : new Date().toISOString(),
+            updateTime: firebaseUser.metadata.lastSignInTime
+              ? new Date(firebaseUser.metadata.lastSignInTime).toISOString()
+              : null,
+            lastLoginTime: firebaseUser.metadata.lastSignInTime
+              ? new Date(firebaseUser.metadata.lastSignInTime).toISOString()
+              : new Date().toISOString(),
+            profileUrl: firebaseUser.photoURL || undefined,
+          };
+          console.log(
+            '[AiLayout] Calling authStore.login with UserData:',
+            userDataForStore
+          );
+          login(userDataForStore);
+        } catch (error) {
+          console.error(
+            '[AiLayout] Error getting ID token or preparing UserData:',
+            error
+          );
+          console.log('[AiLayout] Calling authStore.logout due to error.');
+          logout();
+        }
+      } else {
+        console.log(
+          '[AiLayout] No Firebase user found (or user signed out).' // 이전처럼 logout() 호출은 일단 제외
+        );
+        // logout(); // 이전에 GlobalWrapper에서 삭제한 것과 동일하게 여기도 일단 호출하지 않음
+      }
+    });
+
+    return () => {
+      console.log(
+        '[AiLayout] useEffect for onAuthStateChanged - unmounting. Unsubscribing.'
+      );
+      unsubscribe();
+    };
+  }, [login, logout]);
+  // --- Firebase Auth State Listener 끝 ---
 
   useEffect(() => {
     // 페이지 초기 로딩 시뮬레이션

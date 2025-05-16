@@ -281,61 +281,61 @@ export const AiProgressBar: React.FC<AiProgressBarProps> = ({
 
   // 모바일 환경일 때 렌더링 (가로 배치 + 현재 단계만 설명 표시)
   if (isMobile) {
-    return (
-      <ProgressBarContainer $isMobile={isMobile}>
-        <MobileProgressWrapper>
-          {/* 단계 아이콘 가로 배치 */}
-          <MobileStepsContainer>
-            {steps.map((step, index) => {
-              const isCompleted = index < currentStep;
-              const isActive = index === currentStep;
-              const isLastStep = index === steps.length - 1;
+    return (<></>
+      // <ProgressBarContainer $isMobile={isMobile}>
+      //   <MobileProgressWrapper>
+      //     {/* 단계 아이콘 가로 배치 */}
+      //     <MobileStepsContainer>
+      //       {steps.map((step, index) => {
+      //         const isCompleted = index < currentStep;
+      //         const isActive = index === currentStep;
+      //         const isLastStep = index === steps.length - 1;
 
-              return (
-                <StepContainer
-                  key={index}
-                  $isActive={isActive}
-                  $isCompleted={isCompleted}
-                  $isMobile={isMobile}
-                >
-                  {/* 마지막 단계가 아니면 연결선 표시 */}
-                  {!isLastStep && (
-                    <Connector $isActive={isCompleted} $horizontal={isMobile} />
-                  )}
-                  <StepIconContainer
-                    $isActive={isActive}
-                    $isCompleted={isCompleted}
-                    $isMobile={isMobile}
-                  >
-                    {/* 완료 여부와 현재 단계에 따라 다른 아이콘 표시 */}
-                    {isCompleted ? (
-                      <CheckCircleIcon />
-                    ) : isActive ? (
-                      <RadioButtonCheckedIcon />
-                    ) : (
-                      <RadioButtonUncheckedIcon />
-                    )}
-                  </StepIconContainer>
-                </StepContainer>
-              );
-            })}
-          </MobileStepsContainer>
+      //         return (
+      //           <StepContainer
+      //             key={index}
+      //             $isActive={isActive}
+      //             $isCompleted={isCompleted}
+      //             $isMobile={isMobile}
+      //           >
+      //             {/* 마지막 단계가 아니면 연결선 표시 */}
+      //             {!isLastStep && (
+      //               <Connector $isActive={isCompleted} $horizontal={isMobile} />
+      //             )}
+      //             <StepIconContainer
+      //               $isActive={isActive}
+      //               $isCompleted={isCompleted}
+      //               $isMobile={isMobile}
+      //             >
+      //               {/* 완료 여부와 현재 단계에 따라 다른 아이콘 표시 */}
+      //               {isCompleted ? (
+      //                 <CheckCircleIcon />
+      //               ) : isActive ? (
+      //                 <RadioButtonCheckedIcon />
+      //               ) : (
+      //                 <RadioButtonUncheckedIcon />
+      //               )}
+      //             </StepIconContainer>
+      //           </StepContainer>
+      //         );
+      //       })}
+      //     </MobileStepsContainer>
 
-          {/* 현재 단계의 설명만 표시 - 가운데 정렬 */}
-          {steps.map((step, index) => {
-            const translatedStep = getTranslatedStep(index, step);
-            return (
-              <MobileStepDescription
-                key={index}
-                $isActive={index === currentStep}
-              >
-                {translatedStep.title}
-                <span>{translatedStep.description}</span>
-              </MobileStepDescription>
-            );
-          })}
-        </MobileProgressWrapper>
-      </ProgressBarContainer>
+      //     {/* 현재 단계의 설명만 표시 - 가운데 정렬 */}
+      //     {steps.map((step, index) => {
+      //       const translatedStep = getTranslatedStep(index, step);
+      //       return (
+      //         <MobileStepDescription
+      //           key={index}
+      //           $isActive={index === currentStep}
+      //         >
+      //           {translatedStep.title}
+      //           <span>{translatedStep.description}</span>
+      //         </MobileStepDescription>
+      //       );
+      //     })}
+      //   </MobileProgressWrapper>
+      // </ProgressBarContainer>
     );
   }
 

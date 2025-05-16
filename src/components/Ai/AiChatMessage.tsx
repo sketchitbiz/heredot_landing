@@ -446,7 +446,7 @@ const InvoiceTable = styled.table`
   th,
   td {
     border-bottom: 1px solid ${AppColors.border};
-    
+
     height: 4em;
     text-align: left;
     vertical-align: top;
@@ -469,11 +469,6 @@ const InvoiceTable = styled.table`
     font-weight: 300;
   }
 
-  td:nth-last-child(-n + 3) {
-  padding-bottom: 3em 1em;
-  
-}
-
   // 각 열의 너비 및 스타일 지정
   .col-category {
     width: 18%;
@@ -481,7 +476,7 @@ const InvoiceTable = styled.table`
     font-weight: 500;
   }
   .col-feature {
-    width: 25%;    
+    width: 25%;
     text-align: center;
     font-weight: 500;
   }

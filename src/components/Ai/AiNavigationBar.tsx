@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { ProfileDataContainer } from '@/components/ProfileDataContainer';
 import ButtonElement from '@/elements/ButtonElement';
@@ -294,6 +294,10 @@ const AiNavigationBar = ({
     Record<string, boolean>
   >({});
 
+  const touchStartX = useRef<number | null>(null);
+  const touchEndX = useRef<number | null>(null);
+  const swipeThreshold = 50;
+
   useEffect(() => {
     if (!isLoggedIn) {
       const allSectionTitles = navigationItems.reduce((acc, item) => {
@@ -316,6 +320,35 @@ const AiNavigationBar = ({
       ...prev,
       [title]: !prev[title],
     }));
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (!isMobile || !isSidebarOpen) return;
+    touchEndX.current = null;
+    touchStartX.current = e.targetTouches[0].clientX;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isMobile || !isSidebarOpen || touchStartX.current === null) return;
+    touchEndX.current = e.targetTouches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    if (
+      !isMobile ||
+      !isSidebarOpen ||
+      !touchStartX.current ||
+      !touchEndX.current
+    )
+      return;
+    const distance = touchStartX.current - touchEndX.current;
+    if (distance > swipeThreshold) {
+      if (toggleSidebar) {
+        toggleSidebar();
+      }
+    }
+    touchStartX.current = null;
+    touchEndX.current = null;
   };
 
   const renderSidebarContent = () => {
@@ -498,7 +531,13 @@ const AiNavigationBar = ({
 
   return (
     <Container>
-      <Sidebar $isOpen={isSidebarOpen} $isMobile={isMobile}>
+      <Sidebar
+        $isOpen={isSidebarOpen}
+        $isMobile={isMobile}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
         {isMobile && (
           <SidebarToggleButton onClick={toggleSidebar}>
             {isSidebarOpen ? <ChevronLeft /> : <ChevronRight />}

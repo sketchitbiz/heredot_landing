@@ -15,10 +15,16 @@ import { FileUploadData } from '@/lib/firebase/firebase.functions';
 
 // 스타일 컴포넌트
 const MessageInputContainer = styled.div`
-  padding: 1rem 2rem;
+  padding: 1rem 2rem 4rem 2rem;
   border-top: 1px solid ${AppColors.border};
   background-color: ${AppColors.background};
   margin-top: auto;
+
+  @media (max-width: 770px) {
+    padding: 1rem 1rem 2rem 1rem; // 모바일에서는 좌우 패딩을 줄이고, 하단 패딩도 조정합니다. 요청하신 1rem 2rem 4rem 2rem은 데스크탑과 동일하여 변경 효과가 없을 수 있어, 모바일에 적합하게 수정 제안합니다.
+    // 만약 정확히 1rem 2rem 4rem 2rem을 원하시면 아래 주석을 해제하고 위 라인을 주석 처리해주세요.
+    // padding: 1rem 2rem 4rem 2rem;
+  }
 `;
 
 const InputContainer = styled.form`

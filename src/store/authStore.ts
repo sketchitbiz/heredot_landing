@@ -40,10 +40,10 @@ const useAuthStore = create<AuthState>()(
       login: (userData) =>
         set({ user: userData, isLoggedIn: true, isLoginModalOpen: false }),
       logout: () => {
-        // 로컬 스토리지에서 사용자 관련 데이터 모두 삭제
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('logId');
-        localStorage.removeItem('loginData');
+        // 로컬 스토리지에서 사용자 관련 데이터 모두 삭제 (주석 처리 또는 삭제)
+        // localStorage.removeItem('accessToken');
+        // localStorage.removeItem('logId');
+        // localStorage.removeItem('loginData');
 
         // 스토어 상태 초기화
         set({

@@ -87,7 +87,7 @@ const ProfileName = styled.p`
   color: ${AppColors.onBackground};
   font-weight: bold;
   margin: 0; /* 마진 제거 */
-  margin-top:16px;
+  margin-top: 16px;
 `;
 
 interface FreeFormGuideProps {

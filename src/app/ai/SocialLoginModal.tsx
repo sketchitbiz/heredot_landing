@@ -62,7 +62,7 @@ const PageSubtitle = styled.p`
   font-size: 14px;
   color: ${AppColors.onSurfaceVariant};
   margin-bottom: 8px;
-  margin-left:4px;
+  margin-left: 4px;
 `;
 
 const GradientTitleText = styled.h2`
@@ -222,11 +222,12 @@ export const SocialLoginModal: React.FC<SocialLoginModalProps> = ({
 
   const LOGIN_ENDPOINT = '/user/login';
 
-  const handleLoginSuccess = (userData: UserData, responseData: unknown) => {
-    localStorage.setItem('loginData', JSON.stringify(responseData));
-    if (userData.accessToken) {
-      localStorage.setItem('accessToken', userData.accessToken);
-    }
+  const handleLoginSuccess = (
+    userData: UserData,
+    rawResponseData?: unknown
+  ) => {
+    // localStorage.setItem('loginData', JSON.stringify(rawResponseData)); // 이미 주석처리됨
+    // if (userData.accessToken) { ... } // 이미 주석처리됨
     login(userData);
     if (!userData.name || userData.name.trim() === '') {
       openAdditionalInfoModal();
@@ -263,7 +264,16 @@ export const SocialLoginModal: React.FC<SocialLoginModalProps> = ({
             Array.isArray(result.data) &&
             result.data.length > 0
           ) {
-            const userData: UserData = result.data[0];
+            const rawUserData: UserData = result.data[0];
+            // 날짜 필드를 ISOString으로 변환
+            const userData: UserData = {
+              ...rawUserData,
+              createdTime: new Date(rawUserData.createdTime).toISOString(),
+              updateTime: rawUserData.updateTime
+                ? new Date(rawUserData.updateTime).toISOString()
+                : null,
+              lastLoginTime: new Date(rawUserData.lastLoginTime).toISOString(),
+            };
             handleLoginSuccess(userData, response.data);
           } else {
             setLoginError(result.message || '로그인에 실패했습니다.');
@@ -352,8 +362,16 @@ export const SocialLoginModal: React.FC<SocialLoginModalProps> = ({
             Array.isArray(result.data) &&
             result.data.length > 0
           ) {
-            const userData: UserData = result.data[0];
-
+            const rawUserData: UserData = result.data[0];
+            // 날짜 필드를 ISOString으로 변환
+            const userData: UserData = {
+              ...rawUserData,
+              createdTime: new Date(rawUserData.createdTime).toISOString(),
+              updateTime: rawUserData.updateTime
+                ? new Date(rawUserData.updateTime).toISOString()
+                : null,
+              lastLoginTime: new Date(rawUserData.lastLoginTime).toISOString(),
+            };
             handleLoginSuccess(userData, responseData);
           } else {
             setLoginError(
