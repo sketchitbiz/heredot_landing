@@ -252,6 +252,8 @@ export const dictionary = {
       ],
     },
   },
+  
+
   en: {
     departure: "Departure",
     arrival: "Arrival",

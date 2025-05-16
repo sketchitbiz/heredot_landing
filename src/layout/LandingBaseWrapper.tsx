@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import { ChevronDown, ChevronUp } from 'lucide-react'; // 아이콘 사용
 
 
+
 interface LandingSection {
   id?: string;
   $backgroundColor?: string;
