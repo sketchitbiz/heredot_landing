@@ -27,6 +27,7 @@ import BusinessIcon from "@mui/icons-material/Business";
 import TuneIcon from "@mui/icons-material/Tune";
 import DownloadIcon from "@mui/icons-material/Download";
 import { THEME_COLORS } from "@/styles/theme_colors";
+import { toast, ToastContainer } from 'react-toastify';
 
 // 메인 콘텐츠 영역 스타일
 const MainContent = styled.div<{ $isSidebarCollapsed: boolean }>`
@@ -63,6 +64,7 @@ function ProtectedCmsLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const isLoginPage = pathname === "/cms/login";
+  const { logout } = useAdminAuth();
 
   useEffect(() => {
     if (ready && !isLoggedIn && !isLoginPage) {
@@ -74,8 +76,9 @@ function ProtectedCmsLayout({ children }: { children: React.ReactNode }) {
   const toggleSidebar = () => setIsCollapsed((prev) => !prev);
 
   const handleLogout = () => {
-    console.log("Logout clicked");
-    // 실제 로그아웃 처리 (예: 상태 초기화, 토큰 제거, 이동)
+    logout();               // 상태 및 로컬스토리지 정리
+    router.replace('/cms/login'); // 로그인 페이지로 리디렉션
+    toast.success('로그아웃 되었습니다'); 
   };
 
   const menuItems: MenuItemConfig[] = [
@@ -122,6 +125,17 @@ function ProtectedCmsLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <OuterLayoutContainer $themeMode="light">
+      <ToastContainer
+        position="top-center"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={true}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
       <CustomSidebar
         isCollapsed={isCollapsed}
         toggleSidebar={toggleSidebar}
@@ -133,11 +147,13 @@ function ProtectedCmsLayout({ children }: { children: React.ReactNode }) {
           isCollapsed={isCollapsed}
           name="테스트 사용자"
           iconSrc="/favicon.ico"
+          showTime={false} // 시간 표시
         />
       </CustomSidebar>
   
       <MainContent $isSidebarCollapsed={isCollapsed}>{children}</MainContent>
     </OuterLayoutContainer>
+    
   );
   
 }

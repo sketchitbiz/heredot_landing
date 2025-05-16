@@ -64,7 +64,6 @@ export async function termUpdate(
     url: `${BASE_URL}/cms/term/update`,
     body: {
       index: params.index,
-      title: params.title,
       termsType: params.termsType,
       content: params.content,
     },

@@ -17,3 +17,9 @@ export type AdminLoginParams = {
     emailYn: string;
     smsYn: string;
   };
+
+  export type TermGetListParams = {
+    index: number;
+    termsType: string;
+    content: string;
+  };

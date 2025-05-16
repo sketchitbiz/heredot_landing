@@ -37,31 +37,37 @@
 
 .tiptap-menu-bar button:hover,
 .tiptap-menu-bar select:hover {
-  background-color: #e9ecef;
+  background-color: #3581ce;
 }
 
 .tiptap-menu-bar button.is-active,
 .tiptap-menu-bar select.is-active {
   background-color: #dee2e6;
   font-weight: bold;
+  color: #000000;
 }
 
 .tiptap-menu-bar button:disabled {
-  color: #adb5bd;
+  color: #070808;
   cursor: not-allowed;
 }
 
 /* Tiptap Editor Content 기본 스타일 */
 .tiptap-editor-content .ProseMirror {
   padding: 15px;
-  min-height: 200px; /* 최소 높이 지정 */
+  /* min-height: 200px;  */
   outline: none; /* 포커스 시 외곽선 제거 */
-  line-height: 1.6; /* 기본 줄 간격 */
-  color: #000;
+  line-height: 1.2; /* 기본 줄 간격 */
+  color: #000000;
+}
+
+.ProseMirror p {
+  margin-top: 0.2em;
+  margin-bottom: 0.2em;
 }
 
 /* 글씨 크기에 따른 가독성 향상 (예시) */
-.tiptap-editor-content .ProseMirror p[style*="font-size: 12px"] {
+/* .tiptap-editor-content .ProseMirror p[style*="font-size: 12px"] {
   line-height: 1.5;
 }
 .tiptap-editor-content .ProseMirror p[style*="font-size: 14px"] {
@@ -83,7 +89,7 @@
 .tiptap-editor-content .ProseMirror p[style*="font-size: 28px"] {
   line-height: 1.8;
   padding: 8px 0;
-}
+} */
 
 /* Tiptap 기본 스타일 (필요시 추가 또는 커스텀) */
 .ProseMirror p.is-editor-empty:first-child::before {

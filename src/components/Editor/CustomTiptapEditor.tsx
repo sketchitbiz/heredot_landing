@@ -52,17 +52,14 @@ const FontSize = TextStyle.extend({
         },
       },
       lineHeight: {
-        default: "1.6",
-        parseHTML: (element) => element.style.lineHeight,
+        default: null,
+        parseHTML: (element) => element.style.lineHeight || null,
         renderHTML: (attributes) => {
-          if (!attributes.lineHeight) {
-            return {};
-          }
-          return {
-            style: `line-height: ${attributes.lineHeight}`,
-          };
+          if (!attributes.lineHeight) return {};
+          return { style: `line-height: ${attributes.lineHeight}` };
         },
       },
+      
       letterSpacing: {
         default: "0",
         parseHTML: (element) => element.style.letterSpacing,
@@ -216,6 +213,7 @@ const CustomTiptapEditor = ({
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
+         
         // StarterKit의 기본 Heading, Bold 등 외 추가/제외 설정 가능
         // 예: heading: { levels: [1, 2, 3] }
         // 기본적으로 Bold, Italic, Strike, Code, Paragraph, Blockquote, BulletList, OrderedList 등 포함
@@ -224,7 +222,7 @@ const CustomTiptapEditor = ({
       TextAlign.configure({
         types: ["heading", "paragraph"], // 정렬을 적용할 노드 타입 지정
       }),
-      TextStyle, // FontFamily, FontSize 사용을 위해 필요
+      // TextStyle, // FontFamily, FontSize 사용을 위해 필요
       FontFamily,
       FontSize, // 커스텀 FontSize 확장 사용
       Link.configure({
@@ -250,6 +248,7 @@ const CustomTiptapEditor = ({
       YouTubeExtension,
     ],
     content: initialContent,
+    immediatelyRender: false,
     editorProps: {
       attributes: {
         // 에디터 자체에 클래스 추가 가능

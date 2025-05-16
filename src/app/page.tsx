@@ -133,11 +133,18 @@ export default function HomePage() {
   }, []);
 
   const scrollToTargetId = (targetId: string, content: string, memo: string) => {
+    // 🔹 AI Estimate일 때는 스크롤 대신 새 창 열기
+    if (targetId === "AI Estimate") {
+      window.open("/ai", "_blank", "noopener,noreferrer");
+      void logButtonClick(content, memo); // ✅ 스탬프는 동일하게 찍음
+      return;
+    }
+  
     const element = document.getElementById(targetId);
     if (element) {
       startAutoScroll();
       element.scrollIntoView({ behavior: "smooth", block: "start" });
-
+  
       let scrollTimer: ReturnType<typeof setTimeout>;
       const handleScroll = () => {
         clearTimeout(scrollTimer);
@@ -147,10 +154,11 @@ export default function HomePage() {
         }, 300);
       };
       window.addEventListener("scroll", handleScroll);
-
+  
       void logButtonClick(content, memo);
     }
   };
+  
 
   const firstHeaderLogged = useRef(false);
 
@@ -231,7 +239,7 @@ export default function HomePage() {
         { label: t.nav[0], targetId: "partner", content: "appbar", memo: "partner" },
         { label: t.nav[1], targetId: "portfolio", content: "appbar", memo: "portfolio" },
         { label: t.nav[2], targetId: "members", content: "appbar", memo: "members" },
-        { label: t.nav[3], targetId: "market", content: "appbar", memo: "market" },
+        { label: t.nav[3], targetId: "AI Estimate", content: "appbar", memo: "ai pae" },
       ]}
       onNavigate={scrollToTargetId}
     />
@@ -342,6 +350,7 @@ export default function HomePage() {
     },
     {
       id: "community",
+      showFloatingBox: true,
       $backgroundColor: AppColors.background,
       content: (
         <CommunityBlock
@@ -364,6 +373,7 @@ export default function HomePage() {
     },
     {
       id: "portfolio",
+      showFloatingBox: true,
       $backgroundColor: AppColors.background,
       content: (
         <PortfolioGrid
@@ -379,6 +389,7 @@ export default function HomePage() {
     },
     {
       id: "members",
+      showFloatingBox: true,
       $backgroundColor: AppColors.background,
       content: (
         <MembersTabSection
@@ -396,6 +407,8 @@ export default function HomePage() {
     {
       id: "video",
       $backgroundColor: AppColors.background,
+      showFloatingBox: true,
+       
       content: (
         <VideoGrid
           topLabel={t.customNavigator.member}
@@ -410,6 +423,7 @@ export default function HomePage() {
     },
     {
       id: "contact",
+      
       $backgroundColor: AppColors.background,
       content: (
         <ContactSection

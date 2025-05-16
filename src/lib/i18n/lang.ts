@@ -4,7 +4,7 @@ export const dictionary = {
   ko: {
     departure: '출발',
     arrival: '도착',
-    nav: ['핵심강점', '포트폴리오', '팀원소개', ],
+    nav: ['핵심강점', '포트폴리오', '팀원소개', 'AI 견적서'],
     customNavigator: {
       community: '창업커뮤니티',
       portpolio: '포트폴리오',
@@ -239,7 +239,7 @@ export const dictionary = {
   en: {
     departure: 'Departure',
     arrival: 'Arrival',
-    nav: ['Key Value', 'Portfolio', 'Team', ],
+    nav: ['Key Value', 'Portfolio', 'Team','AI Estimate' ],
     customNavigator: {
       community: 'Startup Community',
       member: 'Team',
