@@ -7,11 +7,13 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { THEME_COLORS, ThemeMode } from "@/styles/theme_colors";
 
+type RangeType = "금월" | "지난달" | "1년" | "지정";
+
 interface GenericDateRangePickerProps {
   initialFromDate: string;
   initialToDate: string;
   onDateChange: (fromDate: string, toDate: string) => void;
-  initialSelectedRange?: "6개월" | "1년" | "2년";
+  initialSelectedRange?: RangeType;
   themeMode?: ThemeMode;
 }
 
@@ -19,18 +21,17 @@ const GenericDateRangePicker: React.FC<GenericDateRangePickerProps> = ({
   initialFromDate,
   initialToDate,
   onDateChange,
-  initialSelectedRange = "6개월",
+  initialSelectedRange = "금월",
   themeMode = "dark",
 }) => {
   const [fromDate, setFromDate] = useState(initialFromDate);
   const [toDate, setToDate] = useState(initialToDate);
-  const [selectedRange, setSelectedRange] = useState(initialSelectedRange);
+  const [selectedRange, setSelectedRange] = useState<RangeType>(initialSelectedRange);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [isSelectingFromDate, setIsSelectingFromDate] = useState(true);
   const datePickerRef = useRef<HTMLDivElement>(null);
   const dateBoxRef = useRef<HTMLDivElement>(null);
 
-  // Update local state if initial props change
   useEffect(() => {
     setFromDate(initialFromDate);
     setToDate(initialToDate);
@@ -49,52 +50,79 @@ const GenericDateRangePicker: React.FC<GenericDateRangePickerProps> = ({
 
   useEffect(() => {
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [handleClickOutside]);
 
-  const handleRangeClick = (range: "6개월" | "1년" | "2년") => {
+  const handleRangeClick = (range: RangeType) => {
     const today = dayjs();
-    let from;
-    if (range === "6개월") from = today.subtract(6, "month");
-    else if (range === "1년") from = today.subtract(1, "year");
-    else if (range === "2년") from = today.subtract(2, "year");
-    else return; // Should not happen with defined types
-
-    const newFromDate = from.format("YYYY-MM-DD");
-    const newToDate = today.format("YYYY-MM-DD");
-
-    setFromDate(newFromDate);
-    setToDate(newToDate);
-    setSelectedRange(range);
-    onDateChange(newFromDate, newToDate); // Notify parent
+  
+    if (range === "지정") {
+      setSelectedRange("지정");
+      setShowDatePicker(true);
+      setIsSelectingFromDate(true);
+      return;
+    }
+  
+    if (range === "금월") {
+      const from = today.startOf("month");
+      const newFromDate = from.format("YYYY-MM-DD");
+      const newToDate = today.format("YYYY-MM-DD");
+  
+      setFromDate(newFromDate);
+      setToDate(newToDate);
+      setSelectedRange(range);
+      onDateChange(newFromDate, newToDate);
+      return;
+    }
+  
+    if (range === "지난달") {
+      const from = today.subtract(1, "month").startOf("month");
+      const to = today.subtract(1, "month").endOf("month");
+      const newFromDate = from.format("YYYY-MM-DD");
+      const newToDate = to.format("YYYY-MM-DD");
+  
+      setFromDate(newFromDate);
+      setToDate(newToDate);
+      setSelectedRange(range);
+      onDateChange(newFromDate, newToDate);
+      return;
+    }
+  
+    if (range === "1년") {
+      const from = today.subtract(1, "year");
+      const newFromDate = from.format("YYYY-MM-DD");
+      const newToDate = today.format("YYYY-MM-DD");
+  
+      setFromDate(newFromDate);
+      setToDate(newToDate);
+      setSelectedRange(range);
+      onDateChange(newFromDate, newToDate);
+      return;
+    }
   };
+  
 
   const handleDateBoxClick = () => {
-    setShowDatePicker((prevShow) => !prevShow);
+    setShowDatePicker((prev) => !prev);
     if (!showDatePicker) {
       setIsSelectingFromDate(true);
     }
   };
 
-  const handleDateChange = (dates: any, event?: any) => {
-    if (!dates) return;
-
-    const formattedDate = dayjs(dates).format("YYYY-MM-DD");
+  const handleDateChange = (dates: any) => {
+    const formatted = dayjs(dates).format("YYYY-MM-DD");
 
     if (isSelectingFromDate) {
-      setFromDate(formattedDate);
+      setFromDate(formatted);
       setIsSelectingFromDate(false);
     } else {
-      if (dayjs(formattedDate).isBefore(dayjs(fromDate))) {
-        const currentFrom = fromDate;
-        setFromDate(formattedDate);
-        setToDate(currentFrom);
-        onDateChange(formattedDate, currentFrom);
+      if (dayjs(formatted).isBefore(dayjs(fromDate))) {
+        setFromDate(formatted);
+        setToDate(fromDate);
+        onDateChange(formatted, fromDate);
       } else {
-        setToDate(formattedDate);
-        onDateChange(fromDate, formattedDate);
+        setToDate(formatted);
+        onDateChange(fromDate, formatted);
       }
       setShowDatePicker(false);
     }
@@ -123,18 +151,16 @@ const GenericDateRangePicker: React.FC<GenericDateRangePickerProps> = ({
         </DatePickerWrapper>
       )}
       <RangeButtonGroup $themeMode={themeMode}>
-        <RangeButton
-          selected={selectedRange === "6개월"}
-          onClick={() => handleRangeClick("6개월")}
-          $themeMode={themeMode}>
-          6개월
-        </RangeButton>
-        <RangeButton selected={selectedRange === "1년"} onClick={() => handleRangeClick("1년")} $themeMode={themeMode}>
-          1년
-        </RangeButton>
-        <RangeButton selected={selectedRange === "2년"} onClick={() => handleRangeClick("2년")} $themeMode={themeMode}>
-          2년
-        </RangeButton>
+        {(["금월", "지난달", "1년", "지정"] as RangeType[]).map((range) => (
+          <RangeButton
+            key={range}
+            selected={selectedRange === range}
+            onClick={() => handleRangeClick(range)}
+            $themeMode={themeMode}
+          >
+            {range}
+          </RangeButton>
+        ))}
       </RangeButtonGroup>
     </DateContainer>
   );
@@ -142,7 +168,7 @@ const GenericDateRangePicker: React.FC<GenericDateRangePickerProps> = ({
 
 export default GenericDateRangePicker;
 
-// --- Styled Components (Keep as they were in the original DateRangePicker) ---
+// Styled Components
 const DateContainer = styled.div<{ $themeMode: ThemeMode }>`
   display: flex;
   align-items: center;
@@ -157,7 +183,7 @@ const DateBox = styled.div<{ $themeMode: ThemeMode }>`
   font-weight: 500;
   border-radius: 0px;
   border: 1px solid
-    ${({ $themeMode }) => ($themeMode === "light" ? "#E0E0E0" /* 배경색과 동일하게 */ : THEME_COLORS.dark.borderColor)};
+    ${({ $themeMode }) => ($themeMode === "light" ? "#E0E0E0" : THEME_COLORS.dark.borderColor)};
   font-size: 14px;
   display: flex;
   align-items: center;
@@ -173,7 +199,6 @@ const RangeButtonGroup = styled.div<{ $themeMode: ThemeMode }>`
 const RangeButton = styled.button<{ selected: boolean; $themeMode: ThemeMode }>`
   width: 60px;
   padding: 12px 12px;
-  margin: 0;
   background-color: ${({ selected, $themeMode }) =>
     selected
       ? $themeMode === "light"
@@ -234,45 +259,15 @@ const DatePickerWrapper = styled.div<{ $themeMode: ThemeMode }>`
     border-radius: 50%;
   }
 
-  .react-datepicker__day--in-selecting-range {
-    background-color: transparent;
-    color: ${({ $themeMode }) => ($themeMode === "light" ? THEME_COLORS.light.text : THEME_COLORS.dark.inputText)};
-    border-radius: 0;
-  }
-
   .react-datepicker__day--in-range {
     background-color: ${({ $themeMode }) => ($themeMode === "light" ? "#e0e0e0" : "#424451")};
     color: ${({ $themeMode }) => ($themeMode === "light" ? THEME_COLORS.light.text : THEME_COLORS.dark.inputText)};
-    border-radius: 0;
-  }
-
-  .react-datepicker__day--range-start.react-datepicker__day--range-end,
-  .react-datepicker__day--selected.react-datepicker__day--in-selecting-range {
-    border-radius: 50%;
-    background-color: ${({ $themeMode }) => ($themeMode === "light" ? THEME_COLORS.light.primary : "#666666")};
-    color: ${({ $themeMode }) => ($themeMode === "light" ? THEME_COLORS.light.buttonText : "#FFFFFF")};
-  }
-
-  .react-datepicker__day--range-start,
-  .react-datepicker__day--range-end {
-    background-color: ${({ $themeMode }) => ($themeMode === "light" ? THEME_COLORS.light.primary : "#666666")};
-    color: ${({ $themeMode }) => ($themeMode === "light" ? THEME_COLORS.light.buttonText : "#FFFFFF")};
-    border-radius: 50%;
-  }
-
-  .react-datepicker__day:hover {
-    background-color: ${({ $themeMode }) => ($themeMode === "light" ? "#d0d0d0" : "#555555")};
-    border-radius: 50%;
   }
 
   .react-datepicker__day--today {
     font-weight: bold;
     border: 1px solid ${({ $themeMode }) => ($themeMode === "light" ? THEME_COLORS.light.accent : "#888888")};
     border-radius: 50%;
-  }
-
-  .react-datepicker__day--outside-month {
-    color: ${({ $themeMode }) => ($themeMode === "light" ? "#AAAAAA" : "#666666")};
   }
 
   .react-datepicker__header {
@@ -286,11 +281,6 @@ const DatePickerWrapper = styled.div<{ $themeMode: ThemeMode }>`
   .react-datepicker__day-name {
     color: ${({ $themeMode }) =>
       $themeMode === "light" ? THEME_COLORS.light.text : THEME_COLORS.dark.tableHeaderText};
-  }
-
-  .react-datepicker__navigation-icon::before {
-    border-color: ${({ $themeMode }) =>
-      $themeMode === "light" ? THEME_COLORS.light.text : THEME_COLORS.dark.inputText};
   }
 `;
 
