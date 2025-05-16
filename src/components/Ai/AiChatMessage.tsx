@@ -1,5 +1,6 @@
 'use client';
 
+<<<<<<< HEAD
 import styled, { css } from 'styled-components';
 import { AppColors } from '@/styles/colors';
 import { AppTextStyles } from '@/styles/textStyles';
@@ -75,6 +76,27 @@ interface MessageProps extends Omit<Message, 'id'> {
 }
 
 // 스타일드 컴포넌트의 props 타입
+=======
+import styled, { css } from "styled-components";
+import { AppColors } from "@/styles/colors";
+import { AppTextStyles } from "@/styles/textStyles";
+import ReactMarkdown, { Options } from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
+
+// Message 인터페이스 export 추가
+export interface Message {
+  id: number;
+  sender: "user" | "ai";
+  text: string;
+}
+
+interface MessageProps extends Omit<Message, "id"> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onActionClick: (action: string, data?: Record<string, any>) => void;
+}
+
+>>>>>>> c109fa3 (사이드바 커스텀 추가 ,ai 이미지,파일,링크 추가작업중)
 interface StyledComponentProps {
   $sender: 'user' | 'ai'; // 발신자 구분 (스타일 적용용)
 }
@@ -311,7 +333,10 @@ const StyledMarkdownContainer = styled.div`
     border-radius: 8px;
     overflow: hidden;
     border: 1px solid ${AppColors.border};
+<<<<<<< HEAD
     font-weight: 300;
+=======
+>>>>>>> c109fa3 (사이드바 커스텀 추가 ,ai 이미지,파일,링크 추가작업중)
 
     td button {
       background-color: ${AppColors.onBackgroundGray};
@@ -352,9 +377,15 @@ const MessageWrapper = styled.div<StyledComponentProps>`
 
 // 메시지 박스 스타일 - 실제 메시지 내용을 담는 말풍선
 const MessageBox = styled.div<StyledComponentProps>`
+<<<<<<< HEAD
   max-width: 100%;
   padding: 0.3rem 1rem;
   border-radius: 24px;
+=======
+  max-width: 75%;
+  padding: 0.3rem 1rem;
+  border-radius: 12px;
+>>>>>>> c109fa3 (사이드바 커스텀 추가 ,ai 이미지,파일,링크 추가작업중)
   ${AppTextStyles.body1}
   line-height: 1.7;
   letter-spacing: normal;
@@ -366,11 +397,19 @@ const MessageBox = styled.div<StyledComponentProps>`
           color: ${AppColors.onPrimary};
           border-bottom-right-radius: 0px;
           white-space: pre-wrap;
+<<<<<<< HEAD
           padding: 0.25rem 1.25rem 0.5rem 1.25rem; // 사용자 메시지 패딩 (위아래 동일하게 조정)
+=======
+          padding: 0.75rem 1rem;
+>>>>>>> c109fa3 (사이드바 커스텀 추가 ,ai 이미지,파일,링크 추가작업중)
         `
       : css`
           background-color: ${AppColors.background};
           color: ${AppColors.onBackground};
+<<<<<<< HEAD
+=======
+          line-height: 1.7;
+>>>>>>> c109fa3 (사이드바 커스텀 추가 ,ai 이미지,파일,링크 추가작업중)
         `};
 `;
 
@@ -384,7 +423,10 @@ const ProfileImage = styled.img`
   align-self: flex-start;
 `;
 
+<<<<<<< HEAD
 // 프로필 이름 스타일 - AI 이름 표시
+=======
+>>>>>>> c109fa3 (사이드바 커스텀 추가 ,ai 이미지,파일,링크 추가작업중)
 const ProfileName = styled.p`
   font-size: 20px;
   color: ${AppColors.onBackground};
@@ -392,7 +434,11 @@ const ProfileName = styled.p`
   margin: 0;
 `;
 
+<<<<<<< HEAD
 // 버튼 스타일 - 마크다운 내부에서 사용되는 버튼
+=======
+// --- 새 버튼 스타일 컴포넌트 정의 ---
+>>>>>>> c109fa3 (사이드바 커스텀 추가 ,ai 이미지,파일,링크 추가작업중)
 const StyledActionButton = styled.button`
   background-color: ${AppColors.onBackgroundGray};
   color: white;
@@ -408,6 +454,7 @@ const StyledActionButton = styled.button`
     background-color: ${AppColors.primary};
   }
 `;
+<<<<<<< HEAD
 
 // 버튼 렌더러의 props 타입 정의
 type ButtonRendererProps = React.DetailedHTMLProps<
@@ -600,11 +647,48 @@ export function AiChatMessage({
             }}
             {...props}
           >
+=======
+// -------------------------------------
+
+// button 렌더러 props 타입 정의 (unknown 사용)
+type ButtonRendererProps = React.DetailedHTMLProps<React.ButtonHTMLAttributes<HTMLButtonElement>, HTMLButtonElement> & {
+  node?: unknown;
+};
+
+export function AiChatMessage({ sender, text, onActionClick }: MessageProps) {
+  const isAiMessage = sender === "ai";
+
+  const customComponents: Options["components"] = {
+    button: ({ node, ...props }: ButtonRendererProps) => {
+      let action: string | undefined;
+      let featureId: string | undefined;
+      let buttonText: string = "Button";
+
+      // 타입 가드 및 속성 접근
+      if (typeof node === "object" && node !== null) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        action = (node as any).properties?.["data-action"];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        featureId = (node as any).properties?.["data-feature-id"];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        buttonText = (node as any).children?.[0]?.value || "Button";
+      }
+
+      if (action) {
+        // StyledActionButton 사용
+        return (
+          <StyledActionButton onClick={() => onActionClick(action, { featureId })} {...props}>
+>>>>>>> c109fa3 (사이드바 커스텀 추가 ,ai 이미지,파일,링크 추가작업중)
             {buttonText}
           </StyledActionButton>
         );
       }
+<<<<<<< HEAD
       // 액션이 없는 버튼 - 기본 스타일 적용
+=======
+      // 기본 버튼 (스타일 없는) 또는 StyledActionButton 중 선택
+      // 여기서는 일관성을 위해 data-action 없는 버튼도 Styled 적용 (클릭 액션은 없음)
+>>>>>>> c109fa3 (사이드바 커스텀 추가 ,ai 이미지,파일,링크 추가작업중)
       return <StyledActionButton {...props}>{buttonText}</StyledActionButton>;
     },
   };
@@ -614,6 +698,7 @@ export function AiChatMessage({
       {/* AI 메시지인 경우에만 프로필 이미지 표시 */}
       {isAiMessage && <ProfileImage src="/ai/pretty.png" alt="AI 프로필" />}
       <MessageBox $sender={sender}>
+<<<<<<< HEAD
         {/* AI 메시지인 경우에만 이름 표시 */}
         {isAiMessage && (
           <ProfileName style={{ marginBottom: '0.5rem' }}>
@@ -954,6 +1039,17 @@ export function AiChatMessage({
               }}
             />
           </div>
+=======
+        {isAiMessage ? (
+          <StyledMarkdownContainer>
+            <ProfileName>AIGO - 에이고</ProfileName>
+            <ReactMarkdown components={customComponents} remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
+              {text}
+            </ReactMarkdown>
+          </StyledMarkdownContainer>
+        ) : (
+          text
+>>>>>>> c109fa3 (사이드바 커스텀 추가 ,ai 이미지,파일,링크 추가작업중)
         )}
       </MessageBox>
     </MessageWrapper>

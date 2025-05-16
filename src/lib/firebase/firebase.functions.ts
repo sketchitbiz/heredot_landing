@@ -36,7 +36,14 @@ export function uploadImage(
   });
 }
 
+<<<<<<< HEAD
 export async function uploadFile(file: File, { onUpload, progress, deleteUrl }: UploadImageOptions) {
+=======
+export async function uploadFile(
+  file: File,
+  { onUpload, progress, deleteUrl }: UploadImageOptions
+) {
+>>>>>>> c109fa3 (사이드바 커스텀 추가 ,ai 이미지,파일,링크 추가작업중)
   const uploadRef = storageRef(getStorage(), `tmp/${file.name}`);
   const uploadTask = uploadBytesResumable(uploadRef, file);
   uploadTask.on(
@@ -123,6 +130,7 @@ export async function getMimeType(fileUrl: string): Promise<string | null> {
 
 export function uploadFiles(files: File[], options: UploadImageOptions) {
   if (!files) return;
+<<<<<<< HEAD
 
   const allowedMimeTypes = [
     "image/jpeg",
@@ -150,6 +158,15 @@ export function uploadFiles(files: File[], options: UploadImageOptions) {
       console.warn("Disallowed file type or no file, skipping upload:", file.name, "Type:", file.type);
       // 사용자에게 알림을 줄 수도 있습니다.
       // 예를 들어 options 객체에 onError 콜백을 추가하여 호출할 수 있습니다.
+=======
+  files.forEach((file) => {
+    console.log(file.name);
+    if (
+      file &&
+      (file.type.startsWith("image/") || file.type.endsWith("/pdf"))
+    ) {
+      uploadFile(file, options);
+>>>>>>> c109fa3 (사이드바 커스텀 추가 ,ai 이미지,파일,링크 추가작업중)
     }
   });
 }
