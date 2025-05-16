@@ -6,6 +6,7 @@ import { AppTextStyles } from '@/styles/textStyles';
 import { useState, useEffect } from 'react';
 import { useLang } from '@/contexts/LangContext'; // 다국어 지원을 위한 훅 임포트
 import { aiChatDictionary } from '@/lib/i18n/aiChat'; // 다국어 사전 임포트
+import { useDevice } from '@/contexts/DeviceContext'; // DeviceContext 훅 임포트
 
 // 옵션 인터페이스
 export interface QuestionOption {
@@ -58,9 +59,10 @@ const SelectionTitle = styled.h3`
   margin-bottom: 1rem;
 `;
 
-const OptionsGrid = styled.div<{ columns: number }>`
+const OptionsGrid = styled.div<{ columns: number; isMobile: boolean }>`
   display: grid;
-  grid-template-columns: repeat(${(props) => props.columns}, 1fr);
+  grid-template-columns: ${(props) =>
+    props.isMobile ? '1fr' : `repeat(${props.columns}, 1fr)`};
   gap: 1rem;
   margin-bottom: 1.5rem;
   width: 100%;
@@ -191,6 +193,8 @@ export const AiChatQuestion: React.FC<AiChatQuestionProps> = ({
   const [selectedIds, setSelectedIds] = useState<string[]>(initialSelection);
   const { lang } = useLang(); // 언어 설정 가져오기
   const t = aiChatDictionary[lang]; // 현재 언어에 해당하는 번역 텍스트
+  const deviceType = useDevice(); // DeviceContext 사용
+  const isMobile = deviceType === 'mobile'; // isMobile 변수 설정
 
   // initialSelection이 변경되면 상태 업데이트
   useEffect(() => {
@@ -244,7 +248,7 @@ export const AiChatQuestion: React.FC<AiChatQuestionProps> = ({
       )}
 
       {/* 옵션 그리드 */}
-      <OptionsGrid columns={gridColumns}>
+      <OptionsGrid columns={gridColumns} isMobile={isMobile}>
         {options.map((option) => (
           <OptionButton
             key={option.id}
