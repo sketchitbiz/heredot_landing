@@ -16,7 +16,7 @@ export interface QuestionOption {
 
 // Props 인터페이스
 interface AiChatQuestionProps {
-  title: string; // 예: "여기닷 AI" 또는 단계별 타이틀
+  // title: string; // 예: "여기닷 AI" 또는 단계별 타이틀 - 사용 안 함
   subtitle: string; // 예: "안녕하세요..." 또는 단계별 설명
   selectionTitle: string; // 예: "중복 선택 가능", "중복 선택 불가"
   options: QuestionOption[];
@@ -41,12 +41,13 @@ const AIContent = styled.div`
   width: 100%; // 너비 100% 추가
 `;
 
-const Title = styled.p`
-  ${AppTextStyles.title2}
-  color: ${AppColors.onBackground};
-  margin-bottom: 0.5rem; // 간격 조절
-  margin-top: 1rem;
-`;
+// Title 컴포넌트는 사용되지 않으므로 제거합니다.
+// const Title = styled.p`
+//   ${AppTextStyles.title2}
+//   color: ${AppColors.onBackground};
+//   margin-bottom: 0.5rem; // 간격 조절
+//   margin-top: 1rem;
+// `;
 
 const Subtitle = styled.p`
   color: #9ca3af; // 필요시 AppColors 사용
@@ -62,25 +63,25 @@ const SelectionTitle = styled.h3`
 
 const OptionsGrid = styled.div<{
   columns: number;
-  isMobile: boolean;
-  isFirstQuestion?: boolean;
-  optionsCount?: number;
+  $isMobile: boolean;
+  $isFirstQuestion?: boolean;
+  $optionsCount?: number;
 }>`
   display: grid;
   grid-template-columns: ${(props) => {
-    const { columns, isMobile, isFirstQuestion, optionsCount = 0 } = props;
+    const { columns, $isMobile, $isFirstQuestion, $optionsCount = 0 } = props;
 
-    if (isFirstQuestion) {
-      if (isMobile) {
+    if ($isFirstQuestion) {
+      if ($isMobile) {
         // 첫 번째 질문 & 모바일: 각 옵션이 한 줄씩 (1열)
         return '1fr';
       } else {
         // 첫 번째 질문 & 데스크탑: 모든 옵션이 한 줄에
-        return `repeat(${Math.max(1, optionsCount)}, minmax(0, 1fr))`;
+        return `repeat(${Math.max(1, $optionsCount)}, minmax(0, 1fr))`;
       }
     } else {
       // 첫 번째 질문이 아님 (2번째, 3번째 등)
-      if (isMobile) {
+      if ($isMobile) {
         // 모바일 & 두 번째 이후 질문: 한 줄에 3개씩 (3열)
         return 'repeat(3, 1fr)';
       } else {
@@ -204,7 +205,7 @@ const InfoList = styled.div`
 `;
 
 export const AiChatQuestion: React.FC<AiChatQuestionProps> = ({
-  title,
+  // title, // title prop 제거
   subtitle,
   selectionTitle,
   options,
@@ -250,6 +251,7 @@ export const AiChatQuestion: React.FC<AiChatQuestionProps> = ({
 
   return (
     <AIContent>
+      {/* <Title>{title}</Title> */}
       <Subtitle>{subtitle}</Subtitle>
       <SelectionTitle>{selectionTitle}</SelectionTitle>
 
@@ -276,9 +278,9 @@ export const AiChatQuestion: React.FC<AiChatQuestionProps> = ({
       {/* 옵션 그리드 */}
       <OptionsGrid
         columns={gridColumns}
-        isMobile={isMobile}
-        isFirstQuestion={isFirstQuestion}
-        optionsCount={options.length}
+        $isMobile={isMobile}
+        $isFirstQuestion={isFirstQuestion}
+        $optionsCount={options.length}
       >
         {options.map((option) => (
           <OptionButton

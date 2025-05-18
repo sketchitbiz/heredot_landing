@@ -25,6 +25,12 @@ import { getStepData, ChatDictionary } from './components/StepData';
 import MessageInput from './components/MessageInput';
 import ChatContent from './components/ChatContent';
 
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import { createRoot } from 'react-dom/client'; // React 18용
+// import ReactDOM from 'react-dom'; // React 17용
+import { PrintableInvoice } from '@/components/Ai/AiChatMessage'; // PrintableInvoice 임포트
+
 // 견적서 상세 정보 상태 인터페이스 정의 수정
 interface InvoiceDetails {
   parsedJson?: InvoiceDataType;
@@ -118,6 +124,130 @@ const PageLanguageSwitcher = () => {
       width="auto"
     />
   );
+};
+
+// PDF 생성 함수
+const generateInvoicePDF = async (
+  invoiceDetailsData: InvoiceDetails,
+  currentLang: 'ko' | 'en',
+  userCountryCode: string,
+  translations: ChatDictionary // 번역 객체 전달
+) => {
+  if (!invoiceDetailsData || !invoiceDetailsData.parsedJson) {
+    console.error('PDF 생성을 위한 견적서 데이터가 없습니다.');
+    // 사용자에게 오류 메시지를 표시할 수 있습니다 (예: alert 또는 채팅 메시지).
+    return;
+  }
+
+  const invoiceNode = document.createElement('div');
+  invoiceNode.setAttribute('id', 'printable-invoice-container-for-pdf-wrapper');
+  invoiceNode.style.position = 'absolute';
+  invoiceNode.style.left = '-9999px';
+  invoiceNode.style.top = '-9999px';
+  invoiceNode.style.zIndex = '-1'; // 화면에 보이지 않도록
+  document.body.appendChild(invoiceNode);
+
+  // React 18+ createRoot 사용
+  const root = createRoot(invoiceNode);
+  root.render(
+    <PrintableInvoice
+      invoiceData={invoiceDetailsData.parsedJson}
+      invoiceDetailsForPdf={invoiceDetailsData} // currentItems 포함된 전체 invoiceDetails 전달
+      t={translations} // 전체 번역 객체 전달
+      countryCode={userCountryCode}
+    />
+  );
+  // React 17의 경우:
+  // ReactDOM.render(<PrintableInvoice ... />, invoiceNode);
+
+  try {
+    // 잠시 기다려 DOM 업데이트 및 스타일 적용 시간 확보 (시간 증가)
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    const printableContent = invoiceNode.querySelector(
+      '#printable-invoice-content'
+    );
+    if (!printableContent) {
+      console.error(
+        'PDF로 변환할 #printable-invoice-content 요소를 찾을 수 없습니다. invoiceNode 내부를 확인합니다:',
+        invoiceNode.innerHTML
+      );
+      // 추가적인 디버깅을 위해 invoiceNode 자체를 캡처 시도 (스타일이 깨질 수 있음)
+      // const canvas = await html2canvas(invoiceNode as HTMLElement, { ... });
+      // console.log('invoiceNode를 직접 캡처 시도함.');
+      return;
+    }
+
+    console.log(
+      '#printable-invoice-content 요소를 찾았습니다. 캡처를 시도합니다.',
+      printableContent
+    );
+    const canvas = await html2canvas(printableContent as HTMLElement, {
+      scale: 2,
+      useCORS: true,
+      logging: process.env.NODE_ENV === 'development', // 개발 모드에서만 로깅 활성화
+      backgroundColor: '#ffffff', // 배경색 흰색으로 명시
+      scrollX: 0, // 내부 스크롤 고려 안함
+      scrollY: -window.scrollY, // 현재 페이지 스크롤 위치 보정
+      windowWidth: printableContent.scrollWidth, // 콘텐츠 너비 사용
+      windowHeight: printableContent.scrollHeight, // 콘텐츠 높이 사용
+    });
+
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF({
+      orientation: 'p',
+      unit: 'mm',
+      format: 'a4',
+    });
+
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = pdf.internal.pageSize.getHeight();
+    const margin = 10; // 양쪽 여백 10mm
+    const contentWidth = pdfWidth - margin * 2;
+
+    const imgProps = pdf.getImageProperties(imgData);
+    const imgHeight = (imgProps.height * contentWidth) / imgProps.width;
+    const currentPosition = margin;
+
+    if (imgHeight <= pdfHeight - margin * 2) {
+      // 한 페이지에 다 들어가는 경우
+      pdf.addImage(
+        imgData,
+        'PNG',
+        margin,
+        currentPosition,
+        contentWidth,
+        imgHeight
+      );
+    } else {
+      // 여러 페이지에 걸쳐야 하는 경우 (여기서는 첫 페이지만 추가, 추후 개선 가능)
+      console.warn(
+        '견적서 내용이 길어 PDF 한 페이지를 초과합니다. 현재는 첫 페이지만 생성됩니다.'
+      );
+      pdf.addImage(
+        imgData,
+        'PNG',
+        margin,
+        currentPosition,
+        contentWidth,
+        pdfHeight - margin * 2
+      );
+      // TODO: 여러 페이지 지원 로직 추가 (예: 이미지를 잘라서 여러 페이지에 추가)
+    }
+
+    pdf.save(`견적서-${invoiceDetailsData.parsedJson.project || '내역'}.pdf`);
+  } catch (pdfError) {
+    console.error('PDF 생성 중 오류 발생:', pdfError);
+    // 사용자에게 오류 알림 (예: setMessages 사용)
+  } finally {
+    // React 18+ createRoot 사용 시
+    root.unmount();
+    // React 17의 경우:
+    // ReactDOM.unmountComponentAtNode(invoiceNode);
+    if (invoiceNode.parentNode) {
+      invoiceNode.parentNode.removeChild(invoiceNode);
+    }
+  }
 };
 
 export default function AiPageContent() {
@@ -364,11 +494,20 @@ export default function AiPageContent() {
       }
     } else if (action === 'download_pdf') {
       console.log('PDF 다운로드 요청');
-      addMessageToChat({
-        id: Date.now(),
-        sender: 'ai',
-        text: 'PDF 다운로드 기능은 현재 준비 중입니다.',
-      });
+      if (invoiceDetails && invoiceDetails.parsedJson) {
+        const userCountry = authStore.getState().user?.countryCode || 'KR';
+        await generateInvoicePDF(invoiceDetails, lang, userCountry, t);
+      } else {
+        addMessageToChat({
+          id: Date.now(),
+          sender: 'ai',
+          text:
+            t.pdf?.downloadFailed ||
+            t.pdfNotAvailable ||
+            '다운로드할 견적서 데이터가 없습니다.',
+        });
+      }
+      return;
     } else if (action === 'discount_extend_8w_20p') {
       const feedbackMsg =
         t.userActionFeedback?.discountExtend8w20p ||
@@ -659,7 +798,7 @@ export default function AiPageContent() {
           if (parsedInvoiceData && parsedInvoiceData.invoiceGroup) {
             const initialItems = parsedInvoiceData.invoiceGroup.flatMap(
               (group) =>
-              group.items.map((item) => ({ ...item, isDeleted: false }))
+                group.items.map((item) => ({ ...item, isDeleted: false }))
             );
             const { amount, duration, pages } = calculateTotals(initialItems);
             setInvoiceDetails({
@@ -774,7 +913,7 @@ export default function AiPageContent() {
             isNarrowScreen={isNarrowScreen}
             isFreeFormMode={isFreeFormMode}
             currentStepData={currentStepData}
-                    initialSelection={initialSelection}
+            initialSelection={initialSelection}
             isDragging={isDragging}
             messages={messages}
             loading={loading}

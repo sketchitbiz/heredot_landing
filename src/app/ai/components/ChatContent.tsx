@@ -166,11 +166,11 @@ const ChatContent: React.FC<ChatContentProps> = ({
             {isNarrowScreen ? (
               <>
                 <ProfileContainer $isNarrowScreen={isNarrowScreen}>
-                  {/* <ProfileImage
+                  <ProfileImage
                     $isNarrowScreen={isNarrowScreen}
                     src="/ai/pretty.png"
                     alt="AI 프로필"
-                  /> */}
+                  />
                   <ProfileName>
                     <strong>{currentStepData.title}</strong>
                   </ProfileName>

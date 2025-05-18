@@ -6,10 +6,11 @@ import { AppTextStyles } from '@/styles/textStyles';
 import ReactMarkdown, { Options } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import useAuthStore from '@/store/authStore';
 import { useLang } from '@/contexts/LangContext';
 import { aiChatDictionary } from '@/lib/i18n/aiChat';
+import { ChatDictionary } from '@/app/ai/components/StepData'; // ChatDictionary 타입 임포트
 
 /**
  * AiChatMessage 컴포넌트
@@ -169,7 +170,6 @@ const formatAmount = (
     // 만약 사용자가 KR이 아니면, 해당 국가 통화와 KRW를 함께 표시
     // 만약 사용자가 KR이지만 forceDetailed가 true이면, USD와 KRW를 함께 표시
 
-    let displayCurrency = 'USD'; // 기본 상세 표시는 USD와 KRW
     let displaySymbol = currencySymbols.US;
     let convertedAmountForDisplay = Math.round(
       amount / (exchangeRates['USD'] || 1350)
@@ -414,11 +414,22 @@ const StyledActionButton = styled.button`
 `;
 
 // 버튼 렌더러의 props 타입 정의
+interface CustomMarkdownNode {
+  type?: string;
+  properties?: {
+    [key: string]: unknown; // 좀 더 일반적인 속성 타입
+    'data-action'?: string;
+    'data-feature-id'?: string;
+  };
+  children?: Array<CustomMarkdownNode | { value?: string }>; // 자식 노드는 재귀적이거나 텍스트 노드일 수 있음
+  value?: string; // 텍스트 노드의 경우
+}
+
 type ButtonRendererProps = React.DetailedHTMLProps<
   React.ButtonHTMLAttributes<HTMLButtonElement>,
   HTMLButtonElement
 > & {
-  node?: unknown;
+  node?: CustomMarkdownNode; // 수정된 타입 적용
 };
 
 // 견적서 컨테이너 스타일 - 견적서 전체를 감싸는 컨테이너
@@ -529,6 +540,476 @@ const ActionButton = styled.button`
   }
 `;
 
+// 모바일 견적서 전체 컨테이너
+const MobileInvoiceContainer = styled.div`
+  margin-top: 1rem;
+`;
+
+// 모바일 견적서 카드 아이템 스타일
+const MobileInvoiceCardItem = styled.div`
+  background-color: #1e1e2d;
+  padding: 1rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  color: ${AppColors.onBackground};
+
+  .item-row {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 0.75rem;
+    font-size: 0.9em;
+
+    .label {
+      font-weight: 500;
+      color: ${AppColors.onSurfaceVariant};
+      margin-bottom: 0.25rem;
+    }
+    .value {
+      text-align: left;
+      word-break: break-word;
+    }
+    .deleted {
+      text-decoration: line-through;
+      color: ${AppColors.disabled};
+    }
+  }
+
+  .description-value {
+    text-align: left;
+    margin-bottom: 0.5rem;
+    font-size: 0.9em;
+    line-height: 1.5;
+    word-break: break-word;
+    p {
+      margin-bottom: 0.3em !important;
+      font-size: 1em !important;
+      font-weight: 300 !important;
+      line-height: 1.4 !important;
+    }
+    em {
+      font-size: 0.9em !important;
+      color: ${AppColors.onSurfaceVariant} !important;
+    }
+  }
+
+  .actions-row {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: flex-end;
+  }
+`;
+
+// PrintableInvoice를 위한 스타일 컴포넌트들
+const PrintableInvoiceWrapper = styled.div`
+  width: 780px; /* A4 용지에서 양쪽 여백 고려한 너비 (대략) */
+  padding: 20px;
+  background-color: white;
+  color: black;
+  font-family: 'Helvetica', 'Arial', sans-serif;
+  box-sizing: border-box;
+
+  h3 {
+    font-size: 1.5em;
+    color: #333333;
+    margin-bottom: 1.2em;
+    text-align: center;
+  }
+
+  .quotation-title {
+    font-size: 2em; /* 이미지와 유사한 크기로 조정 */
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 1.5em; /* 테이블과의 간격 조정 */
+    color: black;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+    font-size: 9pt; /* PDF용 폰트 크기 */
+
+    th,
+    td {
+      border: 1px solid #cccccc;
+      padding: 8px 10px;
+      text-align: left;
+      vertical-align: top;
+      word-break: break-word;
+    }
+
+    th {
+      background-color: #f0f0f0;
+      font-weight: bold;
+      color: #333333;
+      white-space: nowrap;
+    }
+
+    .col-category {
+      width: 18%;
+      text-align: center;
+    }
+    .col-feature {
+      width: 22%;
+      text-align: center;
+    }
+    .col-description {
+      width: 35%;
+      font-size: 8.5pt;
+      line-height: 1.4;
+      div p {
+        margin: 0 0 5px 0;
+        line-height: 1.4;
+      }
+      div em {
+        font-style: italic;
+        font-size: 0.95em;
+        color: #555;
+      }
+    }
+    .col-amount {
+      width: 25%;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    tbody tr:last-child td {
+      /* border-bottom: none; */ /* 마지막 줄 하단 테두리 유지 또는 필요시 제거 */
+    }
+    .total-label {
+      text-align: right;
+      font-weight: bold;
+      padding-right: 1em;
+    }
+    .total-amount strong {
+      font-weight: bold;
+    }
+  }
+`;
+
+// PDF용 금액 포맷 함수 (기존 formatAmount와 유사하나, hook 의존성 없이 사용)
+const formatAmountForPdf = (
+  amount: number | string,
+  countryCodeFromUser: string,
+  forceDetailed: boolean = true
+) => {
+  if (typeof amount !== 'number') return amount;
+
+  const effectiveCountryCode = countryCodeFromUser || 'KR';
+
+  if (forceDetailed || effectiveCountryCode !== 'KR') {
+    const localCurrencyForPdf = getCountryCurrency(effectiveCountryCode);
+    const localSymbolForPdf = getCurrencySymbol(effectiveCountryCode);
+
+    let displaySymbol = currencySymbols.US;
+    let convertedAmountForDisplay = Math.round(
+      amount / (exchangeRates['USD'] || 1350)
+    );
+
+    if (effectiveCountryCode !== 'KR') {
+      displaySymbol = localSymbolForPdf;
+      if (exchangeRates[localCurrencyForPdf as keyof typeof exchangeRates]) {
+        convertedAmountForDisplay = Math.round(
+          amount /
+            exchangeRates[localCurrencyForPdf as keyof typeof exchangeRates]
+        );
+      } else if (localCurrencyForPdf === 'KRW') {
+        displaySymbol = currencySymbols.US; // Should be USD if localCurrency is KRW but not KR user
+        convertedAmountForDisplay = Math.round(
+          amount / (exchangeRates['USD'] || 1350)
+        );
+      }
+    }
+    return `${displaySymbol}${convertedAmountForDisplay.toLocaleString()} (₩${amount.toLocaleString()})`;
+  }
+  return `₩${amount.toLocaleString()}`;
+};
+
+interface PrintableInvoiceProps {
+  invoiceData: InvoiceDataType;
+  invoiceDetailsForPdf: {
+    items: Array<
+      InvoiceDataType['invoiceGroup'][number]['items'][number] & {
+        isDeleted: boolean;
+      }
+    >;
+    currentTotal: number;
+    currentTotalDuration: number;
+    currentTotalPages: number;
+  };
+  t: ChatDictionary;
+  countryCode: string;
+}
+
+const PrintableCompanyInfoTable = styled.table`
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+  font-size: 8pt;
+  table-layout: fixed;
+
+  th,
+  td {
+    border: 1px solid #666666;
+    padding: 4px 6px;
+    vertical-align: middle;
+    word-break: break-all;
+    height: 28px;
+  }
+
+  .label-cell {
+    background-color: #f0f0f0;
+    font-weight: bold;
+    text-align: center;
+    color: #333;
+  }
+
+  .value-cell {
+    text-align: left;
+    padding-left: 8px;
+  }
+
+  .col-fixed-label {
+    width: 100px;
+  }
+  .col-fixed-value {
+    width: 250px;
+  }
+  .col-right-label {
+    width: 80px;
+  }
+  .col-auto {
+    width: auto;
+  }
+
+  .document-title-cell {
+    height: 40px;
+    font-size: 12pt;
+    font-weight: bold;
+    text-align: center;
+    vertical-align: middle;
+    border-left: none;
+    border-right: none;
+    border-top: 2px solid black;
+    border-bottom: 1px solid black;
+    color: #000;
+  }
+`;
+
+export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
+  invoiceData,
+  invoiceDetailsForPdf,
+  t,
+  countryCode,
+}) => {
+  const companyInfo = {
+    docTitle: `${t.commonUser || '여기닷'} 자사 홈페이지+AI견적서 기능명세서`,
+    webDevDesign: '웹 개발 - 디자인',
+    responsive: '반응형 (PC / Mobile 웹)',
+    multilingualLabel: '다국어', // 웹 개발 - 디자인 섹션의 일부로 표시될 다국어 레이블
+    webMultilingualValue: `웹 : ${
+      t.lang === 'ko' ? '국문 / 영문' : 'Korean / English'
+    } , AI 다국어`, // 웹 개발 - 디자인 섹션의 일부로 표시될 다국어 값
+    devFramework: '개발프레임웍',
+    frameworks:
+      'React.js(next) / Node.js / Postgre / Server 카페24 클라우드 활용 예정',
+    date: '2025.1.21',
+    regNum: '289-86-03278',
+    companyName: `(주)${t.commonUser || '여기닷'}`,
+    address:
+      '경기도 성남시 수정구 대학판교로 815, 777호(시흥동, 판교창조경제밸리)',
+    representative: `강태원 대표 (010-3901-7981)`,
+    businessType: '서비스업',
+    businessItem: '응용소프트웨어 개발 및 공급업',
+  };
+
+  return (
+    <PrintableInvoiceWrapper id="printable-invoice-content">
+      <div className="quotation-title">견적서 (QUOTATION)</div>
+      <PrintableCompanyInfoTable>
+        <tbody>
+          <tr>
+            <td colSpan={5} className="document-title-cell">
+              {companyInfo.docTitle}
+            </td>
+          </tr>
+          <tr>
+            <td className="label-cell col-fixed-label" rowSpan={2}>
+              {companyInfo.webDevDesign}
+            </td>
+            <td className="value-cell col-fixed-value" rowSpan={1}>
+              {companyInfo.responsive}
+            </td>
+            <td className="label-cell col-right-label" rowSpan={1}>
+              작성일
+            </td>
+            <td className="value-cell col-auto" rowSpan={1}>
+              {companyInfo.date}
+            </td>
+          </tr>
+          <tr>
+            <td className="value-cell col-fixed-value" rowSpan={1}>
+              {companyInfo.webMultilingualValue}
+            </td>
+            {/* 웹 다국어 값 */}
+            <td className="label-cell col-right-label" rowSpan={1}>
+              등록번호
+            </td>
+            <td className="value-cell col-auto" rowSpan={1}>
+              {companyInfo.regNum}
+            </td>
+          </tr>
+          <tr>
+            <td className="label-cell col-fixed-label" rowSpan={2}>
+              {companyInfo.multilingualLabel}
+            </td>
+            {/* 다국어 레이블 */}
+            <td className="value-cell col-fixed-value" rowSpan={2}></td>{' '}
+            {/* AI 다국어 값은 webMultilingualValue에 포함, 이 셀은 빈 값 또는 다른 정보 */}
+            <td className="label-cell col-right-label">상호</td>
+            <td className="value-cell col-auto">{companyInfo.companyName}</td>
+          </tr>
+          <tr>
+            <td className="label-cell col-right-label">주소</td>
+            <td className="value-cell col-auto">{companyInfo.address}</td>
+          </tr>
+          <tr>
+            <td className="label-cell col-fixed-label" rowSpan={2}></td>{' '}
+            {/* 빈 레이블 셀 또는 다른 정보 */}
+            <td className="value-cell col-fixed-value" rowSpan={2}></td>{' '}
+            {/* 빈 값 셀 또는 다른 정보 */}
+            <td className="label-cell col-right-label">성명</td>
+            <td className="value-cell col-auto">
+              {companyInfo.representative}
+            </td>
+          </tr>
+          <tr>
+            <td className="label-cell col-right-label">업태</td>
+            <td className="value-cell col-auto">{companyInfo.businessType}</td>
+          </tr>
+          <tr>
+            <td className="label-cell col-fixed-label">
+              {companyInfo.devFramework}
+            </td>
+            <td className="value-cell col-fixed-value">
+              {companyInfo.frameworks}
+            </td>
+            <td className="label-cell col-right-label">종목</td>
+            <td className="value-cell col-auto">{companyInfo.businessItem}</td>
+          </tr>
+        </tbody>
+      </PrintableCompanyInfoTable>
+
+      <table>
+        <thead>
+          <tr>
+            <th className="col-category">{t.tableHeaders.category}</th>
+            <th className="col-feature">{t.tableHeaders.item}</th>
+            <th className="col-description">{t.tableHeaders.detail}</th>
+            <th className="col-amount">{t.tableHeaders.amount}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {invoiceData.invoiceGroup?.map((group) => {
+            // PDF에는 삭제되지 않은 항목만 포함하고, rowspan 계산도 삭제되지 않은 항목 기준으로
+            const visibleItems = group.items.filter((item) => {
+              const currentItemDetails = invoiceDetailsForPdf.items.find(
+                (ci) => ci.id === item.id
+              );
+              return !(currentItemDetails && currentItemDetails.isDeleted);
+            });
+
+            if (visibleItems.length === 0) return null; // 그룹 내 모든 아이템이 삭제된 경우 그룹 자체를 표시 안함
+
+            return visibleItems.map((item, visibleItemIndex) => {
+              return (
+                <tr key={`pdf-item-${item.id}`}>
+                  {visibleItemIndex === 0 ? (
+                    <td
+                      className="col-category"
+                      rowSpan={visibleItems.length || 1}
+                    >
+                      {group.category}
+                    </td>
+                  ) : null}
+                  <td className="col-feature">{item.feature}</td>
+                  <td className="col-description">
+                    <div
+                      dangerouslySetInnerHTML={{
+                        __html:
+                          item.description?.replace(/\n|\r\n|\r/g, '<br />') ||
+                          '',
+                      }}
+                    />
+                    {item.note &&
+                      !/^[A-Z]{3}\s[\d,.]+\s\(₩[\d,.]+\)$/.test(item.note) && (
+                        <p
+                          style={{
+                            fontSize: '0.8em',
+                            color: '#555',
+                            marginTop: '5px',
+                          }}
+                        >
+                          <em>
+                            {t.estimateInfo.note}: {item.note}
+                          </em>
+                        </p>
+                      )}
+                  </td>
+                  <td className="col-amount">
+                    {item.note &&
+                    /^[A-Z]{3}\s[\d,.]+\s\(₩[\d,.]+\)$/.test(item.note)
+                      ? item.note
+                      : formatAmountForPdf(item.amount, countryCode)}
+                  </td>
+                </tr>
+              );
+            });
+          })}
+          <tr>
+            <td colSpan={3} className="total-label">
+              <strong>{t.estimateInfo.totalSum}</strong>
+            </td>
+            <td className="col-amount total-amount">
+              <strong>
+                {invoiceData.total?.totalConvertedDisplay &&
+                typeof invoiceData.total.totalConvertedDisplay === 'string'
+                  ? invoiceData.total.totalConvertedDisplay
+                  : formatAmountForPdf(
+                      invoiceDetailsForPdf.currentTotal,
+                      countryCode
+                    )}
+              </strong>
+            </td>
+          </tr>
+          {invoiceDetailsForPdf.currentTotalDuration > 0 && (
+            <tr>
+              <td colSpan={3} className="total-label">
+                {t.estimateInfo.totalDuration}
+              </td>
+              <td className="col-amount">
+                {`${Math.ceil(invoiceDetailsForPdf.currentTotalDuration / 5)} ${
+                  t.estimateInfo.week
+                }`}
+              </td>
+            </tr>
+          )}
+          {invoiceDetailsForPdf.currentTotalPages > 0 && (
+            <tr>
+              <td colSpan={3} className="total-label">
+                {t.estimateInfo.totalPages}
+              </td>
+              <td className="col-amount">
+                {invoiceDetailsForPdf.currentTotalPages} {t.estimateInfo.page}
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </PrintableInvoiceWrapper>
+  );
+};
+
 /**
  * AiChatMessage 컴포넌트 함수
  *
@@ -557,15 +1038,23 @@ export function AiChatMessage({
 }: MessageProps) {
   const isAiMessage = sender === 'ai';
 
-  // 언어 정보 가져오기
   const { lang } = useLang();
-  const t = aiChatDictionary[lang]; // 현재 언어에 해당하는 번역 텍스트
+  const t = aiChatDictionary[lang];
 
-  // 사용자 국적 정보 가져오기
   const user = useAuthStore((state) => state.user);
-  const countryCode = user?.countryCode || 'KR'; // 기본값은 한국
+  const countryCode = user?.countryCode || 'KR';
 
-  // 메모이제이션된 통화 포맷 함수
+  const [isMobileView, setIsMobileView] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobileView(window.innerWidth < 750);
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const formatAmountWithCurrency = useMemo(
     () =>
       (amount: number | string, forceDetailed: boolean = false) =>
@@ -573,7 +1062,6 @@ export function AiChatMessage({
     [countryCode]
   );
 
-  // 마크다운 내 커스텀 컴포넌트 정의 (버튼 등)
   const customComponents: Options['components'] = {
     button: ({ node, ...props }: ButtonRendererProps) => {
       let action: string | undefined;
@@ -581,13 +1069,17 @@ export function AiChatMessage({
       let buttonText: string = 'Button';
 
       // 노드 데이터에서 액션 정보 추출
-      if (typeof node === 'object' && node !== null) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        action = (node as any).properties?.['data-action'];
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        featureId = (node as any).properties?.['data-feature-id'];
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        buttonText = (node as any).children?.[0]?.value || 'Button';
+      if (node && node.properties) {
+        action = node.properties['data-action'] as string | undefined;
+        featureId = node.properties['data-feature-id'] as string | undefined;
+      }
+      if (
+        node &&
+        node.children &&
+        node.children.length > 0 &&
+        (node.children[0] as CustomMarkdownNode).value
+      ) {
+        buttonText = (node.children[0] as CustomMarkdownNode).value || 'Button';
       }
 
       // 액션이 있는 경우 클릭 핸들러 연결
@@ -598,7 +1090,6 @@ export function AiChatMessage({
               if (action && onActionClick) {
                 onActionClick(action, featureId ? { featureId } : undefined);
               } else if (featureId && onActionClick) {
-                // data-action이 없고 data-feature-id만 있는 경우 (예: 삭제 버튼)
                 onActionClick('delete_feature', { featureId });
               }
             }}
@@ -608,17 +1099,13 @@ export function AiChatMessage({
           </StyledActionButton>
         );
       }
-      // 액션이 없는 버튼 - 기본 스타일 적용
       return <StyledActionButton {...props}>{buttonText}</StyledActionButton>;
     },
   };
 
   return (
     <MessageWrapper $sender={sender}>
-      {/* AI 메시지인 경우에만 프로필 이미지 표시 */}
-      {/* {isAiMessage && <ProfileImage src="/ai/pretty.png" alt="AI 프로필" />} */}
       <MessageBox $sender={sender}>
-        {/* AI 메시지인 경우에만 이름과 프로필 이미지 표시 */}
         {isAiMessage && (
           <AiProfileHeader>
             <ProfileImage src="/ai/pretty.png" alt="AI 프로필" />
@@ -626,7 +1113,6 @@ export function AiChatMessage({
           </AiProfileHeader>
         )}
 
-        {/* 메시지 내용 - 마크다운 지원 */}
         <StyledMarkdownContainer>
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
@@ -637,7 +1123,6 @@ export function AiChatMessage({
           </ReactMarkdown>
         </StyledMarkdownContainer>
 
-        {/* AI 메시지이면서 견적서 데이터가 있는 경우 견적서 UI 표시 */}
         {isAiMessage && invoiceData && (
           <StyledInvoiceContainer>
             <div
@@ -654,79 +1139,57 @@ export function AiChatMessage({
               </div>
             </div>
 
-            {/* 견적서 테이블 */}
-            <InvoiceTable>
-              <thead>
-                <tr>
-                  <th className="col-category">{t.tableHeaders.category}</th>
-                  <th className="col-feature">{t.tableHeaders.item}</th>
-                  <th className="col-description">{t.tableHeaders.detail}</th>
-                  <th className="col-amount">{t.tableHeaders.amount}</th>
-                  <th className="col-actions">{t.tableHeaders.management}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {/* 견적서 그룹 및 항목 반복 렌더링 */}
-                {invoiceData.invoiceGroup?.map((group, groupIndex) => (
-                  <React.Fragment key={`group-${group.category}-${groupIndex}`}>
-                    {group.items?.map((item, itemIndex) => {
-                      // 현재 항목의 삭제 상태 확인
-                      const currentItemStatus = currentItems?.find(
-                        (ci) => ci.id === item.id
-                      );
-                      const isActuallyDeleted = currentItemStatus
-                        ? currentItemStatus.isDeleted
-                        : false;
-
-                      return (
-                        <tr
-                          key={item.id || `feature-${groupIndex}-${itemIndex}`}
-                        >
-                          {/* 첫 항목의 경우만 카테고리 열 표시 (rowspan 사용) */}
-                          {itemIndex === 0 ? (
-                            <td
-                              className="col-category"
-                              rowSpan={group.items.length || 1}
-                              style={{
-                                textDecoration: isActuallyDeleted
-                                  ? 'line-through'
-                                  : 'none',
-                                color: isActuallyDeleted
-                                  ? AppColors.disabled
-                                  : AppColors.onBackground,
-                              }}
-                            >
-                              {group.category}
-                            </td>
-                          ) : null}
-                          {/* 항목명 */}
-                          <td
-                            className="col-feature"
-                            style={{
-                              textDecoration: isActuallyDeleted
-                                ? 'line-through'
-                                : 'none',
-                              color: isActuallyDeleted
-                                ? AppColors.disabled
-                                : AppColors.onBackground,
-                            }}
+            {isMobileView ? (
+              <MobileInvoiceContainer>
+                {invoiceData.invoiceGroup?.map((group) =>
+                  group.items?.map((item, itemIndex) => {
+                    const currentItemStatus = currentItems?.find(
+                      (ci) => ci.id === item.id
+                    );
+                    const isActuallyDeleted = currentItemStatus
+                      ? currentItemStatus.isDeleted
+                      : false;
+                    return (
+                      <MobileInvoiceCardItem
+                        key={
+                          item.id || `mobile-item-${itemIndex}`
+                        }
+                      >
+                        <div className="item-row">
+                          <span className="label">
+                            {t.tableHeaders.category}
+                          </span>
+                          <span
+                            className={`value ${
+                              isActuallyDeleted ? 'deleted' : ''
+                            }`}
+                          >
+                            {group.category}
+                          </span>
+                        </div>
+                        <div className="item-row">
+                          <span className="label">{t.tableHeaders.item}</span>
+                          <span
+                            className={`value ${
+                              isActuallyDeleted ? 'deleted' : ''
+                            }`}
                           >
                             {item.feature}
-                          </td>
-                          {/* 세부 내용 */}
-                          <td
-                            className="col-description"
-                            style={{
-                              textDecoration: isActuallyDeleted
-                                ? 'line-through'
-                                : 'none',
-                              color: isActuallyDeleted
-                                ? AppColors.disabled
-                                : AppColors.onBackground,
-                            }}
+                          </span>
+                        </div>
+                        <div className="item-row">
+                          <span className="label">{t.tableHeaders.detail}</span>
+                          <div
+                            className={`description-value value ${
+                              isActuallyDeleted ? 'deleted' : ''
+                            }`}
                           >
-                            {item.description}
-                            {/* 참고사항 표시 - 단, 화폐 변환 노트가 아닐 경우에만 */}
+                            <ReactMarkdown
+                              remarkPlugins={[remarkGfm]}
+                              rehypePlugins={[rehypeRaw]}
+                            >
+                              {item.description}
+                            </ReactMarkdown>
                             {item.note &&
                               !/^[A-Z]{3}\s[\d,.]+\s\(₩[\d,.]+\)$/.test(
                                 item.note
@@ -743,52 +1206,46 @@ export function AiChatMessage({
                                   </em>
                                 </p>
                               )}
-                          </td>
-                          {/* 예상 금액 */}
-                          <td
-                            className="col-amount"
-                            style={{
-                              textDecoration: isActuallyDeleted
-                                ? 'line-through'
-                                : 'none',
-                              color: isActuallyDeleted
-                                ? AppColors.disabled
-                                : AppColors.onBackground,
-                            }}
+                          </div>
+                        </div>
+                        <div className="item-row">
+                          <span className="label">{t.tableHeaders.amount}</span>
+                          <span
+                            className={`value ${
+                              isActuallyDeleted ? 'deleted' : ''
+                            }`}
                           >
-                            {/* item.note가 통화 변환 문자열이면 그것을 사용, 아니면 기존 formatAmountWithCurrency 사용 */}
                             {item.note &&
                             /^[A-Z]{3}\s[\d,.]+\s\(₩[\d,.]+\)$/.test(item.note)
                               ? item.note
                               : formatAmountWithCurrency(item.amount, true)}
-                          </td>
-                          {/* 관리 버튼 */}
-                          <td className="col-actions">
-                            <ActionButton
-                              onClick={() =>
-                                onActionClick('delete_feature_json', {
-                                  featureId: item.id,
-                                })
-                              }
-                            >
-                              {isActuallyDeleted
-                                ? t.buttons.cancel
-                                : t.buttons.delete}
-                            </ActionButton>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </React.Fragment>
-                ))}
-                {/* 총 합계 행 */}
-                <tr>
-                  <td colSpan={3} className="total-label">
-                    <strong>{t.estimateInfo.totalSum}</strong>
-                  </td>
-                  <td className="col-amount">
-                    <strong>
-                      {/* AI가 제공하는 totalConvertedDisplay 문자열이 있으면 우선 사용, 없으면 기존 로직 */}
+                          </span>
+                        </div>
+                        <div className="actions-row">
+                          <ActionButton
+                            onClick={() =>
+                              onActionClick('delete_feature_json', {
+                                featureId: item.id,
+                              })
+                            }
+                          >
+                            {isActuallyDeleted
+                              ? t.buttons.cancel
+                              : t.buttons.delete}
+                          </ActionButton>
+                        </div>
+                      </MobileInvoiceCardItem>
+                    );
+                  })
+                )}
+                <MobileInvoiceCardItem
+                  style={{ marginTop: '2rem', backgroundColor: '#2a2a3a' }}
+                >
+                  <div className="item-row">
+                    <span className="label" style={{ fontWeight: 'bold' }}>
+                      {t.estimateInfo.totalSum}
+                    </span>
+                    <span className="value" style={{ fontWeight: 'bold' }}>
                       {invoiceData.total?.totalConvertedDisplay &&
                       typeof invoiceData.total.totalConvertedDisplay ===
                         'string'
@@ -799,40 +1256,208 @@ export function AiChatMessage({
                             invoiceData.total?.amount,
                             true
                           )}
-                    </strong>
-                  </td>
-                  <td></td>
-                </tr>
-                {/* 총 예상 기간 행 (있는 경우만) */}
-                {calculatedTotalDuration !== undefined && (
+                    </span>
+                  </div>
+                  {calculatedTotalDuration !== undefined && (
+                    <div className="item-row">
+                      <span className="label">
+                        {t.estimateInfo.totalDuration}
+                      </span>
+                      <span className="value">
+                        {typeof calculatedTotalDuration === 'number'
+                          ? `${Math.ceil(calculatedTotalDuration / 5)} ${
+                              t.estimateInfo.week
+                            }`
+                          : `${calculatedTotalDuration} ${t.estimateInfo.day}`}
+                      </span>
+                    </div>
+                  )}
+                  {calculatedTotalPages !== undefined && (
+                    <div className="item-row">
+                      <span className="label">{t.estimateInfo.totalPages}</span>
+                      <span className="value">
+                        {calculatedTotalPages} {t.estimateInfo.page}
+                      </span>
+                    </div>
+                  )}
+                </MobileInvoiceCardItem>
+              </MobileInvoiceContainer>
+            ) : (
+              <InvoiceTable>
+                <thead>
+                  <tr>
+                    <th className="col-category">{t.tableHeaders.category}</th>
+                    <th className="col-feature">{t.tableHeaders.item}</th>
+                    <th className="col-description">{t.tableHeaders.detail}</th>
+                    <th className="col-amount">{t.tableHeaders.amount}</th>
+                    <th className="col-actions">{t.tableHeaders.management}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {invoiceData.invoiceGroup?.map((group) => (
+                    <React.Fragment
+                      key={`group-${group.category}`}
+                    >
+                      {group.items?.map((item, itemIndex) => {
+                        const currentItemStatus = currentItems?.find(
+                          (ci) => ci.id === item.id
+                        );
+                        const isActuallyDeleted = currentItemStatus
+                          ? currentItemStatus.isDeleted
+                          : false;
+
+                        return (
+                          <tr
+                            key={
+                              item.id || `feature-${itemIndex}`
+                            }
+                          >
+                            {itemIndex === 0 ? (
+                              <td
+                                className="col-category"
+                                rowSpan={group.items.length || 1}
+                                style={{
+                                  textDecoration: isActuallyDeleted
+                                    ? 'line-through'
+                                    : 'none',
+                                  color: isActuallyDeleted
+                                    ? AppColors.disabled
+                                    : AppColors.onBackground,
+                                }}
+                              >
+                                {group.category}
+                              </td>
+                            ) : null}
+                            <td
+                              className="col-feature"
+                              style={{
+                                textDecoration: isActuallyDeleted
+                                  ? 'line-through'
+                                  : 'none',
+                                color: isActuallyDeleted
+                                  ? AppColors.disabled
+                                  : AppColors.onBackground,
+                              }}
+                            >
+                              {item.feature}
+                            </td>
+                            <td
+                              className="col-description"
+                              style={{
+                                textDecoration: isActuallyDeleted
+                                  ? 'line-through'
+                                  : 'none',
+                                color: isActuallyDeleted
+                                  ? AppColors.disabled
+                                  : AppColors.onBackground,
+                              }}
+                            >
+                              {item.description}
+                              {item.note &&
+                                !/^[A-Z]{3}\s[\d,.]+\s\(₩[\d,.]+\)$/.test(
+                                  item.note
+                                ) && (
+                                  <p
+                                    style={{
+                                      fontSize: '0.9em',
+                                      color: AppColors.onSurfaceVariant,
+                                      marginTop: '0.3em',
+                                    }}
+                                  >
+                                    <em>
+                                      {t.estimateInfo.note}: {item.note}
+                                    </em>
+                                  </p>
+                                )}
+                            </td>
+                            <td
+                              className="col-amount"
+                              style={{
+                                textDecoration: isActuallyDeleted
+                                  ? 'line-through'
+                                  : 'none',
+                                color: isActuallyDeleted
+                                  ? AppColors.disabled
+                                  : AppColors.onBackground,
+                              }}
+                            >
+                              {item.note &&
+                              /^[A-Z]{3}\s[\d,.]+\s\(₩[\d,.]+\)$/.test(
+                                item.note
+                              )
+                                ? item.note
+                                : formatAmountWithCurrency(item.amount, true)}
+                            </td>
+                            <td className="col-actions">
+                              <ActionButton
+                                onClick={() =>
+                                  onActionClick('delete_feature_json', {
+                                    featureId: item.id,
+                                  })
+                                }
+                              >
+                                {isActuallyDeleted
+                                  ? t.buttons.cancel
+                                  : t.buttons.delete}
+                              </ActionButton>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </React.Fragment>
+                  ))}
                   <tr>
                     <td colSpan={3} className="total-label">
-                      {t.estimateInfo.totalDuration}
+                      <strong>{t.estimateInfo.totalSum}</strong>
                     </td>
                     <td className="col-amount">
-                      {typeof calculatedTotalDuration === 'number'
-                        ? `${Math.ceil(calculatedTotalDuration / 5)} ${
-                            t.estimateInfo.week
-                          }`
-                        : `${calculatedTotalDuration} ${t.estimateInfo.day}`}
+                      <strong>
+                        {invoiceData.total?.totalConvertedDisplay &&
+                        typeof invoiceData.total.totalConvertedDisplay ===
+                          'string'
+                          ? invoiceData.total.totalConvertedDisplay
+                          : calculatedTotalAmount !== undefined
+                          ? formatAmountWithCurrency(
+                              calculatedTotalAmount,
+                              true
+                            )
+                          : formatAmountWithCurrency(
+                              invoiceData.total?.amount,
+                              true
+                            )}
+                      </strong>
                     </td>
                     <td></td>
                   </tr>
-                )}
-                {/* 총 예상 페이지 수 행 (있는 경우만) */}
-                {calculatedTotalPages !== undefined && (
-                  <tr>
-                    <td colSpan={3} className="total-label">
-                      {t.estimateInfo.totalPages}
-                    </td>
-                    <td className="col-amount">
-                      {calculatedTotalPages} {t.estimateInfo.page}
-                    </td>
-                    <td></td>
-                  </tr>
-                )}
-              </tbody>
-            </InvoiceTable>
+                  {calculatedTotalDuration !== undefined && (
+                    <tr>
+                      <td colSpan={3} className="total-label">
+                        {t.estimateInfo.totalDuration}
+                      </td>
+                      <td className="col-amount">
+                        {typeof calculatedTotalDuration === 'number'
+                          ? `${Math.ceil(calculatedTotalDuration / 5)} ${
+                              t.estimateInfo.week
+                            }`
+                          : `${calculatedTotalDuration} ${t.estimateInfo.day}`}
+                      </td>
+                      <td></td>
+                    </tr>
+                  )}
+                  {calculatedTotalPages !== undefined && (
+                    <tr>
+                      <td colSpan={3} className="total-label">
+                        {t.estimateInfo.totalPages}
+                      </td>
+                      <td className="col-amount">
+                        {calculatedTotalPages} {t.estimateInfo.page}
+                      </td>
+                      <td></td>
+                    </tr>
+                  )}
+                </tbody>
+              </InvoiceTable>
+            )}
 
             {/* 할인 및 PDF 저장 옵션 */}
             <div
@@ -860,14 +1485,13 @@ export function AiChatMessage({
                 {t.discount.options.map((optionText, index) => {
                   let action = '';
                   if (index === 0) {
-                    action = 'discount_extend_8w_20p'; // 8주 연장 및 20% 할인
+                    action = 'discount_extend_8w_20p';
                   } else if (index === 1) {
-                    action = 'discount_remove_features_budget'; // 예산 절감 기능 제거
+                    action = 'discount_remove_features_budget';
                   } else if (index === 2) {
-                    action = 'discount_ai_suggestion'; // AI 기능 제안
+                    action = 'discount_ai_suggestion';
                   }
 
-                  // AI 제안 텍스트 처리 (이전과 동일)
                   let mainText = optionText;
                   let subText = '';
                   if (
@@ -931,8 +1555,8 @@ export function AiChatMessage({
               <ActionButton
                 onClick={() => onActionClick('download_pdf')}
                 style={{
-                  backgroundColor: '#2E7D32', // 어두운 초록색 배경
-                  width: '150px', // 가로 150px
+                  backgroundColor: '#2E7D32',
+                  width: '150px',
                 }}
               >
                 {t.buttons.downloadPdf}
@@ -941,7 +1565,6 @@ export function AiChatMessage({
           </StyledInvoiceContainer>
         )}
 
-        {/* 첨부된 이미지가 있는 경우 표시 */}
         {imageUrl && fileType && fileType.startsWith('image/') && (
           <div
             style={{
