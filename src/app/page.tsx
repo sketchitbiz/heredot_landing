@@ -159,7 +159,6 @@ export default function HomePage() {
     }
   };
   
-  
 
   const firstHeaderLogged = useRef(false);
 

@@ -51,15 +51,15 @@ const StatusMessage = styled.div`
 const FlexContainer = styled.div<{ $isNarrowScreen?: boolean }>`
   display: flex;
   width: 100%;
-  flex-direction: ${(props) => (props.$isNarrowScreen ? 'column' : 'row')};
+  flex-direction: ${(props) => (props.$isNarrowScreen ? 'column' : 'column')};
   align-items: ${(props) => (props.$isNarrowScreen ? 'center' : 'flex-start')};
 `;
 
 const ProfileContainer = styled.div<{ $isNarrowScreen?: boolean }>`
   display: flex;
   align-items: center;
-  margin-bottom: ${(props) => (props.$isNarrowScreen ? '1rem' : '0')};
-  width: ${(props) => (props.$isNarrowScreen ? '100%' : 'auto')};
+  // margin-bottom: ${(props) => (props.$isNarrowScreen ? '0' : '0')};
+  width: ${(props) => (props.$isNarrowScreen ? '100%' : '100%')};
   justify-content: flex-start; // 항상 왼쪽 정렬
 `;
 
@@ -166,11 +166,11 @@ const ChatContent: React.FC<ChatContentProps> = ({
             {isNarrowScreen ? (
               <>
                 <ProfileContainer $isNarrowScreen={isNarrowScreen}>
-                  <ProfileImage
+                  {/* <ProfileImage
                     $isNarrowScreen={isNarrowScreen}
                     src="/ai/pretty.png"
                     alt="AI 프로필"
-                  />
+                  /> */}
                   <ProfileName>
                     <strong>{currentStepData.title}</strong>
                   </ProfileName>
@@ -184,11 +184,16 @@ const ChatContent: React.FC<ChatContentProps> = ({
               </>
             ) : (
               <>
-                <ProfileImage
-                  $isNarrowScreen={isNarrowScreen}
-                  src="/ai/pretty.png"
-                  alt="AI 프로필"
-                />
+                <ProfileContainer $isNarrowScreen={isNarrowScreen}>
+                  <ProfileImage
+                    $isNarrowScreen={isNarrowScreen}
+                    src="/ai/pretty.png"
+                    alt="AI 프로필"
+                  />
+                  <ProfileName>
+                    <strong>{currentStepData.title}</strong>
+                  </ProfileName>
+                </ProfileContainer>
                 <AiChatQuestion
                   {...currentStepData}
                   initialSelection={initialSelection}

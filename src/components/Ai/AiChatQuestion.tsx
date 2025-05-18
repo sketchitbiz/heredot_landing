@@ -27,6 +27,7 @@ interface AiChatQuestionProps {
   onNext: (selectedIds: string[]) => void; // 다음 버튼 클릭 핸들러
   onPrevious: () => void; // 이전 버튼 클릭 핸들러
   initialSelection?: string[]; // 초기 선택값 (이전 단계에서 돌아올 경우)
+  isFirstQuestion?: boolean; // 첫 번째 질문인지 여부 추가
 }
 
 // --- 스타일 컴포넌트 정의 (기존 page.tsx에서 가져오거나 새로 정의) ---
@@ -59,10 +60,35 @@ const SelectionTitle = styled.h3`
   margin-bottom: 1rem;
 `;
 
-const OptionsGrid = styled.div<{ columns: number; isMobile: boolean }>`
+const OptionsGrid = styled.div<{
+  columns: number;
+  isMobile: boolean;
+  isFirstQuestion?: boolean;
+  optionsCount?: number;
+}>`
   display: grid;
-  grid-template-columns: ${(props) =>
-    props.isMobile ? '1fr' : `repeat(${props.columns}, 1fr)`};
+  grid-template-columns: ${(props) => {
+    const { columns, isMobile, isFirstQuestion, optionsCount = 0 } = props;
+
+    if (isFirstQuestion) {
+      if (isMobile) {
+        // 첫 번째 질문 & 모바일: 각 옵션이 한 줄씩 (1열)
+        return '1fr';
+      } else {
+        // 첫 번째 질문 & 데스크탑: 모든 옵션이 한 줄에
+        return `repeat(${Math.max(1, optionsCount)}, minmax(0, 1fr))`;
+      }
+    } else {
+      // 첫 번째 질문이 아님 (2번째, 3번째 등)
+      if (isMobile) {
+        // 모바일 & 두 번째 이후 질문: 한 줄에 3개씩 (3열)
+        return 'repeat(3, 1fr)';
+      } else {
+        // 데스크탑 & 두 번째 이후 질문: gridColumns prop에 따라 (기존 로직)
+        return `repeat(${columns}, 3fr)`;
+      }
+    }
+  }};
   gap: 1rem;
   margin-bottom: 1.5rem;
   width: 100%;
@@ -189,6 +215,7 @@ export const AiChatQuestion: React.FC<AiChatQuestionProps> = ({
   onNext,
   onPrevious,
   initialSelection = [],
+  isFirstQuestion = false,
 }) => {
   const [selectedIds, setSelectedIds] = useState<string[]>(initialSelection);
   const { lang } = useLang(); // 언어 설정 가져오기
@@ -223,7 +250,6 @@ export const AiChatQuestion: React.FC<AiChatQuestionProps> = ({
 
   return (
     <AIContent>
-      <Title>{title}</Title>
       <Subtitle>{subtitle}</Subtitle>
       <SelectionTitle>{selectionTitle}</SelectionTitle>
 
@@ -248,7 +274,12 @@ export const AiChatQuestion: React.FC<AiChatQuestionProps> = ({
       )}
 
       {/* 옵션 그리드 */}
-      <OptionsGrid columns={gridColumns} isMobile={isMobile}>
+      <OptionsGrid
+        columns={gridColumns}
+        isMobile={isMobile}
+        isFirstQuestion={isFirstQuestion}
+        optionsCount={options.length}
+      >
         {options.map((option) => (
           <OptionButton
             key={option.id}

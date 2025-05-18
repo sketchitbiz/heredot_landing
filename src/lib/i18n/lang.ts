@@ -1,30 +1,30 @@
-// src/lib/i18n/lang.ts
+import { m } from "framer-motion";
 
 export const dictionary = {
   ko: {
-    departure: "출발",
-    arrival: "도착",
-    nav: ["핵심강점", "포트폴리오", "팀원소개"],
+    departure: '출발',
+    arrival: '도착',
+    nav: ['핵심강점', '포트폴리오', '팀원소개', 'AI 견적서'],
     customNavigator: {
-      community: "창업커뮤니티",
-      portpolio: "포트폴리오",
-      member: "팀원소개",
-      review: "고객후기",
-      event: "기획전",
-      contact: "연락",
+      community: '창업커뮤니티',
+      portpolio: '포트폴리오',
+      member: '팀원소개',
+      review: '고객후기',
+      event: '기획전',
+      contact: '연락',
     },
     contract: {
-      title: "프로젝트 문의가 있다면",
+      title: '프로젝트 문의가 있다면',
       description: '망설이지 말고 지금 "여기닷"에게 연락 주세요',
     },
-    headerTitle: "출발과 도착의 여정",
-    headerSubtitle: "여기닷에서",
-    download: "기업 소개서",
+    headerTitle: '출발과 도착의 여정',
+    headerSubtitle: '여기닷에서',
+    download: '기업 소개서',
     firstMap: {
-      label: "전략 파트너", // ✅ 추가
+      label: '전략 파트너', // ✅ 추가
     },
     secondMap: {
-      label: "여기닷",
+    label: '여기닷',
     },
     portfolio: {
       title: "여기닷에서 만든 대표 프로젝트!",
@@ -45,67 +45,51 @@ export const dictionary = {
       "12": "2차전지관제솔루션",
     },
     partner: {
-      title1: "여기닷은",
-      title2: "창업자의 전략 파트너입니다",
-      subtitle:
-        "여기닷은 고객사의 사업 전반적인 내용을 이해하고 시장에\n 조기 안착할 수 있도록 다양한 사업을 제안합니다.",
-      tabs: ["안티드론", "명품역경매", "무역 플랫폼", "테이블오더"],
+      title1: '여기닷은',
+      title2: '창업자의 전략 파트너입니다',
+      subtitle: '여기닷은 고객사의 사업 전반적인 내용을 이해하고 시장에\n 조기 안착할 수 있도록 다양한 사업을 제안합니다.',
+      tabs: ['안티드론', '명품역경매', '무역 플랫폼', '테이블오더'],
       slides: [
         {
-          title: "안티드론 솔루션",
-          image: "/assets/partner_1.png",
-          subtitle: "글로벌 세일즈 관련 수행 방안 제안",
-          description:
-            "고객사가 엔지니어 중심 조직 구조인 점을 고려하여,<br /> 제품 런칭 이후 기술 외에도 세일즈 관점에서의 사업 전략을 제안",
+          title: '안티드론 솔루션',
+          image: '/assets/partner_1.png',
+          subtitle: '글로벌 세일즈 관련 수행 방안 제안',
+          description: '고객사가 엔지니어 중심 조직 구조인 점을 고려하여,<br /> 제품 런칭 이후 기술 외에도 세일즈 관점에서의 사업 전략을 제안',
         },
         {
-          title: "명품 역경매",
-          image: "/assets/partner_2.png",
-          subtitle: "AI를 활용한 시세 조회 방안 제안",
-          description:
-            "제품 촬영한 이미지를 AI를 통해 식별 및 인식 하여<br /> 시세를 예측하여 고객 유입 활성 방안 제안",
+          title: '명품 역경매',
+          image: '/assets/partner_2.png',
+          subtitle: 'AI를 활용한 시세 조회 방안 제안',
+          description: '제품 촬영한 이미지를 AI를 통해 식별 및 인식 하여<br /> 시세를 예측하여 고객 유입 활성 방안 제안',
         },
         {
-          title: "무역플랫폼",
-          image: "/assets/partner_3.png",
-          subtitle: "복잡한 프로세스 No! 절차 개선 제안",
-          description:
-            "무역업 특성상 많은 이해 관계자들이 협업 해야 되는 구조를<br /> 정확하게 인지 및 각 구간별 불필요 절차 개선 방안 제안",
+          title: '무역플랫폼',
+          image: '/assets/partner_3.png',
+          subtitle: '복잡한 프로세스 No! 절차 개선 제안',
+          description: '무역업 특성상 많은 이해 관계자들이 협업 해야 되는 구조를<br /> 정확하게 인지 및 각 구간별 불필요 절차 개선 방안 제안',
         },
         {
-          title: "테이블오더",
-          image: "/assets/partner_4.png",
-          subtitle: "테이블오더 시장 안착 전략 제안",
-          description:
-            "시중에 나와 있는 테이블 오더 제품과의 경쟁에서 살아 남기 위한<br /> 고객사만의 기능과 사업전략을 이해하고 프로젝트 킥오프 제안",
+          title: '테이블오더',
+          image: '/assets/partner_4.png',
+          subtitle: '테이블오더 시장 안착 전략 제안',
+          description: '시중에 나와 있는 테이블 오더 제품과의 경쟁에서 살아 남기 위한<br /> 고객사만의 기능과 사업전략을 이해하고 프로젝트 킥오프 제안',
         },
       ],
-      downloadText: "사업제안서 다운로드",
+      downloadText: '사업제안서 다운로드',
     },
     consulting: {
-      title: `여기닷은 "기능명세"를\n 최적화 용도로 활용합니다`,
-      descriptions: ["1. 견적 단계에서 분량 및 기능정리", "2. IT서비스 최적 설계 지원", "3. 일정관리 (WBS)로 활용해요"],
-      downloadText: "기능명세 다운로드",
-      gridHeaders: ["항목", "고객요구사항", "여기닷 제안", "효과"],
+      title: `여기닷은 "기능명세"를\n 최적화 용도로 활용합니다`, 
+      descriptions: [
+        '1. 견적 단계에서 분량 및 기능정리',
+        '2. IT서비스 최적 설계 지원',
+        '3. 일정관리 (WBS)로 활용해요',
+      ],
+      downloadText: '기능명세 다운로드',
+      gridHeaders: ['항목', '고객요구사항', '여기닷 제안', '효과'],
       gridContents: [
-        [
-          "로그인",
-          "보안강화목적<br /> USB로 로그인",
-          "구글 OTP<br /> 2Factor 인증",
-          "기존 윈도우 Only<br /> 접속 기기 다변화 수용",
-        ],
-        [
-          "핵심/편의기능<br /> 구분",
-          "한정된 예산 내<br /> 전체 기능 요구",
-          "핵심/편의 기능 분리<br /> 단계별 개발 가이드",
-          "예산에 맞춘<br /> 사업성장 최적화 지원",
-        ],
-        [
-          "개인정보수집",
-          "모든 정보 수집",
-          "개인정보법, 정보통신법 안내<br /> 법적기준 개발 가이드",
-          "준법 RISK 최소화",
-        ],
+        ['로그인', '보안강화목적<br /> USB로 로그인', '구글 OTP<br /> 2Factor 인증', '기존 윈도우 Only<br /> 접속 기기 다변화 수용'],
+        ['핵심/편의기능<br /> 구분', '한정된 예산 내<br /> 전체 기능 요구', '핵심/편의 기능 분리<br /> 단계별 개발 가이드', '예산에 맞춘<br /> 사업성장 최적화 지원'],
+        ['개인정보수집', '모든 정보 수집', '개인정보법, 정보통신법 안내<br /> 법적기준 개발 가이드', '준법 RISK 최소화'],
       ],
     },
     membersSection: {
@@ -120,7 +104,7 @@ export const dictionary = {
           "채팅 앱": "푸시는 앱 상태마다 다르게요",
           "스트리밍 웹": null,
           "구독 플랫폼": "등록이죠?\n 인증은 안 하나요?",
-          점심시간: "배고파서 코드 안 짜짐",
+          "점심시간": "배고파서 코드 안 짜짐",
         },
       },
       "2": {
@@ -129,7 +113,7 @@ export const dictionary = {
           "채팅 앱": "채팅앱 계약됐어요!",
           "스트리밍 웹": "유튜브처럼 만들어 주세요!",
           "구독 플랫폼": "구독 결제 서비스 계약됐어요!",
-          점심시간: "밥 먹고 합시다.",
+          "점심시간": "밥 먹고 합시다.",
         },
       },
       "3": {
@@ -138,7 +122,7 @@ export const dictionary = {
           "채팅 앱": null,
           "스트리밍 웹": null,
           "구독 플랫폼": null,
-          점심시간: "영수증 챙기셨어요?",
+          "점심시간": "영수증 챙기셨어요?",
         },
       },
       "4": {
@@ -147,7 +131,7 @@ export const dictionary = {
           "채팅 앱": "1:N이면\n 부방장 기능도 필요하죠.",
           "스트리밍 웹": null,
           "구독 플랫폼": "잔액 부족 시 재결제는요?",
-          점심시간: "요구사항? 일단 고기",
+          "점심시간": "요구사항? 일단 고기",
         },
       },
       "5": {
@@ -156,7 +140,7 @@ export const dictionary = {
           "채팅 앱": null,
           "스트리밍 웹": "버퍼링 구현 방식도\n 정해야죠.",
           "구독 플랫폼": null,
-          점심시간: "꼬르륵...",
+          "점심시간": "꼬르륵...",
         },
       },
       "6": {
@@ -165,7 +149,7 @@ export const dictionary = {
           "채팅 앱": "트래픽 과금\n 미리 조율해야 해요.",
           "스트리밍 웹": "용량 부족하면\n 가용성 문제 생겨요.",
           "구독 플랫폼": "PG사 먼저 확인 필요해요.",
-          점심시간: "API보다 급한 건 칼국수",
+          "점심시간": "API보다 급한 건 칼국수",
         },
       },
       "7": {
@@ -174,7 +158,7 @@ export const dictionary = {
           "채팅 앱": null,
           "스트리밍 웹": "화질 자동 전환 고려하셨어요?",
           "구독 플랫폼": null,
-          점심시간: "햄버거 버튼 말고 햄버거 줘요",
+          "점심시간": "햄버거 버튼 말고 햄버거 줘요",
         },
       },
       "9": {
@@ -183,35 +167,35 @@ export const dictionary = {
           "채팅 앱": "help...",
           "스트리밍 웹": null,
           "구독 플랫폼": "I debug, therefore I am.",
-          점심시간: "503 Service Unavailable (No Lunch)",
+          "점심시간": "503 Service Unavailable (No Lunch)",
         },
       },
     },
     community: {
-      title: "성공을 지원하는 많은 노하우와 네트워크",
-      description: "IT 산업 분야 전문 컨설턴트로서, 100여개 기업과 함께 성장해왔습니다",
+      title: '성공을 지원하는 많은 노하우와 네트워크',
+      description: 'IT 산업 분야 전문 컨설턴트로서, 100여개 기업과 함께 성장해왔습니다',
       section: {
         title: "750여명 규모의\n 창업 커뮤니티 운영 중",
         description: "전문가들과 함께 성장하는 창업 플랫폼 함께해요",
         buttonText: "창업커뮤니티 바로가기",
-      },
+      }
     },
     bannerSection: {
       title: "특별 프로모션 지금 바로 클릭!",
       description: "선착순으로 제공되는 상품으로 조기 종료될 수 있습니다.",
     },
-
+    
     design: {
-      tabs: ["레퍼런스 조사", "트렌드 파악", "컬러제안", "UI/UX 제안", "고객의사결정"],
-      tabNumbers: ["01", "02", "03", "04", "05"],
-      title: "여기닷은 모든 프로젝트에\n 디자인 전략을 제안합니다",
-      downloadText: "디자인 제안서 다운로드",
+      tabs: ['레퍼런스 조사', '트렌드 파악', '컬러제안', 'UI/UX 제안', '고객의사결정'],
+      tabNumbers: ['01', '02', '03', '04', '05'],
+      title: '여기닷은 모든 프로젝트에\n 디자인 전략을 제안합니다',
+      downloadText: '디자인 제안서 다운로드',
       slides: [
-        { title: "시장/레퍼런스 조사", image: "/assets/design/design_1.png" },
-        { title: "트렌드 파악", image: "/assets/design/design_2.png" },
-        { title: "컬러제안", image: "/assets/design/design_3.png" },
-        { title: "UI/UX 제안", image: "/assets/design/design_4.png" },
-        { title: "고객의사결정", image: "/assets/design/design_5.png" },
+        { title: '시장/레퍼런스 조사', image: '/assets/design/design_1.png' },
+        { title: '트렌드 파악', image: '/assets/design/design_2.png' },
+        { title: '컬러제안', image: '/assets/design/design_3.png' },
+        { title: 'UI/UX 제안', image: '/assets/design/design_4.png' },
+        { title: '고객의사결정', image: '/assets/design/design_5.png' },
       ],
     },
     reviewSection: {
@@ -223,16 +207,16 @@ export const dictionary = {
       description: `화면을 작은 단위부터 체계적으로 설계해\n디자인과 개발을 일관된 구조로 개발하며,\n완성도는 물론 추후 코드 이관과 유지보수도 간편합니다.`,
     },
     contactSection: {
-      emailTitle: "이메일 문의",
-      emailInfo: "heredot83@heredotcorp.com",
-      emailButton: "메일 보내기",
-      phoneTitle: "전화 문의",
-      phoneInfo: "031-8039-7981",
-      phoneButton: "전화 연결",
-      kakaoTitle: "카카오톡 채팅 상담",
-      kakaoInfo: "Kakao",
-      kakaoLink: "https://open.kakao.com/o/smVyiMig", // 실제 오픈채팅 링크
-      kakaoButton: "채팅방 연결",
+      emailTitle: '이메일 문의',
+      emailInfo: 'heredot83@heredotcorp.com',
+      emailButton: '메일 보내기',
+      phoneTitle: '전화 문의',
+      phoneInfo: '031-8039-7981',
+      phoneButton: '전화 연결',
+      kakaoTitle: '카카오톡 채팅 상담',
+      kakaoInfo: 'Kakao',
+      kakaoLink: 'https://open.kakao.com/o/smVyiMig', // 실제 오픈채팅 링크
+      kakaoButton: '채팅방 연결',
     },
     footer: {
       companyName: '상호명 : 주식회사 여기닷',
@@ -252,30 +236,28 @@ export const dictionary = {
       ],
     },
   },
-  
-
   en: {
-    departure: "Departure",
-    arrival: "Arrival",
-    nav: ["Key Value", "Portfolio", "Team"],
+    departure: 'Departure',
+    arrival: 'Arrival',
+    nav: ['Key Value', 'Portfolio', 'Team','AI Estimate' ],
     customNavigator: {
-      community: "Startup Community",
-      member: "Team",
-      portpolio: "Portfolio",
-      review: "Reviews",
-      event: "Events",
-      contact: "Contact",
+      community: 'Startup Community',
+      member: 'Team',
+      portpolio: 'Portfolio',
+      review: 'Reviews',
+      event: 'Events',
+      contact: 'Contact',
     },
     community: {
-      title: "Extensive Know-how and Network for Your Success",
-      description: "We’ve grown alongside over 100 companies as IT industry consultants.",
+      title: 'Extensive Know-how and Network for Your Success',
+      description: 'We’ve grown alongside over 100 companies as IT industry consultants.',
       section: {
         title: "Startup community with over 750 members",
         description: "Join a platform where you grow with professionals.",
         buttonText: "Go to Community",
-      },
+      }
     },
-
+    
     portfolio: {
       title: "Top Projects by HereDot!",
       description: "Introducing projects that led success across various industries!",
@@ -294,14 +276,14 @@ export const dictionary = {
       "11": "Ingredient Ordering System",
       "12": "Battery Monitoring Solution",
     },
-    headerTitle: "Journey of Start and Destination",
-    headerSubtitle: "With Heredot",
-    download: "Company Brochure",
+    headerTitle: 'Journey of Start and Destination',
+    headerSubtitle: 'With Heredot',
+    download: 'Company Brochure',
     firstMap: {
-      label: "Strategic Partner", // ✅ 추가
+      label: 'Strategic Partner', // ✅ 추가
     },
     secondMap: {
-      label: "Heredot",
+    label: 'Heredot',
     },
     reviewSection: {
       title: "What Entrepreneurs Say About Heredot",
@@ -387,92 +369,89 @@ export const dictionary = {
       },
     },
     contract: {
-      title: "Have a project inquiry?",
-      description: "Let’s connect and make it happen — contact HereDot today.",
+      title: 'Have a project inquiry?',
+      description: 'Let’s connect and make it happen — contact HereDot today.',
+      
     },
     partner: {
-      title1: "Heredot is",
-      title2: "a Strategic Partner for Founders",
-      subtitle:
-        "Heredot understands the overall business of clients and proposes various strategies for early market settlement.",
-      tabs: ["Anti-Drone", "Luxury Auction", "Trade Platform", "Table Order"],
+      title1: 'Heredot is',
+      title2: 'a Strategic Partner for Founders',
+      subtitle: 'Heredot understands the overall business of clients and proposes various strategies for early market settlement.',
+      tabs: ['Anti-Drone', 'Luxury Auction', 'Trade Platform', 'Table Order'],
       slides: [
         {
-          title: "Anti-Drone Solution",
-          image: "/assets/partner_1.png",
-          subtitle: "Proposal for Global Sales Execution",
-          description:
-            "Considering the client's engineer-centered structure,<br /> we propose business strategies beyond technology after product launch.",
+          title: 'Anti-Drone Solution',
+          image: '/assets/partner_1.png',
+          subtitle: 'Proposal for Global Sales Execution',
+          description: 'Considering the client\'s engineer-centered structure,<br /> we propose business strategies beyond technology after product launch.',
         },
         {
-          title: "Luxury Reverse Auction",
-          image: "/assets/partner_2.png",
-          subtitle: "Proposal for AI-based Price Inquiry",
-          description: "Identify products with AI from photos<br /> and predict prices to attract customers.",
+          title: 'Luxury Reverse Auction',
+          image: '/assets/partner_2.png',
+          subtitle: 'Proposal for AI-based Price Inquiry',
+          description: 'Identify products with AI from photos<br /> and predict prices to attract customers.',
         },
         {
-          title: "Trade Platform",
-          image: "/assets/partner_3.png",
-          subtitle: "No Complex Process! Procedure Improvement Proposal",
-          description:
-            "Understanding the collaborative structure in trade business,<br /> we propose ways to improve unnecessary procedures in each section.",
+          title: 'Trade Platform',
+          image: '/assets/partner_3.png',
+          subtitle: 'No Complex Process! Procedure Improvement Proposal',
+          description: 'Understanding the collaborative structure in trade business,<br /> we propose ways to improve unnecessary procedures in each section.',
         },
         {
-          title: "Table Order",
-          image: "/assets/partner_4.png",
-          subtitle: "Table Order Market Penetration Strategy",
-          description:
-            "Understanding client's unique features and strategies<br /> to survive in the table order market.",
+          title: 'Table Order',
+          image: '/assets/partner_4.png',
+          subtitle: 'Table Order Market Penetration Strategy',
+          description: 'Understanding client\'s unique features and strategies<br /> to survive in the table order market.',
         },
       ],
-      downloadText: "Download Proposal",
+      downloadText: 'Download Proposal',
     },
     consulting: {
       title: `Heredot uses "Function Specifications"\nfor Optimization Purposes`,
       descriptions: [
-        "1. Organizing quantity and functions at the estimate stage",
-        "2. Supporting optimal IT service design",
-        "3. Utilizing it for schedule management (WBS)",
+        '1. Organizing quantity and functions at the estimate stage',
+        '2. Supporting optimal IT service design',
+        '3. Utilizing it for schedule management (WBS)',
       ],
-      downloadText: "Download Specification",
-      gridHeaders: ["Item", "Customer Requirement", "Heredot Proposal", "Effect"],
+      downloadText: 'Download Specification',
+      gridHeaders: ['Item', 'Customer Requirement', 'Heredot Proposal', 'Effect'],
       gridContents: [
         [
-          "Login",
-          "Login via USB<br /> for enhanced security",
-          "Google OTP<br /> 2Factor authentication",
-          "Expanded device support<br /> beyond Windows-only access",
+          'Login',
+          'Login via USB<br /> for enhanced security',
+          'Google OTP<br /> 2Factor authentication',
+          'Expanded device support<br /> beyond Windows-only access',
         ],
         [
-          "Core / Convenience Features<br /> Distinction",
-          "Request for all features<br /> within limited budget",
-          "Guidance for phased development<br /> by separating core and convenience features",
-          "Optimized growth strategy<br /> within the given budget",
+          'Core / Convenience Features<br /> Distinction',
+          'Request for all features<br /> within limited budget',
+          'Guidance for phased development<br /> by separating core and convenience features',
+          'Optimized growth strategy<br /> within the given budget',
         ],
         [
-          "Personal Information Collection",
-          "Collecting all personal data",
-          "Guidance on the Personal Information Protection Act and the Information and Communications Act<br /> Legal standards for compliant development",
-          "Minimization of compliance risk",
+          'Personal Information Collection',
+          'Collecting all personal data',
+          'Guidance on the Personal Information Protection Act and the Information and Communications Act<br /> Legal standards for compliant development',
+          'Minimization of compliance risk',
         ],
-      ],
+      ]
     },
     bannerSection: {
       title: "Click Now for Special Promotions!",
       description: "Limited offers available on a first-come, first-served basis.",
     },
-
+    
     design: {
-      tabs: ["Reference Research", "Trend Analysis", "Color Proposal", "UI/UX Proposal", "Customer Decision"],
-      tabNumbers: ["01", "02", "03", "04", "05"],
-      title: "Heredot Design Strategy",
-      downloadText: "Download Design Proposal",
+      tabs: ['Reference Research', 'Trend Analysis', 'Color Proposal', 'UI/UX Proposal', 'Customer Decision'],
+      tabNumbers: ['01', '02', '03', '04', '05'],
+      title: 'Heredot Design Strategy', 
+      downloadText: 'Download Design Proposal',
       slides: [
-        { title: "Market/Reference Research", image: "/assets/design/design_1e.png" },
-        { title: "Trend Analysis", image: "/assets/design/design_2e.png" },
-        { title: "Color Proposal", image: "/assets/design/design_3e.png" },
-        { title: "UI/UX Proposal", image: "/assets/design/design_4e.png" },
-        { title: "Customer Decision", image: "/assets/design/design_5e.png" },
+        { title: 'Market/Reference Research', image: '/assets/design/design_1e.png' },
+        { title: 'Trend Analysis', image: '/assets/design/design_2e.png' },
+        { title: 'Color Proposal', image: '/assets/design/design_3e.png' },
+        { title: 'UI/UX Proposal', image: '/assets/design/design_4e.png' },
+        { title: 'Customer Decision', image: '/assets/design/design_5e.png' },
       ],
     },
     appBlock: {
@@ -480,16 +459,16 @@ export const dictionary = {
       description: `We design each screen from the smallest units,\nensuring a consistent structure across design and development.\nThis approach not only boosts quality, but also makes future code handovers and maintenance seamless.`,
     },
     contactSection: {
-      emailTitle: "Email Inquiry",
-      emailInfo: "heredot83@heredotcorp.com",
-      emailButton: "Send Email",
-      phoneTitle: "Phone Inquiry",
-      phoneInfo: "031-8039-7981",
-      phoneButton: "Call Now",
-      kakaoTitle: "KakaoTalk Chat Support",
-      kakaoInfo: "Kakao",
-      kakaoLink: "https://open.kakao.com/o/smVyiMig",
-      kakaoButton: "Join Chat",
+      emailTitle: 'Email Inquiry',
+      emailInfo: 'heredot83@heredotcorp.com',
+      emailButton: 'Send Email',
+      phoneTitle: 'Phone Inquiry',
+      phoneInfo: '031-8039-7981',
+      phoneButton: 'Call Now',
+      kakaoTitle: 'KakaoTalk Chat Support',
+      kakaoInfo: 'Kakao',
+      kakaoLink: 'https://open.kakao.com/o/smVyiMig',
+      kakaoButton: 'Join Chat',
     },
     footer: {
       companyName: 'Company Name: Heredot Corp.',
@@ -508,5 +487,7 @@ export const dictionary = {
         "We provide IT consulting such as new business planning, tech stack selection, and development process optimization. We also support enterprise development through project-based or long-term outsourcing partnerships.",
       ]
     },
+    
+    
   },
 };

@@ -177,7 +177,6 @@ const formatAmount = (
 
     if (countryCode !== 'KR') {
       // 한국이 아닌 경우, 해당 국가 통화로 표시
-      displayCurrency = localCurrency;
       displaySymbol = localSymbol;
       if (exchangeRates[localCurrency as keyof typeof exchangeRates]) {
         convertedAmountForDisplay = Math.round(
@@ -185,7 +184,6 @@ const formatAmount = (
         );
       } else if (localCurrency === 'KRW') {
         // 혹시 getCountryCurrency가 KRW를 반환하는 경우
-        displayCurrency = 'USD';
         displaySymbol = currencySymbols.US;
         convertedAmountForDisplay = Math.round(
           amount / (exchangeRates['USD'] || 1350)
@@ -353,7 +351,7 @@ const MessageWrapper = styled.div<StyledComponentProps>`
 // 메시지 박스 스타일 - 실제 메시지 내용을 담는 말풍선
 const MessageBox = styled.div<StyledComponentProps>`
   max-width: 100%;
-  padding: 0.3rem 1rem;
+  padding: 0.3rem 0.3rem;
   border-radius: 24px;
   ${AppTextStyles.body1}
   line-height: 1.7;
@@ -381,7 +379,13 @@ const ProfileImage = styled.img`
   border-radius: 50%;
   object-fit: cover;
   margin-right: 0.75rem;
-  align-self: flex-start;
+`;
+
+// AI 프로필 헤더 (이미지와 이름을 감싸는 컨테이너)
+const AiProfileHeader = styled.div`
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
 `;
 
 // 프로필 이름 스타일 - AI 이름 표시
@@ -612,13 +616,14 @@ export function AiChatMessage({
   return (
     <MessageWrapper $sender={sender}>
       {/* AI 메시지인 경우에만 프로필 이미지 표시 */}
-      {isAiMessage && <ProfileImage src="/ai/pretty.png" alt="AI 프로필" />}
+      {/* {isAiMessage && <ProfileImage src="/ai/pretty.png" alt="AI 프로필" />} */}
       <MessageBox $sender={sender}>
-        {/* AI 메시지인 경우에만 이름 표시 */}
+        {/* AI 메시지인 경우에만 이름과 프로필 이미지 표시 */}
         {isAiMessage && (
-          <ProfileName style={{ marginBottom: '0.5rem' }}>
-            {t.profileName}
-          </ProfileName>
+          <AiProfileHeader>
+            <ProfileImage src="/ai/pretty.png" alt="AI 프로필" />
+            <ProfileName>{t.profileName}</ProfileName>
+          </AiProfileHeader>
         )}
 
         {/* 메시지 내용 - 마크다운 지원 */}
