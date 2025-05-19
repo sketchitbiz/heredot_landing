@@ -9,14 +9,15 @@ import {
   Message,
   AiChatMessage,
   InvoiceDataType,
+  InvoiceFeatureItem,
 } from '@/components/Ai/AiChatMessage';
-import { AiChatQuestion } from '@/components/Ai/AiChatQuestion';
+import { AiChatQuestion, QuestionOption } from '@/components/Ai/AiChatQuestion';
 import FreeFormGuide from './FreeFormGuide';
 
 // 스타일 컴포넌트
 const ChatContentContainer = styled.div<{ $isNarrowScreen?: boolean }>`
   flex: 1; // 메시지 영역이 남은 공간 차지
-  padding: 2rem 2rem; // 패딩 조정
+  padding: 1rem 1rem; // 패딩 조정
   display: flex;
   flex-direction: column;
   align-items: center; // 가로 중앙 정렬
@@ -95,16 +96,28 @@ const DragDropOverlay = styled.div`
 
 interface InvoiceDetailsInterface {
   parsedJson?: InvoiceDataType;
-  items: Array<any>;
+  items: Array<InvoiceFeatureItem & { isDeleted: boolean }>;
   currentTotal: number;
   currentTotalDuration: number;
   currentTotalPages: number;
 }
 
+interface CurrentStepDataInterface {
+  id: string;
+  title: string;
+  subtitle: string;
+  selectionTitle: string;
+  options: QuestionOption[];
+  gridColumns: number;
+  selectionMode: 'single' | 'multiple';
+  showWebAppComponent?: boolean;
+  infoText?: string;
+}
+
 interface ChatContentProps {
   isNarrowScreen: boolean;
   isFreeFormMode: boolean;
-  currentStepData: any | null;
+  currentStepData: CurrentStepDataInterface | null;
   initialSelection: string[];
   isDragging: boolean;
   messages: Message[];
@@ -119,6 +132,16 @@ interface ChatContentProps {
   handleDragLeave: (e: React.DragEvent<HTMLElement>) => void;
   lang: 'ko' | 'en';
 }
+
+// Helper function to validate and cast gridColumns
+const getValidGridColumns = (
+  columns: number | undefined
+): 1 | 2 | 3 | 4 | 5 => {
+  const defaultColumns = 3;
+  if (typeof columns !== 'number') return defaultColumns;
+  if (columns >= 1 && columns <= 5) return columns as 1 | 2 | 3 | 4 | 5;
+  return defaultColumns; // Return a default if out of range
+};
 
 const ChatContent: React.FC<ChatContentProps> = ({
   isNarrowScreen,
@@ -177,6 +200,7 @@ const ChatContent: React.FC<ChatContentProps> = ({
                 </ProfileContainer>
                 <AiChatQuestion
                   {...currentStepData}
+                  gridColumns={getValidGridColumns(currentStepData.gridColumns)}
                   initialSelection={initialSelection}
                   onNext={handleNext}
                   onPrevious={handlePrevious}
@@ -196,6 +220,7 @@ const ChatContent: React.FC<ChatContentProps> = ({
                 </ProfileContainer>
                 <AiChatQuestion
                   {...currentStepData}
+                  gridColumns={getValidGridColumns(currentStepData.gridColumns)}
                   initialSelection={initialSelection}
                   onNext={handleNext}
                   onPrevious={handlePrevious}

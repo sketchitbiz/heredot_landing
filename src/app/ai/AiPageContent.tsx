@@ -14,6 +14,8 @@ import { FileUploadData, uploadFiles } from '@/lib/firebase/firebase.functions';
 import { Part, FileData } from 'firebase/vertexai';
 import { SocialLoginModal } from './SocialLoginModal';
 import authStore, { AuthState } from '@/store/authStore';
+import { auth } from '@/lib/firebase/firebase.config';
+import { onAuthStateChanged, signInAnonymously } from 'firebase/auth';
 import AdditionalInfoModal from './AdditionalInfoModal';
 import { useApiLimit } from '@/hooks/useApiLimit';
 import useAiFlowStore from '@/store/aiFlowStore';
@@ -296,7 +298,8 @@ export default function AiPageContent() {
   );
   const isLoggedIn = authStore((state: AuthState) => state.isLoggedIn);
   const openLoginModal = authStore((state: AuthState) => state.openLoginModal);
-  const user = authStore((state: AuthState) => state.user);
+
+  const [isFirebaseChecking, setIsFirebaseChecking] = useState(true);
 
   const { remainingCount, decreaseCount, isLimitInitialized } =
     useApiLimit(isLoggedIn);
@@ -372,6 +375,54 @@ export default function AiPageContent() {
     setAiFlowStoreSelections,
     setIsFreeFormMode,
   ]);
+
+  useEffect(() => {
+    console.log('[AiPageContent] Firebase auth listener - MOUNTING');
+    setIsFirebaseChecking(true); // 리스너 시작 시 체크 중으로 설정
+
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      // async 키워드 추가
+      console.log(
+        '[AiPageContent] onAuthStateChanged CALLBACK TRIGGERED. Firebase user:',
+        user
+      );
+      if (user) {
+        // 사용자가 이미 로그인되어 있는 경우 (일반 로그인 또는 이전 익명 로그인 포함)
+        console.log(
+          `[AiPageContent] Firebase user DETECTED (UID: ${user.uid}, Anonymous: ${user.isAnonymous})`
+        );
+        setIsFirebaseChecking(false); // 사용자 확인 후 체크 완료
+      } else {
+        // 로그인된 사용자가 없는 경우, 익명으로 로그인 시도
+        console.log(
+          '[AiPageContent] No Firebase user DETECTED. Attempting anonymous sign-in...'
+        );
+        try {
+          await signInAnonymously(auth);
+          console.log(
+            '[AiPageContent] Firebase anonymous sign-in attempt successful. Waiting for new auth state.'
+          );
+          // 익명 로그인 성공 후, onAuthStateChanged가 새로운 user 정보와 함께 다시 호출됩니다.
+          // 그때 위의 if (user) 블록이 실행되면서 setIsFirebaseChecking(false)가 호출될 것입니다.
+          // 따라서 이 부분에서 즉시 setIsFirebaseChecking(false)를 호출할 필요는 없습니다.
+        } catch (error) {
+          console.error(
+            '[AiPageContent] Firebase anonymous sign-in FAILED:',
+            error
+          );
+          // 익명 로그인 시도 자체가 실패하면, 체크 상태를 false로 설정하여 무한 로딩 등을 방지합니다.
+          setIsFirebaseChecking(false);
+        }
+      }
+    });
+
+    return () => {
+      console.log(
+        '[AiPageContent] Firebase auth listener - UNMOUNTING. Unsubscribing.'
+      );
+      unsubscribe();
+    };
+  }, []);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -501,10 +552,7 @@ export default function AiPageContent() {
         addMessageToChat({
           id: Date.now(),
           sender: 'ai',
-          text:
-            t.pdf?.downloadFailed ||
-            t.pdfNotAvailable ||
-            '다운로드할 견적서 데이터가 없습니다.',
+          text: '견적서 데이터를 찾을 수 없어 PDF를 생성할 수 없습니다.',
         });
       }
       return;
@@ -598,6 +646,26 @@ export default function AiPageContent() {
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = e.target.files;
     if (!selectedFiles) return;
+    console.log(
+      '[AiPageContent] handleFileInputChange triggered. Files:',
+      selectedFiles
+    );
+    console.log(
+      '[AiPageContent] Current Firebase User (auth.currentUser) before uploadFiles (via input change):',
+      auth.currentUser
+    );
+
+    if (isFirebaseChecking) {
+      alert('Firebase 인증 상태를 확인 중입니다. 잠시 후 다시 시도해주세요.');
+      return;
+    }
+    if (!auth.currentUser) {
+      alert(
+        'AI 기능 사용을 위한 Firebase 로그인이 필요합니다. (개발자/관리자)'
+      );
+      return;
+    }
+
     uploadFiles(Array.from(selectedFiles), {
       onUpload: (data) => setUploadedFiles((prev) => [...prev, data]),
       progress: (percent) => setUploadProgress(percent),
@@ -612,6 +680,26 @@ export default function AiPageContent() {
     setIsDragging(false);
     const droppedFiles = e.dataTransfer.files;
     if (!droppedFiles) return;
+    console.log(
+      '[AiPageContent] handleDropFiles triggered. Files:',
+      droppedFiles
+    );
+    console.log(
+      '[AiPageContent] Current Firebase User (auth.currentUser) before uploadFiles (via drop):',
+      auth.currentUser
+    );
+
+    if (isFirebaseChecking) {
+      alert('Firebase 인증 상태를 확인 중입니다. 잠시 후 다시 시도해주세요.');
+      return;
+    }
+    if (!auth.currentUser) {
+      alert(
+        'AI 기능 사용을 위한 Firebase 로그인이 필요합니다. (개발자/관리자)'
+      );
+      return;
+    }
+
     uploadFiles(Array.from(droppedFiles), {
       onUpload: (data) => setUploadedFiles((prev) => [...prev, data]),
       progress: (percent) => setUploadProgress(percent),
@@ -656,6 +744,33 @@ export default function AiPageContent() {
         return;
       }
     }
+
+    // --- 네비게이션 제목 업데이트 로직 추가 시작 ---
+    const queryParams = new URLSearchParams(window.location.search);
+    const currentSessionId = queryParams.get('sessionId');
+
+    // messages 배열이 비어있거나, 사용자의 첫번째 메시지라고 판단되는 시점에 실행
+    // (actionPrompt가 없고, isSystemInitiatedPrompt가 false일 때 사용자가 직접 입력한 첫 메시지로 간주)
+    if (
+      currentSessionId &&
+      !actionPrompt &&
+      !isSystemInitiatedPrompt &&
+      messages.filter((m) => m.sender === 'user').length === 0
+    ) {
+      if (submissionPrompt.trim()) {
+        localStorage.setItem(
+          `firstUserMessageFor_${currentSessionId}`,
+          submissionPrompt
+        );
+        localStorage.setItem('updateQuoteTitleFor', currentSessionId);
+        console.log(
+          `[AiPageContent] First user message for session ${currentSessionId} saved to localStorage:`,
+          submissionPrompt
+        );
+      }
+    }
+    // --- 네비게이션 제목 업데이트 로직 추가 끝 ---
+
     setLoading(true);
     setError('');
     let userMessageText = submissionPrompt;
@@ -773,6 +888,19 @@ export default function AiPageContent() {
         }
       }
       console.log('AI 전체 응답 (aiResponseText):', aiResponseText);
+
+      // --- AI 응답 저장 로직 추가 시작 ---
+      if (currentSessionId && aiResponseText.trim()) {
+        localStorage.setItem(
+          `aiResponseFor_${currentSessionId}`,
+          aiResponseText
+        );
+        console.log(
+          `[AiPageContent] AI response for session ${currentSessionId} saved to localStorage.`
+        );
+      }
+      // --- AI 응답 저장 로직 추가 끝 ---
+
       const jsonScriptRegex =
         /<script type="application\/json" id="invoiceData">([\s\S]*?)<\/script>/;
       const jsonMatch = aiResponseText.match(jsonScriptRegex);
@@ -896,6 +1024,32 @@ export default function AiPageContent() {
     };
   }, []);
 
+  // Firebase 인증 상태 리스너 (AiPageContent 내에서 관리)
+  useEffect(() => {
+    console.log('[AiPageContent] Firebase auth listener - MOUNTING');
+    setIsFirebaseChecking(true);
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      console.log(
+        '[AiPageContent] onAuthStateChanged CALLBACK TRIGGERED. Firebase user:',
+        user
+      );
+      setIsFirebaseChecking(false);
+      if (user) {
+        console.log(
+          `[AiPageContent] Firebase user DETECTED (UID: ${user.uid})`
+        );
+      } else {
+        console.log('[AiPageContent] No Firebase user DETECTED.');
+      }
+    });
+    return () => {
+      console.log(
+        '[AiPageContent] Firebase auth listener - UNMOUNTING. Unsubscribing.'
+      );
+      unsubscribe();
+    };
+  }, []); // 마운트 시 한 번만 실행
+
   return (
     <Container $isNarrowScreen={isNarrowScreen}>
       {!isNarrowScreen && (
@@ -934,7 +1088,7 @@ export default function AiPageContent() {
             handleGeminiSubmit={handleGeminiSubmit}
             handleKeyDown={handleKeyDown}
             isFreeFormMode={isFreeFormMode}
-            loading={loading}
+            loading={loading || isFirebaseChecking}
             uploadedFiles={uploadedFiles}
             uploadProgress={uploadProgress}
             handleDeleteFile={handleDeleteFile}
@@ -944,6 +1098,14 @@ export default function AiPageContent() {
             isLoggedIn={isLoggedIn}
             isApiLimitInitialized={isLimitInitialized}
             lang={lang}
+          />
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileInputChange}
+            style={{ display: 'none' }}
+            multiple
+            accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-powerpoint,text/plain,text/csv"
           />
         </ChatContainer>
       </MainContent>

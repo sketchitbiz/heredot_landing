@@ -123,6 +123,12 @@ interface MessageInputProps {
   isApiLimitInitialized: boolean;
 }
 
+// aiChatDictionary의 input 타입에 대한 임시 인터페이스
+interface AiChatInputDictionary {
+  placeholder: string;
+  remainingAttempts?: (count: number) => string;
+}
+
 const MessageInput: React.FC<MessageInputProps> = ({
   promptText,
   setPromptText,
@@ -146,11 +152,48 @@ const MessageInput: React.FC<MessageInputProps> = ({
   const showRemainingCount =
     !isLoggedIn && isFreeFormMode && isApiLimitInitialized;
 
-  // remainingAttempts 함수가 aiChatDictionary에 실제로 정의되어 있어야 합니다.
-  // 예시: remainingAttempts: (count) => `오늘 남은 횟수 (비회원): ${count}회`
-  const remainingAttemptsText = t.input.remainingAttempts
-    ? t.input.remainingAttempts(remainingCount)
-    : `오늘 남은 횟수 (비회원): ${remainingCount}회`;
+  const remainingAttemptsText =
+    (t.input as AiChatInputDictionary).remainingAttempts?.(remainingCount) ??
+    `오늘 남은 횟수 (비회원): ${remainingCount}회`;
+
+  const handlePaste = (event: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    console.log('[MessageInput] handlePaste triggered'); // 로그 추가
+    const items = event.clipboardData?.items;
+    if (!items) {
+      console.log('[MessageInput] No clipboard items found.'); // 로그 추가
+      return;
+    }
+
+    const filesToUpload: File[] = [];
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf('image') !== -1) {
+        const blob = items[i].getAsFile();
+        if (blob) {
+          const fileName =
+            blob.name ||
+            `pasted_image_${Date.now()}.${blob.type.split('/')[1] || 'png'}`;
+          const file = new File([blob], fileName, { type: blob.type });
+          filesToUpload.push(file);
+          console.log('[MessageInput] Image file prepared from paste:', file); // 로그 추가
+        }
+      }
+    }
+
+    if (filesToUpload.length > 0) {
+      console.log('[MessageInput] Files to upload from paste:', filesToUpload); // 로그 추가
+      const dataTransfer = new DataTransfer();
+      filesToUpload.forEach((file) => dataTransfer.items.add(file));
+
+      const pseudoEvent = {
+        target: {
+          files: dataTransfer.files,
+        },
+      } as unknown as React.ChangeEvent<HTMLInputElement>;
+      handleFileInputChange(pseudoEvent); // AiPageContent의 handleFileInputChange 호출
+    } else {
+      console.log('[MessageInput] No image files found in pasted items.'); // 로그 추가
+    }
+  };
 
   return (
     <MessageInputContainer>
@@ -201,6 +244,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
             setPromptText(e.target.value)
           }
           onKeyDown={handleKeyDown}
+          onPaste={handlePaste}
         />
         <IconContainer
           type="submit"

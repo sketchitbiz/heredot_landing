@@ -5,7 +5,7 @@ import styled from 'styled-components';
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 import { FileUploadData } from '@/lib/firebase/firebase.functions';
-import { aiChatDictionary } from '@/lib/i18n/aiChat';
+// import { aiChatDictionary } from '@/lib/i18n/aiChat'; // 더 이상 사용되지 않으므로 제거
 
 // 파일 업로드 관련 스타일 컴포넌트
 const UploadedFilePreview = styled.div`
@@ -49,9 +49,9 @@ const FileUploadSection: React.FC<FileUploadSectionProps> = ({
   uploadedFiles,
   uploadProgress,
   onDeleteFile,
-  lang,
+  // lang, // lang prop은 사용되지 않으므로 주석 처리 또는 제거
 }) => {
-  const t = aiChatDictionary[lang];
+  // const t = aiChatDictionary[lang]; // t 변수는 사용되지 않으므로 제거
 
   return (
     <>
