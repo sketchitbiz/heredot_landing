@@ -4,9 +4,9 @@ import styled from 'styled-components';
 import { Breakpoints } from '@/constants/layoutConstants';
 import ResponsiveView from '@/layout/ResponsiveView';
 import React, { useEffect, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation'; 
 import { ChevronDown, ChevronUp } from 'lucide-react'; // 아이콘 사용
-
+import { useLang } from '@/contexts/LangContext';
+import { dictionary } from '@/lib/i18n/lang';
 
 interface LandingSection {
   id?: string;
@@ -39,12 +39,12 @@ const AppBarContentWrapper = styled.div`
   max-width: ${Breakpoints.desktop}px;
   margin: 0 auto;
   box-sizing: border-box;
-  padding-left: 16px;
-  padding-right: 16px;
+  /* padding-left: 16px; */
+  /* padding-right: 16px; */
 
   @media (max-width: ${Breakpoints.mobile}px) {
-    padding-left: 12px;
-    padding-right: 12px;
+    /* padding-left: 12px; */
+    /* padding-right: 12px; */
   }
 `;
 
@@ -54,10 +54,10 @@ const SectionWrapper = styled.section<{
   $hideAppBar?: boolean;
 }>`
   width: 100%;
-  background-color: ${({ $backgroundColor }) => $backgroundColor || 'transparent'};
+  background-color: ${({ $backgroundColor }) =>
+    $backgroundColor || 'transparent'};
   position: relative;
-  z-index: ${({ $hideAppBar, $zIndex }) =>
-    $hideAppBar ? 999 : $zIndex ?? 1};
+  z-index: ${({ $hideAppBar, $zIndex }) => ($hideAppBar ? 999 : $zIndex ?? 1)};
 
   @media (max-width: ${Breakpoints.mobile}px) {
     overflow-x: hidden;
@@ -102,14 +102,12 @@ const FloatingToggleButtonInner = styled.div`
   padding: 0 20px;
   pointer-events: auto;
 
-
   @media (max-width: ${Breakpoints.mobile}px) {
     max-width: 100%;
     min-width: 0; // ✅ 모바일에서 최소 너비 해제
-    padding: 0 40px;
+    padding: 0 34px;
   }
 `;
-
 
 const ArrowToggle = styled.div`
   background-color: #2a2135;
@@ -119,14 +117,15 @@ const ArrowToggle = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  border-color: #727171;;
+  border-color: #727171;
   border-width: 1px;
   border-style: solid;
 `;
 
-
-
-const BottomFloatingBox = styled.div<{ $isCollapsed: boolean; $scrollX: number }>`
+const BottomFloatingBox = styled.div<{
+  $isCollapsed: boolean;
+  $scrollX: number;
+}>`
   position: fixed;
   bottom: 0;
   left: 0;
@@ -134,7 +133,9 @@ const BottomFloatingBox = styled.div<{ $isCollapsed: boolean; $scrollX: number }
   min-width: ${Breakpoints.desktop}px;
   transform: translateX(${({ $scrollX }) => -$scrollX}px); // ✅ 스크롤 반영
   background: ${({ $isCollapsed }) =>
-    $isCollapsed ? 'transparent' : 'linear-gradient(to top, #2a2135 100%, #625791 0%)'};
+    $isCollapsed
+      ? 'transparent'
+      : 'linear-gradient(to top, #2a2135 100%, #625791 0%)'};
   z-index: 1000;
   display: flex;
   justify-content: center;
@@ -167,10 +168,9 @@ const BoxInnerWrapper = styled.div<{ $isCollapsed: boolean }>`
   }
 `;
 
-
-
 const LeftColumn = styled.div<{ $isCollapsed: boolean }>`
-  display: ${({ $isCollapsed }) => ($isCollapsed ? 'none' : 'flex')}; // 접힌 상태일 때 숨김
+  display: ${({ $isCollapsed }) =>
+    $isCollapsed ? 'none' : 'flex'}; // 접힌 상태일 때 숨김
   flex-direction: column;
   gap: 20px;
 `;
@@ -205,18 +205,18 @@ const RightRow = styled.div`
   }
 `;
 
-
-
-const LandingBaseWrapper: React.FC<LandingBaseWrapperProps> = ({ sections, appBar }) => {
+const LandingBaseWrapper: React.FC<LandingBaseWrapperProps> = ({
+  sections,
+  appBar,
+}) => {
   const [scrollX, setScrollX] = useState(0);
   const sectionRefs = useRef<(HTMLElement | null)[]>([]);
   const [isFloatingVisible, setIsFloatingVisible] = useState(false);
 
   const [isCollapsed, setIsCollapsed] = useState(false);
 
-
-
-
+  const { lang } = useLang();
+  const t = dictionary[lang].landingBottomBox;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -225,9 +225,11 @@ const LandingBaseWrapper: React.FC<LandingBaseWrapperProps> = ({ sections, appBa
       const visibleIndex = sectionRefs.current.findIndex((ref, i) => {
         if (!ref || !sections[i].showFloatingBox) return false;
         const rect = ref.getBoundingClientRect();
-        return rect.top  < window.innerHeight && rect.bottom +500 > window.innerHeight;
+        return (
+          rect.top < window.innerHeight &&
+          rect.bottom + 500 > window.innerHeight
+        );
       });
-      
 
       setIsFloatingVisible(visibleIndex !== -1);
     };
@@ -248,7 +250,14 @@ const LandingBaseWrapper: React.FC<LandingBaseWrapperProps> = ({ sections, appBa
 
       {sections.map(
         (
-          { id, $backgroundColor, content, $zIndex, $isOverLayout, isWithAppBar },
+          {
+            id,
+            $backgroundColor,
+            content,
+            $zIndex,
+            $isOverLayout,
+            isWithAppBar,
+          },
           idx
         ) => (
           <SectionWrapper
@@ -257,14 +266,15 @@ const LandingBaseWrapper: React.FC<LandingBaseWrapperProps> = ({ sections, appBa
             ref={(el) => {
               sectionRefs.current[idx] = el;
             }}
-            
             $backgroundColor={$backgroundColor}
             $zIndex={$zIndex}
             $hideAppBar={isWithAppBar === false}
           >
             <ResponsiveView
               desktopView={
-                <ContentWrapper $isOverLayout={$isOverLayout}>{content}</ContentWrapper>
+                <ContentWrapper $isOverLayout={$isOverLayout}>
+                  {content}
+                </ContentWrapper>
               }
               mobileView={
                 <div
@@ -280,40 +290,39 @@ const LandingBaseWrapper: React.FC<LandingBaseWrapperProps> = ({ sections, appBa
           </SectionWrapper>
         )
       )}
-{isFloatingVisible && (
-  <>
-    <FloatingToggleButton $scrollX={scrollX}>
-  <FloatingToggleButtonInner>
-    <ArrowToggle onClick={() => setIsCollapsed((prev) => !prev)}>
-      {isCollapsed ? <ChevronUp color="white" width={"32"} height={"32"} /> : <ChevronDown color="white"  width={"32"} height={"32"} />}
-    </ArrowToggle>
-  </FloatingToggleButtonInner>
-</FloatingToggleButton>
+      {isFloatingVisible && (
+        <>
+          <FloatingToggleButton $scrollX={scrollX}>
+            <FloatingToggleButtonInner>
+              <ArrowToggle onClick={() => setIsCollapsed((prev) => !prev)}>
+                {isCollapsed ? (
+                  <ChevronUp color="white" width={'32'} height={'32'} />
+                ) : (
+                  <ChevronDown color="white" width={'32'} height={'32'} />
+                )}
+              </ArrowToggle>
+            </FloatingToggleButtonInner>
+          </FloatingToggleButton>
 
-<BottomFloatingBox $isCollapsed={isCollapsed} $scrollX={scrollX}>
-  <BoxInnerWrapper $isCollapsed={isCollapsed}>
-    <LeftColumn $isCollapsed={isCollapsed}>
-      <LeftTitle>추천</LeftTitle>
-      <LeftDescription>
-        직접 견적 받으시나요?
-        {'\n'}더 빠른 길을 추천해드릴게요!
-      </LeftDescription>
-    </LeftColumn>
-    <RightRow
-      onClick={() => window.open('/ai', '_blank', 'noopener,noreferrer')}
-      style={{ marginLeft: isCollapsed ? 'auto' : undefined }}
-    >
-      {!isCollapsed && <span>AI 견적 받기</span>}
-      <img src="/floating.svg" alt="AI Icon" />
-    </RightRow>
-  </BoxInnerWrapper>
-</BottomFloatingBox>
-  </>
-)}
-
-
-
-
+          <BottomFloatingBox $isCollapsed={isCollapsed} $scrollX={scrollX}>
+            <BoxInnerWrapper $isCollapsed={isCollapsed}>
+              <LeftColumn $isCollapsed={isCollapsed}>
+                <LeftTitle>{t.title}</LeftTitle>
+                <LeftDescription>{t.description}</LeftDescription>
+              </LeftColumn>
+              <RightRow
+                onClick={() =>
+                  window.open('/ai', '_blank', 'noopener,noreferrer')
+                }
+                style={{ marginLeft: isCollapsed ? 'auto' : undefined }}
+              >
+                {!isCollapsed && <span>{t.aiButton}</span>}
+                <img src="/floating.svg" alt="AI Icon" />
+              </RightRow>
+            </BoxInnerWrapper>
+          </BottomFloatingBox>
+        </>
+      )}
     </>
   );
 };

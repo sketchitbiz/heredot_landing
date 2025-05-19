@@ -76,7 +76,7 @@ export const RinguPopup = () => {
 
   return (
     <ProjectPopupContent
-      imageUrl="/assets/portpolio_popup/ringu.png"
+      imageUrl="/assets/portpolio_popup/ringu.webp"
       projectIntro={<CustomPopupText>{t.projectIntro}</CustomPopupText>}
       leftHeader={
         <div
@@ -134,7 +134,7 @@ export const RinguPopup = () => {
                 {title}
               </h4>
               <img
-                src={`/assets/portpolio_popup/ringu_${i + 1}.png`}
+                src={`/assets/portpolio_popup/ringu_${i + 1}.webp`}
                 alt={title}
                 style={{ width: '100%' }}
               />
@@ -142,7 +142,7 @@ export const RinguPopup = () => {
           ))}
           <div>
             <img
-              src="/assets/portpolio_popup/ringu_4.png"
+              src="/assets/portpolio_popup/ringu_4.webp"
               alt="Additional Screenshot"
               style={{ width: '100%' }}
             />

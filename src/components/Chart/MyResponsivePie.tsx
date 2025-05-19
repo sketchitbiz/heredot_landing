@@ -51,29 +51,7 @@ const MyResponsivePie: React.FC<MyResponsivePieProps> = ({ data, baseColor }) =>
         from: "color",
         modifiers: [["darker", 2]],
       }}
-      layers={[
-        'arcs',
-        'arcLabels',
-        'legends',
-        // 중앙 텍스트 (value.label)
-        (props) => {
-          const { centerX, centerY } = props;
-          return (
-            <text
-              x={centerX}
-              y={centerY}
-              textAnchor="middle"
-              dominantBaseline="central"
-              style={{
-                fontSize: 14,
-                fontWeight: '700',
-                fill: '#333',
-              }}
-            >
-            </text>
-          );
-        },
-      ]}
+      
       motionConfig="default"
       legends={[
         {

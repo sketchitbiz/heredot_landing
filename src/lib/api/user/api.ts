@@ -14,3 +14,11 @@ export async function userStamp(params: Partial<UserStampCreateParams>) {
     isCallPageLoader: false,
   });
 }
+
+export async function termGetList() {
+  return callApi({
+    title: '약관 목록',
+    url: `${BASE_URL}/user/terms/get-list`,
+    isCallPageLoader: true,
+  });
+}

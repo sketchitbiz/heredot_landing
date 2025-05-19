@@ -362,7 +362,7 @@ export default function HomePage() {
           sectionTitle={t.community.section.title}
           sectionDescription={t.community.section.description}
           buttonText={t.community.section.buttonText}
-          imageUrl="/assets/community.png"
+          imageUrl="/assets/community.webp"
           onButtonClick={() => {
             window.open("https://open.kakao.com/o/g0u3dOrc", "_blank");
           }}

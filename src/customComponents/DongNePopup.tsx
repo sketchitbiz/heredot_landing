@@ -43,7 +43,7 @@ export const DongNePopup = () => {
 
   return (
     <ProjectPopupContent
-      imageUrl="/assets/portpolio_popup/dongne.png"
+      imageUrl="/assets/portpolio_popup/dongne.webp"
       projectIntro={<CustomPopupText>{t.projectIntro}</CustomPopupText>}
       featureList={
         <>
@@ -60,7 +60,7 @@ export const DongNePopup = () => {
           {t.screenshots.map((title, i) => (
             <div key={i}>
               <h4 style={{ fontWeight: 700, fontSize: 16, color: '#3f4347' }}>{title}</h4>
-              <img src={`/assets/portpolio_popup/dongne_${i + 1}.png`} alt={title} style={{ width: '100%' }} />
+              <img src={`/assets/portpolio_popup/dongne_${i + 1}.webp`} alt={title} style={{ width: '100%' }} />
             </div>
           ))}
         </div>

@@ -52,25 +52,25 @@ export const dictionary = {
       slides: [
         {
           title: '안티드론 솔루션',
-          image: '/assets/partner_1.png',
+          image: '/assets/partner_1.webp',
           subtitle: '글로벌 세일즈 관련 수행 방안 제안',
           description: '고객사가 엔지니어 중심 조직 구조인 점을 고려하여,<br /> 제품 런칭 이후 기술 외에도 세일즈 관점에서의 사업 전략을 제안',
         },
         {
           title: '명품 역경매',
-          image: '/assets/partner_2.png',
+          image: '/assets/partner_2.webp',
           subtitle: 'AI를 활용한 시세 조회 방안 제안',
           description: '제품 촬영한 이미지를 AI를 통해 식별 및 인식 하여<br /> 시세를 예측하여 고객 유입 활성 방안 제안',
         },
         {
           title: '무역플랫폼',
-          image: '/assets/partner_3.png',
+          image: '/assets/partner_3.webp',
           subtitle: '복잡한 프로세스 No! 절차 개선 제안',
           description: '무역업 특성상 많은 이해 관계자들이 협업 해야 되는 구조를<br /> 정확하게 인지 및 각 구간별 불필요 절차 개선 방안 제안',
         },
         {
           title: '테이블오더',
-          image: '/assets/partner_4.png',
+          image: '/assets/partner_4.webp',
           subtitle: '테이블오더 시장 안착 전략 제안',
           description: '시중에 나와 있는 테이블 오더 제품과의 경쟁에서 살아 남기 위한<br /> 고객사만의 기능과 사업전략을 이해하고 프로젝트 킥오프 제안',
         },
@@ -191,11 +191,11 @@ export const dictionary = {
       title: '여기닷은 모든 프로젝트에\n 디자인 전략을 제안합니다',
       downloadText: '디자인 제안서 다운로드',
       slides: [
-        { title: '시장/레퍼런스 조사', image: '/assets/design/design_1.png' },
-        { title: '트렌드 파악', image: '/assets/design/design_2.png' },
-        { title: '컬러제안', image: '/assets/design/design_3.png' },
-        { title: 'UI/UX 제안', image: '/assets/design/design_4.png' },
-        { title: '고객의사결정', image: '/assets/design/design_5.png' },
+        { title: '시장/레퍼런스 조사', image: '/assets/design/design_1.webp' },
+        { title: '트렌드 파악', image: '/assets/design/design_2.webp' },
+        { title: '컬러제안', image: '/assets/design/design_3.webp' },
+        { title: 'UI/UX 제안', image: '/assets/design/design_4.webp' },
+        { title: '고객의사결정', image: '/assets/design/design_5.webp' },
       ],
     },
     reviewSection: {
@@ -205,6 +205,11 @@ export const dictionary = {
     appBlock: {
       title: `여기닷은 레고 디자인 시스템으로\n차곡차곡 쌓아 빠르고·안정적 개발합니다.`,
       description: `화면을 작은 단위부터 체계적으로 설계해\n디자인과 개발을 일관된 구조로 개발하며,\n완성도는 물론 추후 코드 이관과 유지보수도 간편합니다.`,
+    },
+    landingBottomBox: {
+      title: '추천',
+      description: '직접 견적 받으시나요?\n더 빠른 길을 추천해드릴게요!',
+      aiButton: 'AI 견적 받기',
     },
     contactSection: {
       emailTitle: '이메일 문의',
@@ -227,6 +232,10 @@ export const dictionary = {
       copyright: 'Copyright ⓒ 2025 여기닷 All right reserved.',
       businessLicense: '통신판매업신고증 : 2025-성남 수정-0138 호',
       moreButton: '더보기',
+      terms: '이용약관',
+privacy: '개인정보 처리방침',
+companyInfo: '사업자 정보',
+
       moreInfo: [
         '여기닷은 판교에 위치한 IT 전문 기업으로, 웹사이트 제작, 모바일 앱 개발(외주), 맞춤형 플랫폼 및 솔루션 개발, IT 컨설팅과 아웃소싱 서비스를 제공합니다. React, Node.js, Flutter 등 다양한 기술 스택을 활용하여 고객의 비즈니스 성공을 돕습니다.',
         '커뮤니티, O2O, 쇼핑몰(이커머스), 예약 시스템, 솔루션 등 다양한 비즈니스 모델에 최적화된 맞춤형 웹/앱 플랫폼을 기획, 설계, 개발합니다. 확장성과 안정성을 고려한 아키텍처로 판교 및 경기 지역 기업의 성공적인 디지털 전환을 지원합니다.',
@@ -282,6 +291,12 @@ export const dictionary = {
     firstMap: {
       label: 'Strategic Partner', // ✅ 추가
     },
+    landingBottomBox: {
+      title: 'Recommendation',
+      description: 'Getting a quote manually?\nLet us guide you a faster way!',
+      aiButton: 'Get AI Quote',
+    },
+    
     secondMap: {
     label: 'Heredot',
     },
@@ -381,25 +396,25 @@ export const dictionary = {
       slides: [
         {
           title: 'Anti-Drone Solution',
-          image: '/assets/partner_1.png',
+          image: '/assets/partner_1.webp',
           subtitle: 'Proposal for Global Sales Execution',
           description: 'Considering the client\'s engineer-centered structure,<br /> we propose business strategies beyond technology after product launch.',
         },
         {
           title: 'Luxury Reverse Auction',
-          image: '/assets/partner_2.png',
+          image: '/assets/partner_2.webp',
           subtitle: 'Proposal for AI-based Price Inquiry',
           description: 'Identify products with AI from photos<br /> and predict prices to attract customers.',
         },
         {
           title: 'Trade Platform',
-          image: '/assets/partner_3.png',
+          image: '/assets/partner_3.webp',
           subtitle: 'No Complex Process! Procedure Improvement Proposal',
           description: 'Understanding the collaborative structure in trade business,<br /> we propose ways to improve unnecessary procedures in each section.',
         },
         {
           title: 'Table Order',
-          image: '/assets/partner_4.png',
+          image: '/assets/partner_4.webp',
           subtitle: 'Table Order Market Penetration Strategy',
           description: 'Understanding client\'s unique features and strategies<br /> to survive in the table order market.',
         },
@@ -447,11 +462,11 @@ export const dictionary = {
       title: 'Heredot Design Strategy', 
       downloadText: 'Download Design Proposal',
       slides: [
-        { title: 'Market/Reference Research', image: '/assets/design/design_1e.png' },
-        { title: 'Trend Analysis', image: '/assets/design/design_2e.png' },
-        { title: 'Color Proposal', image: '/assets/design/design_3e.png' },
-        { title: 'UI/UX Proposal', image: '/assets/design/design_4e.png' },
-        { title: 'Customer Decision', image: '/assets/design/design_5e.png' },
+        { title: 'Market/Reference Research', image: '/assets/design/design_1e.webp' },
+        { title: 'Trend Analysis', image: '/assets/design/design_2e.webp' },
+        { title: 'Color Proposal', image: '/assets/design/design_3e.webp' },
+        { title: 'UI/UX Proposal', image: '/assets/design/design_4e.webp' },
+        { title: 'Customer Decision', image: '/assets/design/design_5e.webp' },
       ],
     },
     appBlock: {
@@ -479,6 +494,10 @@ export const dictionary = {
       copyright: 'Copyright ⓒ 2025 Heredot. All rights reserved.',
       businessLicense: 'E-commerce License: 2025-성남 수정-0138 호',
       moreButton: 'Read More',
+      terms: 'Terms of Use',
+privacy: 'Privacy Policy',
+companyInfo: 'Company Info',
+
       moreInfo: [
         "Heredot is an IT company located in Pangyo, specializing in website development, outsourced mobile app development, custom platforms, IT consulting, and outsourcing. We use modern stacks such as React, Node.js, and Flutter to support client success.",
         "We plan, design, and develop custom web/app platforms optimized for business models like communities, O2O, e-commerce, booking systems, and solutions. Our scalable architecture supports digital transformation for companies in Pangyo and Gyeonggi areas.",
