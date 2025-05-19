@@ -63,7 +63,7 @@ export const TableOrderPopup = () => {
 
   return (
     <ProjectPopupContent
-      imageUrl="/assets/portpolio_popup/tableorder.png"
+      imageUrl="/assets/portpolio_popup/tableorder.webp"
       projectIntro={<CustomPopupText>{t.projectIntro}</CustomPopupText>}
       leftHeader={
         <div style={{ position: 'absolute', top: '50px', left: '20px' }}>
@@ -105,7 +105,7 @@ export const TableOrderPopup = () => {
           {t.screenshots.map((title, i) => (
             <div key={i}>
               <h4 style={{ fontWeight: 700, fontSize: 16, color: '#3f4347' }}>{title}</h4>
-              <img src={`/assets/portpolio_popup/table_${i + 1}.png`} alt={title} style={{ width: '100%' }} />
+              <img src={`/assets/portpolio_popup/table_${i + 1}.webp`} alt={title} style={{ width: '100%' }} />
             </div>
           ))}
         </div>

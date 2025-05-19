@@ -74,7 +74,7 @@ export const FmgPopup = () => {
 
   return (
     <ProjectPopupContent
-      imageUrl="/assets/portpolio_popup/fmg.png"
+      imageUrl="/assets/portpolio_popup/fmg.webp"
       projectIntro={<CustomPopupText>{t.projectIntro}</CustomPopupText>}
       leftHeader={
         <div
@@ -122,7 +122,7 @@ export const FmgPopup = () => {
             <div key={i}>
               <h4 style={{ fontWeight: 700, fontSize: 16, color: '#3f4347' }}>{title}</h4>
               <img
-                src={`/assets/portpolio_popup/fmg_${i + 1}.png`}
+                src={`/assets/portpolio_popup/fmg_${i + 1}.webp`}
                 alt={title}
                 style={{ width: '100%' }}
               />

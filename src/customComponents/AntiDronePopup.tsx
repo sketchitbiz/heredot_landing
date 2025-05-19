@@ -49,7 +49,7 @@ export const AntiDronePopup = () => {
 
   return (
     <ProjectPopupContent
-      imageUrl="/assets/portpolio_popup/antidrone.png"
+      imageUrl="/assets/portpolio_popup/antidrone.webp"
       projectIntro={<CustomPopupText>{t.projectIntro}</CustomPopupText>}
       featureList={
         <>
@@ -68,7 +68,7 @@ export const AntiDronePopup = () => {
             <div key={i}>
               <h4 style={{ fontWeight: 700, fontSize: 16, color: '#3f4347' }}>{title}</h4>
               <img
-                src={`/assets/portpolio_popup/antidron_${i + 1}.png`}
+                src={`/assets/portpolio_popup/antidron_${i + 1}.webp`}
                 alt={title}
                 style={{ width: '100%' }}
               />
@@ -78,7 +78,7 @@ export const AntiDronePopup = () => {
           {/* antidron_4 이미지 추가 */}
           <div>
             <img
-              src="/assets/portpolio_popup/antidron_4.png"
+              src="/assets/portpolio_popup/antidron_4.webp"
               alt="Additional Screenshot"
               style={{ width: '100%' }}
             />

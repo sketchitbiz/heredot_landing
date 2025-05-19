@@ -41,6 +41,7 @@ const MobileAppBarWrapper = styled.nav`
   background-color: ${AppColors.background};
   z-index: 1000;
   box-sizing: border-box;
+  padding: 0 20px;
 `;
 
 const ContentWrapper = styled.div`

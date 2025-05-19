@@ -56,7 +56,7 @@ export const ReBlingPopup = () => {
 
   return (
     <ProjectPopupContent
-      imageUrl="/assets/portpolio_popup/re-bling.png"
+      imageUrl="/assets/portpolio_popup/re-bling.webp"
       projectIntro={<CustomPopupText>{t.projectIntro}</CustomPopupText>}
       leftHeader={
         <div style={{ position: 'absolute', top: '50px', left: '20px' }}>
@@ -99,7 +99,7 @@ export const ReBlingPopup = () => {
             <div key={i}>
               <h4 style={{ fontWeight: 700, fontSize: 16, color: '#3f4347' }}>{title}</h4>
               <img
-                src={`/assets/portpolio_popup/rebling_${i + 1}.png`}
+                src={`/assets/portpolio_popup/rebling_${i + 1}.webp`}
                 alt={title}
                 style={{ width: '100%' }}
               />

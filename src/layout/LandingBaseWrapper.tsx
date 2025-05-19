@@ -6,6 +6,8 @@ import ResponsiveView from '@/layout/ResponsiveView';
 import React, { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation'; 
 import { ChevronDown, ChevronUp } from 'lucide-react'; // 아이콘 사용
+import { useLang } from '@/contexts/LangContext';
+import { dictionary } from '@/lib/i18n/lang';
 
 
 
@@ -40,12 +42,12 @@ const AppBarContentWrapper = styled.div`
   max-width: ${Breakpoints.desktop}px;
   margin: 0 auto;
   box-sizing: border-box;
-  padding-left: 16px;
-  padding-right: 16px;
+  /* padding-left: 16px; */
+  /* padding-right: 16px; */
 
   @media (max-width: ${Breakpoints.mobile}px) {
-    padding-left: 12px;
-    padding-right: 12px;
+    /* padding-left: 12px; */
+    /* padding-right: 12px; */
   }
 `;
 
@@ -107,7 +109,7 @@ const FloatingToggleButtonInner = styled.div`
   @media (max-width: ${Breakpoints.mobile}px) {
     max-width: 100%;
     min-width: 0; // ✅ 모바일에서 최소 너비 해제
-    padding: 0 40px;
+    padding: 0 34px;
   }
 `;
 
@@ -215,7 +217,9 @@ const LandingBaseWrapper: React.FC<LandingBaseWrapperProps> = ({ sections, appBa
 
   const [isCollapsed, setIsCollapsed] = useState(false);
 
-
+  const { lang } = useLang();
+  const t = dictionary[lang].landingBottomBox;
+  
 
 
 
@@ -294,21 +298,19 @@ const LandingBaseWrapper: React.FC<LandingBaseWrapperProps> = ({ sections, appBa
 <BottomFloatingBox $isCollapsed={isCollapsed} $scrollX={scrollX}>
   <BoxInnerWrapper $isCollapsed={isCollapsed}>
     <LeftColumn $isCollapsed={isCollapsed}>
-      <LeftTitle>추천</LeftTitle>
-      <LeftDescription>
-        직접 견적 받으시나요?
-        {'\n'}더 빠른 길을 추천해드릴게요!
-      </LeftDescription>
+      <LeftTitle>{t.title}</LeftTitle>
+      <LeftDescription>{t.description}</LeftDescription>
     </LeftColumn>
     <RightRow
       onClick={() => window.open('/ai', '_blank', 'noopener,noreferrer')}
       style={{ marginLeft: isCollapsed ? 'auto' : undefined }}
     >
-      {!isCollapsed && <span>AI 견적 받기</span>}
+      {!isCollapsed && <span>{t.aiButton}</span>}
       <img src="/floating.svg" alt="AI Icon" />
     </RightRow>
   </BoxInnerWrapper>
 </BottomFloatingBox>
+
   </>
 )}
 

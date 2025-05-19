@@ -2,9 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Breakpoints } from '@/constants/layoutConstants';
-import type { DeviceType } from '@/types/device';
 
-// 타입에서 'tablet' 제거
 type SimplifiedDeviceType = 'mobile' | 'desktop';
 
 const DeviceContext = createContext<SimplifiedDeviceType>('desktop');
@@ -16,20 +14,24 @@ export const DeviceProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const detectDevice = () => {
       const width = window.innerWidth;
-      const ua = navigator.userAgent;
+      const ua = navigator.userAgent || navigator.vendor || (window as any).opera;
+      const isSmallScreen = window.matchMedia(`(max-width: ${Breakpoints.mobile}px)`).matches;
 
+      // console.log("📱 Device Detection Log:");
+      // console.log("📏 window.innerWidth:", width);
+      // console.log("🧭 userAgent:", ua);
+      // console.log("📐 matchMedia:", isSmallScreen);
 
-      const isIPad = /iPad/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); 
-      const isMobileUA = /iPhone|Android.*Mobile/.test(ua);
-      
-      if (isIPad || width >= Breakpoints.mobile) {
-        setDevice('desktop');
-      } else if (isMobileUA || width < Breakpoints.mobile) {
+      if (isSmallScreen) {
+        // console.log("✅ Set device: mobile");
         setDevice('mobile');
+      } else {
+        // console.log("✅ Set device: desktop");
+        setDevice('desktop');
       }
     };
 
-    detectDevice(); // 초기 실행
+    detectDevice(); // 초기 체크
     window.addEventListener('resize', detectDevice);
     return () => window.removeEventListener('resize', detectDevice);
   }, []);

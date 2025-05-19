@@ -49,7 +49,7 @@ export const LimeFoodPopup = () => {
 
   return (
     <ProjectPopupContent
-      imageUrl="/assets/portpolio_popup/limefood.png"
+      imageUrl="/assets/portpolio_popup/limefood.webp"
       projectIntro={<CustomPopupText>{t.projectIntro}</CustomPopupText>}
       featureList={
         <>
@@ -66,7 +66,7 @@ export const LimeFoodPopup = () => {
           {t.screenshots.map((title, i) => (
             <div key={i}>
               <h4 style={{ fontWeight: 700, fontSize: 16, color: '#3f4347' }}>{title}</h4>
-              <img src={`/assets/portpolio_popup/lime_${i + 1}.png`} alt={title} style={{ width: '100%' }} />
+              <img src={`/assets/portpolio_popup/lime_${i + 1}.webp`} alt={title} style={{ width: '100%' }} />
             </div>
           ))}
         </div>
