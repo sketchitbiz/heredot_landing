@@ -240,7 +240,36 @@ AI 지침:
    - 'JP': 일본어
    - 'CN', 'HK', 'TW': 중국어(간체 또는 번체)
    - 'DE', 'AT', 'CH': 독일어
-   - 'FR', 'BE', 'CH': 프랑스어
+   - 'FR', 'BE', 'CH': 프랑스어Unhandled Runtime Error
+
+
+Error: valueCellStyle is not defined
+
+src/components/Ai/AiChatMessage.tsx (1472:36) @ AiChatMessage
+
+
+  1470 |                       <strong>{t.estimateInfo.vatIncluded}</strong>
+  1471 |                     </td>
+> 1472 |                     <td style={{...valueCellStyle, textAlign: 'right', fontWeight: 'bold'}}>
+       |                                    ^
+  1473 |                       <strong>
+  1474 |                         {formatAmountWithCurrency(
+  1475 |                           Math.round((calculatedTotalAmount || 0) * 1.1),
+Call Stack
+6
+
+AiChatMessage
+src/components/Ai/AiChatMessage.tsx (1472:36)
+eval
+src/app/ai/components/ChatContent.tsx (234:11)
+Array.map
+<anonymous> (0:0)
+ChatContent
+src/app/ai/components/ChatContent.tsx (233:19)
+AiPageContent
+src/app/ai/AiPageContent.tsx (1067:11)
+AIPage
+src/app/ai/page.tsx (9:7)
    - 'ES', 'MX', 'AR', 'CO': 스페인어
    - 'PT', 'BR': 포르투갈어
    - 'IT': 이탈리아어

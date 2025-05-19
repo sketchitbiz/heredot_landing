@@ -37,6 +37,8 @@ export const aiChatDictionary = {
       note: '참고',
       estimatedDuration: '예상 기간',
       estimatedPages: '예상 페이지',
+      vatIncluded: '부가세 포함',
+      monthUnit: '개월',
     },
     discount: {
       title: '견적가 할인받기',
@@ -182,6 +184,8 @@ export const aiChatDictionary = {
       note: 'Note',
       estimatedDuration: 'Estimated Duration',
       estimatedPages: 'Estimated Pages',
+      vatIncluded: 'VAT Included',
+      monthUnit: 'months',
     },
     discount: {
       title: 'Get a Discount on the Estimate',

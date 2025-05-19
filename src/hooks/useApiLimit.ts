@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-const DAILY_LIMIT = 5; // 비회원 일일 API 호출 제한 횟수
+const DAILY_LIMIT = 10; // 비회원 일일 API 호출 제한 횟수
 const STORAGE_KEY = 'apiCallLimit';
 
 interface ApiLimitData {

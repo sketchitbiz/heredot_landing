@@ -16,7 +16,7 @@ import { FileUploadData } from '@/lib/firebase/firebase.functions';
 // 스타일 컴포넌트
 const MessageInputContainer = styled.div`
   padding: 1rem 2rem 4rem 2rem;
-  border-top: 1px solid ${AppColors.border};
+  border-top: 1px solid ${AppColors.aiBorder};
   background-color: ${AppColors.background};
   margin-top: auto;
 
@@ -33,7 +33,7 @@ const InputContainer = styled.form`
   align-items: center;
   gap: 0.5rem;
   background-color: ${AppColors.inputDisabled};
-  border: 1px solid ${AppColors.border};
+  border: 1px solid ${AppColors.aiBorder};
   border-radius: 24px;
   padding: 0.5rem 1rem;
   max-width: 48rem;

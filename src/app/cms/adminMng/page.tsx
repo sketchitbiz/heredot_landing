@@ -1,7 +1,10 @@
 'use client';
 import React, { useCallback, useMemo, useRef, useState } from 'react'; // useRef 추가
 
-import GenericListUI, { FetchParams, FetchResult } from '@/components/CustomList/GenericListUI';
+import GenericListUI, {
+  FetchParams,
+  FetchResult,
+} from '@/components/CustomList/GenericListUI';
 import { ColumnDefinition } from '@/components/CustomList/GenericDataTable';
 import { adminGetList } from '@/lib/api/admin/adminApi';
 import dayjs from 'dayjs';
@@ -15,7 +18,6 @@ import { AppColors } from '@/styles/colors';
 import { Validators } from '@/lib/utils/validators';
 import { toast, ToastContainer } from 'react-toastify';
 import { adminCreate } from '@/lib/api/admin';
-
 
 type AdminUser = {
   adminId: string;
@@ -48,7 +50,7 @@ const FooterButton = styled.button`
 const CancelButton = styled(FooterButton)`
   background-color: #ffffff;
   color: ${AppColors.onSurface};
-  border: 1px solid ${AppColors.border};
+  border: 1px solid white;
 `;
 
 const SaveButton = styled(FooterButton)`
@@ -65,11 +67,16 @@ const FormContainer = styled.div`
 `;
 
 const RegisterButton = styled(ActionButton)<{ $themeMode: 'light' | 'dark' }>`
-  background: ${({ $themeMode }) => ($themeMode === 'light' ? '#f8f8f8' : THEME_COLORS.dark.primary)};
-  color: ${({ $themeMode }) => ($themeMode === 'light' ? THEME_COLORS.light.primary : THEME_COLORS.dark.buttonText)};
+  background: ${({ $themeMode }) =>
+    $themeMode === 'light' ? '#f8f8f8' : THEME_COLORS.dark.primary};
+  color: ${({ $themeMode }) =>
+    $themeMode === 'light'
+      ? THEME_COLORS.light.primary
+      : THEME_COLORS.dark.buttonText};
   border: none;
   &:hover:not(:disabled) {
-    background-color: ${({ $themeMode }) => ($themeMode === 'light' ? '#e8e8e8' : '#424451')};
+    background-color: ${({ $themeMode }) =>
+      $themeMode === 'light' ? '#e8e8e8' : '#424451'};
   }
 `;
 
@@ -97,7 +104,9 @@ const SwitchButton = styled.div<{ checked: boolean; readOnly?: boolean }>`
 `;
 
 const AdminMngPage: React.FC = () => {
-  const [selectedUser, setSelectedUser] = useState<Partial<AdminUser> | null>(null);
+  const [selectedUser, setSelectedUser] = useState<Partial<AdminUser> | null>(
+    null
+  );
 
   const [userId, setUserId] = useState('');
   const [password, setPassword] = useState('');
@@ -117,7 +126,6 @@ const AdminMngPage: React.FC = () => {
 
   const listRef = useRef<{ refetch: () => void }>(null);
 
-
   const clearFormErrors = useCallback(() => {
     setIdError(null);
     setPwdError(null);
@@ -126,17 +134,20 @@ const AdminMngPage: React.FC = () => {
     setCellphoneError(null);
   }, []);
 
-  const resetForm = useCallback((initial?: Partial<AdminUser>) => {
-    setSelectedUser(initial ?? null);
-    setUserId(initial?.adminId ?? '');
-    setPassword('');
-    setName(initial?.name ?? '');
-    setEmail(initial?.email ?? '');
-    setCellphone(initial?.cellphone ?? '');
-    setEmailYn(initial?.emailYn ?? 'Y');
-    setSmsYn(initial?.smsYn ?? 'Y');
-    clearFormErrors();
-  }, [clearFormErrors]);
+  const resetForm = useCallback(
+    (initial?: Partial<AdminUser>) => {
+      setSelectedUser(initial ?? null);
+      setUserId(initial?.adminId ?? '');
+      setPassword('');
+      setName(initial?.name ?? '');
+      setEmail(initial?.email ?? '');
+      setCellphone(initial?.cellphone ?? '');
+      setEmailYn(initial?.emailYn ?? 'Y');
+      setSmsYn(initial?.smsYn ?? 'Y');
+      clearFormErrors();
+    },
+    [clearFormErrors]
+  );
 
   const handleHeaderButtonClick = () => {
     resetForm(); // 신규 등록
@@ -154,34 +165,36 @@ const AdminMngPage: React.FC = () => {
 
   const handleSave = async () => {
     let valid = true;
-  
+
     if (!Validators.required(userId) || !Validators.id(userId)) {
       setIdError('아이디는 영문자와 숫자를 포함한 6~20자여야 합니다.');
       valid = false;
     } else setIdError(null);
-  
+
     if (!Validators.password(password)) {
-      setPwdError('비밀번호는 영문, 숫자, 특수문자를 포함해 8자 이상이어야 합니다.');
+      setPwdError(
+        '비밀번호는 영문, 숫자, 특수문자를 포함해 8자 이상이어야 합니다.'
+      );
       valid = false;
     } else setPwdError(null);
-  
+
     if (!Validators.required(name)) {
       setNameError('이름을 입력해주세요.');
       valid = false;
     } else setNameError(null);
-  
+
     if (!Validators.email(email)) {
       setEmailError('올바른 이메일 형식이 아닙니다.');
       valid = false;
     } else setEmailError(null);
-  
+
     if (!Validators.phone(cellphone)) {
       setCellphoneError('연락처는 숫자 11자리여야 합니다.');
       valid = false;
     } else setCellphoneError(null);
-  
+
     if (!valid) return;
-  
+
     try {
       const response = await adminCreate({
         adminId: userId,
@@ -193,26 +206,28 @@ const AdminMngPage: React.FC = () => {
         emailYn,
         smsYn,
       });
-  
+
       toast.success('관리자가 성공적으로 등록되었습니다.');
       setIsPopupOpen(false); // 팝업 닫기
       listRef.current?.refetch();
-  
+
       // TODO: 목록 리프레시 필요 시 fetchData 다시 호출하거나 상태 갱신
     } catch (error: any) {
       toast.error(error?.message || '관리자 등록에 실패했습니다.');
     }
   };
-  
 
-  const fetchData = useCallback(async (params: FetchParams): Promise<FetchResult<AdminUser>> => {
-    const raw = await adminGetList({ keyword: params.keyword ?? '' });
-    const wrapper = raw?.[0];
-    const data = wrapper?.data ?? [];
-    const totalItems = wrapper?.metadata?.totalCnt ?? data.length;
-    const allItems = wrapper?.metadata?.allCnt ?? totalItems;
-    return { data, totalItems, allItems };
-  }, []);
+  const fetchData = useCallback(
+    async (params: FetchParams): Promise<FetchResult<AdminUser>> => {
+      const raw = await adminGetList({ keyword: params.keyword ?? '' });
+      const wrapper = raw?.[0];
+      const data = wrapper?.data ?? [];
+      const totalItems = wrapper?.metadata?.totalCnt ?? data.length;
+      const allItems = wrapper?.metadata?.allCnt ?? totalItems;
+      return { data, totalItems, allItems };
+    },
+    []
+  );
 
   const handleDropdownChange = useCallback(
     (adminId: string, type: 'emailYn' | 'smsYn', newValue: 'Y' | 'N') => {
@@ -235,7 +250,11 @@ const AdminMngPage: React.FC = () => {
           <SwitchButton
             checked={row.emailYn === 'Y'}
             onClick={() =>
-              handleDropdownChange(row.adminId, 'emailYn', row.emailYn === 'Y' ? 'N' : 'Y')
+              handleDropdownChange(
+                row.adminId,
+                'emailYn',
+                row.emailYn === 'Y' ? 'N' : 'Y'
+              )
             }
           />
         ),
@@ -247,7 +266,11 @@ const AdminMngPage: React.FC = () => {
           <SwitchButton
             checked={row.smsYn === 'Y'}
             onClick={() =>
-              handleDropdownChange(row.adminId, 'smsYn', row.smsYn === 'Y' ? 'N' : 'Y')
+              handleDropdownChange(
+                row.adminId,
+                'smsYn',
+                row.smsYn === 'Y' ? 'N' : 'Y'
+              )
             }
           />
         ),
@@ -256,13 +279,14 @@ const AdminMngPage: React.FC = () => {
         header: '마지막 로그인',
         accessor: 'lastLoginTime',
         sortable: true,
-        formatter: (value) => value ? dayjs(value).format('YYYY-MM-DD HH:mm:ss') : '-',
+        formatter: (value) =>
+          value ? dayjs(value).format('YYYY-MM-DD HH:mm:ss') : '-',
       },
       {
         header: '등록일',
         accessor: 'createdTime',
         sortable: true,
-        formatter: (value) => value ? dayjs(value).format('YYYY-MM-DD') : '-',
+        formatter: (value) => (value ? dayjs(value).format('YYYY-MM-DD') : '-'),
       },
     ],
     [handleDropdownChange]
@@ -270,18 +294,18 @@ const AdminMngPage: React.FC = () => {
 
   return (
     <>
-    <ToastContainer
-      position="top-right"
-      autoClose={3000}
-      hideProgressBar={false}
-      newestOnTop={false}
-      closeOnClick
-      rtl={false}
-      pauseOnFocusLoss
-      draggable
-      pauseOnHover
-      theme="light"
-  ></ToastContainer>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      ></ToastContainer>
       <GenericListUI<AdminUser>
         ref={listRef}
         title="관리자회원관리"
@@ -303,27 +327,79 @@ const AdminMngPage: React.FC = () => {
 
       <CmsPopup isOpen={isPopupOpen} onClose={closePopup}>
         <FormContainer>
-          <TextField value={userId} label="* 아이디" autoComplete='off' $labelPosition="horizontal" labelColor="black" onChange={(e) => setUserId(e.target.value)} placeholder="영문자와 숫자를 포함한 6~20자" errorMessage={idError ?? undefined} />
-          <TextField value={password} showSuffixIcon = {true} label="* 비밀번호"  autoComplete="new-password" $labelPosition="horizontal" labelColor="black" onChange={(e) => setPassword(e.target.value)} placeholder="영문 + 숫자 + 특수문자 1개 포함 8자리 이상" isPasswordField ={true} errorMessage={pwdError ?? undefined} />
-          <TextField value={name} label="* 이름" $labelPosition="horizontal" labelColor="black" onChange={(e) => setName(e.target.value)} placeholder="이름을 입력하세요" errorMessage={nameError ?? undefined} />
-          <TextField value={email} label="* 이메일" $labelPosition="horizontal" labelColor="black" onChange={(e) => setEmail(e.target.value)} placeholder="이메일 형식으로 입력하세요" errorMessage={emailError ?? undefined} />
           <TextField
-  value={cellphone}
-  label="* 연락처"
-  $labelPosition="horizontal"
-  labelColor="black"
-  onChange={(e) => {
-    const input = e.target.value;
-    // 숫자만 허용
-    if (/^\d*$/.test(input)) {
-      setCellphone(input);
-    }
-  }}
-  placeholder="- 제외 하고 입력하세요"
-  errorMessage={cellphoneError ?? undefined}
-/>
-          <SelectionField label="이메일 수신" labelColor="black" leftLabel="Y" rightLabel="N" value={emailYn} onChange={(val) => setEmailYn(val as 'Y' | 'N')} $labelPosition="horizontal" />
-          <SelectionField label="SMS 수신" labelColor="black" leftLabel="Y" rightLabel="N" value={smsYn} onChange={(val) => setSmsYn(val as 'Y' | 'N')} $labelPosition="horizontal" />
+            value={userId}
+            label="* 아이디"
+            autoComplete="off"
+            $labelPosition="horizontal"
+            labelColor="black"
+            onChange={(e) => setUserId(e.target.value)}
+            placeholder="영문자와 숫자를 포함한 6~20자"
+            errorMessage={idError ?? undefined}
+          />
+          <TextField
+            value={password}
+            showSuffixIcon={true}
+            label="* 비밀번호"
+            autoComplete="new-password"
+            $labelPosition="horizontal"
+            labelColor="black"
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="영문 + 숫자 + 특수문자 1개 포함 8자리 이상"
+            isPasswordField={true}
+            errorMessage={pwdError ?? undefined}
+          />
+          <TextField
+            value={name}
+            label="* 이름"
+            $labelPosition="horizontal"
+            labelColor="black"
+            onChange={(e) => setName(e.target.value)}
+            placeholder="이름을 입력하세요"
+            errorMessage={nameError ?? undefined}
+          />
+          <TextField
+            value={email}
+            label="* 이메일"
+            $labelPosition="horizontal"
+            labelColor="black"
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="이메일 형식으로 입력하세요"
+            errorMessage={emailError ?? undefined}
+          />
+          <TextField
+            value={cellphone}
+            label="* 연락처"
+            $labelPosition="horizontal"
+            labelColor="black"
+            onChange={(e) => {
+              const input = e.target.value;
+              // 숫자만 허용
+              if (/^\d*$/.test(input)) {
+                setCellphone(input);
+              }
+            }}
+            placeholder="- 제외 하고 입력하세요"
+            errorMessage={cellphoneError ?? undefined}
+          />
+          <SelectionField
+            label="이메일 수신"
+            labelColor="black"
+            leftLabel="Y"
+            rightLabel="N"
+            value={emailYn}
+            onChange={(val) => setEmailYn(val as 'Y' | 'N')}
+            $labelPosition="horizontal"
+          />
+          <SelectionField
+            label="SMS 수신"
+            labelColor="black"
+            leftLabel="Y"
+            rightLabel="N"
+            value={smsYn}
+            onChange={(val) => setSmsYn(val as 'Y' | 'N')}
+            $labelPosition="horizontal"
+          />
           <PopupFooter>
             <CancelButton onClick={closePopup}>닫기</CancelButton>
             <SaveButton onClick={handleSave}>저장</SaveButton>

@@ -9,7 +9,8 @@ import { useDevice } from '@/contexts/DeviceContext';
 import type { DeviceType } from '@/types/device';
 import { ButtonStyles } from '@/constants/componentConstants'; // 추가
 
-interface CommonButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface CommonButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   text: string;
   icon?: React.ReactNode;
   $iconPosition?: 'left' | 'right';
@@ -23,7 +24,6 @@ interface CommonButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement
   backgroundColor?: string; // 배경색 추가
   borderColor?: string; // 보더 색상 추가
 }
-
 
 const StyledButton = styled.button<{
   $width?: string;

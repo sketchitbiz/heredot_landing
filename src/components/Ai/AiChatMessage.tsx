@@ -73,6 +73,7 @@ interface MessageProps extends Omit<Message, 'id'> {
       isDeleted: boolean;
     }
   >; // 현재 항목 상태
+  lang: string; // lang prop 추가
 }
 
 // 스타일드 컴포넌트의 props 타입
@@ -282,7 +283,7 @@ const TableStyles = css`
 
     tr:last-child {
       background-color: transparent;
-      border-top: 1px solid ${AppColors.border};
+      border-top: 1px solid ${AppColors.aiBorder};
       td {
         border-bottom: none;
       }
@@ -308,7 +309,7 @@ const StyledMarkdownContainer = styled.div`
     ${TableStyles}
     border-radius: 8px;
     overflow: hidden;
-    border: 1px solid ${AppColors.border};
+    border: 1px solid ${AppColors.aiBorder};
     font-weight: 300;
 
     td button {
@@ -436,7 +437,7 @@ type ButtonRendererProps = React.DetailedHTMLProps<
 const StyledInvoiceContainer = styled.div`
   margin-top: 1.5rem;
   padding: 1rem;
-  border: 1px solid ${AppColors.border};
+  border: 1px solid ${AppColors.aiBorder};
   border-radius: 8px;
   background-color: #1c1c25;
   color: ${AppColors.onBackground};
@@ -460,7 +461,7 @@ const InvoiceTable = styled.table`
 
   th,
   td {
-    border-bottom: 1px solid ${AppColors.border};
+    border-bottom: 1px solid ${AppColors.aiBorder};
 
     height: 4em;
     text-align: left;
@@ -745,6 +746,7 @@ interface PrintableInvoiceProps {
   };
   t: ChatDictionary;
   countryCode: string;
+  lang: string;
 }
 
 export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
@@ -752,8 +754,8 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
   invoiceDetailsForPdf,
   t,
   countryCode,
+  lang,
 }) => {
-  // 날짜 포맷 함수 (YYYY-MM-DD HH:MM:SS)
   const formatDate = (date: Date) => {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
       2,
@@ -765,43 +767,56 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
     ).padStart(2, '0')}`;
   };
   const currentDate = formatDate(new Date());
+  const currentTime = '15:46:29';
 
-  const companyInfo = {
-    // 왼쪽 (수신자 정보)
-    recipientName: invoiceData.project || (t as any).recipientName || '고객명',
-    recipientPhone: (t as any).recipientPhone || '고객 전화번호',
-    date: currentDate,
-    totalAmountWithVat: formatAmountForPdf(
-      Math.round((invoiceDetailsForPdf.currentTotal || 0) * 1.1),
-      countryCode
-    ),
-
-    // 오른쪽 (공급자 정보)
-    supplierRegNum: '289-86-03278',
-    supplierName: `(주)${(t as any).commonUser || '여기닷'}`,
-    supplierAddressLine1: '경기도 성남시 수정구 대학판교로 815,',
-    supplierAddressLine2: '777호(시흥동, 판교창조경제밸리)',
-    supplierRepresentative: `${
-      (t as any).representativeName || '강태원 대표'
-    } (010-3901-7981)`,
-    stampImagePath: '/images/heredot_stamp.png',
-  };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const recipientName =
+    invoiceData.project || (t as any).recipientName || '역경매 플랫폼 개발';
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const companyName = (t as any).companyName || '주식회사 여기닷';
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const representativeName = (t as any).representativeName || '강태원';
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const companyAddress = `${
+    (t as any).companyAddressStreet ||
+    '경기도 성남시 수정구 대학판교로 815, 777호'
+  } (${(t as any).companyAddressDetail || '시흥동, 판교창조경제밸리'})`;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const companyPhone = (t as any).companyPhoneForPdf || '031-8039-7981';
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const companyRegistrationNumber =
+    (t as any).companyRegistrationNumber || '289-86-03278';
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const clientEmail = (t as any).clientEmailForPdf || 'ktw1318@naver.com';
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const quoteItemName =
+    invoiceData.project || (t as any).defaultQuoteName || 'IoT 앱';
+  const totalAmountWithVatForPdf = formatAmountForPdf(28600000, 'KR');
 
   const specialNotes = {
-    title: (t as any).specialNotesTitle || '특이사항',
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    title: (t as any).remarksTitle || '비고란',
     items: [
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       `${(t as any).inspectionPeriod || '검수기간'}: ${
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (t as any).inspectionPeriodValue ||
         '개발 완료일 익일부터 1개월 (이후 요청 별도 협의 필요)'
       }`,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       `${(t as any).warrantyPeriod || '하자보수'}: ${
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (t as any).warrantyPeriodValue ||
         '검수 종료일 익일부터 6개월 (기획과 디자인 변경 별도 협의 필요)'
       }`,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       `${(t as any).techStack || '자사 보유 기술스택'}: ${
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (t as any).techStackValue &&
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         typeof (t as any).techStackValue === 'object'
-          ? (
+          ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (
               (t as any).techStackValue as {
                 app: string;
                 web: string;
@@ -810,6 +825,7 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
               }
             ).app +
             ', ' +
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (
               (t as any).techStackValue as {
                 app: string;
@@ -819,6 +835,7 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
               }
             ).web +
             ', ' +
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (
               (t as any).techStackValue as {
                 app: string;
@@ -828,6 +845,7 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
               }
             ).server +
             ', ' +
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (
               (t as any).techStackValue as {
                 app: string;
@@ -836,138 +854,237 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
                 db: string;
               }
             ).db
-          : typeof (t as any).techStackValue === 'string'
-          ? (t as any).techStackValue
+          : // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          typeof (t as any).techStackValue === 'string'
+          ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (t as any).techStackValue
           : '(앱)hybridapp, Flutter, webview, (웹)react.js, express.js, node.js, java spring boot, python (서버) 네이버 클라우드, 카페24클라우드, AWS등 DB: Mysql, Postgre, 몽고DB등'
       }`,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       `${(t as any).crossPlatform || '크로스 플랫폼 및 브라우징'}: ${
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (t as any).crossPlatformValue ||
         '윈도우10 이상 및 맥 운영체제 / 갤럭시 및 아이폰 출시 5년 이하 기기 / 사파리, 크롬, 엣지 (이외의 브라우저는 대응하지 않음)'
       }`,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (t as any).legalNotice1 ||
         `* 당 견적서는 단순 견적서가 아닌, 기능 기획이 포함된 (주)여기닷의 무형지식재산으로 견적서를 전달받은 사람이 견적을 조회하는 용도 외에 다른 용도로 사용할 수 없으며, 타인에게 당 견적서의 전체 또는 일부 내용을 구두나 파일 등으로 전달한 경우, 당사에서 주장하는 모든 민형사상의 책임과 배상에 대하여 동의하는 것으로 간주함. 만약 동의하지 않을 경우, 당 견적서는 조회 없이 파기해야 함*`,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (t as any).validityNotice || `* 견적서는 작성일로부터 일주일간 유효함*`,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (t as any).additionalCostsNotice ||
         `* 도메인(URL및SSL등)/서버비용/AOS 및 IOS 개발자 계정/알림 수단/유료API 등에 따라 발생하는 비용은 별도이며, 견적서에 포함되지 않은 기능은 추가 비용이 발생함*`,
     ],
     footerNotice:
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (t as any).aiDisclaimer ||
       'AI 견적은 실제 계약 시 금액과 일부 상이할 수 있으며, 보다 정확한 견적은 담당자와의 최종 협의를 통해 확정됩니다.',
   };
 
+  const stampImagePath = '/ai/stamp.png';
+
+  // 국제화 키 (임시값, aiChat.ts에 추가 필요)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const quotationTitle = (t as any).quotationTitle || '견적서';
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const quoteDateLabel = (t as any).quoteDateLabel || '견적 발행일';
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const clientNameLabel = (t as any).clientNameLabel || '고객명';
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const clientEmailLabel = (t as any).clientEmailLabel || '메일주소';
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const quoteNameLabel = (t as any).quoteNameLabel || '견적명';
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const totalAmountLabel = (t as any).totalAmountLabel || '총 금액 (VAT포함)';
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const supplierNameLabel = (t as any).supplierNameLabel || '상호명';
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const supplierCeoLabel = (t as any).supplierCeoLabel || '대표명';
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const supplierBizNumLabel = (t as any).supplierBizNumLabel || '사업자번호';
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const supplierIndustryLabel = (t as any).supplierIndustryLabel || '업종·업태';
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const supplierAddressLabel = (t as any).supplierAddressLabel || '주소';
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const supplierContactLabel = (t as any).supplierContactLabel || '대표 연락처';
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const clientContactNumberLabel =
+    (t as any).clientContactNumberLabel || '고객 연락처';
+
+  const industryType = '응용소프트웨어 개발 및 공급업, 서비스업';
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const basicSurveyTitle = (t as any).basicSurveyTitle || '기초 조사';
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const basicSurveyContentPlaceholder =
+    (t as any).basicSurveyContentPlaceholder ||
+    '기초 조사 내용이 여기에 표시됩니다.';
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const quoteDetailsTitle = (t as any).quoteDetailsTitle || '견적 상세';
+
+  const baseCellStyle = {
+    padding: '6px 8px',
+    border: '1px solid #BFBFBF',
+    fontSize: '9pt',
+    verticalAlign: 'middle' as const,
+    height: '30px',
+  };
+
+  const headerCellStyle = {
+    ...baseCellStyle,
+    backgroundColor: '#F2F2F2',
+    fontWeight: 'bold',
+    textAlign: 'center' as const,
+  };
+
+  const valueCellStyle = {
+    ...baseCellStyle,
+    textAlign: 'left' as const,
+  };
+
+  const clientValueCellStyle = {
+    ...valueCellStyle,
+    fontWeight: 'bold',
+  };
+
+  const stampContainerStyle = {
+    position: 'relative' as const,
+    width: '100%',
+    height: '100%',
+  };
+
+  const stampImageStyle = {
+    position: 'absolute' as const,
+    right: '30px',
+    bottom: '10px',
+    width: '60px',
+    height: '60px',
+  };
+
   return (
     <PrintableInvoiceWrapper id="printable-invoice-content">
-      <div className="quotation-title">견적서 (QUOTATION)</div>
+      <div
+        className="quotation-title"
+        style={{
+          fontSize: '20pt',
+          fontWeight: 'bold',
+          textAlign: 'center',
+          marginBottom: '20px',
+        }}
+      >
+        {quotationTitle}
+      </div>
 
+      {/* 상단 정보 테이블 (통합) */}
       <table
         style={{
           width: '100%',
           borderCollapse: 'collapse',
-          marginBottom: '20px',
-          fontSize: '9pt',
+          marginBottom: '15px',
         }}
       >
         <tbody>
+          {/* Row 1: 견적 발행일, 상호명 */}
           <tr>
-            {/* 왼쪽 섹션 (수신자) */}
-            <td
-              style={{
-                width: '50%',
-                verticalAlign: 'top',
-                paddingRight: '10px',
-                border: 'none',
-              }}
-            >
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <tbody>
-                  <tr>
-                    <td className="label-cell">수신자</td>
-                    <td className="value-cell">{companyInfo.recipientName}</td>
-                  </tr>
-                  <tr>
-                    <td className="label-cell">연락처</td>
-                    <td className="value-cell">{companyInfo.recipientPhone}</td>
-                  </tr>
-                  <tr>
-                    <td className="label-cell">작성일</td>
-                    <td className="value-cell">{companyInfo.date}</td>
-                  </tr>
-                  <tr>
-                    <td className="label-cell">총액 (VAT포함)</td>
-                    <td className="value-cell">
-                      {companyInfo.totalAmountWithVat}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+            <td style={{ ...headerCellStyle, width: '15%' }}>
+              {quoteDateLabel}
             </td>
-
-            {/* 오른쪽 섹션 (공급자) */}
+            <td style={{ ...valueCellStyle, width: '25%' }}>
+              {currentDate} {currentTime}
+            </td>
+            <td style={{ ...headerCellStyle, width: '15%' }}>
+              {supplierNameLabel}
+            </td>
+            <td style={{ ...valueCellStyle, width: '30%' }}>{companyName}</td>
             <td
-              style={{
-                width: '50%',
-                verticalAlign: 'top',
-                paddingLeft: '10px',
-                border: 'none',
-              }}
+              style={{ ...headerCellStyle, width: '15%', borderLeft: 'none' }}
+              rowSpan={5}
             >
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <tbody>
-                  <tr>
-                    <td className="label-cell">등록번호</td>
-                    <td className="value-cell">{companyInfo.supplierRegNum}</td>
-                  </tr>
-                  <tr>
-                    <td className="label-cell">상호</td>
-                    <td className="value-cell">{companyInfo.supplierName}</td>
-                  </tr>
-                  <tr>
-                    <td className="label-cell">주소</td>
-                    <td className="value-cell">
-                      {companyInfo.supplierAddressLine1}
-                      <br />
-                      {companyInfo.supplierAddressLine2}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="label-cell">성명</td>
-                    <td className="value-cell">
-                      {companyInfo.supplierRepresentative}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td
-                      colSpan={2}
-                      className="stamp-cell"
-                      style={{ border: 'none' }}
-                    >
-                      <img
-                        src={companyInfo.stampImagePath}
-                        alt="직인"
-                        className="stamp-image"
-                      />
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+              <div style={stampContainerStyle}>
+                <img src={stampImagePath} alt="직인" style={stampImageStyle} />
+              </div>
+            </td>
+          </tr>
+          {/* Row 2: 고객명, 대표명 */}
+          <tr>
+            <td style={headerCellStyle}>{clientNameLabel}</td>
+            <td style={clientValueCellStyle}>{recipientName}</td>
+            <td style={headerCellStyle}>{supplierCeoLabel}</td>
+            <td style={valueCellStyle}>{representativeName}</td>
+          </tr>
+          {/* Row 3: 메일주소, 사업자번호 */}
+          <tr>
+            <td style={headerCellStyle}>{clientEmailLabel}</td>
+            <td style={valueCellStyle}>{clientEmail}</td>
+            <td style={headerCellStyle}>{supplierBizNumLabel}</td>
+            <td style={valueCellStyle}>{companyRegistrationNumber}</td>
+          </tr>
+          {/* Row 4: 견적명, 업종·업태 */}
+          <tr>
+            <td style={headerCellStyle}>{quoteNameLabel}</td>
+            <td style={clientValueCellStyle}>{quoteItemName}</td>
+            <td style={headerCellStyle}>{supplierIndustryLabel}</td>
+            <td style={valueCellStyle}>{industryType}</td>
+          </tr>
+          {/* Row 5: 총 금액(VAT포함), 주소 */}
+          <tr>
+            <td style={{ ...headerCellStyle, fontWeight: 'bold' }}>
+              {totalAmountLabel}
+            </td>
+            <td style={{ ...valueCellStyle, fontWeight: 'bold' }}>
+              {totalAmountWithVatForPdf}
+            </td>
+            <td style={headerCellStyle}>{supplierAddressLabel}</td>
+            <td style={valueCellStyle}>{companyAddress}</td>
+          </tr>
+          {/* Row 6: 고객 연락처(이미지에는 없음, 필요시 추가), 대표 연락처 */}
+          <tr>
+            <td style={headerCellStyle}>{clientContactNumberLabel}</td>
+            <td style={valueCellStyle}>
+              {invoiceDetailsForPdf.items[0]?.note || ''}{' '}
+              {/* 임시로 첫번째 아이템 노트 사용 */}
+            </td>
+            <td style={headerCellStyle}>{supplierContactLabel}</td>
+            <td style={valueCellStyle}>{companyPhone}</td>
+            <td style={{ ...valueCellStyle, borderRight: 'none' }}></td>
+          </tr>
+          <tr>
+            <td style={headerCellStyle}>{basicSurveyTitle}</td>
+            <td style={{ ...valueCellStyle }} colSpan={4}>
+              {basicSurveyContentPlaceholder}{' '}
+              {/* 실제 기초 조사 내용 연동 필요 */}
             </td>
           </tr>
         </tbody>
       </table>
 
-      {/* 기존 견적서 상세 내용 테이블 */}
-      <table>
+      {/* 견적 상세 섹션 */}
+      <div
+        style={{ fontSize: '12pt', fontWeight: 'bold', marginBottom: '5px' }}
+      >
+        {quoteDetailsTitle}
+      </div>
+      <table
+        style={{ width: '100%', borderCollapse: 'collapse', marginTop: '0rem' }}
+      >
         <thead>
           <tr>
-            <th className="col-category">{t.tableHeaders.category}</th>
-            <th className="col-feature">{t.tableHeaders.item}</th>
-            <th className="col-description">{t.tableHeaders.detail}</th>
-            <th className="col-amount">{t.tableHeaders.amount}</th>
+            <th style={{ ...headerCellStyle, width: '20%' }}>
+              {t.tableHeaders.category}
+            </th>
+            <th style={{ ...headerCellStyle, width: '25%' }}>
+              {t.tableHeaders.item}
+            </th>
+            <th style={{ ...headerCellStyle, width: '35%' }}>
+              {t.tableHeaders.detail}
+            </th>
+            <th style={{ ...headerCellStyle, width: '20%' }}>
+              {t.tableHeaders.amount}
+            </th>
           </tr>
         </thead>
         <tbody>
           {invoiceData.invoiceGroup?.map((group) => {
-            // PDF에는 삭제되지 않은 항목만 포함하고, rowspan 계산도 삭제되지 않은 항목 기준으로
             const visibleItems = group.items.filter((item) => {
               const currentItemDetails = invoiceDetailsForPdf.items.find(
                 (ci) => ci.id === item.id
@@ -975,58 +1092,64 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
               return !(currentItemDetails && currentItemDetails.isDeleted);
             });
 
-            if (visibleItems.length === 0) return null; // 그룹 내 모든 아이템이 삭제된 경우 그룹 자체를 표시 안함
+            if (visibleItems.length === 0) return null;
 
-            return visibleItems.map((item, visibleItemIndex) => {
-              return (
-                <tr key={`pdf-item-${item.id}`}>
-                  {visibleItemIndex === 0 ? (
-                    <td
-                      className="col-category"
-                      rowSpan={visibleItems.length || 1}
-                    >
-                      {group.category}
-                    </td>
-                  ) : null}
-                  <td className="col-feature">{item.feature}</td>
-                  <td className="col-description">
-                    <div
-                      dangerouslySetInnerHTML={{
-                        __html:
-                          item.description?.replace(/\n|\r\n|\r/g, '<br />') ||
-                          '',
-                      }}
-                    />
-                    {item.note &&
-                      !/^[A-Z]{3}\s[\d,.]+\s\(₩[\d,.]+\)$/.test(item.note) && (
-                        <p
-                          style={{
-                            fontSize: '0.8em',
-                            color: '#555',
-                            marginTop: '5px',
-                          }}
-                        >
-                          <em>
-                            {t.estimateInfo.note}: {item.note}
-                          </em>
-                        </p>
-                      )}
+            return visibleItems.map((item, visibleItemIndex) => (
+              <tr key={`pdf-item-${item.id}`}>
+                {visibleItemIndex === 0 && (
+                  <td
+                    style={{ ...valueCellStyle, textAlign: 'center' }}
+                    rowSpan={visibleItems.length || 1}
+                  >
+                    {group.category}
                   </td>
-                  <td className="col-amount">
-                    {item.note &&
-                    /^[A-Z]{3}\s[\d,.]+\s\(₩[\d,.]+\)$/.test(item.note)
-                      ? item.note
-                      : formatAmountForPdf(item.amount, countryCode)}
-                  </td>
-                </tr>
-              );
-            });
+                )}
+                <td style={{ ...valueCellStyle, textAlign: 'center' }}>
+                  {item.feature}
+                </td>
+                <td style={valueCellStyle}>
+                  <div
+                    dangerouslySetInnerHTML={{
+                      __html:
+                        item.description?.replace(/\n|\r\n|\r/g, '<br />') ||
+                        '',
+                    }}
+                  />
+                  {item.note &&
+                    !/^[A-Z]{3}\s[\d,.]+\s\(₩[\d,.]+\)$/.test(item.note) && (
+                      <p
+                        style={{
+                          fontSize: '0.8em',
+                          color: '#555',
+                          marginTop: '5px',
+                        }}
+                      >
+                        <em>
+                          {(t.estimateInfo as any).note}: {item.note}
+                        </em>
+                      </p>
+                    )}
+                </td>
+                <td style={{ ...valueCellStyle, textAlign: 'right' }}>
+                  {item.note &&
+                  /^[A-Z]{3}\s[\d,.]+\s\(₩[\d,.]+\)$/.test(item.note)
+                    ? item.note
+                    : formatAmountForPdf(item.amount, countryCode)}
+                </td>
+              </tr>
+            ));
           })}
           <tr>
-            <td colSpan={3} className="total-label">
+            <td colSpan={3} style={{ ...headerCellStyle, textAlign: 'right' }}>
               <strong>{t.estimateInfo.totalSum}</strong>
             </td>
-            <td className="col-amount total-amount">
+            <td
+              style={{
+                ...valueCellStyle,
+                textAlign: 'right',
+                fontWeight: 'bold',
+              }}
+            >
               <strong>
                 {invoiceData.total?.totalConvertedDisplay &&
                 typeof invoiceData.total.totalConvertedDisplay === 'string'
@@ -1039,54 +1162,54 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
             </td>
           </tr>
           <tr>
-            <td colSpan={3} className="total-label">
-              <strong>부가세 포함</strong>
+            <td colSpan={3} style={{ ...headerCellStyle, textAlign: 'right' }}>
+              <strong>{t.estimateInfo.vatIncluded}</strong>
             </td>
-            <td className="col-amount">
+            <td
+              style={{
+                ...valueCellStyle,
+                textAlign: 'right',
+                fontWeight: 'bold',
+              }}
+            >
               <strong>
-                {invoiceData.total?.totalConvertedDisplay &&
-                typeof invoiceData.total.totalConvertedDisplay === 'string'
-                  ? formatAmountForPdf(
-                      Math.round(
-                        (invoiceDetailsForPdf.currentTotal ||
-                          invoiceData.total?.amount ||
-                          0) * 1.1
-                      ),
-                      countryCode
-                    )
-                  : formatAmountForPdf(
-                      Math.round(
-                        (invoiceDetailsForPdf.currentTotal ||
-                          invoiceData.total?.amount ||
-                          0) * 1.1
-                      ),
-                      countryCode
-                    )}
+                {formatAmountForPdf(
+                  Math.round((invoiceDetailsForPdf.currentTotal || 0) * 1.1),
+                  countryCode
+                )}
               </strong>
             </td>
           </tr>
           {invoiceDetailsForPdf.currentTotalDuration > 0 && (
             <tr>
-              <td colSpan={3} className="total-label">
+              <td
+                colSpan={3}
+                style={{ ...headerCellStyle, textAlign: 'right' }}
+              >
                 {t.estimateInfo.totalDuration}
               </td>
-              <td className="col-amount">
+              <td style={{ ...valueCellStyle, textAlign: 'right' }}>
                 {typeof invoiceDetailsForPdf.currentTotalDuration === 'number'
                   ? `${Math.ceil(
                       invoiceDetailsForPdf.currentTotalDuration / 5
-                    )} ${t.estimateInfo.week} (약 ${Math.ceil(
+                    )} ${t.estimateInfo.week} (${
+                      lang === 'ko' ? '약 ' : 'Approx. '
+                    }${Math.ceil(
                       invoiceDetailsForPdf.currentTotalDuration / 20
-                    )} 개월)`
+                    )} ${t.estimateInfo.monthUnit})`
                   : `${invoiceDetailsForPdf.currentTotalDuration} ${t.estimateInfo.day}`}
               </td>
             </tr>
           )}
           {invoiceDetailsForPdf.currentTotalPages > 0 && (
             <tr>
-              <td colSpan={3} className="total-label">
+              <td
+                colSpan={3}
+                style={{ ...headerCellStyle, textAlign: 'right' }}
+              >
                 {t.estimateInfo.totalPages}
               </td>
-              <td className="col-amount">
+              <td style={{ ...valueCellStyle, textAlign: 'right' }}>
                 {invoiceDetailsForPdf.currentTotalPages} {t.estimateInfo.page}
               </td>
             </tr>
@@ -1094,47 +1217,45 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
         </tbody>
       </table>
 
-      {/* 특이사항 섹션 추가 */}
+      {/* 비고란 섹션 */}
+      <div
+        style={{
+          fontSize: '12pt',
+          fontWeight: 'bold',
+          marginBottom: '5px',
+          marginTop: '20px',
+          textAlign: 'left',
+        }}
+      >
+        {specialNotes.title}
+      </div>
       <table
         style={{
           width: '100%',
           borderCollapse: 'collapse',
-          marginTop: '30px',
+          marginTop: '0px',
           fontSize: '8pt',
         }}
       >
-        <thead>
+        <tbody>
           <tr>
-            <th
-              className="label-cell"
-              style={{
-                width: '100px',
-                borderRight: '1px solid #dddddd',
-                fontWeight: 'bold',
-                textAlign: 'center',
-                padding: '10px',
-                backgroundColor: '#f2f2f2',
-                verticalAlign: 'middle',
-              }}
-            >
-              {specialNotes.title}
-            </th>
-            <td style={{ padding: '0', border: '1px solid #dddddd' }}>
+            <td style={{ border: '1px solid #BFBFBF', padding: '0' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <tbody>
                   {specialNotes.items.map((note, index) => (
                     <tr key={`note-${index}`}>
                       <td
                         style={{
-                          padding: '8px 10px',
+                          ...valueCellStyle,
                           borderBottom:
                             index === specialNotes.items.length - 1
                               ? 'none'
-                              : '1px solid #e0e0e0',
+                              : '1px solid #E0E0E0',
                           lineHeight: '1.4',
                           textAlign: note.startsWith('*') ? 'center' : 'left',
                           fontSize: note.startsWith('*') ? '7.5pt' : '8pt',
                           color: note.startsWith('*') ? '#555555' : '#333333',
+                          padding: '6px 8px',
                         }}
                       >
                         {note}
@@ -1145,7 +1266,7 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
               </table>
             </td>
           </tr>
-        </thead>
+        </tbody>
       </table>
 
       <p
@@ -1164,17 +1285,6 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
 
 /**
  * AiChatMessage 컴포넌트 함수
- *
- * @param sender - 발신자 (user/ai)
- * @param text - 메시지 텍스트
- * @param imageUrl - 첨부 이미지 URL (선택적)
- * @param fileType - 첨부 파일 타입 (선택적)
- * @param onActionClick - 버튼 클릭 핸들러
- * @param invoiceData - 견적서 데이터 (선택적)
- * @param calculatedTotalAmount - 계산된 총 금액 (선택적)
- * @param calculatedTotalDuration - 계산된 총 기간 (선택적)
- * @param calculatedTotalPages - 계산된 총 페이지 수 (선택적)
- * @param currentItems - 현재 견적서 항목 상태 (선택적)
  */
 export function AiChatMessage({
   sender,
@@ -1187,11 +1297,14 @@ export function AiChatMessage({
   calculatedTotalDuration,
   calculatedTotalPages,
   currentItems,
+  lang,
 }: MessageProps) {
   const isAiMessage = sender === 'ai';
 
-  const { lang } = useLang();
-  const t = aiChatDictionary[lang];
+  const { lang: contextLang } = useLang();
+  const t =
+    aiChatDictionary[lang as keyof typeof aiChatDictionary] ||
+    aiChatDictionary.ko;
 
   const user = useAuthStore((state) => state.user);
   const countryCode = user?.countryCode || 'KR';
@@ -1410,7 +1523,7 @@ export function AiChatMessage({
                   </div>
                   <div className="item-row">
                     <span className="label" style={{ fontWeight: 'bold' }}>
-                      부가세 포함
+                      {t.estimateInfo.vatIncluded}
                     </span>
                     <span className="value" style={{ fontWeight: 'bold' }}>
                       {invoiceData.total?.totalConvertedDisplay &&
@@ -1444,9 +1557,9 @@ export function AiChatMessage({
                         {typeof calculatedTotalDuration === 'number'
                           ? `${Math.ceil(calculatedTotalDuration / 5)} ${
                               t.estimateInfo.week
-                            } (약 ${Math.ceil(
+                            } (${lang === 'ko' ? '약 ' : 'Approx. '}${Math.ceil(
                               calculatedTotalDuration / 20
-                            )} 개월)`
+                            )} ${t.estimateInfo.monthUnit})`
                           : `${calculatedTotalDuration} ${t.estimateInfo.day}`}
                       </span>
                     </div>
@@ -1469,7 +1582,6 @@ export function AiChatMessage({
                     <th className="col-feature">{t.tableHeaders.item}</th>
                     <th className="col-description">{t.tableHeaders.detail}</th>
                     <th className="col-amount">{t.tableHeaders.amount}</th>
-                    <th className="col-actions">{t.tableHeaders.management}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1561,19 +1673,6 @@ export function AiChatMessage({
                                 ? item.note
                                 : formatAmountWithCurrency(item.amount, true)}
                             </td>
-                            <td className="col-actions">
-                              <ActionButton
-                                onClick={() =>
-                                  onActionClick('delete_feature_json', {
-                                    featureId: item.id,
-                                  })
-                                }
-                              >
-                                {isActuallyDeleted
-                                  ? t.buttons.cancel
-                                  : t.buttons.delete}
-                              </ActionButton>
-                            </td>
                           </tr>
                         );
                       })}
@@ -1604,7 +1703,7 @@ export function AiChatMessage({
                   </tr>
                   <tr>
                     <td colSpan={3} className="total-label">
-                      <strong>부가세 포함</strong>
+                      <strong>{t.estimateInfo.vatIncluded}</strong>
                     </td>
                     <td className="col-amount">
                       <strong>
@@ -1643,9 +1742,9 @@ export function AiChatMessage({
                         {typeof calculatedTotalDuration === 'number'
                           ? `${Math.ceil(calculatedTotalDuration / 5)} ${
                               t.estimateInfo.week
-                            } (약 ${Math.ceil(
+                            } (${lang === 'ko' ? '약 ' : 'Approx. '}${Math.ceil(
                               calculatedTotalDuration / 20
-                            )} 개월)`
+                            )} ${t.estimateInfo.monthUnit})`
                           : `${calculatedTotalDuration} ${t.estimateInfo.day}`}
                       </td>
                       <td></td>
@@ -1671,7 +1770,7 @@ export function AiChatMessage({
               style={{
                 marginTop: '1.5rem',
                 paddingTop: '1rem',
-                borderTop: `1px solid ${AppColors.border}`,
+                borderTop: `1px solid ${AppColors.aiBorder}`,
               }}
             >
               <h4 style={{ marginBottom: '0.75rem', fontSize: '1em' }}>

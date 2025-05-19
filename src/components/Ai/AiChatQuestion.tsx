@@ -103,7 +103,7 @@ const OptionButton = styled.button<{ selected: boolean }>`
   justify-content: center;
   padding: 1rem;
   background-color: ${AppColors.backgroundDark};
-  border: 1px solid ${AppColors.border};
+  border: 1px solid ${AppColors.aiBorder};
   border-radius: 0.375rem;
   transition: background-color 0.2s, border-color 0.2s;
   color: ${AppColors.iconDisabled};
@@ -133,7 +133,7 @@ const OptionButton = styled.button<{ selected: boolean }>`
       (props) =>
         props.selected
           ? AppColors.primary /* primaryHover 대신 primary 사용 */
-          : AppColors.border /* borderHover 대신 border 사용 */
+          : AppColors.aiBorder /* borderHover 대신 border 사용 */
     };
   }
 
@@ -200,7 +200,7 @@ const InfoList = styled.div`
   text-align: left;
   white-space: pre-wrap;
   width: 100%;
-  border-top: 1px solid ${AppColors.border};
+  border-top: 1px solid ${AppColors.aiBorder};
   padding-top: 1rem;
 `;
 
