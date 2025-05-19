@@ -154,7 +154,7 @@ Server Setup (Environment Setup)\tSets up Docker-based Back/Front development en
 export const SYSTEM_INSTRUCTION = `
 
 ${PERSONA_INSTRUCTION}
-
+      
 <INSTRUCTIONS>
 To complete the task, you need to follow these steps based on the user interaction:
 

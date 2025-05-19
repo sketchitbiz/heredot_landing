@@ -767,7 +767,11 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
     ).padStart(2, '0')}`;
   };
   const currentDate = formatDate(new Date());
-  const currentTime = '15:46:29';
+  const user = useAuthStore((state) => state.user);
+
+  const userName = user?.name;
+  const userPhone = user?.cellphone;
+  const userEmail = user?.email;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const recipientName =
@@ -775,7 +779,8 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const companyName = (t as any).companyName || '주식회사 여기닷';
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const representativeName = (t as any).representativeName || '강태원';
+  const representativeName =
+    (t as any).representativeName || '강태원 82+031-8039-7981';
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const companyAddress = `${
     (t as any).companyAddressStreet ||
@@ -944,19 +949,22 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
 
   const clientValueCellStyle = {
     ...valueCellStyle,
-    fontWeight: 'bold',
   };
 
   const stampContainerStyle = {
     position: 'relative' as const,
+    backgroundColor: '#ffffff',
+    background: 'white',
+    padding: 0,
+    margin: 0,
     width: '100%',
     height: '100%',
   };
 
   const stampImageStyle = {
     position: 'absolute' as const,
-    right: '30px',
-    bottom: '10px',
+    right: '20px',
+    bottom: '40px',
     width: '60px',
     height: '60px',
   };
@@ -989,9 +997,7 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
             <td style={{ ...headerCellStyle, width: '15%' }}>
               {quoteDateLabel}
             </td>
-            <td style={{ ...valueCellStyle, width: '25%' }}>
-              {currentDate} {currentTime}
-            </td>
+            <td style={{ ...valueCellStyle, width: '25%' }}>{currentDate}</td>
             <td style={{ ...headerCellStyle, width: '15%' }}>
               {supplierNameLabel}
             </td>
@@ -1008,14 +1014,17 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
           {/* Row 2: 고객명, 대표명 */}
           <tr>
             <td style={headerCellStyle}>{clientNameLabel}</td>
-            <td style={clientValueCellStyle}>{recipientName}</td>
+            <td style={clientValueCellStyle}>
+              {userName || 'guest'} {userPhone ? ' 82+' : ''} {userPhone || ''}
+            </td>
             <td style={headerCellStyle}>{supplierCeoLabel}</td>
             <td style={valueCellStyle}>{representativeName}</td>
           </tr>
+
           {/* Row 3: 메일주소, 사업자번호 */}
           <tr>
             <td style={headerCellStyle}>{clientEmailLabel}</td>
-            <td style={valueCellStyle}>{clientEmail}</td>
+            <td style={valueCellStyle}>{userEmail || 'guest'}</td>
             <td style={headerCellStyle}>{supplierBizNumLabel}</td>
             <td style={valueCellStyle}>{companyRegistrationNumber}</td>
           </tr>
@@ -1028,25 +1037,10 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
           </tr>
           {/* Row 5: 총 금액(VAT포함), 주소 */}
           <tr>
-            <td style={{ ...headerCellStyle, fontWeight: 'bold' }}>
-              {totalAmountLabel}
-            </td>
-            <td style={{ ...valueCellStyle, fontWeight: 'bold' }}>
-              {totalAmountWithVatForPdf}
-            </td>
+            <td style={{ ...headerCellStyle }}>{totalAmountLabel}</td>
+            <td style={{ ...valueCellStyle }}>{totalAmountWithVatForPdf}</td>
             <td style={headerCellStyle}>{supplierAddressLabel}</td>
             <td style={valueCellStyle}>{companyAddress}</td>
-          </tr>
-          {/* Row 6: 고객 연락처(이미지에는 없음, 필요시 추가), 대표 연락처 */}
-          <tr>
-            <td style={headerCellStyle}>{clientContactNumberLabel}</td>
-            <td style={valueCellStyle}>
-              {invoiceDetailsForPdf.items[0]?.note || ''}{' '}
-              {/* 임시로 첫번째 아이템 노트 사용 */}
-            </td>
-            <td style={headerCellStyle}>{supplierContactLabel}</td>
-            <td style={valueCellStyle}>{companyPhone}</td>
-            <td style={{ ...valueCellStyle, borderRight: 'none' }}></td>
           </tr>
           <tr>
             <td style={headerCellStyle}>{basicSurveyTitle}</td>
@@ -1060,7 +1054,12 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
 
       {/* 견적 상세 섹션 */}
       <div
-        style={{ fontSize: '12pt', fontWeight: 'bold', marginBottom: '5px' }}
+        style={{
+          fontSize: '12pt',
+          fontWeight: 'bold',
+          marginBottom: '5px',
+          marginTop: '50px',
+        }}
       >
         {quoteDetailsTitle}
       </div>
@@ -1134,7 +1133,7 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
                   {item.note &&
                   /^[A-Z]{3}\s[\d,.]+\s\(₩[\d,.]+\)$/.test(item.note)
                     ? item.note
-                    : formatAmountForPdf(item.amount, countryCode)}
+                    : formatAmountForPdf(item.amount)}
                 </td>
               </tr>
             ));
@@ -1147,7 +1146,6 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
               style={{
                 ...valueCellStyle,
                 textAlign: 'right',
-                fontWeight: 'bold',
               }}
             >
               <strong>
@@ -1169,7 +1167,6 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
               style={{
                 ...valueCellStyle,
                 textAlign: 'right',
-                fontWeight: 'bold',
               }}
             >
               <strong>
@@ -1193,7 +1190,7 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
                   ? `${Math.ceil(
                       invoiceDetailsForPdf.currentTotalDuration / 5
                     )} ${t.estimateInfo.week} (${
-                      lang === 'ko' ? '약 ' : 'Approx. '
+                      lang === 'ko' ? '약 ' : ''
                     }${Math.ceil(
                       invoiceDetailsForPdf.currentTotalDuration / 20
                     )} ${t.estimateInfo.monthUnit})`
@@ -1223,7 +1220,7 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
           fontSize: '12pt',
           fontWeight: 'bold',
           marginBottom: '5px',
-          marginTop: '20px',
+          marginTop: '50px',
           textAlign: 'left',
         }}
       >
@@ -1557,7 +1554,7 @@ export function AiChatMessage({
                         {typeof calculatedTotalDuration === 'number'
                           ? `${Math.ceil(calculatedTotalDuration / 5)} ${
                               t.estimateInfo.week
-                            } (${lang === 'ko' ? '약 ' : 'Approx. '}${Math.ceil(
+                            } (${lang === 'ko' ? '약 ' : ''}${Math.ceil(
                               calculatedTotalDuration / 20
                             )} ${t.estimateInfo.monthUnit})`
                           : `${calculatedTotalDuration} ${t.estimateInfo.day}`}
@@ -1742,7 +1739,7 @@ export function AiChatMessage({
                         {typeof calculatedTotalDuration === 'number'
                           ? `${Math.ceil(calculatedTotalDuration / 5)} ${
                               t.estimateInfo.week
-                            } (${lang === 'ko' ? '약 ' : 'Approx. '}${Math.ceil(
+                            } (${lang === 'ko' ? '약 ' : ''}${Math.ceil(
                               calculatedTotalDuration / 20
                             )} ${t.estimateInfo.monthUnit})`
                           : `${calculatedTotalDuration} ${t.estimateInfo.day}`}

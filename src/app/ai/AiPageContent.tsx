@@ -207,36 +207,51 @@ const generateInvoicePDF = async (
     const margin = 10; // 양쪽 여백 10mm
     const contentWidth = pdfWidth - margin * 2;
 
-    const imgProps = pdf.getImageProperties(imgData);
-    const imgHeight = (imgProps.height * contentWidth) / imgProps.width;
-    const currentPosition = margin;
-
-    if (imgHeight <= pdfHeight - margin * 2) {
-      // 한 페이지에 다 들어가는 경우
+    const pxFullHeight = canvas.height;
+    const pxPageHeight = (canvas.width / contentWidth) * (pdfHeight - margin * 2);
+    let position = 0;
+    
+    while (position < pxFullHeight) {
+      const canvasPage = document.createElement('canvas');
+      canvasPage.width = canvas.width;
+      canvasPage.height = Math.min(pxPageHeight, pxFullHeight - position);
+    
+      const ctx = canvasPage.getContext('2d');
+      if (!ctx) {
+        console.error('Canvas context를 가져오지 못했습니다.');
+        break;
+      }
+    
+      // 원본 이미지에서 필요한 부분만 잘라서 복사
+      ctx.drawImage(
+        canvas,
+        0, position,                     // 원본 이미지 시작 위치
+        canvas.width, canvasPage.height, // 원본에서 자를 크기
+        0, 0,                             // 대상 캔버스 위치
+        canvas.width, canvasPage.height  // 대상 캔버스 크기
+      );
+    
+      const imgDataPage = canvasPage.toDataURL('image/png');
+      const imgHeight =
+        (canvasPage.height * contentWidth) / canvasPage.width;
+    
       pdf.addImage(
-        imgData,
+        imgDataPage,
         'PNG',
         margin,
-        currentPosition,
+        margin,
         contentWidth,
         imgHeight
       );
-    } else {
-      // 여러 페이지에 걸쳐야 하는 경우 (여기서는 첫 페이지만 추가, 추후 개선 가능)
-      console.warn(
-        '견적서 내용이 길어 PDF 한 페이지를 초과합니다. 현재는 첫 페이지만 생성됩니다.'
-      );
-      pdf.addImage(
-        imgData,
-        'PNG',
-        margin,
-        currentPosition,
-        contentWidth,
-        pdfHeight - margin * 2
-      );
-      // TODO: 여러 페이지 지원 로직 추가 (예: 이미지를 잘라서 여러 페이지에 추가)
+    
+      position += pxPageHeight;
+    
+      // 다음 페이지 추가 필요 시
+      if (position < pxFullHeight) {
+        pdf.addPage();
+      }
     }
-
+    
     pdf.save(`견적서-${invoiceDetailsData.parsedJson.project || '내역'}.pdf`);
   } catch (pdfError) {
     console.error('PDF 생성 중 오류 발생:', pdfError);
