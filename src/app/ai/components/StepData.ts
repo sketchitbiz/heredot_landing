@@ -5,6 +5,45 @@ import { aiChatDictionary } from '@/lib/i18n/aiChat';
 // ChatDictionary 타입 정의
 export type ChatDictionary = (typeof aiChatDictionary)['ko'] & {
   lang: 'ko' | 'en';
+  // PrintableInvoice에서 사용될 수 있는 추가적인 옵셔널 키들
+  companyName?: string;
+  representativeName?: string;
+  companyAddressStreet?: string;
+  companyAddressDetail?: string;
+  companyPhoneForPdf?: string;
+  companyRegistrationNumber?: string;
+  recipientNameFallback?: string;
+  clientEmailFallback?: string;
+  defaultQuoteName?: string;
+  remarksTitle?: string;
+  inspectionPeriod?: string;
+  inspectionPeriodValue?: string;
+  warrantyPeriod?: string;
+  warrantyPeriodValue?: string;
+  techStack?: string | { app: string; web: string; server: string; db: string };
+  techStackValue?:
+    | string
+    | { app: string; web: string; server: string; db: string };
+  crossPlatform?: string;
+  crossPlatformValue?: string;
+  legalNotice1?: string;
+  validityNotice?: string;
+  additionalCostsNotice?: string;
+  aiDisclaimer?: string;
+  quotationTitle?: string;
+  quoteDateLabel?: string;
+  clientNameLabel?: string;
+  clientEmailLabel?: string;
+  quoteNameLabel?: string;
+  totalAmountLabel?: string;
+  supplierNameLabel?: string;
+  supplierCeoLabel?: string;
+  supplierBizNumLabel?: string;
+  supplierIndustryLabel?: string;
+  supplierAddressLabel?: string;
+  basicSurveyTitle?: string;
+  basicSurveyContentPlaceholder?: string;
+  quoteDetailsTitle?: string;
 };
 
 // stepData를 함수로 정의하여 현재 언어에 맞는 데이터 반환

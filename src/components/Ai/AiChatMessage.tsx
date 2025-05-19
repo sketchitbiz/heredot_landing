@@ -8,9 +8,13 @@ import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
 import React, { useMemo, useState, useEffect } from 'react';
 import useAuthStore from '@/store/authStore';
-import { useLang } from '@/contexts/LangContext';
 import { aiChatDictionary } from '@/lib/i18n/aiChat';
-import { ChatDictionary } from '@/app/ai/components/StepData'; // ChatDictionary 타입 임포트
+import { ChatDictionary } from '@/app/ai/components/StepData';
+import type {
+  InvoiceDataType,
+  MessageProps as ChatMessageProps,
+} from '@/types/invoice';
+import { formatAmount, formatAmountForPdf } from '@/utils/formatters';
 
 /**
  * AiChatMessage 컴포넌트
@@ -20,185 +24,10 @@ import { ChatDictionary } from '@/app/ai/components/StepData'; // ChatDictionary
  * AI가 생성한 견적서를 테이블 형태로 표시합니다.
  */
 
-// 견적서 데이터 타입 정의
-// INVOICE_SCHEMA에 따른 타입 정의 (실제 schema.ts의 구조를 반영해야 함)
-// 이 타입들은 AiPageContent.tsx와 동기화되어야 하며, 한 곳에서 정의하고 공유하는 것이 좋음
-export interface InvoiceFeatureItem {
-  id: string;
-  feature: string; // 기능 이름
-  description: string; // 기능 설명
-  amount: number | string; // 금액 (숫자 또는 "별도 문의" 등의 문자열)
-  duration?: string; // 개발 기간 (선택적)
-  category?: string; // 카테고리 (선택적)
-  pages?: number | string; // 페이지 수 (선택적)
-  note?: string; // 추가 참고사항 (선택적)
-}
-
-interface InvoiceGroup {
-  category: string; // 그룹 카테고리(구분)
-  items: InvoiceFeatureItem[]; // 해당 카테고리에 속한 기능 항목들
-}
-
-interface InvoiceTotal {
-  amount: number; // 총 금액
-  duration?: number; // 총 개발 기간 (선택적)
-  pages?: number; // 총 페이지 수 (선택적)
-  totalConvertedDisplay?: string; // AI가 제공하는 변환된 총액 문자열 (추가)
-}
-
-export interface InvoiceDataType {
-  project: string; // 프로젝트 이름
-  invoiceGroup: InvoiceGroup[]; // 기능 그룹 배열
-  total: InvoiceTotal; // 총계 정보
-}
-
-// 메시지 인터페이스 정의
-export interface Message {
-  id: number; // 메시지 고유 ID
-  sender: 'user' | 'ai'; // 발신자 구분 (사용자/AI)
-  text: string; // 메시지 텍스트
-  imageUrl?: string; // 이미지 URL (선택적)
-  fileType?: string; // 파일 타입 (선택적)
-  invoiceData?: InvoiceDataType; // AI가 생성한 견적서 JSON 데이터 (선택적)
-}
-
-// MessageProps - 컴포넌트의 속성 인터페이스
-interface MessageProps extends Omit<Message, 'id'> {
-  onActionClick: (action: string, data?: { featureId?: string }) => void; // 버튼 클릭 핸들러
-  calculatedTotalAmount?: number; // 계산된 총 금액 (삭제된 항목 제외)
-  calculatedTotalDuration?: number; // 계산된 총 기간 (삭제된 항목 제외)
-  calculatedTotalPages?: number; // 계산된 총 페이지 수 (삭제된 항목 제외)
-  currentItems?: Array<
-    InvoiceDataType['invoiceGroup'][number]['items'][number] & {
-      isDeleted: boolean;
-    }
-  >; // 현재 항목 상태
-  lang: string; // lang prop 추가
-}
-
 // 스타일드 컴포넌트의 props 타입
 interface StyledComponentProps {
-  $sender: 'user' | 'ai'; // 발신자 구분 (스타일 적용용)
+  $sender: 'user' | 'ai';
 }
-
-// 통화 변환 기능 추가
-// 각 국가 코드별 환율 정보 (2023년 기준)
-const exchangeRates = {
-  USD: 1350, // 1 USD = 1,350 KRW
-  JPY: 9, // 1 JPY = 9 KRW
-  CNY: 190, // 1 CNY = 190 KRW
-  EUR: 1450, // 1 EUR = 1,450 KRW
-  GBP: 1700, // 1 GBP = 1,700 KRW
-};
-
-// 국가 코드별 통화 기호
-const currencySymbols = {
-  KR: '₩',
-  US: '$',
-  JP: '¥',
-  CN: '¥',
-  GB: '£',
-  EU: '€',
-  default: '$',
-};
-
-// 국가 코드를 통화 코드로 변환
-const getCountryCurrency = (countryCode: string | null): string => {
-  if (!countryCode) return 'USD';
-
-  switch (countryCode) {
-    case 'KR':
-      return 'KRW';
-    case 'US':
-      return 'USD';
-    case 'JP':
-      return 'JPY';
-    case 'CN':
-      return 'CNY';
-    case 'GB':
-      return 'GBP';
-    // EU 국가들
-    case 'DE':
-    case 'FR':
-    case 'IT':
-    case 'ES':
-    case 'NL':
-    case 'BE':
-    case 'AT':
-    case 'FI':
-    case 'PT':
-    case 'IE':
-    case 'GR':
-    case 'SK':
-    case 'SI':
-    case 'LU':
-    case 'LV':
-    case 'LT':
-    case 'EE':
-    case 'CY':
-    case 'MT':
-      return 'EUR';
-    default:
-      return 'USD'; // 기본값은 USD
-  }
-};
-
-// 통화 심볼 가져오기
-const getCurrencySymbol = (countryCode: string | null): string => {
-  if (!countryCode) return currencySymbols.default;
-
-  const code = countryCode as keyof typeof currencySymbols;
-  return currencySymbols[code] || currencySymbols.default;
-};
-
-// 금액 포맷 함수 - 통화 변환 및 표시 기능 추가
-const formatAmount = (
-  amount: number | string,
-  countryCode: string | null,
-  forceDetailed: boolean = false
-) => {
-  // 금액이 숫자가 아닌 경우 (예: "별도 문의") 그대로 반환
-  if (typeof amount !== 'number') {
-    return amount;
-  }
-
-  // forceDetailed가 true이거나 한국이 아닌 경우 (그리고 amount가 숫자일 때)
-  if (forceDetailed || countryCode !== 'KR') {
-    const localCurrency = getCountryCurrency(countryCode);
-    const localSymbol = getCurrencySymbol(countryCode);
-
-    // 항상 KRW를 기준으로 다른 통화와 함께 표시
-    // 만약 사용자가 KR이 아니면, 해당 국가 통화와 KRW를 함께 표시
-    // 만약 사용자가 KR이지만 forceDetailed가 true이면, USD와 KRW를 함께 표시
-
-    let displaySymbol = currencySymbols.US;
-    let convertedAmountForDisplay = Math.round(
-      amount / (exchangeRates['USD'] || 1350)
-    ); // KRW -> USD
-
-    if (countryCode !== 'KR') {
-      // 한국이 아닌 경우, 해당 국가 통화로 표시
-      displaySymbol = localSymbol;
-      if (exchangeRates[localCurrency as keyof typeof exchangeRates]) {
-        convertedAmountForDisplay = Math.round(
-          amount / exchangeRates[localCurrency as keyof typeof exchangeRates]
-        );
-      } else if (localCurrency === 'KRW') {
-        // 혹시 getCountryCurrency가 KRW를 반환하는 경우
-        displaySymbol = currencySymbols.US;
-        convertedAmountForDisplay = Math.round(
-          amount / (exchangeRates['USD'] || 1350)
-        );
-      }
-    }
-    // 한국 사용자이고 forceDetailed=true인 경우, USD (₩...) 형식으로 표시
-    // 그 외 국가 사용자는 LocalCurrency (₩...) 형식으로 표시
-    return `${displaySymbol}${convertedAmountForDisplay.toLocaleString()} (₩${amount.toLocaleString()})`;
-  }
-
-  // 한국이면서 forceDetailed가 false인 경우 원화만 표시
-  return `${amount.toLocaleString()} 원`;
-};
 
 // 테이블 스타일 정의 - 견적서에 사용되는 공통 테이블 스타일
 const TableStyles = css`
@@ -607,42 +436,34 @@ const MobileInvoiceCardItem = styled.div`
 
 // PrintableInvoice를 위한 스타일 컴포넌트들
 const PrintableInvoiceWrapper = styled.div`
-  width: 780px; /* A4 용지에서 양쪽 여백 고려한 너비 (대략) */
+  width: 780px;
   padding: 20px;
   background-color: white;
   color: black;
   font-family: 'Helvetica', 'Arial', sans-serif;
   box-sizing: border-box;
-  font-size: 9pt; /* 기본 폰트 크기 조정 */
-
-  h3 {
-    font-size: 1.5em;
-    color: #333333;
-    margin-bottom: 1.2em;
-    text-align: center;
-  }
+  font-size: 9pt;
 
   .quotation-title {
-    font-size: 2em; /* 이미지와 유사한 크기로 조정 */
+    font-size: 20pt;
     font-weight: bold;
     text-align: center;
-    margin-bottom: 1.5em; /* 테이블과의 간격 조정 */
+    margin-bottom: 20px;
     color: black;
   }
 
   table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 1rem;
-    font-size: 9pt; /* PDF용 폰트 크기 */
+    font-size: 9pt;
 
     th,
     td {
-      border: 1px solid #cccccc;
-      padding: 8px 10px;
-      text-align: left;
-      vertical-align: top;
+      border: 1px solid #bfbfbf;
+      padding: 6px 8px;
+      vertical-align: middle;
       word-break: break-word;
+      height: 30px;
     }
 
     th {
@@ -651,86 +472,8 @@ const PrintableInvoiceWrapper = styled.div`
       color: #333333;
       white-space: nowrap;
     }
-
-    .col-category {
-      width: 18%;
-      text-align: center;
-    }
-    .col-feature {
-      width: 22%;
-      text-align: center;
-    }
-    .col-description {
-      width: 35%;
-      font-size: 8.5pt;
-      line-height: 1.4;
-      div p {
-        margin: 0 0 5px 0;
-        line-height: 1.4;
-      }
-      div em {
-        font-style: italic;
-        font-size: 0.95em;
-        color: #555;
-      }
-    }
-    .col-amount {
-      width: 25%;
-      text-align: right;
-      white-space: nowrap;
-    }
-
-    tbody tr:last-child td {
-      /* border-bottom: none; */ /* 마지막 줄 하단 테두리 유지 또는 필요시 제거 */
-    }
-    .total-label {
-      text-align: right;
-      font-weight: bold;
-      padding-right: 1em;
-    }
-    .total-amount strong {
-      font-weight: bold;
-    }
   }
 `;
-
-// PDF용 금액 포맷 함수 (기존 formatAmount와 유사하나, hook 의존성 없이 사용)
-const formatAmountForPdf = (
-  amount: number | string,
-  countryCodeFromUser: string,
-  forceDetailed: boolean = true
-) => {
-  if (typeof amount !== 'number') return amount;
-
-  const effectiveCountryCode = countryCodeFromUser || 'KR';
-
-  if (forceDetailed || effectiveCountryCode !== 'KR') {
-    const localCurrencyForPdf = getCountryCurrency(effectiveCountryCode);
-    const localSymbolForPdf = getCurrencySymbol(effectiveCountryCode);
-
-    let displaySymbol = currencySymbols.US;
-    let convertedAmountForDisplay = Math.round(
-      amount / (exchangeRates['USD'] || 1350)
-    );
-
-    if (effectiveCountryCode !== 'KR') {
-      displaySymbol = localSymbolForPdf;
-      if (exchangeRates[localCurrencyForPdf as keyof typeof exchangeRates]) {
-        convertedAmountForDisplay = Math.round(
-          amount /
-            exchangeRates[localCurrencyForPdf as keyof typeof exchangeRates]
-        );
-      } else if (localCurrencyForPdf === 'KRW') {
-        displaySymbol = currencySymbols.US; // Should be USD if localCurrency is KRW but not KR user
-        convertedAmountForDisplay = Math.round(
-          amount / (exchangeRates['USD'] || 1350)
-        );
-      }
-    }
-    return `${displaySymbol}${convertedAmountForDisplay.toLocaleString()} (₩${amount.toLocaleString()})`;
-  }
-  return `₩${amount.toLocaleString()}`;
-};
 
 interface PrintableInvoiceProps {
   invoiceData: InvoiceDataType;
@@ -745,79 +488,98 @@ interface PrintableInvoiceProps {
     currentTotalPages: number;
   };
   t: ChatDictionary;
-  countryCode: string;
   lang: string;
+  userName?: string | null;
+  userPhone?: string | null;
+  userEmail?: string | null;
 }
 
 export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
   invoiceData,
   invoiceDetailsForPdf,
   t,
-  countryCode,
   lang,
+  userName,
+  userPhone,
+  userEmail,
 }) => {
-  const formatDate = (date: Date) => {
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+  const formatDateForPdf = (date: Date) => {
+    return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(
       2,
       '0'
-    )}-${String(date.getDate()).padStart(2, '0')} ${String(
-      date.getHours()
-    ).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}:${String(
-      date.getSeconds()
-    ).padStart(2, '0')}`;
+    )}.${String(date.getDate()).padStart(2, '0')}`;
   };
-  const currentDate = formatDate(new Date());
-  const currentTime = '15:46:29';
+  const currentDateForPdf = formatDateForPdf(new Date());
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const recipientName =
-    invoiceData.project || (t as any).recipientName || '역경매 플랫폼 개발';
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const companyName = (t as any).companyName || '주식회사 여기닷';
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const representativeName = (t as any).representativeName || '강태원';
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const companyAddress = `${
-    (t as any).companyAddressStreet ||
-    '경기도 성남시 수정구 대학판교로 815, 777호'
-  } (${(t as any).companyAddressDetail || '시흥동, 판교창조경제밸리'})`;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const companyPhone = (t as any).companyPhoneForPdf || '031-8039-7981';
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const companyRegistrationNumber =
-    (t as any).companyRegistrationNumber || '289-86-03278';
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const clientEmail = (t as any).clientEmailForPdf || 'ktw1318@naver.com';
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const quoteItemName =
-    invoiceData.project || (t as any).defaultQuoteName || 'IoT 앱';
-  const totalAmountWithVatForPdf = formatAmountForPdf(28600000, 'KR');
+  // 스타일 상수 정의 (PrintableInvoice 내부)
+  const baseCellStyle = {
+    padding: '5px 8px',
+    border: '1px solid #BFBFBF',
+    fontSize: '9pt',
+    verticalAlign: 'middle' as const,
+    height: '28px',
+  };
+  const headerCellStyle = {
+    ...baseCellStyle,
+    backgroundColor: '#F2F2F2',
+    fontWeight: 'bold',
+    textAlign: 'center' as const,
+  };
+  const valueCellStyle = { ...baseCellStyle, textAlign: 'left' as const };
+  const clientValueCellStyle = {
+    ...valueCellStyle,
+    fontWeight: 'bold' as const,
+  };
+  const stampContainerStyle = {
+    position: 'relative' as const,
+    width: '100%',
+    height: '100%',
+  };
+  const stampImageStyle = {
+    position: 'absolute' as const,
+    right: '15px',
+    top: '15px',
+    width: '55px',
+    height: '55px',
+  };
+
+  const currentRecipientName =
+    userName || invoiceData.project || t.recipientNameFallback || '고객명';
+  const currentClientEmail =
+    userEmail || t.clientEmailFallback || '이메일 없음';
+  const currentQuoteItemName =
+    invoiceData.project || t.defaultQuoteName || 'IoT 앱';
+
+  const companyNameValue = t.companyName || '주식회사 여기닷';
+  const representativeNameValue = t.representativeName || '강태원';
+  const companyAddressValue = `${
+    t.companyAddressStreet || '경기도 성남시 수정구 대학판교로 815, 777호'
+  } (${t.companyAddressDetail || '시흥동, 판교창조경제밸리'})`;
+  const companyPhoneForPdfValue = t.companyPhoneForPdf || '82+031-8039-7981';
+  const companyRegistrationNumberValue =
+    t.companyRegistrationNumber || '289-86-03278';
+
+  const totalAmountWithVatForPdfValue = formatAmountForPdf(
+    Math.round((invoiceDetailsForPdf.currentTotal || 0) * 1.1),
+    'KR',
+    false
+  );
 
   const specialNotes = {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    title: (t as any).remarksTitle || '비고란',
+    title: t.remarksTitle || '비고란',
     items: [
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      `${(t as any).inspectionPeriod || '검수기간'}: ${
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (t as any).inspectionPeriodValue ||
+      `${t.inspectionPeriod || '검수기간'}: ${
+        t.inspectionPeriodValue ||
         '개발 완료일 익일부터 1개월 (이후 요청 별도 협의 필요)'
       }`,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      `${(t as any).warrantyPeriod || '하자보수'}: ${
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (t as any).warrantyPeriodValue ||
+      `${t.warrantyPeriod || '하자보수'}: ${
+        t.warrantyPeriodValue ||
         '검수 종료일 익일부터 6개월 (기획과 디자인 변경 별도 협의 필요)'
       }`,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      `${(t as any).techStack || '자사 보유 기술스택'}: ${
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (t as any).techStackValue &&
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        typeof (t as any).techStackValue === 'object'
-          ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (
-              (t as any).techStackValue as {
+      `${t.techStack || '자사 보유 기술스택'}: ${
+        t.techStackValue && typeof t.techStackValue === 'object'
+          ? (
+              t.techStackValue as {
                 app: string;
                 web: string;
                 server: string;
@@ -825,9 +587,8 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
               }
             ).app +
             ', ' +
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (
-              (t as any).techStackValue as {
+              t.techStackValue as {
                 app: string;
                 web: string;
                 server: string;
@@ -835,9 +596,8 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
               }
             ).web +
             ', ' +
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (
-              (t as any).techStackValue as {
+              t.techStackValue as {
                 app: string;
                 web: string;
                 server: string;
@@ -845,159 +605,82 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
               }
             ).server +
             ', ' +
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (
-              (t as any).techStackValue as {
+              t.techStackValue as {
                 app: string;
                 web: string;
                 server: string;
                 db: string;
               }
             ).db
-          : // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          typeof (t as any).techStackValue === 'string'
-          ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (t as any).techStackValue
+          : typeof t.techStackValue === 'string'
+          ? t.techStackValue
           : '(앱)hybridapp, Flutter, webview, (웹)react.js, express.js, node.js, java spring boot, python (서버) 네이버 클라우드, 카페24클라우드, AWS등 DB: Mysql, Postgre, 몽고DB등'
       }`,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      `${(t as any).crossPlatform || '크로스 플랫폼 및 브라우징'}: ${
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (t as any).crossPlatformValue ||
+      `${t.crossPlatform || '크로스 플랫폼 및 브라우징'}: ${
+        t.crossPlatformValue ||
         '윈도우10 이상 및 맥 운영체제 / 갤럭시 및 아이폰 출시 5년 이하 기기 / 사파리, 크롬, 엣지 (이외의 브라우저는 대응하지 않음)'
       }`,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (t as any).legalNotice1 ||
-        `* 당 견적서는 단순 견적서가 아닌, 기능 기획이 포함된 (주)여기닷의 무형지식재산으로 견적서를 전달받은 사람이 견적을 조회하는 용도 외에 다른 용도로 사용할 수 없으며, 타인에게 당 견적서의 전체 또는 일부 내용을 구두나 파일 등으로 전달한 경우, 당사에서 주장하는 모든 민형사상의 책임과 배상에 대하여 동의하는 것으로 간주함. 만약 동의하지 않을 경우, 당 견적서는 조회 없이 파기해야 함*`,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (t as any).validityNotice || `* 견적서는 작성일로부터 일주일간 유효함*`,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (t as any).additionalCostsNotice ||
-        `* 도메인(URL및SSL등)/서버비용/AOS 및 IOS 개발자 계정/알림 수단/유료API 등에 따라 발생하는 비용은 별도이며, 견적서에 포함되지 않은 기능은 추가 비용이 발생함*`,
+      t.legalNotice1 ||
+        '* 당 견적서는 단순 견적서가 아닌, 기능 기획이 포함된 (주)여기닷의 무형지식재산으로 견적서를 전달받은 사람이 견적을 조회하는 용도 외에 다른 용도로 사용할 수 없으며, 타인에게 당 견적서의 전체 또는 일부 내용을 구두나 파일 등으로 전달한 경우, 당사에서 주장하는 모든 민형사상의 책임과 배상에 대하여 동의하는 것으로 간주함. 만약 동의하지 않을 경우, 당 견적서는 조회 없이 파기해야 함*',
+      t.validityNotice || `* 견적서는 작성일로부터 일주일간 유효함*`,
+      t.additionalCostsNotice ||
+        '* 도메인(URL및SSL등)/서버비용/AOS 및 IOS 개발자 계정/알림 수단/유료API 등에 따라 발생하는 비용은 별도이며, 견적서에 포함되지 않은 기능은 추가 비용이 발생함*',
     ],
     footerNotice:
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (t as any).aiDisclaimer ||
-      'AI 견적은 실제 계약 시 금액과 일부 상이할 수 있으며, 보다 정확한 견적은 담당자와의 최종 협의를 통해 확정됩니다.',
+      t.aiDisclaimer || 'AI견적은 실제 견적과 일부 상이 할 수 있습니다',
   };
 
   const stampImagePath = '/ai/stamp.png';
 
-  // 국제화 키 (임시값, aiChat.ts에 추가 필요)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const quotationTitle = (t as any).quotationTitle || '견적서';
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const quoteDateLabel = (t as any).quoteDateLabel || '견적 발행일';
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const clientNameLabel = (t as any).clientNameLabel || '고객명';
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const clientEmailLabel = (t as any).clientEmailLabel || '메일주소';
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const quoteNameLabel = (t as any).quoteNameLabel || '견적명';
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const totalAmountLabel = (t as any).totalAmountLabel || '총 금액 (VAT포함)';
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const supplierNameLabel = (t as any).supplierNameLabel || '상호명';
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const supplierCeoLabel = (t as any).supplierCeoLabel || '대표명';
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const supplierBizNumLabel = (t as any).supplierBizNumLabel || '사업자번호';
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const supplierIndustryLabel = (t as any).supplierIndustryLabel || '업종·업태';
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const supplierAddressLabel = (t as any).supplierAddressLabel || '주소';
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const supplierContactLabel = (t as any).supplierContactLabel || '대표 연락처';
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const clientContactNumberLabel =
-    (t as any).clientContactNumberLabel || '고객 연락처';
+  const quotationTitleValue = t.quotationTitle || '견적서';
+  const quoteDateLabelValue = t.quoteDateLabel || '견적 발행일';
+  const clientNameLabelValue = t.clientNameLabel || '고객명';
+  const clientEmailLabelValue = t.clientEmailLabel || '메일주소';
+  const quoteNameLabelValue = t.quoteNameLabel || '견적명';
+  const totalAmountLabelValue = t.totalAmountLabel || '총 금액 (VAT포함)';
+  const supplierNameLabelValue = t.supplierNameLabel || '상호명';
+  const supplierCeoLabelValue = t.supplierCeoLabel || '대표명';
+  const supplierBizNumLabelValue = t.supplierBizNumLabel || '사업자번호';
+  const supplierIndustryLabelValue = t.supplierIndustryLabel || '업종·업태';
+  const supplierAddressLabelValue = t.supplierAddressLabel || '주소';
 
-  const industryType = '응용소프트웨어 개발 및 공급업, 서비스업';
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const basicSurveyTitle = (t as any).basicSurveyTitle || '기초 조사';
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const basicSurveyContentPlaceholder =
-    (t as any).basicSurveyContentPlaceholder ||
-    '기초 조사 내용이 여기에 표시됩니다.';
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const quoteDetailsTitle = (t as any).quoteDetailsTitle || '견적 상세';
-
-  const baseCellStyle = {
-    padding: '6px 8px',
-    border: '1px solid #BFBFBF',
-    fontSize: '9pt',
-    verticalAlign: 'middle' as const,
-    height: '30px',
-  };
-
-  const headerCellStyle = {
-    ...baseCellStyle,
-    backgroundColor: '#F2F2F2',
-    fontWeight: 'bold',
-    textAlign: 'center' as const,
-  };
-
-  const valueCellStyle = {
-    ...baseCellStyle,
-    textAlign: 'left' as const,
-  };
-
-  const clientValueCellStyle = {
-    ...valueCellStyle,
-    fontWeight: 'bold',
-  };
-
-  const stampContainerStyle = {
-    position: 'relative' as const,
-    width: '100%',
-    height: '100%',
-  };
-
-  const stampImageStyle = {
-    position: 'absolute' as const,
-    right: '30px',
-    bottom: '10px',
-    width: '60px',
-    height: '60px',
-  };
+  const industryTypeValue = '응용소프트웨어 개발 및 공급업, 서비스업';
+  const basicSurveyTitleValue = t.basicSurveyTitle || '기초 조사';
+  const basicSurveyContentPlaceholderValue =
+    t.basicSurveyContentPlaceholder || ' ';
+  const quoteDetailsTitleValue = t.quoteDetailsTitle || '견적상세';
 
   return (
     <PrintableInvoiceWrapper id="printable-invoice-content">
-      <div
-        className="quotation-title"
-        style={{
-          fontSize: '20pt',
-          fontWeight: 'bold',
-          textAlign: 'center',
-          marginBottom: '20px',
-        }}
-      >
-        {quotationTitle}
-      </div>
-
-      {/* 상단 정보 테이블 (통합) */}
+      <div className="quotation-title">{quotationTitleValue} (QUOTATION)</div>
       <table
         style={{
           width: '100%',
           borderCollapse: 'collapse',
-          marginBottom: '15px',
+          marginBottom: '10px',
         }}
       >
         <tbody>
-          {/* Row 1: 견적 발행일, 상호명 */}
           <tr>
             <td style={{ ...headerCellStyle, width: '15%' }}>
-              {quoteDateLabel}
+              {quoteDateLabelValue}
             </td>
             <td style={{ ...valueCellStyle, width: '25%' }}>
-              {currentDate} {currentTime}
+              {currentDateForPdf}
             </td>
             <td style={{ ...headerCellStyle, width: '15%' }}>
-              {supplierNameLabel}
+              {supplierNameLabelValue}
             </td>
-            <td style={{ ...valueCellStyle, width: '30%' }}>{companyName}</td>
+            <td style={{ ...valueCellStyle, width: '30%' }}>
+              {companyNameValue}
+            </td>
             <td
-              style={{ ...headerCellStyle, width: '15%', borderLeft: 'none' }}
+              style={{
+                border: '1px solid #BFBFBF',
+                borderLeft: 'none',
+                width: '15%',
+              }}
               rowSpan={5}
             >
               <div style={stampContainerStyle}>
@@ -1005,77 +688,96 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
               </div>
             </td>
           </tr>
-          {/* Row 2: 고객명, 대표명 */}
           <tr>
-            <td style={headerCellStyle}>{clientNameLabel}</td>
-            <td style={clientValueCellStyle}>{recipientName}</td>
-            <td style={headerCellStyle}>{supplierCeoLabel}</td>
-            <td style={valueCellStyle}>{representativeName}</td>
+            <td style={headerCellStyle}>{clientNameLabelValue}</td>
+            <td style={clientValueCellStyle}>
+              {currentRecipientName}
+              {userPhone && (
+                <>
+                  <br />
+                  {userPhone}
+                </>
+              )}
+            </td>
+            <td style={headerCellStyle}>{supplierCeoLabelValue}</td>
+            <td style={valueCellStyle}>
+              {representativeNameValue}
+              {companyPhoneForPdfValue && (
+                <>
+                  <br />
+                  {companyPhoneForPdfValue}
+                </>
+              )}
+            </td>
           </tr>
-          {/* Row 3: 메일주소, 사업자번호 */}
           <tr>
-            <td style={headerCellStyle}>{clientEmailLabel}</td>
-            <td style={valueCellStyle}>{clientEmail}</td>
-            <td style={headerCellStyle}>{supplierBizNumLabel}</td>
-            <td style={valueCellStyle}>{companyRegistrationNumber}</td>
+            <td style={headerCellStyle}>{clientEmailLabelValue}</td>
+            <td style={valueCellStyle}>{currentClientEmail}</td>
+            <td style={headerCellStyle}>{supplierBizNumLabelValue}</td>
+            <td style={valueCellStyle}>{companyRegistrationNumberValue}</td>
           </tr>
-          {/* Row 4: 견적명, 업종·업태 */}
           <tr>
-            <td style={headerCellStyle}>{quoteNameLabel}</td>
-            <td style={clientValueCellStyle}>{quoteItemName}</td>
-            <td style={headerCellStyle}>{supplierIndustryLabel}</td>
-            <td style={valueCellStyle}>{industryType}</td>
+            <td style={headerCellStyle}>{quoteNameLabelValue}</td>
+            <td style={clientValueCellStyle}>{currentQuoteItemName}</td>
+            <td style={headerCellStyle}>{supplierIndustryLabelValue}</td>
+            <td style={valueCellStyle}>{industryTypeValue}</td>
           </tr>
-          {/* Row 5: 총 금액(VAT포함), 주소 */}
           <tr>
             <td style={{ ...headerCellStyle, fontWeight: 'bold' }}>
-              {totalAmountLabel}
+              {totalAmountLabelValue}
             </td>
-            <td style={{ ...valueCellStyle, fontWeight: 'bold' }}>
-              {totalAmountWithVatForPdf}
+            <td style={{ ...clientValueCellStyle, fontWeight: 'bold' }}>
+              {totalAmountWithVatForPdfValue}
             </td>
-            <td style={headerCellStyle}>{supplierAddressLabel}</td>
-            <td style={valueCellStyle}>{companyAddress}</td>
+            <td style={headerCellStyle}>{supplierAddressLabelValue}</td>
+            <td style={valueCellStyle}>{companyAddressValue}</td>
           </tr>
-          {/* Row 6: 고객 연락처(이미지에는 없음, 필요시 추가), 대표 연락처 */}
+        </tbody>
+      </table>
+
+      <table
+        style={{
+          width: '100%',
+          borderCollapse: 'collapse',
+          marginBottom: '10px',
+        }}
+      >
+        <tbody>
           <tr>
-            <td style={headerCellStyle}>{clientContactNumberLabel}</td>
-            <td style={valueCellStyle}>
-              {invoiceDetailsForPdf.items[0]?.note || ''}{' '}
-              {/* 임시로 첫번째 아이템 노트 사용 */}
+            <td
+              style={{ ...headerCellStyle, width: '15%', textAlign: 'center' }}
+            >
+              {basicSurveyTitleValue}
             </td>
-            <td style={headerCellStyle}>{supplierContactLabel}</td>
-            <td style={valueCellStyle}>{companyPhone}</td>
-            <td style={{ ...valueCellStyle, borderRight: 'none' }}></td>
-          </tr>
-          <tr>
-            <td style={headerCellStyle}>{basicSurveyTitle}</td>
-            <td style={{ ...valueCellStyle }} colSpan={4}>
-              {basicSurveyContentPlaceholder}{' '}
-              {/* 실제 기초 조사 내용 연동 필요 */}
+            <td style={{ ...valueCellStyle, minHeight: '40px' }}>
+              {basicSurveyContentPlaceholderValue}
             </td>
           </tr>
         </tbody>
       </table>
 
-      {/* 견적 상세 섹션 */}
       <div
-        style={{ fontSize: '12pt', fontWeight: 'bold', marginBottom: '5px' }}
+        style={{
+          fontSize: '10pt',
+          fontWeight: 'bold',
+          marginBottom: '5px',
+          marginTop: '15px',
+        }}
       >
-        {quoteDetailsTitle}
+        {quoteDetailsTitleValue}
       </div>
       <table
         style={{ width: '100%', borderCollapse: 'collapse', marginTop: '0rem' }}
       >
         <thead>
           <tr>
-            <th style={{ ...headerCellStyle, width: '20%' }}>
+            <th style={{ ...headerCellStyle, width: '18%' }}>
               {t.tableHeaders.category}
             </th>
-            <th style={{ ...headerCellStyle, width: '25%' }}>
+            <th style={{ ...headerCellStyle, width: '22%' }}>
               {t.tableHeaders.item}
             </th>
-            <th style={{ ...headerCellStyle, width: '35%' }}>
+            <th style={{ ...headerCellStyle, width: '40%' }}>
               {t.tableHeaders.detail}
             </th>
             <th style={{ ...headerCellStyle, width: '20%' }}>
@@ -1091,9 +793,7 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
               );
               return !(currentItemDetails && currentItemDetails.isDeleted);
             });
-
             if (visibleItems.length === 0) return null;
-
             return visibleItems.map((item, visibleItemIndex) => (
               <tr key={`pdf-item-${item.id}`}>
                 {visibleItemIndex === 0 && (
@@ -1134,7 +834,7 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
                   {item.note &&
                   /^[A-Z]{3}\s[\d,.]+\s\(₩[\d,.]+\)$/.test(item.note)
                     ? item.note
-                    : formatAmountForPdf(item.amount, countryCode)}
+                    : formatAmountForPdf(item.amount, 'KR', false)}
                 </td>
               </tr>
             ));
@@ -1151,31 +851,28 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
               }}
             >
               <strong>
-                {invoiceData.total?.totalConvertedDisplay &&
-                typeof invoiceData.total.totalConvertedDisplay === 'string'
-                  ? invoiceData.total.totalConvertedDisplay
-                  : formatAmountForPdf(
-                      invoiceDetailsForPdf.currentTotal,
-                      countryCode
-                    )}
+                {formatAmountForPdf(
+                  invoiceDetailsForPdf.currentTotal,
+                  'KR',
+                  false
+                )}
               </strong>
             </td>
           </tr>
           <tr>
-            <td colSpan={3} style={{ ...headerCellStyle, textAlign: 'right' }}>
+            <td colSpan={3} className="total-label">
               <strong>{t.estimateInfo.vatIncluded}</strong>
             </td>
             <td
               style={{
-                ...valueCellStyle,
                 textAlign: 'right',
-                fontWeight: 'bold',
               }}
             >
               <strong>
                 {formatAmountForPdf(
                   Math.round((invoiceDetailsForPdf.currentTotal || 0) * 1.1),
-                  countryCode
+                  'KR',
+                  false
                 )}
               </strong>
             </td>
@@ -1188,7 +885,7 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
               >
                 {t.estimateInfo.totalDuration}
               </td>
-              <td style={{ ...valueCellStyle, textAlign: 'right' }}>
+              <td style={{ textAlign: 'right' }}>
                 {typeof invoiceDetailsForPdf.currentTotalDuration === 'number'
                   ? `${Math.ceil(
                       invoiceDetailsForPdf.currentTotalDuration / 5
@@ -1201,26 +898,12 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
               </td>
             </tr>
           )}
-          {invoiceDetailsForPdf.currentTotalPages > 0 && (
-            <tr>
-              <td
-                colSpan={3}
-                style={{ ...headerCellStyle, textAlign: 'right' }}
-              >
-                {t.estimateInfo.totalPages}
-              </td>
-              <td style={{ ...valueCellStyle, textAlign: 'right' }}>
-                {invoiceDetailsForPdf.currentTotalPages} {t.estimateInfo.page}
-              </td>
-            </tr>
-          )}
         </tbody>
       </table>
 
-      {/* 비고란 섹션 */}
       <div
         style={{
-          fontSize: '12pt',
+          fontSize: '10pt',
           fontWeight: 'bold',
           marginBottom: '5px',
           marginTop: '20px',
@@ -1273,7 +956,7 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
         style={{
           marginTop: '20px',
           textAlign: 'center',
-          fontSize: '8pt',
+          fontSize: '7.5pt',
           color: '#555555',
         }}
       >
@@ -1298,10 +981,9 @@ export function AiChatMessage({
   calculatedTotalPages,
   currentItems,
   lang,
-}: MessageProps) {
+}: ChatMessageProps) {
   const isAiMessage = sender === 'ai';
 
-  const { lang: contextLang } = useLang();
   const t =
     aiChatDictionary[lang as keyof typeof aiChatDictionary] ||
     aiChatDictionary.ko;
@@ -1333,7 +1015,6 @@ export function AiChatMessage({
       let featureId: string | undefined;
       let buttonText: string = 'Button';
 
-      // 노드 데이터에서 액션 정보 추출
       if (node && node.properties) {
         action = node.properties['data-action'] as string | undefined;
         featureId = node.properties['data-feature-id'] as string | undefined;
@@ -1347,7 +1028,6 @@ export function AiChatMessage({
         buttonText = (node.children[0] as CustomMarkdownNode).value || 'Button';
       }
 
-      // 액션이 있는 경우 클릭 핸들러 연결
       if (action) {
         return (
           <StyledActionButton
@@ -1557,7 +1237,7 @@ export function AiChatMessage({
                         {typeof calculatedTotalDuration === 'number'
                           ? `${Math.ceil(calculatedTotalDuration / 5)} ${
                               t.estimateInfo.week
-                            } (${lang === 'ko' ? '약 ' : 'Approx. '}${Math.ceil(
+                            } (${lang === 'ko' ? '약 ' : ''}${Math.ceil(
                               calculatedTotalDuration / 20
                             )} ${t.estimateInfo.monthUnit})`
                           : `${calculatedTotalDuration} ${t.estimateInfo.day}`}
@@ -1705,30 +1385,20 @@ export function AiChatMessage({
                     <td colSpan={3} className="total-label">
                       <strong>{t.estimateInfo.vatIncluded}</strong>
                     </td>
-                    <td className="col-amount">
+                    <td
+                      style={{
+                        textAlign: 'right',
+                      }}
+                    >
                       <strong>
-                        {invoiceData.total?.totalConvertedDisplay &&
-                        typeof invoiceData.total.totalConvertedDisplay ===
-                          'string'
-                          ? formatAmountWithCurrency(
-                              Math.round(
-                                (calculatedTotalAmount ||
-                                  invoiceData.total?.amount ||
-                                  0) * 1.1
-                              ),
-                              true
-                            )
-                          : calculatedTotalAmount !== undefined
-                          ? formatAmountWithCurrency(
-                              Math.round(calculatedTotalAmount * 1.1),
-                              true
-                            )
-                          : formatAmountWithCurrency(
-                              Math.round(
-                                (invoiceData.total?.amount || 0) * 1.1
-                              ),
-                              true
-                            )}
+                        {formatAmountWithCurrency(
+                          Math.round(
+                            (calculatedTotalAmount ||
+                              invoiceData.total?.amount ||
+                              0) * 1.1
+                          ),
+                          true
+                        )}
                       </strong>
                     </td>
                     <td></td>
@@ -1738,16 +1408,15 @@ export function AiChatMessage({
                       <td colSpan={3} className="total-label">
                         {t.estimateInfo.totalDuration}
                       </td>
-                      <td className="col-amount">
+                      <td style={{ textAlign: 'right' }}>
                         {typeof calculatedTotalDuration === 'number'
                           ? `${Math.ceil(calculatedTotalDuration / 5)} ${
                               t.estimateInfo.week
-                            } (${lang === 'ko' ? '약 ' : 'Approx. '}${Math.ceil(
+                            } (${lang === 'ko' ? '약 ' : ''}${Math.ceil(
                               calculatedTotalDuration / 20
                             )} ${t.estimateInfo.monthUnit})`
                           : `${calculatedTotalDuration} ${t.estimateInfo.day}`}
                       </td>
-                      <td></td>
                     </tr>
                   )}
                   {calculatedTotalPages !== undefined && (
@@ -1755,7 +1424,7 @@ export function AiChatMessage({
                       <td colSpan={3} className="total-label">
                         {t.estimateInfo.totalPages}
                       </td>
-                      <td className="col-amount">
+                      <td style={{ textAlign: 'right' }}>
                         {calculatedTotalPages} {t.estimateInfo.page}
                       </td>
                       <td></td>

@@ -6,7 +6,13 @@ import { useState, useEffect, useRef } from 'react';
 import { AiProgressBar } from '@/components/Ai/AiProgressBar';
 import { customScrollbar } from '@/styles/commonStyles';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
-import { Message, InvoiceDataType } from '@/components/Ai/AiChatMessage';
+import {
+  Message,
+  InvoiceDataType,
+  InvoiceDetails,
+  InvoiceFeatureItem,
+  InvoiceGroup,
+} from '@/types/invoice';
 import useAI from '@/hooks/useAI';
 import { useLang } from '@/contexts/LangContext';
 import { aiChatDictionary } from '@/lib/i18n/aiChat';
@@ -32,19 +38,7 @@ import html2canvas from 'html2canvas';
 import { createRoot } from 'react-dom/client'; // React 18용
 // import ReactDOM from 'react-dom'; // React 17용
 import { PrintableInvoice } from '@/components/Ai/AiChatMessage'; // PrintableInvoice 임포트
-
-// 견적서 상세 정보 상태 인터페이스 정의 수정
-interface InvoiceDetails {
-  parsedJson?: InvoiceDataType;
-  items: Array<
-    InvoiceDataType['invoiceGroup'][number]['items'][number] & {
-      isDeleted: boolean;
-    }
-  >;
-  currentTotal: number;
-  currentTotalDuration: number; // 총 예상 기간 (일 단위 숫자)
-  currentTotalPages: number; // 총 예상 페이지 수 (숫자)
-}
+import useAuthStore from '@/store/authStore'; // authStore 가져오기
 
 // --- 스타일 컴포넌트 ---
 const Container = styled.div<{ $isNarrowScreen?: boolean }>`
@@ -132,12 +126,13 @@ const PageLanguageSwitcher = () => {
 const generateInvoicePDF = async (
   invoiceDetailsData: InvoiceDetails,
   currentLang: 'ko' | 'en',
-  userCountryCode: string,
-  translations: ChatDictionary // 번역 객체 전달
+  translations: ChatDictionary,
+  userName?: string | null,
+  userPhone?: string | null,
+  userEmail?: string | null
 ) => {
   if (!invoiceDetailsData || !invoiceDetailsData.parsedJson) {
     console.error('PDF 생성을 위한 견적서 데이터가 없습니다.');
-    // 사용자에게 오류 메시지를 표시할 수 있습니다 (예: alert 또는 채팅 메시지).
     return;
   }
 
@@ -146,53 +141,50 @@ const generateInvoicePDF = async (
   invoiceNode.style.position = 'absolute';
   invoiceNode.style.left = '-9999px';
   invoiceNode.style.top = '-9999px';
-  invoiceNode.style.zIndex = '-1'; // 화면에 보이지 않도록
+  invoiceNode.style.zIndex = '-1000';
+  invoiceNode.style.width = '780px';
+  invoiceNode.style.backgroundColor = 'white';
   document.body.appendChild(invoiceNode);
 
-  // React 18+ createRoot 사용
   const root = createRoot(invoiceNode);
   root.render(
     <PrintableInvoice
-      invoiceData={invoiceDetailsData.parsedJson}
-      invoiceDetailsForPdf={invoiceDetailsData} // currentItems 포함된 전체 invoiceDetails 전달
-      t={translations} // 전체 번역 객체 전달
-      countryCode={userCountryCode}
+      invoiceData={invoiceDetailsData.parsedJson as InvoiceDataType}
+      invoiceDetailsForPdf={invoiceDetailsData}
+      t={translations}
+      lang={currentLang}
+      userName={userName}
+      userPhone={userPhone}
+      userEmail={userEmail}
     />
   );
-  // React 17의 경우:
-  // ReactDOM.render(<PrintableInvoice ... />, invoiceNode);
 
   try {
-    // 잠시 기다려 DOM 업데이트 및 스타일 적용 시간 확보 (시간 증가)
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1500));
 
     const printableContent = invoiceNode.querySelector(
       '#printable-invoice-content'
-    );
+    ) as HTMLElement | null;
+
     if (!printableContent) {
       console.error(
-        'PDF로 변환할 #printable-invoice-content 요소를 찾을 수 없습니다. invoiceNode 내부를 확인합니다:',
+        'PDF로 변환할 #printable-invoice-content 요소를 찾을 수 없습니다. invoiceNode 내부:',
         invoiceNode.innerHTML
       );
-      // 추가적인 디버깅을 위해 invoiceNode 자체를 캡처 시도 (스타일이 깨질 수 있음)
-      // const canvas = await html2canvas(invoiceNode as HTMLElement, { ... });
-      // console.log('invoiceNode를 직접 캡처 시도함.');
       return;
     }
 
-    console.log(
-      '#printable-invoice-content 요소를 찾았습니다. 캡처를 시도합니다.',
-      printableContent
-    );
-    const canvas = await html2canvas(printableContent as HTMLElement, {
+    const canvas = await html2canvas(printableContent, {
       scale: 2,
       useCORS: true,
-      logging: process.env.NODE_ENV === 'development', // 개발 모드에서만 로깅 활성화
-      backgroundColor: '#ffffff', // 배경색 흰색으로 명시
-      scrollX: 0, // 내부 스크롤 고려 안함
-      scrollY: -window.scrollY, // 현재 페이지 스크롤 위치 보정
-      windowWidth: printableContent.scrollWidth, // 콘텐츠 너비 사용
-      windowHeight: printableContent.scrollHeight, // 콘텐츠 높이 사용
+      logging: process.env.NODE_ENV === 'development',
+      backgroundColor: '#ffffff',
+      scrollX: 0,
+      scrollY: 0,
+      width: printableContent.scrollWidth,
+      height: printableContent.scrollHeight,
+      windowWidth: printableContent.scrollWidth,
+      windowHeight: printableContent.scrollHeight,
     });
 
     const imgData = canvas.toDataURL('image/png');
@@ -200,55 +192,87 @@ const generateInvoicePDF = async (
       orientation: 'p',
       unit: 'mm',
       format: 'a4',
+      compress: true,
     });
 
     const pdfWidth = pdf.internal.pageSize.getWidth();
     const pdfHeight = pdf.internal.pageSize.getHeight();
-    const margin = 10; // 양쪽 여백 10mm
+    const margin = 10;
+
     const contentWidth = pdfWidth - margin * 2;
 
     const imgProps = pdf.getImageProperties(imgData);
-    const imgHeight = (imgProps.height * contentWidth) / imgProps.width;
-    const currentPosition = margin;
+    const totalImageHeightInMM =
+      (imgProps.height * contentWidth) / imgProps.width;
 
-    if (imgHeight <= pdfHeight - margin * 2) {
-      // 한 페이지에 다 들어가는 경우
-      pdf.addImage(
-        imgData,
-        'PNG',
-        margin,
-        currentPosition,
-        contentWidth,
-        imgHeight
-      );
-    } else {
-      // 여러 페이지에 걸쳐야 하는 경우 (여기서는 첫 페이지만 추가, 추후 개선 가능)
-      console.warn(
-        '견적서 내용이 길어 PDF 한 페이지를 초과합니다. 현재는 첫 페이지만 생성됩니다.'
-      );
-      pdf.addImage(
-        imgData,
-        'PNG',
-        margin,
-        currentPosition,
-        contentWidth,
-        pdfHeight - margin * 2
-      );
-      // TODO: 여러 페이지 지원 로직 추가 (예: 이미지를 잘라서 여러 페이지에 추가)
+    let currentImageSectionY_px = 0;
+    const originalImageHeight_px = imgProps.height;
+    const originalImageWidth_px = imgProps.width;
+
+    let isFirstPage = true;
+
+    while (currentImageSectionY_px < originalImageHeight_px) {
+      if (!isFirstPage) {
+        pdf.addPage();
+      }
+
+      const pageContentHeightAllowed_mm = pdfHeight - margin * 2;
+
+      let sectionHeight_px =
+        (pageContentHeightAllowed_mm / totalImageHeightInMM) *
+        originalImageHeight_px;
+
+      if (currentImageSectionY_px + sectionHeight_px > originalImageHeight_px) {
+        sectionHeight_px = originalImageHeight_px - currentImageSectionY_px;
+      }
+
+      if (sectionHeight_px <= 0) break;
+
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = originalImageWidth_px;
+      tempCanvas.height = sectionHeight_px;
+      const tempCtx = tempCanvas.getContext('2d');
+
+      if (tempCtx) {
+        tempCtx.drawImage(
+          canvas,
+          0,
+          currentImageSectionY_px,
+          originalImageWidth_px,
+          sectionHeight_px,
+          0,
+          0,
+          originalImageWidth_px,
+          sectionHeight_px
+        );
+        const pageImgData = tempCanvas.toDataURL('image/png', 0.9);
+
+        const imageSectionHeightInMM =
+          (sectionHeight_px / originalImageHeight_px) * totalImageHeightInMM;
+
+        pdf.addImage(
+          pageImgData,
+          'PNG',
+          margin,
+          margin,
+          contentWidth,
+          imageSectionHeightInMM
+        );
+      }
+
+      currentImageSectionY_px += sectionHeight_px;
+      isFirstPage = false;
     }
 
-    pdf.save(`견적서-${invoiceDetailsData.parsedJson.project || '내역'}.pdf`);
+    pdf.save(`견적서-${invoiceDetailsData.parsedJson?.project || '내역'}.pdf`);
   } catch (pdfError) {
     console.error('PDF 생성 중 오류 발생:', pdfError);
-    // 사용자에게 오류 알림 (예: setMessages 사용)
   } finally {
-    // React 18+ createRoot 사용 시
     root.unmount();
-    // React 17의 경우:
-    // ReactDOM.unmountComponentAtNode(invoiceNode);
     if (invoiceNode.parentNode) {
       invoiceNode.parentNode.removeChild(invoiceNode);
     }
+    console.log('PDF 생성 프로세스 완료, 임시 노드 제거됨.');
   }
 };
 
@@ -258,9 +282,10 @@ export default function AiPageContent() {
   const searchParams = useSearchParams();
   const chatEndRef = useRef<HTMLDivElement>(null);
 
-  const { lang } = useLang();
-  const t = aiChatDictionary[lang] as ChatDictionary;
-  t.lang = lang;
+  const { lang, setLang: actualSetLang } = useLang();
+  const t: ChatDictionary = { ...aiChatDictionary[lang], lang };
+  const user = useAuthStore((state) => state.user);
+  const latestInvoiceDetailsRef = useRef<InvoiceDetails | null>(null);
 
   const stepData = getStepData(t);
   const { chat, setCurrentModelIdentifier, modelName, isInitialized } = useAI();
@@ -378,41 +403,20 @@ export default function AiPageContent() {
 
   useEffect(() => {
     console.log('[AiPageContent] Firebase auth listener - MOUNTING');
-    setIsFirebaseChecking(true); // 리스너 시작 시 체크 중으로 설정
+    setIsFirebaseChecking(true);
 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      // async 키워드 추가
       console.log(
         '[AiPageContent] onAuthStateChanged CALLBACK TRIGGERED. Firebase user:',
         user
       );
+      setIsFirebaseChecking(false);
       if (user) {
-        // 사용자가 이미 로그인되어 있는 경우 (일반 로그인 또는 이전 익명 로그인 포함)
         console.log(
-          `[AiPageContent] Firebase user DETECTED (UID: ${user.uid}, Anonymous: ${user.isAnonymous})`
+          `[AiPageContent] Firebase user DETECTED (UID: ${user.uid})`
         );
-        setIsFirebaseChecking(false); // 사용자 확인 후 체크 완료
       } else {
-        // 로그인된 사용자가 없는 경우, 익명으로 로그인 시도
-        console.log(
-          '[AiPageContent] No Firebase user DETECTED. Attempting anonymous sign-in...'
-        );
-        try {
-          await signInAnonymously(auth);
-          console.log(
-            '[AiPageContent] Firebase anonymous sign-in attempt successful. Waiting for new auth state.'
-          );
-          // 익명 로그인 성공 후, onAuthStateChanged가 새로운 user 정보와 함께 다시 호출됩니다.
-          // 그때 위의 if (user) 블록이 실행되면서 setIsFirebaseChecking(false)가 호출될 것입니다.
-          // 따라서 이 부분에서 즉시 setIsFirebaseChecking(false)를 호출할 필요는 없습니다.
-        } catch (error) {
-          console.error(
-            '[AiPageContent] Firebase anonymous sign-in FAILED:',
-            error
-          );
-          // 익명 로그인 시도 자체가 실패하면, 체크 상태를 false로 설정하여 무한 로딩 등을 방지합니다.
-          setIsFirebaseChecking(false);
-        }
+        console.log('[AiPageContent] No Firebase user DETECTED.');
       }
     });
 
@@ -512,15 +516,15 @@ export default function AiPageContent() {
     return { amount, duration, pages };
   };
 
+  const addMessageToChat = (newMessage: Message) => {
+    setMessages((prevMessages) => [...prevMessages, newMessage]);
+  };
+
   const handleActionClick = async (
     action: string,
     data?: { featureId?: string }
   ) => {
     console.log('[AiPageContent] handleActionClick called with:', action, data);
-
-    const addMessageToChat = (newMessage: Message) => {
-      setMessages((prevMessages) => [...prevMessages, newMessage]);
-    };
 
     if (action === 'delete_feature_json') {
       if (data?.featureId && invoiceDetails) {
@@ -545,14 +549,24 @@ export default function AiPageContent() {
       }
     } else if (action === 'download_pdf') {
       console.log('PDF 다운로드 요청');
-      if (invoiceDetails && invoiceDetails.parsedJson) {
-        const userCountry = authStore.getState().user?.countryCode || 'KR';
-        await generateInvoicePDF(invoiceDetails, lang, userCountry, t);
+      if (latestInvoiceDetailsRef.current && t) {
+        console.log(
+          '견적서 다운로드 요청. 데이터:',
+          latestInvoiceDetailsRef.current
+        );
+        await generateInvoicePDF(
+          latestInvoiceDetailsRef.current,
+          lang,
+          t,
+          user?.displayName || undefined,
+          user?.phoneNumber || undefined,
+          user?.email || undefined
+        );
       } else {
         addMessageToChat({
           id: Date.now(),
           sender: 'ai',
-          text: '견적서 데이터를 찾을 수 없어 PDF를 생성할 수 없습니다.',
+          text: 'PDF를 생성할 견적서 데이터가 없습니다.',
         });
       }
       return;
@@ -1028,18 +1042,35 @@ export default function AiPageContent() {
   useEffect(() => {
     console.log('[AiPageContent] Firebase auth listener - MOUNTING');
     setIsFirebaseChecking(true);
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       console.log(
         '[AiPageContent] onAuthStateChanged CALLBACK TRIGGERED. Firebase user:',
-        user
+        firebaseUser
       );
       setIsFirebaseChecking(false);
-      if (user) {
+      if (firebaseUser) {
         console.log(
-          `[AiPageContent] Firebase user DETECTED (UID: ${user.uid})`
+          `[AiPageContent] Firebase user DETECTED (UID: ${firebaseUser.uid})`
         );
+        authStore.setState({
+          user: firebaseUser as any,
+          isAuthenticated: true,
+          isLoading: false,
+        });
       } else {
         console.log('[AiPageContent] No Firebase user DETECTED.');
+        signInAnonymously(auth)
+          .then(() => {
+            // console.log('Anonymous user signed in');
+          })
+          .catch((error) => {
+            console.error('Error signing in anonymously', error);
+            authStore.setState({
+              user: null,
+              isAuthenticated: false,
+              isLoading: false,
+            });
+          });
       }
     });
     return () => {
@@ -1048,7 +1079,15 @@ export default function AiPageContent() {
       );
       unsubscribe();
     };
-  }, []); // 마운트 시 한 번만 실행
+  }, []);
+
+  const scrollToBottom = () => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   return (
     <Container $isNarrowScreen={isNarrowScreen}>
