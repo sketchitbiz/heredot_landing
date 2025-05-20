@@ -3,9 +3,18 @@
 import { aiChatDictionary } from '@/lib/i18n/aiChat';
 
 // ChatDictionary 타입 정의
-export type ChatDictionary = (typeof aiChatDictionary)['ko'] & {
-  lang: 'ko' | 'en';
-};
+export type ChatDictionary =
+  (typeof aiChatDictionary)[keyof typeof aiChatDictionary] & {
+    // estimateModal 타입을 명시적으로 추가하거나, aiChatDictionary의 기본 타입에 포함되도록 해야 합니다.
+    // 예시로 추가합니다. 실제 aiChatDictionary 구조에 맞게 조정 필요
+    estimateModal?: {
+      titlePlaceholder: string;
+      description: string;
+      confirmButton: string;
+      cancelButton: string;
+    };
+    lang: 'ko' | 'en';
+  };
 
 // stepData를 함수로 정의하여 현재 언어에 맞는 데이터 반환
 export const getStepData = (t: ChatDictionary) => [

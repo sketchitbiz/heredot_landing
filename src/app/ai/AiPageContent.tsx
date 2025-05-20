@@ -157,6 +157,7 @@ const generateInvoicePDF = async (
       invoiceDetailsForPdf={invoiceDetailsData} // currentItems 포함된 전체 invoiceDetails 전달
       t={translations} // 전체 번역 객체 전달
       countryCode={userCountryCode}
+      lang={currentLang}
     />
   );
   // React 17의 경우:
@@ -208,50 +209,47 @@ const generateInvoicePDF = async (
     const contentWidth = pdfWidth - margin * 2;
 
     const pxFullHeight = canvas.height;
-    const pxPageHeight = (canvas.width / contentWidth) * (pdfHeight - margin * 2);
+    const pxPageHeight =
+      (canvas.width / contentWidth) * (pdfHeight - margin * 2);
     let position = 0;
-    
+
     while (position < pxFullHeight) {
       const canvasPage = document.createElement('canvas');
       canvasPage.width = canvas.width;
       canvasPage.height = Math.min(pxPageHeight, pxFullHeight - position);
-    
+
       const ctx = canvasPage.getContext('2d');
       if (!ctx) {
         console.error('Canvas context를 가져오지 못했습니다.');
         break;
       }
-    
+
       // 원본 이미지에서 필요한 부분만 잘라서 복사
       ctx.drawImage(
         canvas,
-        0, position,                     // 원본 이미지 시작 위치
-        canvas.width, canvasPage.height, // 원본에서 자를 크기
-        0, 0,                             // 대상 캔버스 위치
-        canvas.width, canvasPage.height  // 대상 캔버스 크기
+        0,
+        position, // 원본 이미지 시작 위치
+        canvas.width,
+        canvasPage.height, // 원본에서 자를 크기
+        0,
+        0, // 대상 캔버스 위치
+        canvas.width,
+        canvasPage.height // 대상 캔버스 크기
       );
-    
+
       const imgDataPage = canvasPage.toDataURL('image/png');
-      const imgHeight =
-        (canvasPage.height * contentWidth) / canvasPage.width;
-    
-      pdf.addImage(
-        imgDataPage,
-        'PNG',
-        margin,
-        margin,
-        contentWidth,
-        imgHeight
-      );
-    
+      const imgHeight = (canvasPage.height * contentWidth) / canvasPage.width;
+
+      pdf.addImage(imgDataPage, 'PNG', margin, margin, contentWidth, imgHeight);
+
       position += pxPageHeight;
-    
+
       // 다음 페이지 추가 필요 시
       if (position < pxFullHeight) {
         pdf.addPage();
       }
     }
-    
+
     pdf.save(`견적서-${invoiceDetailsData.parsedJson.project || '내역'}.pdf`);
   } catch (pdfError) {
     console.error('PDF 생성 중 오류 발생:', pdfError);
@@ -580,7 +578,8 @@ export default function AiPageContent() {
         null,
         `${feedbackMsg} 이 옵션을 적용하여 견적을 조정해주세요. 사용자의 현재 견적서는 다음과 같습니다: ${JSON.stringify(
           invoiceDetails?.parsedJson
-        )}`
+        )}`,
+        true // 시스템 시작 프롬프트로 표시
       );
     } else if (action === 'discount_remove_features_budget') {
       const feedbackMsg =
@@ -591,7 +590,8 @@ export default function AiPageContent() {
         null,
         `${feedbackMsg} 현재 견적서에서 제거할 만한 핵심 보조 기능들을 제안해주세요. 사용자의 현재 견적서는 다음과 같습니다: ${JSON.stringify(
           invoiceDetails?.parsedJson
-        )}`
+        )}`,
+        true // 시스템 시작 프롬프트로 표시
       );
     } else if (action === 'discount_ai_suggestion') {
       const feedbackMsg =

@@ -228,9 +228,9 @@ export default function useAI() {
         //default_country: japan
         const localizationInstruction = `
 <USER_COUNTRY_INFO>
-ountry_code: ${mappedIsoCode}
+country_code: ${mappedIsoCode}
 default_country: ${targetCountryName}
-default_currency: US
+default_currency: KR
 default_language: ${targetLanguage}
 
 AI 지침:

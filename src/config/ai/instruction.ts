@@ -63,7 +63,7 @@ followed *only* by a JSON object within a script tag as specified below.**
           "duration": "Duration (in primary_language_code)",
           "category": "Category Name (in primary_language_code)",
           "pages": "3",
-          "note": "Currency conversion (e.g., Approx. ₩150,000 if primary is USD). Base pricing. Estimate disclaimer. (All in primary_language_code)"
+          "note": "Currency conversion (e.g., ₩150,000 if primary is USD). Base pricing. Estimate disclaimer. (All in primary_language_code)"
         }
       ]
     }
@@ -86,9 +86,9 @@ followed *only* by a JSON object within a script tag as specified below.**
     *   \`pages\`: (String, Optional) Estimated pages as a string, or omit.
     *   \`note\`: (String, Optional but **Required for currency conversion if amount is numeric**)
         *   **Mandatory Currency Conversion:** If \`amount\` is numeric:
-            *   If \`primary_currency_code\` is NOT KRW: Show KRW equivalent (e.g., "Approx. ₩135,000").
-            *   If \`primary_currency_code\` IS KRW: Show USD equivalent (e.g., "Approx. $100").
-            *   If user requests an additional currency display, include it (e.g., "Approx. ₩135,000 / €90").
+            *   If \`primary_currency_code\` is NOT KRW: Show KRW equivalent (e.g., " ₩135,000").
+            *   If \`primary_currency_code\` IS KRW: Show USD equivalent (e.g., " $100").
+            *   If user requests an additional currency display, include it (e.g., " ₩135,000 / €90").
         *   **Base Pricing Info:** If <DATA> includes base pricing (e.g., "10만원/페이지"), add this to the note in the \`primary_language_code\` (e.g., "Base: 10만원/페이지").
         *   **Estimates Disclaimer:** If the \`amount\` for this item is an AI-generated estimate (see "Handling Custom/Complex Features" below), add a brief disclaimer like "Preliminary estimate, subject to change."
         *   Other relevant notes in the \`primary_language_code\`.
@@ -99,7 +99,7 @@ followed *only* by a JSON object within a script tag as specified below.**
     *   \`amount\`: (Number, Required) Total amount in \`primary_currency_code\`.
     *   \`duration\`: (Number, Required) Total duration (days).
     *   \`pages\`: (Number, Required) Total pages.
-    *   \`totalConvertedDisplay\`: (String, Optional) Total in \`primary_currency_code\`, with secondary display (KRW if primary isn't KRW, USD if primary is KRW). Example for US user: "$1,500.00 (Approx. ₩1,950,000)"; for KR user: "₩1,950,000 (Approx. $1,500.00)".
+    *   \`totalConvertedDisplay\`: (String, Optional) Total in \`primary_currency_code\`, with secondary display (KRW if primary isn't KRW, USD if primary is KRW). Example for US user: "$1,500.00 ( ₩1,950,000)"; for KR user: "₩1,950,000 ( $1,500.00)".
 *   **Handling Custom/Complex Features (Replaces "Contact for Quote"):**
     *   If a feature is not in <DATA> or is highly complex, you **must still attempt to provide an estimated numeric \`amount\`, \`duration\`, and \`pages\`** in the JSON.
     *   When doing so, clearly state in the feature's \`note\` field (and/or in your natural language summary) that this is a *preliminary estimate* and the final cost is subject to change based on detailed specifications. E.g., "Preliminary estimate for custom feature; final price upon detailed review."
@@ -152,9 +152,6 @@ Server Setup (Environment Setup)\tSets up Docker-based Back/Front development en
 `;
 
 export const SYSTEM_INSTRUCTION = `
-
-${PERSONA_INSTRUCTION}
-      
 <INSTRUCTIONS>
 To complete the task, you need to follow these steps based on the user interaction:
 
@@ -189,7 +186,7 @@ You are an AI Web app assistant tasked with analyzing a PDF document or image to
 export const EXTRACTION_OUPUT_JSON = `
 4. **Output format**:
    - Provide the extracted information in a structured JSON format as follows:
-\`\`\`json
+json
 {
   "features": [
     {
@@ -207,7 +204,7 @@ export const EXTRACTION_OUPUT_JSON = `
     ...
   ]
 }
-\`\`\`
+
 `;
 export const EXTRACTION_OUPUT_MARKDOWN = `
 4. **Output format**:
@@ -271,11 +268,52 @@ export const IMAGE_EXTRACTION_INSTRUCTION = `
 `;
 
 export const IMAGE_AND_PDF_EXTRACTION_INSTRUCTION = `
-${PERSONA_EXTRACTION_INSTRUCTION}
+You are an AI Web app assistant tasked with analyzing a PDF document or image to extract information relevant to building or enhancing a web application. Please follow these instructions carefully:
 
 Specific Instructions for PDFs
-${PDF_EXTRACTION_INSTRUCTION}
+1. **Analyze the PDF file section by section**:
+   - Identify the purpose of each section and summarize its content.
+   - Look for any technical requirements, user needs, or design specifications mentioned in the document.
+
+2. **Extract features**:
+   - Based on the content of each section, identify features that are required or suggested for the web application.
+   - For each feature, provide the following details:
+     - **Feature Name**: A concise name for the feature.
+     - **Description**: A brief explanation of what the feature does or its purpose.
+     - **Category**: Categorize the feature (e.g., Authentication, UI/UX, Payment, Notifications, etc.).
+
+3. **Identify missing features**:
+   - If the document implies functionality or requirements that are not explicitly mentioned, suggest additional features that could enhance the web application.
+
+5. **Additional considerations**:
+   - If the document includes diagrams, tables, or images, describe their content and how they relate to the features.
+   - If the document includes references to external tools, APIs, or frameworks, include them in the analysis.
+
+Please ensure the analysis is thorough and accurate, and focus on extracting actionable insights for web application development.
+
 
 Specific Instructions for Images
-${IMAGE_EXTRACTION_INSTRUCTION}
-<>\n`;
+1. **Analyze the image content**:
+   - Identify the type of image (e.g., screenshot, diagram, UI mockup, chart, or photo).
+   - If the image contains text, extract all visible text and organize it logically.
+   - If the image contains UI elements, describe their purpose and functionality.
+
+2. **Extract features**:
+   - Based on the content of the image, identify features that are required or suggested for the web application.
+   - For each feature, provide the following details:
+     - **Feature Name**: A concise name for the feature.
+     - **Description**: A brief explanation of what the feature does or its purpose.
+     - **Category**: Categorize the feature (e.g., Authentication, UI/UX, Payment, Notifications, etc.).
+
+3. **Identify missing features**:
+   - If the image implies functionality or requirements that are not explicitly mentioned, suggest additional features that could enhance the web application.
+
+5. **Additional considerations**:
+   - If the image contains diagrams, describe their structure and how they relate to the features.
+   - If the image includes references to external tools, APIs, or frameworks, include them in the analysis.
+   - If the image contains visual elements (e.g., buttons, forms, or navigation menus), describe their layout and functionality.
+
+6. **Focus on actionable insights**:
+   - Ensure the analysis is thorough and accurate.
+   - Focus on extracting actionable insights that can directly contribute to web application development.
+`;

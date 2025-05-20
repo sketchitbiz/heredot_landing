@@ -108,7 +108,6 @@ export const aiChatDictionary = {
       period: {
         today: '오늘',
         lastWeek: '일주일 전',
-        month: '3월',
       },
       estimate: '여기닷에게',
       categoryInProgress: '카테고리 선택 중',

@@ -787,16 +787,15 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
     '경기도 성남시 수정구 대학판교로 815, 777호'
   } (${(t as any).companyAddressDetail || '시흥동, 판교창조경제밸리'})`;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const companyPhone = (t as any).companyPhoneForPdf || '031-8039-7981';
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const companyRegistrationNumber =
     (t as any).companyRegistrationNumber || '289-86-03278';
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const clientEmail = (t as any).clientEmailForPdf || 'ktw1318@naver.com';
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const quoteItemName =
     invoiceData.project || (t as any).defaultQuoteName || 'IoT 앱';
-  const totalAmountWithVatForPdf = formatAmountForPdf(28600000, 'KR');
+  const totalAmountWithVatForPdf = formatAmountForPdf(
+    Math.round((invoiceDetailsForPdf.currentTotal || 0) * 1.1),
+    countryCode
+  );
 
   const specialNotes = {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -911,11 +910,6 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
   const supplierIndustryLabel = (t as any).supplierIndustryLabel || '업종·업태';
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const supplierAddressLabel = (t as any).supplierAddressLabel || '주소';
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const supplierContactLabel = (t as any).supplierContactLabel || '대표 연락처';
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const clientContactNumberLabel =
-    (t as any).clientContactNumberLabel || '고객 연락처';
 
   const industryType = '응용소프트웨어 개발 및 공급업, 서비스업';
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1133,7 +1127,7 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
                   {item.note &&
                   /^[A-Z]{3}\s[\d,.]+\s\(₩[\d,.]+\)$/.test(item.note)
                     ? item.note
-                    : formatAmountForPdf(item.amount)}
+                    : formatAmountForPdf(item.amount, countryCode)}
                 </td>
               </tr>
             ));
@@ -1187,11 +1181,9 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
               </td>
               <td style={{ ...valueCellStyle, textAlign: 'right' }}>
                 {typeof invoiceDetailsForPdf.currentTotalDuration === 'number'
-                  ? `${Math.ceil(
-                      invoiceDetailsForPdf.currentTotalDuration / 5
-                    )} ${t.estimateInfo.week} (${
-                      lang === 'ko' ? '약 ' : ''
-                    }${Math.ceil(
+                  ? `${Math.ceil(invoiceDetailsForPdf.currentTotalDuration / 5)} ${
+                      t.estimateInfo.week
+                    } (${lang === 'ko' ? '약 ' : ''}${Math.ceil(
                       invoiceDetailsForPdf.currentTotalDuration / 20
                     )} ${t.estimateInfo.monthUnit})`
                   : `${invoiceDetailsForPdf.currentTotalDuration} ${t.estimateInfo.day}`}
@@ -1298,7 +1290,6 @@ export function AiChatMessage({
 }: MessageProps) {
   const isAiMessage = sender === 'ai';
 
-  const { lang: contextLang } = useLang();
   const t =
     aiChatDictionary[lang as keyof typeof aiChatDictionary] ||
     aiChatDictionary.ko;
@@ -1579,6 +1570,9 @@ export function AiChatMessage({
                     <th className="col-feature">{t.tableHeaders.item}</th>
                     <th className="col-description">{t.tableHeaders.detail}</th>
                     <th className="col-amount">{t.tableHeaders.amount}</th>
+                    <th className="col-actions">
+                      {t.tableHeaders.actions || '관리'}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1669,6 +1663,19 @@ export function AiChatMessage({
                               )
                                 ? item.note
                                 : formatAmountWithCurrency(item.amount, true)}
+                            </td>
+                            <td className="col-actions">
+                              <ActionButton
+                                onClick={() =>
+                                  onActionClick('delete_feature_json', {
+                                    featureId: item.id,
+                                  })
+                                }
+                              >
+                                {isActuallyDeleted
+                                  ? t.buttons.cancel
+                                  : t.buttons.delete}
+                              </ActionButton>
                             </td>
                           </tr>
                         );

@@ -15,10 +15,12 @@ import useAuthStore from '@/store/authStore';
 import { useLang } from '@/contexts/LangContext';
 import { aiChatDictionary } from '@/lib/i18n/aiChat';
 import { ChatDictionary } from '@/app/ai/components/StepData';
+import { EstimateRequestModal } from './EstimateRequestModal';
+import { toast } from 'react-toastify';
 
 interface NavigationItemData {
   name: string;
-  status: string;
+  status?: string;
 }
 
 interface NavigationGroup {
@@ -31,6 +33,7 @@ interface AiNavigationBarProps {
   isMobile?: boolean;
   isSidebarOpen?: boolean;
   toggleSidebar?: () => void;
+  onAddNewEstimateRequest?: () => void;
 }
 
 const BlurredOverlay = styled.div`
@@ -282,6 +285,7 @@ const AiNavigationBar = ({
   isMobile = false,
   isSidebarOpen = false,
   toggleSidebar = () => {},
+  onAddNewEstimateRequest = () => {},
 }: AiNavigationBarProps) => {
   const { lang } = useLang();
   const t = aiChatDictionary[lang] as ChatDictionary;
@@ -294,25 +298,24 @@ const AiNavigationBar = ({
     Record<string, boolean>
   >({});
 
+  const [isEstimateModalOpen, setIsEstimateModalOpen] = useState(false);
+  const [currentEstimateTitle, setCurrentEstimateTitle] = useState('');
+
   const touchStartX = useRef<number | null>(null);
   const touchEndX = useRef<number | null>(null);
   const swipeThreshold = 50;
 
   useEffect(() => {
+    const initialExpandedState: Record<string, boolean> = {};
     if (!isLoggedIn) {
-      const allSectionTitles = navigationItems.reduce((acc, item) => {
-        acc[item.title] = true;
-        return acc;
-      }, {} as Record<string, boolean>);
-      setExpandedSections(allSectionTitles);
+      navigationItems.forEach((group) => {
+        initialExpandedState[group.title] = true;
+      });
     } else {
-      const todayTitle =
-        navigationItems.find((item) => item.title === t.navigation.period.today)
-          ?.title ||
-        navigationItems[0]?.title ||
-        '오늘';
-      setExpandedSections({ [todayTitle]: true });
+      const todayTitle = t.navigation.period.today || '오늘';
+      initialExpandedState[todayTitle] = true;
     }
+    setExpandedSections(initialExpandedState);
   }, [isLoggedIn, navigationItems, t.navigation.period.today]);
 
   const toggleSection = (title: string) => {
@@ -320,6 +323,25 @@ const AiNavigationBar = ({
       ...prev,
       [title]: !prev[title],
     }));
+  };
+
+  const handleOpenEstimateModal = (itemName: string) => {
+    const modalTitle = `견적을 여기닷에 문의하시겠습니까?`;
+    setCurrentEstimateTitle(modalTitle);
+    setIsEstimateModalOpen(true);
+  };
+
+  const handleConfirmEstimate = () => {
+    console.log(`견적 문의 요청 API 호출: ${currentEstimateTitle}`);
+    toast.info('문의 요청이 완료되었습니다.');
+    setIsEstimateModalOpen(false);
+  };
+
+  const handleCreateNewEstimateClick = () => {
+    window.location.href = '/ai';
+    if (onAddNewEstimateRequest) {
+      onAddNewEstimateRequest();
+    }
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -378,7 +400,7 @@ const AiNavigationBar = ({
                       <ProfileIconButton
                         variant="text"
                         size="small"
-                        onClick={() => (window.location.href = '/ai')}
+                        onClick={handleCreateNewEstimateClick}
                       >
                         <Edit
                           sx={{
@@ -410,7 +432,7 @@ const AiNavigationBar = ({
                 <ProfileIconButton
                   variant="text"
                   size="small"
-                  onClick={() => (window.location.href = '/ai')}
+                  onClick={handleCreateNewEstimateClick}
                 >
                   <Edit
                     sx={{ color: AppColors.iconPrimary, fontSize: '1.5rem' }}
@@ -427,74 +449,44 @@ const AiNavigationBar = ({
         </ProfileSection>
 
         <NavigationContent>
-          {isLoggedIn
-            ? (() => {
-                const todayNavigationGroup = navigationItems.find(
-                  (group) => group.title === t.navigation.period.today
-                ) || { title: t.navigation.period.today, items: [] };
-                const itemsToDisplay: NavigationItemData[] = [
-                  {
-                    name: t.navigation.customEstimateInProgress,
-                    status: t.buttons.estimate,
-                  },
-                ];
-                return (
-                  <NavigationSection key={todayNavigationGroup.title}>
-                    <SectionHeader
-                      onClick={() => toggleSection(todayNavigationGroup.title)}
+          {isLoggedIn && (
+            <NavigationSection key={t.navigation.period.today || '오늘'}>
+              <SectionHeader
+                onClick={() =>
+                  toggleSection(t.navigation.period.today || '오늘')
+                }
+              >
+                <SectionTitle>
+                  {t.navigation.period.today || '오늘'}
+                </SectionTitle>
+                <SectionContent>
+                  {t.navigation.customEstimateTo || '여기닷에게'}
+                </SectionContent>
+              </SectionHeader>
+              {expandedSections[t.navigation.period.today || '오늘'] && (
+                <ItemList>
+                  <NavigationItem key="custom-estimate">
+                    <ItemText>
+                      {t.navigation.customEstimateInProgress ||
+                        '맞춤 견적 제작중 ...'}
+                    </ItemText>
+                    <NavigationStatusButton
+                      size="small"
+                      isRounded
+                      onClick={() =>
+                        handleOpenEstimateModal(
+                          t.navigation.customEstimateInProgress ||
+                            '맞춤 견적 제작중 ...'
+                        )
+                      }
                     >
-                      <SectionTitle>{todayNavigationGroup.title}</SectionTitle>
-                      <SectionContent>{t.navigation.estimate}</SectionContent>
-                    </SectionHeader>
-                    {expandedSections[todayNavigationGroup.title] && (
-                      <ItemList>
-                        {itemsToDisplay.map((item, itemIndex) => (
-                          <NavigationItem key={itemIndex}>
-                            <ItemText>{item.name}</ItemText>
-                            {item.status && (
-                              <NavigationStatusButton size="small" isRounded>
-                                {item.status}
-                              </NavigationStatusButton>
-                            )}
-                          </NavigationItem>
-                        ))}
-                      </ItemList>
-                    )}
-                  </NavigationSection>
-                );
-              })()
-            : navigationItems.map((period, index) => {
-                let periodTitle = period.title;
-                if (period.title === '오늘')
-                  periodTitle = t.navigation.period.today;
-                else if (period.title === '일주일 전')
-                  periodTitle = t.navigation.period.lastWeek;
-                else if (period.title === '3월')
-                  periodTitle = t.navigation.period.month;
-
-                return (
-                  <NavigationSection key={index}>
-                    <SectionHeader onClick={() => toggleSection(period.title)}>
-                      <SectionTitle>{periodTitle}</SectionTitle>
-                      <SectionContent>{t.navigation.estimate}</SectionContent>
-                    </SectionHeader>
-                    {expandedSections[period.title] && (
-                      <ItemList>
-                        {period.items.map((item, itemIndex) => (
-                          <NavigationItem key={itemIndex}>
-                            <ItemText>{item.name}</ItemText>
-                            {item.status && (
-                              <NavigationStatusButton size="small" isRounded>
-                                {item.status}
-                              </NavigationStatusButton>
-                            )}
-                          </NavigationItem>
-                        ))}
-                      </ItemList>
-                    )}
-                  </NavigationSection>
-                );
-              })}
+                      {t.buttons.estimate || '견적요청'}
+                    </NavigationStatusButton>
+                  </NavigationItem>
+                </ItemList>
+              )}
+            </NavigationSection>
+          )}
         </NavigationContent>
 
         <LogoutButtonContainer>
@@ -545,6 +537,12 @@ const AiNavigationBar = ({
         )}
         {isSidebarOpen && renderSidebarContent()}
       </Sidebar>
+      <EstimateRequestModal
+        isOpen={isEstimateModalOpen}
+        onClose={() => setIsEstimateModalOpen(false)}
+        onConfirm={handleConfirmEstimate}
+        title={currentEstimateTitle}
+      />
     </Container>
   );
 };

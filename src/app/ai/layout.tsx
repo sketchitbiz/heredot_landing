@@ -89,14 +89,6 @@ const initialNavigationItemsData: NavigationGroup[] = [
       { name: '쇼핑 어플 견적 문의', status: '완료' },
     ],
   },
-  {
-    title: '3월',
-    items: [
-      { name: '전산개발 견적', status: '완료' },
-      { name: 'IoT 앱 견적', status: '완료' },
-      { name: '쇼핑 어플 견적 문의', status: '완료' },
-    ],
-  },
 ];
 
 export default function AiLayout({ children }: { children: React.ReactNode }) {
