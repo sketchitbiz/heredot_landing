@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 1,
+            "activePatchIndex": 2,
             "patches": [
                 {
                     "date": 1747728259867,
@@ -12,6 +12,10 @@
                 {
                     "date": 1747728354146,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -210,13 +210,16 @@\n         emailYn,\n         smsYn,\n       });\n   \n-      toast.success('관리자가 성공적으로 등록되었습니다.');\n-      setIsPopupOpen(false); // 팝업 닫기\n-      listRef.current?.refetch();\n-  \n-      // TODO: 목록 리프레시 필요 시 fetchData 다시 호출하거나 상태 갱신\n+      // 성공 메시지 확인\n+      if (response?.[0]?.message === 'success') {\n+        toast.success('관리자가 성공적으로 등록되었습니다.');\n+        setIsPopupOpen(false); // 팝업 닫기\n+        listRef.current?.refetch(); // 목록 리프레시\n+      } else {\n+        toast.error(response?.[0]?.message || '관리자 등록에 실패했습니다.');\n+      }\n     } catch (error: any) {\n       toast.error(error?.message || '관리자 등록에 실패했습니다.');\n     }\n   };\n"
+                },
+                {
+                    "date": 1747735052158,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -239,8 +239,9 @@\n       console.log(`Changed ${type} for ${adminId} to ${newValue}`);\n     },\n     []\n   );\n+  \n \n   const columns: ColumnDefinition<AdminUser>[] = useMemo(\n     () => [\n       { header: 'No', accessor: 'no' },\n"
                 }
             ],
             "date": 1747728259867,

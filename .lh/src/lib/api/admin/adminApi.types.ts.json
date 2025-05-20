@@ -1,0 +1,18 @@
+{
+    "sourceFile": "src/lib/api/admin/adminApi.types.ts",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 0,
+            "patches": [
+                {
+                    "date": 1747735056852,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                }
+            ],
+            "date": 1747735056852,
+            "name": "Commit-0",
+            "content": "export type AdminLoginParams = {\n    userId: string;\n    password: string;\n  };\n\n  export type AdminGetListParams = {\n    keyword: string;\n  };\n\n  export type AdminCreateParams = {\n    adminId: string;\n    password: string;\n    name: string;\n    cellphone: string;\n    description: string;\n    email: string;\n    emailYn: string;\n    smsYn: string;\n  };\n\n  export type TermGetListParams = {\n    index: number;\n    termsType: string;\n    content: string;\n  };\n"
+        }
+    ]
+}

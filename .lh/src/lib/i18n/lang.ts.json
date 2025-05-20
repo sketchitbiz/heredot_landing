@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 5,
+            "activePatchIndex": 6,
             "patches": [
                 {
                     "date": 1747715292559,
@@ -28,6 +28,10 @@
                 {
                     "date": 1747727033276,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -209,9 +209,9 @@\n     },\n     event: {\n       title: '',\n       description: '',\n-      buttonTitle: '바로가기',\n+      buttonTitle: '바로가기 >',\n       slides: [\n         { image: '/assets/event/event_1.webp' },\n         {  image: '/assets/event/event_2.webp' },\n       ],\n@@ -298,9 +298,9 @@\n     },\n     event: {\n       title: '',\n       description: '',\n-      buttonTitle: 'Go to Site',\n+      buttonTitle: 'Go to Site >',\n       slides: [\n         { image: '/assets/event/event_1e.webp' },\n         {  image: '/assets/event/event_2e.webp' },\n       ],\n"
+                },
+                {
+                    "date": 1747734621264,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -11,9 +11,9 @@\n       buttonHeader: '복잡한 견적은 NO!',\n       buttonDescription: 'AI 견적서로 간편하게',\n     },\n     arrival: '도착',\n-    nav: ['핵심강점', '포트폴리오', '팀원소개', 'AI 견적서'],\n+    nav: ['핵심강점', '포트폴리오', '팀원소개', 'AI 견적서', '기획전'],\n     customNavigator: {\n       community: '창업커뮤니티',\n       portpolio: '포트폴리오',\n       member: '팀원소개',\n@@ -276,9 +276,9 @@\n       buttonDescription: \"Get it done easily with AI\",\n     },\n     departure: 'Departure',\n     arrival: 'Arrival',\n-    nav: ['Key Value', 'Portfolio', 'Team','AI Estimate' ],\n+    nav: ['Key Value', 'Portfolio', 'Team','AI Estimate' ,'Promotion'],\n     customNavigator: {\n       community: 'Startup Community',\n       member: 'Team',\n       portpolio: 'Portfolio',\n"
                 }
             ],
             "date": 1747715292559,

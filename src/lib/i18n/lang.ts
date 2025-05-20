@@ -12,7 +12,7 @@ export const dictionary = {
       buttonDescription: 'AI 견적서로 간편하게',
     },
     arrival: '도착',
-    nav: ['핵심강점', '포트폴리오', '팀원소개', 'AI 견적서'],
+    nav: ['핵심강점', '포트폴리오', '팀원소개', 'AI 견적서', '기획전'],
     customNavigator: {
       community: '창업커뮤니티',
       portpolio: '포트폴리오',
@@ -277,7 +277,7 @@ companyInfo: '사업자 정보',
     },
     departure: 'Departure',
     arrival: 'Arrival',
-    nav: ['Key Value', 'Portfolio', 'Team','AI Estimate' ],
+    nav: ['Key Value', 'Portfolio', 'Team','AI Estimate' ,'Promotion'],
     customNavigator: {
       community: 'Startup Community',
       member: 'Team',

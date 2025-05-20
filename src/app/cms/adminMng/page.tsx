@@ -240,6 +240,7 @@ const AdminMngPage: React.FC = () => {
     },
     []
   );
+  
 
   const columns: ColumnDefinition<AdminUser>[] = useMemo(
     () => [

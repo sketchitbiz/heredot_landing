@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import Image from 'next/image';
 import { CustomNavigator } from '@/customComponents/CustomNavigator';
@@ -17,7 +18,7 @@ interface AIBlockProps {
   buttonText?: string;
   buttonHeader: string;
   buttonDescription: string;
-  buttonLink: string; // ✅ 버튼 링크 추가
+  buttonLink: string;
   onTopArrowClick?: () => void;
   onBottomArrowClick?: () => void;
 }
@@ -108,15 +109,21 @@ const SubText = styled.p`
 `;
 
 const DescriptionText = styled.p`
-  font-size: 18px;
+  font-size: 40px;
   font-weight: 600;
   color: white;
   text-align: right;
-  padding: 0 10px;
+  margin: 0;
+  /* padding: 0 10px; */
 
   @media (max-width: ${Breakpoints.mobile}px) {
-    font-size: 14px;
+    font-size: 25px;
     text-align: center;
+  }
+
+  &:not(:last-child) {
+    margin-top: 16px; /* ✅ 필요시 간격 조절 */
+    margin-bottom: 16px; /* ✅ 필요시 간격 조절 */
   }
 `;
 
@@ -133,6 +140,17 @@ export const AIBlock: React.FC<AIBlockProps> = ({
   onTopArrowClick,
   onBottomArrowClick,
 }) => {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < Breakpoints.mobile);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   const handleClick = () => {
     void userStamp({
       uuid: localStorage.getItem('logId') ?? 'anonymous',
@@ -170,7 +188,8 @@ export const AIBlock: React.FC<AIBlockProps> = ({
           <RightTextBlock>
             <CommonButton
               text={buttonText}
-              width="260px"
+              width={isMobile ? '200px' : '300px'}
+              fontSize={isMobile ? '16px' : '30px'}
               backgroundColor={AppColors.background}
               borderRadius="75px"
               onClick={handleClick}

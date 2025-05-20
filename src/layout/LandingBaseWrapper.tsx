@@ -189,6 +189,10 @@ const LeftDescription = styled.div`
   line-height: 1.4;
   white-space: pre-line;
   color: #fff;
+
+  @media (max-width: ${Breakpoints.mobile}px) {
+    display: none; // ✅ 모바일에서는 숨김
+  }
 `;
 
 const RightRow = styled.div`

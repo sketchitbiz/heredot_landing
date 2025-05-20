@@ -109,6 +109,7 @@ export default function HomePage() {
     service: "community",
     market: "market",
     estimate: "ai",  
+    promotion: "event",
   };
 
   useEffect(() => {
@@ -245,7 +246,8 @@ export default function HomePage() {
         { label: t.nav[0], targetId: "partner", content: "appbar", memo: "partner" },
         { label: t.nav[1], targetId: "portfolio", content: "appbar", memo: "portfolio" },
         { label: t.nav[2], targetId: "members", content: "appbar", memo: "members" },
-        { label: t.nav[3], targetId: "AI Estimate", content: "appbar", memo: "ai pae" },
+        { label: t.nav[3], targetId: "AI Estimate", content: "appbar", memo: "ai" },
+        { label: t.nav[4], targetId: "event", content: "appbar", memo: "event" },
       ]}
       onNavigate={scrollToTargetId}
     />
@@ -427,7 +429,7 @@ export default function HomePage() {
         <VideoGrid
           topLabel={t.customNavigator.member}
           centerLabel={t.customNavigator.review}
-          bottomLabel={t.customNavigator.ai}
+          bottomLabel={t.customNavigator.event}
           title={t.reviewSection.title}
           description={t.reviewSection.description}
           onTopArrowClick={() => scrollToTargetId("members", "video", "members")}
