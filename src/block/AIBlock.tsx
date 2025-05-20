@@ -159,9 +159,12 @@ export const AIBlock: React.FC<AIBlockProps> = ({
       <SectionWrapper>
         <Container>
           <LeftImageBlock>
-            <Image
-              src="/assets/phone_frame.svg"
-              alt="AI 견적 이미지"
+            <video
+              src="/assets/aigo.mov"
+              autoPlay
+              muted
+              loop
+              playsInline
               width={540}
               height={1032}
             />
