@@ -1,11 +1,12 @@
 'use client';
+
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { AppColors } from '@/styles/colors';
 import { useDevice } from '@/contexts/DeviceContext';
 import type { DeviceType } from '@/types/device';
-import InputElement from '@/elements/InputElement';
+import { StyledInput, StyledTextarea } from '@/elements/InputElement';
 import { InputStyles, LabelStyles } from '@/constants/componentConstants';
 
 const Label = styled.label<{ $labelPosition: 'vertical' | 'horizontal' }>`
@@ -57,15 +58,17 @@ const SuffixIconWrapper = styled.div<{
 `;
 
 interface TextFieldProps {
-  // 데이터 및 기능 관련 props
   value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   placeholder?: string;
   errorMessage?: string;
   showSuffixIcon?: boolean;
-  isPasswordField?: boolean; // ✅ 추가
+  isPasswordField?: boolean;
 
-  // 🎨 스타일 관련 props
+  multiline?: boolean;
+  minLines?: number;
+  maxLines?: number;
+
   radius?: string;
   fontSize?: string;
   height?: string;
@@ -84,7 +87,12 @@ export const TextField = ({
   placeholder,
   errorMessage,
   showSuffixIcon,
-  isPasswordField = false, // ✅ 기본값 false
+  isPasswordField = false,
+
+  multiline = false,
+  minLines,
+  maxLines,
+
   radius,
   fontSize,
   height,
@@ -100,6 +108,24 @@ export const TextField = ({
   const handleToggleVisibility = () => setIsPasswordVisible((prev) => !prev);
 
   const resolvedInputType = isPasswordField && !isPasswordVisible ? 'password' : 'text';
+
+  const commonProps = {
+    value,
+    onChange,
+    placeholder,
+    radius,
+    fontSize,
+    height,
+    padding,
+    paddingRight,
+    $hasSuffix: !!(showSuffixIcon && isPasswordField),
+    $device: device,
+    autoComplete,
+  };
+
+  const textareaMaxHeight = maxLines && fontSize
+    ? `calc(${fontSize} * ${maxLines} * 1.5)` // 1.5 line-height
+    : undefined;
 
   return (
     <Container $device={device} $labelPosition={$labelPosition}>
@@ -117,28 +143,28 @@ export const TextField = ({
 
       <InputWrapper $labelPosition={$labelPosition}>
         <InputFieldWrapper>
-          <InputElement
-            type={resolvedInputType}
-            value={value}
-            onChange={onChange}
-            placeholder={placeholder}
-            radius={radius}
-            fontSize={fontSize}
-            height={height}
-            padding={padding}
-            paddingRight={paddingRight}
-            $hasSuffix={!!(showSuffixIcon && isPasswordField)}
-            $device={device}
-            autoComplete={autoComplete}
-          />
-          {showSuffixIcon && isPasswordField && (
-            <SuffixIconWrapper
-              onClick={handleToggleVisibility}
-              $isPasswordVisible={isPasswordVisible}
-              $device={device}
-            >
-              {isPasswordVisible ? <VisibilityOff /> : <Visibility />}
-            </SuffixIconWrapper>
+          {multiline ? (
+            <StyledTextarea
+              {...commonProps}
+              rows={minLines || 3}
+              resize="vertical"
+            />
+          ) : (
+            <>
+              <StyledInput
+                {...commonProps}
+                type={resolvedInputType}
+              />
+              {showSuffixIcon && isPasswordField && (
+                <SuffixIconWrapper
+                  onClick={handleToggleVisibility}
+                  $isPasswordVisible={isPasswordVisible}
+                  $device={device}
+                >
+                  {isPasswordVisible ? <VisibilityOff /> : <Visibility />}
+                </SuffixIconWrapper>
+              )}
+            </>
           )}
         </InputFieldWrapper>
 

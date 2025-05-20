@@ -9,34 +9,44 @@ import CustomSidebar, { MenuItemConfig } from "@/components/CustomSidebar/Custom
 import CustomSidebarHeader from "@/components/CustomSidebar/CustomSidebarHeader";
 
 // 아이콘 임포트
-import DashboardIcon from "@mui/icons-material/Dashboard";
-import GroupIcon from "@mui/icons-material/Group";
-import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
-import StorageIcon from "@mui/icons-material/Storage";
-import SettingsApplicationsIcon from "@mui/icons-material/SettingsApplications";
-import SettingsIcon from "@mui/icons-material/Settings";
-import DataUsageIcon from "@mui/icons-material/DataUsage";
-import ContactSupportIcon from "@mui/icons-material/ContactSupport";
-import DescriptionIcon from "@mui/icons-material/Description";
-import LogoutIcon from "@mui/icons-material/Logout";
-import AssessmentIcon from "@mui/icons-material/Assessment";
-import TextFieldsIcon from "@mui/icons-material/TextFields";
-import QuestionAnswerIcon from "@mui/icons-material/QuestionAnswer";
-import ChatIcon from "@mui/icons-material/Chat";
-import BusinessIcon from "@mui/icons-material/Business";
-import TuneIcon from "@mui/icons-material/Tune";
-import DownloadIcon from "@mui/icons-material/Download";
+import DashboardIcon from '@mui/icons-material/Dashboard';
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
+import PeopleIcon from '@mui/icons-material/People';
+import DatasetIcon from '@mui/icons-material/Dataset';
+import SettingsIcon from '@mui/icons-material/Settings';
+import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
+import DescriptionIcon from '@mui/icons-material/Description';
+import LogoutIcon from '@mui/icons-material/Logout';
+import AssessmentIcon from '@mui/icons-material/Assessment';
+import TextFieldsIcon from '@mui/icons-material/TextFields';
+import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
+import ChatIcon from '@mui/icons-material/Chat';
+import BusinessIcon from '@mui/icons-material/Business';
+import TuneIcon from '@mui/icons-material/Tune';
+import DownloadIcon from '@mui/icons-material/Download';
+import ContactSupportIcon from '@mui/icons-material/ContactSupport';
+import StorageIcon from '@mui/icons-material/Storage';
+
+
+
+
 import { THEME_COLORS } from "@/styles/theme_colors";
 import { toast, ToastContainer } from 'react-toastify';
+
+
 
 // 메인 콘텐츠 영역 스타일
 const MainContent = styled.div<{ $isSidebarCollapsed: boolean }>`
   margin-left: ${({ $isSidebarCollapsed }) => ($isSidebarCollapsed ? "80px" : "250px")};
-  padding: 20px;
+  /* padding: 20px 40px; */
   transition: margin-left 0.3s ease;
   height: 100vh;
+  overflow-x: auto; // ✅ 가로 스크롤
   overflow-y: auto;
+  min-width: 1200px; // ✅ 최소 크기
+  box-sizing: border-box;
 `;
+
 
 
 const OuterLayoutContainer = styled.div<{ $themeMode: "light" | "dark" }>`
@@ -66,6 +76,7 @@ function ProtectedCmsLayout({ children }: { children: React.ReactNode }) {
   const isLoginPage = pathname === "/cms/login";
   const { logout } = useAdminAuth();
 
+
   useEffect(() => {
     if (ready && !isLoggedIn && !isLoginPage) {
       router.replace("/cms/login");
@@ -83,40 +94,40 @@ function ProtectedCmsLayout({ children }: { children: React.ReactNode }) {
 
   const menuItems: MenuItemConfig[] = [
     { icon: <DashboardIcon />, title: "대시보드", path: "/cms" },
-    { icon: <GroupIcon />, title: "관리자회원관리", path: "/cms/adminMng" },
-    { icon: <PeopleAltIcon />, title: "고객관리", path: "/cms/userMng" },
+    { icon: <AdminPanelSettingsIcon />, title: "관리자회원관리", path: "/cms/adminMng" },
+    { icon: <PeopleIcon />, title: "고객관리", path: "/cms/userMng" },
     {
-      icon: <StorageIcon />,
+      icon: <DatasetIcon />,
       title: "AI 데이터 관리",
       path: "/cms/aiData",
       subMenu: [
-        { icon: <AssessmentIcon />, title: "기초조사 관리", path: "/cms/aiData/survey" }, // 기초조사 관리
-        { icon: <TextFieldsIcon />, title: "AI 프롬프트 관리", path: "/cms/aiData/prompt" }, // AI 프롬프트 관리
-        { icon: <QuestionAnswerIcon />, title: "AI 동문서답 관리", path: "/cms/aiData/wrongAnswer" }, // AI 동문서답 관리
-        { icon: <ChatIcon />, title: "AI 대화이력 관리", path: "/cms/aiData/conversationHistory" }, // AI 대화이력 관리
+        { icon: <AssessmentIcon />, title: "기초조사 관리", path: "/cms/aiData/survey" },
+        { icon: <TextFieldsIcon />, title: "AI 프롬프트 관리", path: "/cms/aiData/prompt" },
+        { icon: <QuestionAnswerIcon />, title: "AI 동문서답 관리", path: "/cms/aiData/wrongAnswer" },
+        { icon: <ChatIcon />, title: "AI 대화이력 관리", path: "/cms/aiData/conversationHistory" },
       ],
     },
-    
     {
-      icon: <SettingsApplicationsIcon />,
+      icon: <SettingsIcon />,
       title: "AI 설정",
       path: "/cms/aiSetting",
       subMenu: [
-        { icon: <BusinessIcon />, title: "회사정보 관리", path: "/cms/aiSetting/companyInfo" }, // 회사정보 관리
-        { icon: <TuneIcon />, title: "AI 설정관리", path: "/cms/aiSetting/mng" }, // AI 설정관리
+        { icon: <BusinessIcon />, title: "회사정보 관리", path: "/cms/aiSetting/companyInfo" },
+        { icon: <TuneIcon />, title: "AI 설정관리", path: "/cms/aiSetting/mng" },
       ],
     },
     {
-      icon: <DataUsageIcon />,
+      icon: <StorageIcon />,
       title: "고객 데이터 관리",
       path: "/cms/userData",
       subMenu: [
-        { icon: <DownloadIcon />, title: "견적 다운로드 현황", path: "/cms/userData/proposal" }, // 견적 다운로드 현황
-        { icon: <ContactSupportIcon />, title: "견적 문의 관리", path: "/cms/userData/inquiry" }, // 견적 문의 관리
+        { icon: <DownloadIcon />, title: "견적 다운로드 현황", path: "/cms/userData/proposal" },
+        { icon: <ContactSupportIcon />, title: "견적 문의 관리", path: "/cms/userData/inquiry" },
       ],
     },
     { icon: <DescriptionIcon />, title: "이용 약관 관리", path: "/cms/terms" },
   ];
+  
 
   // 로그인 준비 전이거나, 로그인 안 된 상태인데 로그인 페이지가 아닌 경우 → 아무 것도 렌더링하지 않음
   if (!ready || (!isLoggedIn && !isLoginPage)) return null;

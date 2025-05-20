@@ -29,6 +29,9 @@ import DesignBlock from "@/block/Design";
 import Consulting from "@/block/Consulting";
 import { v4 as uuidv4 } from "uuid";
 import { userStamp } from "@/lib/api/user/api";
+import { AIBlock } from "@/block/AIBlock";
+import EventBlock from "@/block/EventBlock";
+import Container3D from "@/block/Container3D";
 
 const getOrCreateLogId = () => {
   const logIdKey = "logId";
@@ -51,6 +54,7 @@ const sectionMap: Record<string, { content: string; memo: string }> = {
   portfolio: { content: "Portfolio", memo: "portfolio" },
   members: { content: "Members", memo: "members" },
   video: { content: "Video", memo: "video" },
+  ai: { content: "AI", memo: "ai" },
   contact: { content: "Contact", memo: "contact" },
 };
 
@@ -104,6 +108,7 @@ export default function HomePage() {
     contact: "contact",
     service: "community",
     market: "market",
+    estimate: "ai",  
   };
 
   useEffect(() => {
@@ -258,6 +263,14 @@ export default function HomePage() {
         />
       ),
     },
+    // {
+    //   id: '3d',
+    //   $backgroundColor: AppColors.background,
+    //   content: (
+    //     <Container3D
+    //     />
+    //   ),
+    // },
     {
       id: "firstMap",
       $backgroundColor: AppColors.background,
@@ -413,21 +426,58 @@ export default function HomePage() {
         <VideoGrid
           topLabel={t.customNavigator.member}
           centerLabel={t.customNavigator.review}
-          bottomLabel={t.arrival}
+          bottomLabel={t.customNavigator.ai}
           title={t.reviewSection.title}
           description={t.reviewSection.description}
           onTopArrowClick={() => scrollToTargetId("members", "video", "members")}
-          onBottomArrowClick={() => scrollToTargetId("contact", "video", "contact")}
+          onBottomArrowClick={() => scrollToTargetId("event", "video", "event")}
         />
       ),
     },
+    {
+      id: "event",
+      $backgroundColor: AppColors.background,
+      content: <EventBlock
+      slides={t.event.slides}
+      buttonTitle={t.event.buttonTitle}
+      topLabel={t.customNavigator.review}
+      centerLabel={t.customNavigator.event}
+      bottomLabel={t.customNavigator.ai}
+      title={''}
+      description={''}
+      onTopArrowClick={() => scrollToTargetId("video", "event", "video")}
+      onBottomArrowClick={() => scrollToTargetId("ai", "event", "ai")}
+    />
+    ,
+    },
+    
+    {
+      id: "ai",
+      $backgroundColor: AppColors.background, // 또는 background로도 가능
+      content: (
+        <AIBlock
+          topLabel={t.customNavigator.event}
+          centerLabel={t.customNavigator.ai}
+          bottomLabel={t.arrival}
+          title={t.aiBlock.title}
+          description={t.aiBlock.description}
+          buttonText={t.aiBlock.buttonTitle}
+          buttonLink={t.aiBlock.buttonLink}
+           buttonHeader={t.aiBlock.buttonHeader}
+          buttonDescription={t.aiBlock.buttonDescription}
+          onTopArrowClick={() => scrollToTargetId("event", "ai", "event")}
+          onBottomArrowClick={() => scrollToTargetId("contact", "ai", "contact")}
+        />
+      ),
+    },
+    
     {
       id: "contact",
       
       $backgroundColor: AppColors.background,
       content: (
         <ContactSection
-          topLabel={t.customNavigator.review}
+          topLabel={t.customNavigator.ai}
           centerLabel={t.arrival}
           bottomLabel={t.arrival}
           title={t.contract.title}

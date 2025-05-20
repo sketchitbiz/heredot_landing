@@ -2,8 +2,10 @@
 
 import React from 'react';
 import styled from 'styled-components';
+import { AppColors } from '@/styles/colors'; // 이 줄 반드시 존재해야 색상 사용 가능
 
 type CmsPopupProps = {
+  title: string;
   children: React.ReactNode;
   isOpen: boolean;
   onClose: () => void;
@@ -52,29 +54,47 @@ const CloseButton = styled.button`
   }
 `;
 
+const HeaderRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  padding-right: 48px; /* CloseButton 영역 고려 */
+  font-size: 20px;
+  font-weight: 600;
+  color: #000;
+`;
+
+const RequiredMark = styled.span`
+  font-size: 14px;
+  font-weight: 500;
+  color: ${AppColors.error};
+`;
+
 const PopupContent = styled.div`
   flex: 1;
   overflow-y: auto;
   padding: 24px;
-  padding-top: 64px; /* 닫기 버튼 높이 확보 */
+  padding-top: 0;
 
-  /* 스크롤바 숨김 */
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE 10+ */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   &::-webkit-scrollbar {
-    display: none; /* Chrome, Safari */
+    display: none;
   }
 `;
 
-const CmsPopup: React.FC<CmsPopupProps> = ({ children, isOpen, onClose }) => {
+const CmsPopup: React.FC<CmsPopupProps> = ({ title, children, isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
     <Overlay>
       <PopupContainer>
-        <CloseButton onClick={onClose} aria-label="닫기">
-          ×
-        </CloseButton>
+        <CloseButton onClick={onClose} aria-label="닫기">×</CloseButton>
+        <HeaderRow>
+          <span>{title}</span>
+          <RequiredMark>*필수값</RequiredMark>
+        </HeaderRow>
         <PopupContent>{children}</PopupContent>
       </PopupContainer>
     </Overlay>

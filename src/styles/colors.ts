@@ -1,5 +1,7 @@
 // src/lib/styles/colors.ts
 
+import { act } from 'react';
+
 /**
  * AppColors는 애플리케이션 전반에 걸쳐 사용하는 색상 팔레트를 정의합니다.
  * UI 요소들의 일관된 디자인을 유지하고, 테마 색상을 중앙에서 관리하기 위한 목적으로 사용됩니다.
@@ -32,11 +34,11 @@ export const AppColors = {
   onSurfaceVariant: '#757575',
   // 상태
   // Status Colors
-  disabled: '#757575',
-  error: '#B00020',
-  success: '#4CAF50',
-  warning: '#FFC107',
-  info: '#2196F3',
+  disabled: "#757575",
+  error: "#B00020",
+  success: "#4CAF50",
+  warning: "#FFC107",
+  info: "#2196F3",
 
   // 버튼
   // Button Colors
@@ -82,6 +84,10 @@ export const AppColors = {
   borderLight: '#E0E0E0',
   borderDark: '#9E9E9E',
   borderError: '#B00020',
+  border: "#5E5E5E",
+  borderLight: "#E0E0E0",
+  borderDark: "#9E9E9E",
+  borderError: "#B00020",
 
   // 기타
   // Others / Miscellaneous

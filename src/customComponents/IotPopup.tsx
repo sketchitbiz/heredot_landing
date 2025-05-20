@@ -1,11 +1,12 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLang } from '@/contexts/LangContext';
 import { ProjectPopupContent } from '@/customComponents/ProjectPopupContent';
 import { GradientButton } from '@/components/GradientButton';
 import { CustomPopupText } from './CustomPopupText';
 import { userStamp } from '@/lib/api/user/api';
+import { Breakpoints } from '@/constants/layoutConstants';
 
 const TEXT = {
   ko: {
@@ -51,12 +52,23 @@ export const IotPopup = () => {
   const { lang } = useLang();
   const t = TEXT[lang];
 
+      const [isMobile, setIsMobile] = useState(false);
+
+          useEffect(() => {
+            const update = () => {
+              setIsMobile(window.innerWidth <= Breakpoints.mobile);
+            };
+            update();
+            window.addEventListener('resize', update);
+            return () => window.removeEventListener('resize', update);
+          }, []);
+
   return (
     <ProjectPopupContent
       imageUrl="/assets/portpolio_popup/iot.webp"
       projectIntro={<CustomPopupText>{t.projectIntro}</CustomPopupText>}
       leftHeader={
-        <div style={{ position: 'absolute', top: '210px', left: '70px' }}>
+        <div style={{ position: 'absolute', top: isMobile ? '100px':'210px', left: isMobile ? '30px':'70px' }}>
           <div style={{ fontSize: '18px', fontWeight: 600, color: '#CBC5EB', marginBottom: '8px' }}>
             {t.leftHeader.line1}
           </div>
