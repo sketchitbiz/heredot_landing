@@ -20,7 +20,7 @@ const FreeFormGuideContainer = styled.div<{ $isNarrowScreen?: boolean }>`
 
   .content {
     margin-top: ${(props) => (props.$isNarrowScreen ? '0.8rem' : '1.5rem')};
-    padding-left: 4rem;
+    padding-left: 0.5rem;
   }
 
   p {
