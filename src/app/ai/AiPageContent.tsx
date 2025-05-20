@@ -562,11 +562,11 @@ export default function AiPageContent() {
         const userCountry = authStore.getState().user?.countryCode || 'KR';
         await generateInvoicePDF(invoiceDetails, lang, userCountry, t);
       } else {
-        addMessageToChat({
-          id: Date.now(),
-          sender: 'ai',
+      addMessageToChat({
+        id: Date.now(),
+        sender: 'ai',
           text: '견적서 데이터를 찾을 수 없어 PDF를 생성할 수 없습니다.',
-        });
+      });
       }
       return;
     } else if (action === 'discount_extend_8w_20p') {
@@ -941,7 +941,7 @@ export default function AiPageContent() {
           if (parsedInvoiceData && parsedInvoiceData.invoiceGroup) {
             const initialItems = parsedInvoiceData.invoiceGroup.flatMap(
               (group) =>
-                group.items.map((item) => ({ ...item, isDeleted: false }))
+              group.items.map((item) => ({ ...item, isDeleted: false }))
             );
             const { amount, duration, pages } = calculateTotals(initialItems);
             setInvoiceDetails({
@@ -1082,7 +1082,7 @@ export default function AiPageContent() {
             isNarrowScreen={isNarrowScreen}
             isFreeFormMode={isFreeFormMode}
             currentStepData={currentStepData}
-            initialSelection={initialSelection}
+                    initialSelection={initialSelection}
             isDragging={isDragging}
             messages={messages}
             loading={loading}

@@ -695,9 +695,7 @@ const PrintableInvoiceWrapper = styled.div`
 `;
 
 // PDF용 금액 포맷 함수 (기존 formatAmount와 유사하나, hook 의존성 없이 사용)
-const formatAmountForPdf = (
-  amount: number | string,
-) => {
+const formatAmountForPdf = (amount: number | string) => {
   if (typeof amount === 'number') {
     return amount.toLocaleString(); // 숫자면 포맷팅하여 반환
   }
@@ -1099,7 +1097,7 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
                   {item.note &&
                   /^[A-Z]{3}\s[\d,.]+\s\(₩[\d,.]+\)$/.test(item.note)
                     ? item.note
-                    : formatAmountForPdf(item.amount, countryCode)}
+                    : formatAmountForPdf(invoiceDetailsForPdf.currentTotal)}
                 </td>
               </tr>
             ));
@@ -1115,13 +1113,10 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
               }}
             >
               <strong>
-                {invoiceData.total?.totalConvertedDisplay &&
-                typeof invoiceData.total.totalConvertedDisplay === 'string'
-                  ? invoiceData.total.totalConvertedDisplay
-                  : formatAmountForPdf(
-                      invoiceDetailsForPdf.currentTotal,
-                      countryCode
-                    )}
+              {formatAmountForPdf(
+                  Math.round((invoiceDetailsForPdf.currentTotal || 0)),
+                  countryCode
+                )}
               </strong>
             </td>
           </tr>
@@ -1284,9 +1279,22 @@ export function AiChatMessage({
 
   const formatAmountWithCurrency = useMemo(
     () =>
-      (amount: number | string, forceDetailed: boolean = false) =>
-        formatAmount(amount, countryCode, forceDetailed),
-    [countryCode]
+      (amount: number | string, currencyCode: string = 'KRW') => {
+        const numericAmount =
+          typeof amount === 'string' ? parseFloat(amount) : amount;
+
+        const currencySymbols: Record<string, string> = {
+          KRW: '₩',
+          USD: '$',
+          EUR: '€',
+          JPY: '¥',
+        };
+
+        const symbol = currencySymbols[currencyCode] || '';
+
+        return `${symbol}${numericAmount.toLocaleString('en-US')}`;
+      },
+    []
   );
 
   const customComponents: Options['components'] = {
@@ -1631,12 +1639,7 @@ export function AiChatMessage({
                                   : AppColors.onBackground,
                               }}
                             >
-                              {item.note &&
-                              /^[A-Z]{3}\s[\d,.]+\s\(₩[\d,.]+\)$/.test(
-                                item.note
-                              )
-                                ? item.note
-                                : formatAmountWithCurrency(item.amount, true)}
+                              {formatAmountWithCurrency(item.amount, true)}
                             </td>
                             <td className="col-actions">
                               <ActionButton
@@ -1661,21 +1664,11 @@ export function AiChatMessage({
                       <strong>{t.estimateInfo.totalSum}</strong>
                     </td>
                     <td className="col-amount">
-                      <strong>
-                        {invoiceData.total?.totalConvertedDisplay &&
-                        typeof invoiceData.total.totalConvertedDisplay ===
-                          'string'
-                          ? invoiceData.total.totalConvertedDisplay
-                          : calculatedTotalAmount !== undefined
-                          ? formatAmountWithCurrency(
-                              calculatedTotalAmount,
-                              true
-                            )
-                          : formatAmountWithCurrency(
-                              invoiceData.total?.amount,
-                              true
-                            )}
-                      </strong>
+                    <strong>
+    {calculatedTotalAmount !== undefined
+      ? formatAmountWithCurrency(calculatedTotalAmount, countryCode)
+      : formatAmountWithCurrency(invoiceData.total?.amount || 0, countryCode)}
+  </strong>
                     </td>
                     <td></td>
                   </tr>
@@ -1685,28 +1678,10 @@ export function AiChatMessage({
                     </td>
                     <td className="col-amount">
                       <strong>
-                        {invoiceData.total?.totalConvertedDisplay &&
-                        typeof invoiceData.total.totalConvertedDisplay ===
-                          'string'
-                          ? formatAmountWithCurrency(
-                              Math.round(
-                                (calculatedTotalAmount ||
-                                  invoiceData.total?.amount ||
-                                  0) * 1.1
-                              ),
-                              true
-                            )
-                          : calculatedTotalAmount !== undefined
-                          ? formatAmountWithCurrency(
-                              Math.round(calculatedTotalAmount * 1.1),
-                              true
-                            )
-                          : formatAmountWithCurrency(
-                              Math.round(
-                                (invoiceData.total?.amount || 0) * 1.1
-                              ),
-                              true
-                            )}
+                      {formatAmountWithCurrency(
+        Math.round((calculatedTotalAmount ?? invoiceData.total?.amount || 0) * 1.1),
+        countryCode
+      )}
                       </strong>
                     </td>
                     <td></td>
