@@ -101,7 +101,8 @@ const StackLayer = styled.div<{ $translateZ: number; $topOffset: number }>`
   top: ${({ $topOffset }) => `calc(50% + ${$topOffset}px)`};
   left: 50%;
   transform-style: preserve-3d;
-  transform: translate(-50%, -50%) rotateX(-20deg) rotateY(-65deg) translateZ(${({ $translateZ }) => `${$translateZ}px`});
+  transform: translate(-50%, -50%) rotateX(-20deg) rotateY(-65deg)
+    translateZ(${({ $translateZ }) => `${$translateZ}px`});
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -247,7 +248,9 @@ const AppMobileBlock: React.FC<AppBlockProps> = ({ title, description }) => {
       });
       setIsFlat(false);
       setPainted(false);
-      await new Promise((resolve) => requestAnimationFrame(() => resolve(undefined)));
+      await new Promise((resolve) =>
+        requestAnimationFrame(() => resolve(undefined))
+      );
     };
 
     const tl = gsap.timeline({
@@ -359,11 +362,11 @@ const AppMobileBlock: React.FC<AppBlockProps> = ({ title, description }) => {
     <Section ref={sectionRef}>
       <TopTrigger ref={topTriggerRef} />
       <h2 style={{ lineHeight: 1.4 }}>
-  {title.replace(/<br\s*\/?>|\n/g, ' ')}
-</h2>
-<p style={{ lineHeight: 1.4 }}>
-  {description.replace(/<br\s*\/?>|\n/g, ' ')}
-</p>
+        {title.replace(/<br\s*\/?>|\n/g, ' ')}
+      </h2>
+      <p style={{ lineHeight: 1.4 }}>
+        {description.replace(/<br\s*\/?>|\n/g, ' ')}
+      </p>
 
       <AppBlockWrapper>
         <PhoneFrame ref={phoneRef} $isFlat={isFlat} $painted={painted} />
@@ -391,7 +394,6 @@ const AppMobileBlock: React.FC<AppBlockProps> = ({ title, description }) => {
             <Chip>Chip2</Chip>
             <Chip>Chip3</Chip>
             <Chip>Chip4</Chip>
-            <Chip>Chip5</Chip>
           </ChipsContainer>
         </StackLayer>
 

@@ -180,12 +180,13 @@ const LeftTitle = styled.div`
   font-weight: 700;
   color: #fff;
 `;
+
 const LeftDescription = styled.div`
   font-size: 16px;
   line-height: 1.4;
   white-space: pre-line;
   color: #fff;
- 
+
   @media (max-width: ${Breakpoints.mobile}px) {
     display: -webkit-box;
     -webkit-box-orient: vertical;

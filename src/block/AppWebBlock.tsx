@@ -405,7 +405,6 @@ const AppWebBlock: React.FC<AppBlockProps> = ({ title, description }) => {
                 <Chip>Chip2</Chip>
                 <Chip>Chip3</Chip>
                 <Chip>Chip4</Chip>
-                <Chip>Chip5</Chip>
               </ChipsContainer>
             </StackLayer>
 

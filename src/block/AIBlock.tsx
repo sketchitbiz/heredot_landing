@@ -29,7 +29,7 @@ const SectionWrapper = styled.div`
   min-width: ${Breakpoints.desktop}px;
 
   @media (max-width: ${Breakpoints.mobile}px) {
-    min-width: auto;
+    min-width: 100%;
     display: flex;
     justify-content: center;
     padding: 0;
@@ -38,6 +38,7 @@ const SectionWrapper = styled.div`
 
 const Container = styled.div`
   max-width: ${Breakpoints.desktop}px;
+  width: 100%;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -49,39 +50,39 @@ const Container = styled.div`
   @media (max-width: ${Breakpoints.mobile}px) {
     flex-direction: column-reverse;
     align-items: center;
+    padding: 0px;
+    margin: 0px;
+    gap: 0px;
   }
-`;
-
-const Container2 = styled.div`
-  display: flex;
-  justify-content: center;
 `;
 
 const PhoneFrameWrapper = styled.div`
   position: relative;
-  width: 540px;
-  height: 1032px;
+  width: 350px;
+  height: 750px;
 
   @media (max-width: ${Breakpoints.mobile}px) {
     width: 100%;
-    max-width: 350px;
-    // height: auto;
+    max-width: 650px;
     height: 1032px;
   }
 `;
 
 const StyledVideo = styled.video`
   position: absolute;
-  top: 10%;
-  left: 5%;
-  width: 55%;
-  height: 57%;
+  top: 13%;
+  left: 7%;
+  width: 86%;
+  height: 80%;
   z-index: 1;
   object-fit: cover;
   border-radius: 20px;
 
   @media (max-width: ${Breakpoints.mobile}px) {
-    top: 5%;
+    top: 10%;
+    left: 8%;
+    width: 85%;
+    height: 56%;
   }
 `;
 
@@ -104,7 +105,6 @@ const LeftImageBlock = styled.div`
     @media (max-width: ${Breakpoints.mobile}px) {
       width: 100%;
       max-width: 350px;
-      height: auto;
     }
   }
 `;
@@ -216,24 +216,22 @@ export const AIBlock: React.FC<AIBlockProps> = ({
       <SectionWrapper>
         <Container>
           <LeftImageBlock>
-            <Container2>
-              <PhoneFrameWrapper>
-                <Image
-                  src="/assets/phone_frame.svg"
-                  alt="AI 견적 이미지"
-                  width={540}
-                  height={1032}
-                  style={{ position: 'absolute', top: 0, left: 0, zIndex: 2 }}
-                />
-                <StyledVideo
-                  src="/assets/aigo.mov"
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                />
-              </PhoneFrameWrapper>
-            </Container2>
+            <PhoneFrameWrapper>
+              <Image
+                src="/assets/phone_frame.svg"
+                alt="AI 견적 이미지"
+                width={540}
+                height={1032}
+                style={{ position: 'absolute', top: 0, left: 0, zIndex: 2 }}
+              />
+              <StyledVideo
+                src="/assets/aigo.mov"
+                autoPlay
+                muted
+                loop
+                playsInline
+              />
+            </PhoneFrameWrapper>
           </LeftImageBlock>
 
           <RightTextBlock>
