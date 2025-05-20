@@ -11,6 +11,10 @@ import useAuthStore from '@/store/authStore';
 import { useLang } from '@/contexts/LangContext';
 import { aiChatDictionary } from '@/lib/i18n/aiChat';
 import { ChatDictionary } from '@/app/ai/components/StepData'; // ChatDictionary 타입 임포트
+import  useAiFlowStore  from '@/store/aiFlowStore';
+import { useTranslation } from 'react-i18next';
+import { getStepData } from '@/app/ai/components/StepData';
+
 
 /**
  * AiChatMessage 컴포넌트
@@ -933,6 +937,23 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
     height: '60px',
   };
 
+  const { t: translate } = useTranslation();
+  const selections = useAiFlowStore((state) => state.selections);
+  const stepData = getStepData(t as any);
+
+
+  const selectionStrings = Object.entries(selections)
+    .map(([stepId, selectedIds]) => {
+      const step = stepData.find((s) => s.id === stepId);
+      if (!step) return '';
+      const labels = selectedIds
+        .map((id) => step.options.find((opt) => opt.id === id)?.label)
+        .filter((label): label is string => !!label);
+      return labels.join(', ');
+    })
+    .filter(Boolean) // 빈 항목 제거
+    .join(' / ');
+
   return (
     <PrintableInvoiceWrapper id="printable-invoice-content">
       <div
@@ -967,7 +988,12 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
             </td>
             <td style={{ ...valueCellStyle, width: '30%' }}>{companyName}</td>
             <td
-              style={{ ...headerCellStyle, width: '15%', borderLeft: 'none' }}
+              style={{
+                ...headerCellStyle,
+                width: '15%',
+                borderLeft: 'none',
+                background: 'white',
+              }}
               rowSpan={5}
             >
               <div style={stampContainerStyle}>
@@ -1009,8 +1035,7 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
           <tr>
             <td style={headerCellStyle}>{basicSurveyTitle}</td>
             <td style={{ ...valueCellStyle }} colSpan={4}>
-              {basicSurveyContentPlaceholder}{' '}
-              {/* 실제 기초 조사 내용 연동 필요 */}
+              {selectionStrings} {/* 실제 기초 조사 내용 연동 필요 */}
             </td>
           </tr>
         </tbody>
@@ -1097,7 +1122,7 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
                   {item.note &&
                   /^[A-Z]{3}\s[\d,.]+\s\(₩[\d,.]+\)$/.test(item.note)
                     ? item.note
-                    : formatAmountForPdf(invoiceDetailsForPdf.currentTotal)}
+                    : formatAmountForPdf(item.amount)}
                 </td>
               </tr>
             ));
@@ -1113,9 +1138,8 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
               }}
             >
               <strong>
-              {formatAmountForPdf(
-                  Math.round((invoiceDetailsForPdf.currentTotal || 0)),
-                  countryCode
+                {formatAmountForPdf(
+                  Math.round(invoiceDetailsForPdf.currentTotal || 0)
                 )}
               </strong>
             </td>
@@ -1132,8 +1156,7 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
             >
               <strong>
                 {formatAmountForPdf(
-                  Math.round((invoiceDetailsForPdf.currentTotal || 0) * 1.1),
-                  countryCode
+                  Math.round((invoiceDetailsForPdf.currentTotal || 0) * 1.1)
                 )}
               </strong>
             </td>
@@ -1193,37 +1216,31 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
           borderCollapse: 'collapse',
           marginTop: '0px',
           fontSize: '8pt',
+          borderTop: '1px solid #E0E0E0', // 위쪽 보더 (선택)
+          borderBottom: '1px solid #E0E0E0', // 전체 테이블 아래 보더
         }}
       >
         <tbody>
-          <tr>
-            <td style={{ border: '1px solid #BFBFBF', padding: '0' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <tbody>
-                  {specialNotes.items.map((note, index) => (
-                    <tr key={`note-${index}`}>
-                      <td
-                        style={{
-                          ...valueCellStyle,
-                          borderBottom:
-                            index === specialNotes.items.length - 1
-                              ? 'none'
-                              : '1px solid #E0E0E0',
-                          lineHeight: '1.4',
-                          textAlign: note.startsWith('*') ? 'center' : 'left',
-                          fontSize: note.startsWith('*') ? '7.5pt' : '8pt',
-                          color: note.startsWith('*') ? '#555555' : '#333333',
-                          padding: '6px 8px',
-                        }}
-                      >
-                        {note}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </td>
-          </tr>
+          {specialNotes.items.map((note, index) => (
+            <tr key={`note-${index}`}>
+              <td
+                style={{
+                  borderTop: '1px solid #E0E0E0', // 각 줄 위에 보더
+                  borderBottom:
+                    index === specialNotes.items.length - 1
+                      ? '1px solid #E0E0E0' // 마지막 줄에도 보더
+                      : 'none',
+                  lineHeight: '1.4',
+                  textAlign: note.startsWith('*') ? 'center' : 'left',
+                  fontSize: note.startsWith('*') ? '7.5pt' : '8pt',
+                  color: note.startsWith('*') ? '#555555' : '#333333',
+                  padding: '6px 8px',
+                }}
+              >
+                {note}
+              </td>
+            </tr>
+          ))}
         </tbody>
       </table>
 
@@ -1664,11 +1681,17 @@ export function AiChatMessage({
                       <strong>{t.estimateInfo.totalSum}</strong>
                     </td>
                     <td className="col-amount">
-                    <strong>
-    {calculatedTotalAmount !== undefined
-      ? formatAmountWithCurrency(calculatedTotalAmount, countryCode)
-      : formatAmountWithCurrency(invoiceData.total?.amount || 0, countryCode)}
-  </strong>
+                      <strong>
+                        {calculatedTotalAmount !== undefined
+                          ? formatAmountWithCurrency(
+                              calculatedTotalAmount,
+                              countryCode
+                            )
+                          : formatAmountWithCurrency(
+                              invoiceData.total?.amount || 0,
+                              countryCode
+                            )}
+                      </strong>
                     </td>
                     <td></td>
                   </tr>
@@ -1678,10 +1701,13 @@ export function AiChatMessage({
                     </td>
                     <td className="col-amount">
                       <strong>
-                      {formatAmountWithCurrency(
-        Math.round((calculatedTotalAmount ?? invoiceData.total?.amount || 0) * 1.1),
-        countryCode
-      )}
+                        {formatAmountWithCurrency(
+                          Math.round(
+                            (calculatedTotalAmount ??
+                              (invoiceData.total?.amount || 0)) * 1.1
+                          ),
+                          countryCode
+                        )}
                       </strong>
                     </td>
                     <td></td>
