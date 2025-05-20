@@ -697,39 +697,11 @@ const PrintableInvoiceWrapper = styled.div`
 // PDF용 금액 포맷 함수 (기존 formatAmount와 유사하나, hook 의존성 없이 사용)
 const formatAmountForPdf = (
   amount: number | string,
-  countryCodeFromUser: string,
-  forceDetailed: boolean = true
 ) => {
-  if (typeof amount !== 'number') return amount;
-
-  const effectiveCountryCode = countryCodeFromUser || 'KR';
-
-  if (forceDetailed || effectiveCountryCode !== 'KR') {
-    const localCurrencyForPdf = getCountryCurrency(effectiveCountryCode);
-    const localSymbolForPdf = getCurrencySymbol(effectiveCountryCode);
-
-    let displaySymbol = currencySymbols.US;
-    let convertedAmountForDisplay = Math.round(
-      amount / (exchangeRates['USD'] || 1350)
-    );
-
-    if (effectiveCountryCode !== 'KR') {
-      displaySymbol = localSymbolForPdf;
-      if (exchangeRates[localCurrencyForPdf as keyof typeof exchangeRates]) {
-        convertedAmountForDisplay = Math.round(
-          amount /
-            exchangeRates[localCurrencyForPdf as keyof typeof exchangeRates]
-        );
-      } else if (localCurrencyForPdf === 'KRW') {
-        displaySymbol = currencySymbols.US; // Should be USD if localCurrency is KRW but not KR user
-        convertedAmountForDisplay = Math.round(
-          amount / (exchangeRates['USD'] || 1350)
-        );
-      }
-    }
-    return `${displaySymbol}${convertedAmountForDisplay.toLocaleString()} (₩${amount.toLocaleString()})`;
+  if (typeof amount === 'number') {
+    return amount.toLocaleString(); // 숫자면 포맷팅하여 반환
   }
-  return `₩${amount.toLocaleString()}`;
+  return amount; // 문자열이면 (예: "별도 문의") 그대로 반환
 };
 
 interface PrintableInvoiceProps {
@@ -1181,9 +1153,11 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
               </td>
               <td style={{ ...valueCellStyle, textAlign: 'right' }}>
                 {typeof invoiceDetailsForPdf.currentTotalDuration === 'number'
-                  ? `${Math.ceil(invoiceDetailsForPdf.currentTotalDuration / 5)} ${
-                      t.estimateInfo.week
-                    } (${lang === 'ko' ? '약 ' : ''}${Math.ceil(
+                  ? `${Math.ceil(
+                      invoiceDetailsForPdf.currentTotalDuration / 5
+                    )} ${t.estimateInfo.week} (${
+                      lang === 'ko' ? '약 ' : ''
+                    }${Math.ceil(
                       invoiceDetailsForPdf.currentTotalDuration / 20
                     )} ${t.estimateInfo.monthUnit})`
                   : `${invoiceDetailsForPdf.currentTotalDuration} ${t.estimateInfo.day}`}
