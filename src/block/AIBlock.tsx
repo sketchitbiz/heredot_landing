@@ -31,6 +31,7 @@ const SectionWrapper = styled.div`
     min-width: auto;
     display: flex;
     justify-content: center;
+    padding: 0;
   }
 `;
 
@@ -46,7 +47,40 @@ const Container = styled.div`
 
   @media (max-width: ${Breakpoints.mobile}px) {
     flex-direction: column-reverse;
-    align-items: flex-start;
+    align-items: center;
+  }
+`;
+
+const Container2 = styled.div`
+  display: flex;
+  justify-content: center;
+`;
+
+const PhoneFrameWrapper = styled.div`
+  position: relative;
+  width: 540px;
+  height: 1032px;
+
+  @media (max-width: ${Breakpoints.mobile}px) {
+    width: 100%;
+    max-width: 350px;
+    // height: auto;
+    height: 1032px;
+  }
+`;
+
+const StyledVideo = styled.video`
+  position: absolute;
+  top: 10%;
+  left: 5%;
+  width: 55%;
+  height: 57%;
+  z-index: 1;
+  object-fit: cover;
+  border-radius: 20px;
+
+  @media (max-width: ${Breakpoints.mobile}px) {
+    top: 5%;
   }
 `;
 
@@ -55,6 +89,11 @@ const LeftImageBlock = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
+
+  @media (max-width: ${Breakpoints.mobile}px) {
+    width: 100%; /* 모바일에서 블록 전체 넓이 확보 */
+    max-width: 350px;
+  }
 
   img {
     width: 350px;
@@ -159,15 +198,24 @@ export const AIBlock: React.FC<AIBlockProps> = ({
       <SectionWrapper>
         <Container>
           <LeftImageBlock>
-            <video
-              src="/assets/aigo.mov"
-              autoPlay
-              muted
-              loop
-              playsInline
-              width={540}
-              height={1032}
-            />
+            <Container2>
+              <PhoneFrameWrapper>
+                <Image
+                  src="/assets/phone_frame.svg"
+                  alt="AI 견적 이미지"
+                  width={540}
+                  height={1032}
+                  style={{ position: 'absolute', top: 0, left: 0, zIndex: 2 }}
+                />
+                <StyledVideo
+                  src="/assets/aigo.mov"
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                />
+              </PhoneFrameWrapper>
+            </Container2>
           </LeftImageBlock>
 
           <RightTextBlock>

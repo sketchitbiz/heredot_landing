@@ -1,6 +1,7 @@
 User-agent: *
 Allow: /
 Disallow: /test/
+Disallow: /cms/
 Disallow: /ai/
 
 Sitemap: https://heredotcorp.com/sitemap.xml 

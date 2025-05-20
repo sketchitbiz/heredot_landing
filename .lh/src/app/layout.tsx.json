@@ -1,0 +1,30 @@
+{
+    "sourceFile": "src/app/layout.tsx",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 3,
+            "patches": [
+                {
+                    "date": 1747732796620,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                },
+                {
+                    "date": 1747733209039,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -17,8 +17,9 @@\n     icon: '/favicon.ico',\n   },\n   verification: {\n     google: 'RJWue1FsTIqYFJZUgfjLKjaKDciAlkvTycTq-kUZz0U',\n+  naver:''\n   },\n   openGraph: {\n     // Open Graph Meta Tags\n     ogTitle: '여기닷 AI 견적 시스템',\n"
+                },
+                {
+                    "date": 1747733216923,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -17,9 +17,9 @@\n     icon: '/favicon.ico',\n   },\n   verification: {\n     google: 'RJWue1FsTIqYFJZUgfjLKjaKDciAlkvTycTq-kUZz0U',\n-  naver:''\n+ \n   },\n   openGraph: {\n     // Open Graph Meta Tags\n     ogTitle: '여기닷 AI 견적 시스템',\n"
+                },
+                {
+                    "date": 1747733246031,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -17,9 +17,9 @@\n     icon: '/favicon.ico',\n   },\n   verification: {\n     google: 'RJWue1FsTIqYFJZUgfjLKjaKDciAlkvTycTq-kUZz0U',\n- \n+    naver: 'ac09ecfb60cda154b6017c23d4c2aa45cf006275',\n   },\n   openGraph: {\n     // Open Graph Meta Tags\n     ogTitle: '여기닷 AI 견적 시스템',\n"
+                }
+            ],
+            "date": 1747732796620,
+            "name": "Commit-0",
+            "content": "import { GlobalWrapper } from './global-wrapper';\nimport StyledComponentsRegistry from '@/lib/registry';\n// import \"@/lib/firebase/firebase.config\";\n\n/**\n * RootLayout은 Next.js 애플리케이션의 루트 레이아웃을 정의합니다.\n * HTML 구조, 글로벌 폰트, 글로벌 컨텍스트 및 스타일 적용의 최상단 엔트리 포인트입니다.\n *\n * RootLayout defines the root layout of the Next.js application.\n * It includes the base HTML structure, global fonts, and wraps the app with global context and styles.\n */\n\nexport const metadata = {\n  title: 'HereDot',\n  description: 'HereDot Landing Page',\n  icons: {\n    icon: '/favicon.ico',\n  },\n  verification: {\n    google: 'RJWue1FsTIqYFJZUgfjLKjaKDciAlkvTycTq-kUZz0U',\n  },\n  openGraph: {\n    // Open Graph Meta Tags\n    ogTitle: '여기닷 AI 견적 시스템',\n    ogDescription: '나의 아이디어 AI에게 다 물어봐!',\n    ogImage: '/og.png',\n    ogUrl: 'https://heredotcorp.com/',\n    ogType: 'website',\n    twitterCard: 'summary_large_image',\n    twitterTitle: '여기닷 AI 견적 시스템',\n    twitterDescription: '나의 아이디어 AI에게 다 물어봐!',\n    twitterImage: '/og.png',\n  },\n};\nexport default function RootLayout({\n  children,\n}: Readonly<{\n  children: React.ReactNode;\n}>) {\n  return (\n    <html lang=\"en\">\n      <head>\n        {/* Open Graph Meta Tags */}\n        <meta\n          name=\"description\"\n          content=\"여기닷은 홈페이지 제작, 웹사이트 개발, 반응형 웹 구축, 모바일 앱과 AI 기반 웹·앱, 시스템 개발까지 아우르는 디지털 종합 에이전시입니다. 정부지원사업 대응 경험과 스타트업 맞춤형 개발, 드론·지도 기반 앱 개발 등 전문성과 확장성을 겸비하고 있습니다.\"\n        ></meta>\n      </head>\n      <body className=\"antialiased\">\n        {/* StyledComponentsRegistry로 GlobalWrapper와 children 감싸기 */}\n        <StyledComponentsRegistry>\n          <GlobalWrapper>{children}</GlobalWrapper>\n        </StyledComponentsRegistry>\n      </body>\n    </html>\n  );\n}\n"
+        }
+    ]
+}

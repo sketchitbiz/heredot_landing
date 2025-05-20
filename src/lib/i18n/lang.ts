@@ -298,8 +298,9 @@ export const dictionary = {
   },
   en: {
     eventBlock: {
-      title: 'Y Solutions for Entrepreneurs',
-      description: 'Discover the ideal solution to support and grow your business',
+      title: 'Heredot Solutions for Entrepreneurs',
+      description:
+        'Discover the ideal solution to support and grow your business',
     },
     aiBlock: {
       title: "It's time to start the right way",
