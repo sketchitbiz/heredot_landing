@@ -15,6 +15,22 @@ import { AppColors } from '@/styles/colors';
 import { Validators } from '@/lib/utils/validators';
 import { toast, ToastContainer } from 'react-toastify';
 import { adminCreate } from '@/lib/api/admin';
+import Switch from '@/components/Switch';
+import { SwitchInput } from '@/components/SwitchInput';
+
+const SwitchRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 12px 0;
+`;
+
+const SwitchLabel = styled.label`
+  font-size: 16px;
+  font-weight: 500;
+  color: black;
+`;
+
 
 
 type AdminUser = {
@@ -65,36 +81,36 @@ const FormContainer = styled.div`
 `;
 
 const RegisterButton = styled(ActionButton)<{ $themeMode: 'light' | 'dark' }>`
-  background: ${({ $themeMode }) => ($themeMode === 'light' ? '#f8f8f8' : THEME_COLORS.dark.primary)};
-  color: ${({ $themeMode }) => ($themeMode === 'light' ? THEME_COLORS.light.primary : THEME_COLORS.dark.buttonText)};
+  background: ${({ $themeMode }) => ($themeMode === 'light' ? THEME_COLORS.light.primary : THEME_COLORS.dark.buttonText)};
+  color: ${({ $themeMode }) => ($themeMode === 'light' ? '#f8f8f8' : THEME_COLORS.dark.primary)};
   border: none;
   &:hover:not(:disabled) {
     background-color: ${({ $themeMode }) => ($themeMode === 'light' ? '#e8e8e8' : '#424451')};
   }
 `;
 
-const SwitchButton = styled.div<{ checked: boolean; readOnly?: boolean }>`
-  display: inline-block;
-  margin: 0 auto;
-  width: 40px;
-  height: 20px;
-  background-color: ${({ checked }) => (checked ? '#4EFF63' : '#D2D3D7')};
-  border-radius: 20px;
-  position: relative;
-  cursor: ${({ readOnly }) => (readOnly ? 'default' : 'pointer')};
-  transition: background-color 0.3s;
-  &::before {
-    content: '';
-    position: absolute;
-    top: 2px;
-    left: ${({ checked }) => (checked ? '20px' : '2px')};
-    width: 16px;
-    height: 16px;
-    background-color: white;
-    border-radius: 50%;
-    transition: left 0.3s;
-  }
-`;
+// const SwitchButton = styled.div<{ checked: boolean; readOnly?: boolean }>`
+//   display: inline-block;
+//   margin: 0 auto;
+//   width: 40px;
+//   height: 20px;
+//   background-color: ${({ checked }) => (checked ? '#4EFF63' : '#D2D3D7')};
+//   border-radius: 20px;
+//   position: relative;
+//   cursor: ${({ readOnly }) => (readOnly ? 'default' : 'pointer')};
+//   transition: background-color 0.3s;
+//   &::before {
+//     content: '';
+//     position: absolute;
+//     top: 2px;
+//     left: ${({ checked }) => (checked ? '20px' : '2px')};
+//     width: 16px;
+//     height: 16px;
+//     background-color: white;
+//     border-radius: 50%;
+//     transition: left 0.3s;
+//   }
+// `;
 
 const AdminMngPage: React.FC = () => {
   const [selectedUser, setSelectedUser] = useState<Partial<AdminUser> | null>(null);
@@ -106,6 +122,7 @@ const AdminMngPage: React.FC = () => {
   const [cellphone, setCellphone] = useState('');
   const [emailYn, setEmailYn] = useState<'Y' | 'N'>('Y');
   const [smsYn, setSmsYn] = useState<'Y' | 'N'>('Y');
+  const [description, setDescription] = useState('');
 
   const [idError, setIdError] = useState<string | null>(null);
   const [pwdError, setPwdError] = useState<string | null>(null);
@@ -188,17 +205,20 @@ const AdminMngPage: React.FC = () => {
         password,
         name,
         cellphone,
-        description: '', // 필요 시 추후 추가
+        description,
         email,
         emailYn,
         smsYn,
       });
   
-      toast.success('관리자가 성공적으로 등록되었습니다.');
-      setIsPopupOpen(false); // 팝업 닫기
-      listRef.current?.refetch();
-  
-      // TODO: 목록 리프레시 필요 시 fetchData 다시 호출하거나 상태 갱신
+      // 성공 메시지 확인
+      if (response?.[0]?.message === 'success') {
+        toast.success('관리자가 성공적으로 등록되었습니다.');
+        setIsPopupOpen(false); // 팝업 닫기
+        listRef.current?.refetch(); // 목록 리프레시
+      } else {
+        toast.error(response?.[0]?.message || '관리자 등록에 실패했습니다.');
+      }
     } catch (error: any) {
       toast.error(error?.message || '관리자 등록에 실패했습니다.');
     }
@@ -224,46 +244,49 @@ const AdminMngPage: React.FC = () => {
   const columns: ColumnDefinition<AdminUser>[] = useMemo(
     () => [
       { header: 'No', accessor: 'no' },
-      { header: '아이디', accessor: 'adminId' },
-      { header: '이름', accessor: 'name' },
-      { header: '이메일', accessor: 'email' },
-      { header: '연락처', accessor: 'cellphone' },
       {
-        header: '이메일 수신',
-        accessor: 'emailYn',
-        formatter: (_value, row) => (
-          <SwitchButton
-            checked={row.emailYn === 'Y'}
-            onClick={() =>
-              handleDropdownChange(row.adminId, 'emailYn', row.emailYn === 'Y' ? 'N' : 'Y')
-            }
-          />
-        ),
+        header: '가입일',
+        accessor: 'createdTime',
+        sortable: true,
+        formatter: (value) => value ? dayjs(value).format('YYYY-MM-DD') : '-',
       },
+      {
+        header: '최근접속',
+        accessor: 'lastLoginTime',
+        sortable: true,
+        formatter: (value) => value ? dayjs(value).format('YYYY-MM-DD HH:mm:ss') : '-',
+      },
+      { header: '이름', accessor: 'name' },
+      { header: '아이디', accessor: 'adminId' },
+      { header: '이메일', accessor: 'email' },
+      { header: '전화번호', accessor: 'cellphone' },
       {
         header: 'SMS 수신',
         accessor: 'smsYn',
         formatter: (_value, row) => (
-          <SwitchButton
+          <Switch
             checked={row.smsYn === 'Y'}
-            onClick={() =>
+            onToggle={() =>
               handleDropdownChange(row.adminId, 'smsYn', row.smsYn === 'Y' ? 'N' : 'Y')
             }
           />
         ),
       },
       {
-        header: '마지막 로그인',
-        accessor: 'lastLoginTime',
-        sortable: true,
-        formatter: (value) => value ? dayjs(value).format('YYYY-MM-DD HH:mm:ss') : '-',
+        header: '메일 수신',
+        accessor: 'emailYn',
+        formatter: (_value, row) => (
+          <Switch
+            checked={row.emailYn === 'Y'}
+            onToggle={() =>
+              handleDropdownChange(row.adminId, 'emailYn', row.emailYn === 'Y' ? 'N' : 'Y')
+            }
+          />
+        ),
       },
-      {
-        header: '등록일',
-        accessor: 'createdTime',
-        sortable: true,
-        formatter: (value) => value ? dayjs(value).format('YYYY-MM-DD') : '-',
-      },
+      { header: '비고', accessor: 'description' },
+   
+
     ],
     [handleDropdownChange]
   );
@@ -292,7 +315,6 @@ const AdminMngPage: React.FC = () => {
         enableDateFilter={false}
         searchPlaceholder="이름, 이메일, 아이디 검색"
         onRowClick={handleRowClick}
-        itemsPerPageOptions={[10, 20, 50]}
         themeMode="light"
         renderHeaderActionButton={() => (
           <RegisterButton $themeMode="light" onClick={handleHeaderButtonClick}>
@@ -301,13 +323,14 @@ const AdminMngPage: React.FC = () => {
         )}
       />
 
-      <CmsPopup isOpen={isPopupOpen} onClose={closePopup}>
+      <CmsPopup  title='관리자등록' isOpen={isPopupOpen} onClose={closePopup}>
         <FormContainer>
-          <TextField value={userId} label="* 아이디" autoComplete='off' $labelPosition="horizontal" labelColor="black" onChange={(e) => setUserId(e.target.value)} placeholder="영문자와 숫자를 포함한 6~20자" errorMessage={idError ?? undefined} />
-          <TextField value={password} showSuffixIcon = {true} label="* 비밀번호"  autoComplete="new-password" $labelPosition="horizontal" labelColor="black" onChange={(e) => setPassword(e.target.value)} placeholder="영문 + 숫자 + 특수문자 1개 포함 8자리 이상" isPasswordField ={true} errorMessage={pwdError ?? undefined} />
-          <TextField value={name} label="* 이름" $labelPosition="horizontal" labelColor="black" onChange={(e) => setName(e.target.value)} placeholder="이름을 입력하세요" errorMessage={nameError ?? undefined} />
-          <TextField value={email} label="* 이메일" $labelPosition="horizontal" labelColor="black" onChange={(e) => setEmail(e.target.value)} placeholder="이메일 형식으로 입력하세요" errorMessage={emailError ?? undefined} />
+          <TextField radius='0' value={userId} label="* 아이디" autoComplete='off' $labelPosition="horizontal" labelColor="black" onChange={(e) => setUserId(e.target.value)} placeholder="영문자와 숫자를 포함한 6~20자" errorMessage={idError ?? undefined} />
+          <TextField radius='0' value={password} showSuffixIcon = {true} label="* 비밀번호"  autoComplete="new-password" $labelPosition="horizontal" labelColor="black" onChange={(e) => setPassword(e.target.value)} placeholder="영문 + 숫자 + 특수문자 1개 포함 8자리 이상" isPasswordField ={true} errorMessage={pwdError ?? undefined} />
+          <TextField radius='0' value={name} label="* 이름" $labelPosition="horizontal" labelColor="black" onChange={(e) => setName(e.target.value)} placeholder="이름을 입력하세요" errorMessage={nameError ?? undefined} />
+          <TextField radius='0' value={email} label="* 이메일" $labelPosition="horizontal" labelColor="black" onChange={(e) => setEmail(e.target.value)} placeholder="이메일 형식으로 입력하세요" errorMessage={emailError ?? undefined} />
           <TextField
+          radius='0'
   value={cellphone}
   label="* 연락처"
   $labelPosition="horizontal"
@@ -322,8 +345,37 @@ const AdminMngPage: React.FC = () => {
   placeholder="- 제외 하고 입력하세요"
   errorMessage={cellphoneError ?? undefined}
 />
-          <SelectionField label="이메일 수신" labelColor="black" leftLabel="Y" rightLabel="N" value={emailYn} onChange={(val) => setEmailYn(val as 'Y' | 'N')} $labelPosition="horizontal" />
-          <SelectionField label="SMS 수신" labelColor="black" leftLabel="Y" rightLabel="N" value={smsYn} onChange={(val) => setSmsYn(val as 'Y' | 'N')} $labelPosition="horizontal" />
+      
+<SwitchInput
+  label="이메일 수신"
+  value={emailYn}
+  onChange={setEmailYn}
+  $labelPosition="horizontal"
+  labelColor="black"
+/>
+
+<SwitchInput
+  label="SMS 수신"
+  value={smsYn}
+  onChange={setSmsYn}
+  $labelPosition="horizontal"
+  labelColor="black"
+/>
+
+          <TextField
+          radius='0'
+  multiline
+  minLines={4}
+  maxLines={10}
+  height="200px"
+  value={description}
+  label="비고"
+  $labelPosition="horizontal"
+  labelColor="black"
+  onChange={(e) => setDescription(e.target.value)}
+  placeholder="비고를 입력하세요"
+/>
+
           <PopupFooter>
             <CancelButton onClick={closePopup}>닫기</CancelButton>
             <SaveButton onClick={handleSave}>저장</SaveButton>

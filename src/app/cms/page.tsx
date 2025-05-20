@@ -9,6 +9,13 @@ import { THEME_COLORS, ThemeMode } from "@/styles/theme_colors";
 import GenericDateRangePicker from "@/components/CustomList/GenericDateRangePicker";
 import dayjs from "dayjs";
 
+const PageWrapper = styled.div`
+  width: 100%; // ✅ 수정: 부모(MainContent)의 너비를 그대로 따라감
+  overflow-x: auto;
+`;
+
+
+
 const LineChartHeader = styled.div`
   display: flex;
   justify-content: space-between;
@@ -116,32 +123,27 @@ const SearchButton = styled.button<{ $themeMode: ThemeMode }>`
 `;
 
 const Container = styled.div<{ $themeMode: ThemeMode }>`
-  justify-content: start;
-  width: calc(100%-50px);
-  height: auto;
-  /* padding: 30px; */
+  min-width: 1200px;
+  width: 100%;
+  padding: 0px 30px;
   background-color: ${({ $themeMode }) =>
-    $themeMode === "light" ? THEME_COLORS.light.background : THEME_COLORS.dark.background};
+    $themeMode === 'light' ? THEME_COLORS.light.background : THEME_COLORS.dark.background};
+  color: ${({ $themeMode }) =>
+    $themeMode === 'light' ? THEME_COLORS.light.text : THEME_COLORS.dark.text};
   box-sizing: border-box;
-  color: ${({ $themeMode }) => ($themeMode === "light" ? THEME_COLORS.light.text : THEME_COLORS.dark.text)};
 `;
+
+
 
 const TopHeader = styled.div`
   display: flex;
-  justify-content: space-between; /* 좌우 정렬 */
-  align-items: center; /* 세로 정렬 */
-  width: 1520px; /* DashboardWrapper와 동일한 너비 */
-  margin-bottom: 20px;
-  gap: 15px;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
 `;
 
-const ControlHeader = styled.div`
-  display: flex;
-  justify-content: space-between; /* 좌우 정렬 */
-  align-items: center; /* 세로 정렬 */
-  width: 1520px; /* DashboardWrapper와 동일한 너비 */
+const ControlHeader = styled(TopHeader)`
   margin-bottom: 20px;
-  gap: 15px;
 `;
 
 const visitMeta = {
@@ -211,27 +213,31 @@ const barChartMeta = [
   })),
 }));
 
-// Styled Components
 const DashboardWrapper = styled.div`
-  background: #f5f6fa;
-  padding: 20px;
-  width: 1520px;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  display: flex;
+  flex-wrap: wrap;
   gap: 16px;
+  width: 100%;
+  box-sizing: border-box;
 `;
+
+
+
 
 const ChartCard = styled.div`
   background: #fff;
   border: 1px solid #dbdfea;
   border-radius: 8px;
-  width: 480px;
+  flex: 1 1 calc((100% - 32px) / 3); // gap 16px × 2
+  min-width: 360px;
   height: 430px;
   padding: 20px;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
 `;
+
+
 
 const LineChartCard = styled(ChartCard)`
   width: 100%;
@@ -436,6 +442,7 @@ const CmsDashboardPage = () => {
   ];
 
   return (
+    <PageWrapper>
     <Container $themeMode="light">
       <TopHeader>
         <h1>CMS 대시보드</h1>
@@ -535,6 +542,7 @@ const CmsDashboardPage = () => {
         </LineChartCard>
       </DashboardWrapper>
     </Container>
+    </PageWrapper>
   );
 };
 

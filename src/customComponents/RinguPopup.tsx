@@ -1,11 +1,12 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLang } from '@/contexts/LangContext';
 import { GradientButton } from '@/components/GradientButton';
 import { ProjectPopupContent } from '@/customComponents/ProjectPopupContent';
 import { CustomPopupText } from './CustomPopupText';
 import { userStamp } from '@/lib/api/user/api';
+import { Breakpoints } from '@/constants/layoutConstants';
 
 const TEXT = {
   ko: {
@@ -74,6 +75,17 @@ export const RinguPopup = () => {
   const { lang } = useLang();
   const t = TEXT[lang];
 
+        const [isMobile, setIsMobile] = useState(false);
+  
+            useEffect(() => {
+              const update = () => {
+                setIsMobile(window.innerWidth <= Breakpoints.mobile);
+              };
+              update();
+              window.addEventListener('resize', update);
+              return () => window.removeEventListener('resize', update);
+            }, []);
+
   return (
     <ProjectPopupContent
       imageUrl="/assets/portpolio_popup/ringu.webp"
@@ -83,8 +95,8 @@ export const RinguPopup = () => {
           style={{
             position: 'absolute',
             top: '50px',
-            left: '20px',
-            fontSize: '32px',
+            left: isMobile? '12px':'20px',
+            fontSize: isMobile? '24px': '32px',
             fontWeight: 700,
             color: '#FFFFFF',
           }}

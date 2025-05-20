@@ -166,8 +166,10 @@ const TopSection = styled.div`
   height: 350px;
   width: 100%;
 
+
   @media (max-width: ${Breakpoints.mobile}px) {
     height: 180px;
+    margin-bottom: 30px; /* ✅ 하단 여백 */
   }
     /* height: 200px; */
 `;

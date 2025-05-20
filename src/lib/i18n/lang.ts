@@ -3,6 +3,14 @@ import { m } from "framer-motion";
 export const dictionary = {
   ko: {
     departure: '출발',
+    aiBlock:{
+      title: '이제는 재대로 시작해야할 떄',
+      description: '이유 있는 견적, AI에게 부담없이 물어보아요',
+      buttonTitle: 'AI 견적서 바로가기',
+      buttonLink: '/ai',
+      buttonHeader: '복잡한 견적은 NO!',
+      buttonDescription: 'AI 견적서로 간편하게',
+    },
     arrival: '도착',
     nav: ['핵심강점', '포트폴리오', '팀원소개', 'AI 견적서'],
     customNavigator: {
@@ -11,6 +19,7 @@ export const dictionary = {
       member: '팀원소개',
       review: '고객후기',
       event: '기획전',
+      ai: 'AI 견적서',
       contact: '연락',
     },
     contract: {
@@ -198,6 +207,15 @@ export const dictionary = {
         { title: '고객의사결정', image: '/assets/design/design_5.webp' },
       ],
     },
+    event: {
+      title: '',
+      description: '',
+      buttonTitle: '바로가기 >',
+      slides: [
+        { image: '/assets/event/event_1.webp' },
+        {  image: '/assets/event/event_2.webp' },
+      ],
+    },
     reviewSection: {
       title: "사업가들이 말하는 여기닷",
       description: "대표님들은 '여기닷'을 이렇게 기억합니다.",
@@ -211,6 +229,7 @@ export const dictionary = {
       description: '직접 견적 받으시나요?\n더 빠른 길을 추천해드릴게요!',
       aiButton: 'AI 견적 받기',
     },
+
     contactSection: {
       emailTitle: '이메일 문의',
       emailInfo: 'heredot83@heredotcorp.com',
@@ -248,6 +267,14 @@ companyInfo: '사업자 정보',
   
 
   en: {
+    aiBlock: {
+      title: "It's time to start the right way",
+      description: "Ask AI about your quote without hesitation",
+      buttonTitle: "Go to AI Quote",
+      buttonLink: "/ai",
+      buttonHeader: "No more complicated quotes!",
+      buttonDescription: "Get it done easily with AI",
+    },
     departure: 'Departure',
     arrival: 'Arrival',
     nav: ['Key Value', 'Portfolio', 'Team','AI Estimate' ],
@@ -257,6 +284,7 @@ companyInfo: '사업자 정보',
       portpolio: 'Portfolio',
       review: 'Reviews',
       event: 'Events',
+      ai: 'AI Estimate',
       contact: 'Contact',
     },
     community: {
@@ -268,7 +296,15 @@ companyInfo: '사업자 정보',
         buttonText: "Go to Community",
       }
     },
-    
+    event: {
+      title: '',
+      description: '',
+      buttonTitle: 'Go to Site >',
+      slides: [
+        { image: '/assets/event/event_1e.webp' },
+        {  image: '/assets/event/event_2e.webp' },
+      ],
+    },
     portfolio: {
       title: "Top Projects by HereDot!",
       description: "Introducing projects that led success across various industries!",
@@ -498,6 +534,8 @@ companyInfo: '사업자 정보',
       moreButton: 'Read More',
       terms: 'Terms of Use',
 privacy: 'Privacy Policy',
+
+
 companyInfo: 'Company Info',
 
       moreInfo: [
