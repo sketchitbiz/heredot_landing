@@ -110,6 +110,7 @@ export default function HomePage() {
     service: 'community',
     market: 'market',
     estimate: 'ai',
+    promotion: 'event',
   };
 
   useEffect(() => {
@@ -268,7 +269,13 @@ export default function HomePage() {
           label: t.nav[3],
           targetId: 'AI Estimate',
           content: 'appbar',
-          memo: 'ai pae',
+          memo: 'ai',
+        },
+        {
+          label: t.nav[4],
+          targetId: 'event',
+          content: 'appbar',
+          memo: 'event',
         },
       ]}
       onNavigate={scrollToTargetId}
@@ -458,11 +465,12 @@ export default function HomePage() {
       id: 'video',
       $backgroundColor: AppColors.background,
       showFloatingBox: true,
+
       content: (
         <VideoGrid
           topLabel={t.customNavigator.member}
           centerLabel={t.customNavigator.review}
-          bottomLabel={t.customNavigator.ai}
+          bottomLabel={t.customNavigator.event}
           title={t.reviewSection.title}
           description={t.reviewSection.description}
           onTopArrowClick={() =>

@@ -1,7 +1,17 @@
+# *
 User-agent: *
 Allow: /
-Disallow: /test/
+
+# *
+User-agent: *
 Disallow: /cms/
+
+# *
+User-agent: *
 Disallow: /ai/
 
-Sitemap: https://heredotcorp.com/sitemap.xml 
+# Host
+Host: https://heredotcorp.com
+
+# Sitemaps
+Sitemap: https://heredotcorp.com/sitemap.xml

@@ -3,7 +3,11 @@
     "activeCommit": 0,
     "commits": [
         {
+<<<<<<< HEAD
             "activePatchIndex": 13,
+=======
+            "activePatchIndex": 6,
+>>>>>>> f1a9463f68af677081887ca1da9e0fa8025a9cbc
             "patches": [
                 {
                     "date": 1747715292559,
@@ -30,6 +34,7 @@
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -209,9 +209,9 @@\n     },\n     event: {\n       title: '',\n       description: '',\n-      buttonTitle: '바로가기',\n+      buttonTitle: '바로가기 >',\n       slides: [\n         { image: '/assets/event/event_1.webp' },\n         {  image: '/assets/event/event_2.webp' },\n       ],\n@@ -298,9 +298,9 @@\n     },\n     event: {\n       title: '',\n       description: '',\n-      buttonTitle: 'Go to Site',\n+      buttonTitle: 'Go to Site >',\n       slides: [\n         { image: '/assets/event/event_1e.webp' },\n         {  image: '/assets/event/event_2e.webp' },\n       ],\n"
                 },
                 {
+<<<<<<< HEAD
                     "date": 1747731321372,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -2,8 +2,9 @@\n \n export const dictionary = {\n   ko: {\n     departure: '출발',\n+    \n     aiBlock:{\n       title: '이제는 재대로 시작해야할 떄',\n       description: '이유 있는 견적, AI에게 부담없이 물어보아요',\n       buttonTitle: 'AI 견적서 바로가기',\n@@ -263,10 +264,8 @@\n         '신규 사업 기획, 기술 스택 선정, 개발 프로세스 최적화 등 IT 컨설팅을 제공하며, 프로젝트 단위 또는 장기적인 IT 개발 아웃소싱(프로젝트 수주)을 통해 기업의 개발 역량 강화를 지원합니다.',\n       ],\n     },\n   },\n-  \n-\n   en: {\n     aiBlock: {\n       title: \"It's time to start the right way\",\n       description: \"Ask AI about your quote without hesitation\",\n"
                 },
@@ -60,6 +65,10 @@
                 {
                     "date": 1747731864242,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -298,9 +298,9 @@\n   },\n   en: {\n     eventBlock: {\n       title: 'Yourgida Solutions for Entrepreneurs',\n-      description: '대표님의 사업을 지원하기 위한 최적 솔루션 소개해요',\n+      description: 'Discover the ideal solution to support and grow your business',\n     },\n     aiBlock: {\n       title: \"It's time to start the right way\",\n       description: 'Ask AI about your quote without hesitation',\n"
+=======
+                    "date": 1747734621264,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -11,9 +11,9 @@\n       buttonHeader: '복잡한 견적은 NO!',\n       buttonDescription: 'AI 견적서로 간편하게',\n     },\n     arrival: '도착',\n-    nav: ['핵심강점', '포트폴리오', '팀원소개', 'AI 견적서'],\n+    nav: ['핵심강점', '포트폴리오', '팀원소개', 'AI 견적서', '기획전'],\n     customNavigator: {\n       community: '창업커뮤니티',\n       portpolio: '포트폴리오',\n       member: '팀원소개',\n@@ -276,9 +276,9 @@\n       buttonDescription: \"Get it done easily with AI\",\n     },\n     departure: 'Departure',\n     arrival: 'Arrival',\n-    nav: ['Key Value', 'Portfolio', 'Team','AI Estimate' ],\n+    nav: ['Key Value', 'Portfolio', 'Team','AI Estimate' ,'Promotion'],\n     customNavigator: {\n       community: 'Startup Community',\n       member: 'Team',\n       portpolio: 'Portfolio',\n"
+>>>>>>> f1a9463f68af677081887ca1da9e0fa8025a9cbc
                 }
             ],
             "date": 1747715292559,
