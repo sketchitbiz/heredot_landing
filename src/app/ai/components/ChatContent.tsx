@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef } from 'react';
+import React, { useRef,useEffect } from 'react';
 import styled from 'styled-components';
 import { AppColors } from '@/styles/colors';
 import { customScrollbar } from '@/styles/commonStyles';
@@ -13,6 +13,7 @@ import {
 } from '@/components/Ai/AiChatMessage';
 import { AiChatQuestion, QuestionOption } from '@/components/Ai/AiChatQuestion';
 import FreeFormGuide from './FreeFormGuide';
+import AnimatedLoader from './AnimatedLoader';
 
 // 스타일 컴포넌트
 const ChatContentContainer = styled.div<{ $isNarrowScreen?: boolean }>`
@@ -124,6 +125,12 @@ interface ChatContentProps {
   loading: boolean;
   error: string;
   invoiceDetails: InvoiceDetailsInterface | null;
+
+  handleGeminiSubmit: (
+    e?: React.FormEvent | null,
+    actionPrompt?: string,
+    isSystemInitiatedPrompt?: boolean
+  ) => void;
   handleActionClick: (action: string, data?: { featureId?: string }) => void;
   handleNext: (selectedIds: string[]) => void;
   handlePrevious: () => void;
@@ -153,6 +160,7 @@ const ChatContent: React.FC<ChatContentProps> = ({
   loading,
   error,
   invoiceDetails,
+  handleGeminiSubmit,
   handleActionClick,
   handleNext,
   handlePrevious,
@@ -164,9 +172,9 @@ const ChatContent: React.FC<ChatContentProps> = ({
   const chatEndRef = useRef<HTMLDivElement>(null);
   const t = aiChatDictionary[lang];
 
-  React.useEffect(() => {
+  useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages, loading]);
 
   return (
     <ChatContentContainer
@@ -180,7 +188,9 @@ const ChatContent: React.FC<ChatContentProps> = ({
       <ChatMessagesContainer>
         {isFreeFormMode && (
           <FlexContainer $isNarrowScreen={isNarrowScreen}>
-            <FreeFormGuide isNarrowScreen={isNarrowScreen} lang={lang} />
+            <FreeFormGuide isNarrowScreen={isNarrowScreen} lang={lang} 
+  handleGeminiSubmit={
+    handleGeminiSubmit} />
           </FlexContainer>
         )}
 
@@ -234,6 +244,7 @@ const ChatContent: React.FC<ChatContentProps> = ({
           <AiChatMessage
             key={msg.id}
             {...msg}
+            lang={lang}
             onActionClick={handleActionClick}
             calculatedTotalAmount={invoiceDetails?.currentTotal}
             calculatedTotalDuration={invoiceDetails?.currentTotalDuration}
@@ -242,7 +253,7 @@ const ChatContent: React.FC<ChatContentProps> = ({
           />
         ))}
 
-        {loading && <StatusMessage>{t.status.generating}</StatusMessage>}
+        {loading && <AnimatedLoader />}
         {error && !loading && (
           <StatusMessage className="error">
             {t.status.error} {error}
