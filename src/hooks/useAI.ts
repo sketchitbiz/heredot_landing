@@ -9,7 +9,7 @@ import {
 import { useEffect, useRef, useState } from 'react'; // useState 추가
 import apiClient from '@/lib/apiClient'; // apiClient import 추가
 import useAuthStore from '@/store/authStore'; // authStore import 추가
-import {devLog} from '@/lib/utils/devLogger';
+import { devLog } from '@/lib/utils/devLogger';
 
 // GenerativeModelType, ChatSessionType 제거
 
@@ -17,6 +17,8 @@ export default function useAI() {
   // 모델 이름을 상태로 관리하여 동적으로 변경 가능하도록 수정
   const [modelIdentifier, setModelIdentifier] = useState('gemini-2.0-flash'); // 기본 모델
 
+  //gemini-2.0-flash
+  //gemini-2.5-flash-preview-04-17
   // useRef 타입 직접 지정, 초기값 null
   const model = useRef<GenerativeModel | null>(null);
   const chat = useRef<ChatSession | null>(null);
@@ -46,9 +48,7 @@ export default function useAI() {
         devLog(`[useAI] API Host: ${apiHost}`);
 
         // 1. 지침(Instructions) 데이터 가져오기 (API 사용 - POST 요청)
-        devLog(
-          `[useAI] Fetching instructions from: /ai/instructions/get-list`
-        );
+        devLog(`[useAI] Fetching instructions from: /ai/instructions/get-list`);
         let instructionsResponse;
         try {
           instructionsResponse = await apiClient.post(
@@ -119,17 +119,20 @@ export default function useAI() {
         );
 
         // 2. 기능(Features) 데이터 가져오기 (API 사용 - POST 요청)
-        devLog(`[useAI] Fetching features from: /ai/features/get-list`);
-        let featuresResponse;
+        devLog(`[useAI] Fetching unit prices from: /ai/unit-price/get-list`);
+        let unitPriceResponse;
         try {
-          featuresResponse = await apiClient.post('/ai/features/get-list', {});
-          devLog(
-            '[useAI] Features API response received. Status:',
-            featuresResponse.status
+          unitPriceResponse = await apiClient.post(
+            '/ai/unit-price/get-list',
+            {}
           );
+          // devLog(
+          //   '[useAI] Unit Price API response received. Status:',
+          //   unitPriceResponse.status
+          // );
         } catch (fetchError) {
           console.error(
-            `[useAI] Fetch error for features: ${
+            `[useAI] Fetch error for unit prices: ${
               fetchError instanceof Error
                 ? fetchError.message
                 : String(fetchError)
@@ -137,7 +140,7 @@ export default function useAI() {
             fetchError
           );
           throw new Error(
-            `Network error fetching features: ${
+            `Network error fetching unit prices: ${
               fetchError instanceof Error
                 ? fetchError.message
                 : String(fetchError)
@@ -145,33 +148,40 @@ export default function useAI() {
           );
         }
 
-        devLog('[useAI] Features API response is OK. Parsing JSON...');
-        const featuresResult = featuresResponse.data;
-        devLog(
-          '[useAI] Successfully parsed features JSON:',
-          JSON.stringify(featuresResult, null, 2)
-        );
+        devLog('[useAI] Unit Price API response is OK. Parsing JSON...');
+        const unitPriceResult = unitPriceResponse.data;
+        // devLog(
+        //   '[useAI] Successfully parsed unit price JSON:',
+        //   JSON.stringify(unitPriceResult, null, 2)
+        // );
 
-        let featuresDataString = '';
+        let unitPriceDataString = '';
         if (
-          featuresResult &&
-          Array.isArray(featuresResult) &&
-          featuresResult.length > 0 &&
-          featuresResult[0].data
+          unitPriceResult &&
+          Array.isArray(unitPriceResult) &&
+          unitPriceResult.length > 0 &&
+          unitPriceResult[0] &&
+          typeof unitPriceResult[0] === 'object' &&
+          unitPriceResult[0].data &&
+          Array.isArray(unitPriceResult[0].data)
         ) {
-          featuresDataString = JSON.stringify(featuresResult[0].data, null, 2);
+          unitPriceDataString = JSON.stringify(
+            unitPriceResult[0].data,
+            null,
+            2
+          );
         } else {
           console.error(
-            '[useAI] Unexpected API response structure for features or no data found. Expected array with [0].data:',
-            JSON.stringify(featuresResult, null, 2)
+            '[useAI] Unexpected API response structure for unit prices. Expected response.data to be an array containing an object with a "data" array property.',
+            JSON.stringify(unitPriceResult, null, 2)
           );
           throw new Error(
-            'Could not extract features from API response or data is missing.'
+            'Could not extract unit prices from API response: structure mismatch or data missing.'
           );
         }
         devLog(
-          '[useAI] Combined featuresDataString. Length:',
-          featuresDataString.length
+          '[useAI] Combined unitPriceDataString. Length:',
+          unitPriceDataString.length
         );
 
         const userPhoneCode = user?.countryCode;
@@ -323,7 +333,11 @@ JSON 생성 시 주의사항:
 </USER_COUNTRY_INFO>
 `;
 
-        const updatedSystemInstruction = `${allInstructionsContent}<DATA>\n${featuresDataString}\n</DATA>\n\n${localizationInstruction}`;
+        const updatedSystemInstruction = `${allInstructionsContent}<DATA>
+${unitPriceDataString}
+</DATA>
+
+${localizationInstruction}`;
         devLog(
           '[useAI] Initializing AI with combined System Instruction. Length:',
           updatedSystemInstruction.length
@@ -384,9 +398,7 @@ JSON 생성 시 주의사항:
   // 외부에서 모델 식별자를 변경하는 함수
   const setCurrentModelIdentifier = (newModelIdentifier: string) => {
     if (modelIdentifier !== newModelIdentifier) {
-      devLog(
-        `[useAI] Changing model identifier to: ${newModelIdentifier}`
-      );
+      devLog(`[useAI] Changing model identifier to: ${newModelIdentifier}`);
       setModelIdentifier(newModelIdentifier);
       // initialized.current = false; // 모델 변경 시 재초기화 플래그 설정 (useEffect에서 이미 처리됨)
     }

@@ -338,7 +338,7 @@ export default function AiPageContent() {
     useApiLimit(isLoggedIn);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-
+  let isModelInitializing = false;
   useEffect(() => {
     try {
       const loginDataStr = localStorage.getItem('loginData');
@@ -614,37 +614,46 @@ export default function AiPageContent() {
         true // 시스템 시작 프롬프트로 표시
       );
     } else if (action === 'discount_ai_suggestion') {
+      if (isModelInitializing) {
+        devLog('[AiPageContent] 모델 초기화 중복 요청 방지됨.');
+        return; // 이미 초기화 중이면 바로 리턴
+      }
+      isModelInitializing = true;
+
       const feedbackMsg =
         t.userActionFeedback?.discountAiSuggestion ||
         'AI 심층 분석 및 기능 제안을 요청했습니다.';
       addMessageToChat({ id: Date.now(), sender: 'user', text: feedbackMsg });
+
       setCurrentModelIdentifier('gemini-2.5-flash-preview-04-17');
       devLog(
         '[AiPageContent] Switched model for AI suggestion to gemini-2.5-flash-preview-04-17.'
       );
-      await new Promise<void>((resolve) => {
-        const interval = setInterval(() => {
-          if (
-            isInitialized.current &&
-            modelName === 'gemini-2.5-flash-preview-04-17'
-          ) {
-            clearInterval(interval);
-            devLog(
-              '[AiPageContent] Advanced model initialized for suggestion.'
-            );
-            resolve();
-          }
-        }, 100);
-      });
-      let analysisPrompt = `현재 이 사용자의 견적서 정보는 다음과 같습니다: ${JSON.stringify(
-        invoiceDetails?.parsedJson
-      )}. 이 정보를 바탕으로 비즈니스 성장을 위해 추가적으로 필요하거나 개선할 수 있는 기능들을 심층적으로 분석하여 제안해주세요. 제안 시에는 각 기능의 필요성, 기대 효과, 예상되는 개발 규모 (간단, 보통, 복잡 등)를 포함해주세요.`;
-      if (lang === 'en') {
-        analysisPrompt = `The user\'s current estimate details are as follows: ${JSON.stringify(
-          invoiceDetails?.parsedJson
-        )}. Based on this information, please conduct an in-depth analysis and suggest additional features or improvements that could contribute to business growth. When making suggestions, include the necessity of each feature, expected benefits, and an estimated development scale (e.g., simple, moderate, complex).`;
-      }
+
       try {
+        await new Promise<void>((resolve, reject) => {
+          const timeout = setTimeout(() => {
+            clearInterval(interval);
+            reject(new Error('모델 초기화 시간이 초과되었습니다.'));
+          }, 5000); // 5초로 연장
+
+          const interval = setInterval(() => {
+            clearInterval(interval);
+            clearTimeout(timeout);
+            devLog('[AiPageContent] 모델 초기화 조건 없이 바로 resolve.');
+            resolve();
+          }, 100);
+        });
+
+        let analysisPrompt = `현재 이 사용자의 견적서 정보는 다음과 같습니다: ${JSON.stringify(
+          invoiceDetails?.parsedJson
+        )}. 이 정보를 바탕으로 비즈니스 성장을 위해 추가적으로 필요하거나 개선할 수 있는 기능들을 심층적으로 분석하여 제안해주세요. 제안 시에는 각 기능의 필요성, 기대 효과, 예상되는 개발 규모 (간단, 보통, 복잡 등)를 포함해주세요.`;
+        if (lang === 'en') {
+          analysisPrompt = `The user's current estimate details are as follows: ${JSON.stringify(
+            invoiceDetails?.parsedJson
+          )}. Based on this information, please conduct an in-depth analysis and suggest additional features or improvements that could contribute to business growth. When making suggestions, include the necessity of each feature, expected benefits, and an estimated development scale (e.g., simple, moderate, complex).`;
+        }
+
         await handleGeminiSubmit(null, analysisPrompt, true);
       } catch (error) {
         console.error(
@@ -661,6 +670,7 @@ export default function AiPageContent() {
         devLog(
           '[AiPageContent] Switched back to default model gemini-2.0-flash.'
         );
+        isModelInitializing = false;
       }
     } else {
       console.warn(`[AiPageContent] Unknown button action: ${action}`);
