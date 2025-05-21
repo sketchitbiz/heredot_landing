@@ -150,12 +150,6 @@ const FreeFormGuide: React.FC<FreeFormGuideProps> = ({
     .join(' / ');
 
   useEffect(() => {
-    if (selectionStrings && onSurveyDataReady) {
-      onSurveyDataReady(selectionStrings);
-    }
-  }, [selectionStrings, onSurveyDataReady]);
-
-  useEffect(() => {
     const timer = setTimeout(() => {
       handleGeminiSubmit(null, '안녕하세요! 어떤 걸 적어야 더 세심하게 프로젝트 견적서를 짜주나요', true);
     }, 1000);

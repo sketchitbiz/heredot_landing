@@ -10,7 +10,7 @@ import {
 } from 'firebase/storage';
 import { FileData } from 'firebase/vertexai';
 import { ChangeEvent } from 'react';
-import {devLog} from '@/lib/utils/devLogger';
+import { devLog } from '@/lib/utils/devLogger';
 
 export interface FileUploadData extends FileData {
   name: string;

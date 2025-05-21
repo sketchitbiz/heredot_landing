@@ -622,13 +622,19 @@ export default function AiPageContent() {
       devLog(
         '[AiPageContent] Switched model for AI suggestion to gemini-2.5-flash-preview-04-17.'
       );
-      await new Promise<void>((resolve) => {
+      await new Promise<void>((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          clearInterval(interval);
+          reject(new Error('모델 초기화 시간이 초과되었습니다.'));
+        }, 3000); // 3초 초과 시 실패 처리
+
         const interval = setInterval(() => {
           if (
             isInitialized.current &&
             modelName === 'gemini-2.5-flash-preview-04-17'
           ) {
             clearInterval(interval);
+            clearTimeout(timeout);
             devLog(
               '[AiPageContent] Advanced model initialized for suggestion.'
             );
