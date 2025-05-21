@@ -156,17 +156,25 @@ export default function useAI() {
         let unitPriceDataString = '';
         if (
           unitPriceResult &&
-          unitPriceResult.data &&
-          Array.isArray(unitPriceResult.data)
+          Array.isArray(unitPriceResult) &&
+          unitPriceResult.length > 0 &&
+          unitPriceResult[0] &&
+          typeof unitPriceResult[0] === 'object' &&
+          unitPriceResult[0].data &&
+          Array.isArray(unitPriceResult[0].data)
         ) {
-          unitPriceDataString = JSON.stringify(unitPriceResult.data, null, 2);
+          unitPriceDataString = JSON.stringify(
+            unitPriceResult[0].data,
+            null,
+            2
+          );
         } else {
           console.error(
-            '[useAI] Unexpected API response structure for unit prices or no data found. Expected .data to be an array:',
+            '[useAI] Unexpected API response structure for unit prices. Expected response.data to be an array containing an object with a "data" array property.',
             JSON.stringify(unitPriceResult, null, 2)
           );
           throw new Error(
-            'Could not extract unit prices from API response or data is missing/not an array.'
+            'Could not extract unit prices from API response: structure mismatch or data missing.'
           );
         }
         devLog(
