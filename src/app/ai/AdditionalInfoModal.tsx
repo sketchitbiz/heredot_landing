@@ -560,7 +560,7 @@ export const AdditionalInfoModal = () => {
                 />
                 {nameError && <ErrorMessage>{nameError}</ErrorMessage>}
 
-                <Label>이메일</Label>
+                <Label>회사 이메일</Label>
                 <TextInput
                   type="email"
                   placeholder="이메일을 입력하세요"

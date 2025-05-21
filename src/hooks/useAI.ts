@@ -9,6 +9,7 @@ import {
 import { useEffect, useRef, useState } from 'react'; // useState 추가
 import apiClient from '@/lib/apiClient'; // apiClient import 추가
 import useAuthStore from '@/store/authStore'; // authStore import 추가
+import {devLog} from '@/lib/utils/devLogger';
 
 // GenerativeModelType, ChatSessionType 제거
 
@@ -30,7 +31,7 @@ export default function useAI() {
     // 여기서는 modelIdentifier 변경 시 전체 재초기화 로직을 따름
 
     const initializeAI = async () => {
-      console.log(
+      devLog(
         `[useAI] Starting AI initialization with model: ${modelIdentifier}...`
       );
       initialized.current = false; // 재초기화 시작 시 플래그 리셋
@@ -42,10 +43,10 @@ export default function useAI() {
           );
           throw new Error('API host is not configured.');
         }
-        console.log(`[useAI] API Host: ${apiHost}`);
+        devLog(`[useAI] API Host: ${apiHost}`);
 
         // 1. 지침(Instructions) 데이터 가져오기 (API 사용 - POST 요청)
-        console.log(
+        devLog(
           `[useAI] Fetching instructions from: /ai/instructions/get-list`
         );
         let instructionsResponse;
@@ -54,7 +55,7 @@ export default function useAI() {
             '/ai/instructions/get-list',
             {}
           );
-          console.log(
+          devLog(
             '[useAI] Instructions API response received. Status:',
             instructionsResponse.status
           );
@@ -76,9 +77,9 @@ export default function useAI() {
           );
         }
 
-        console.log('[useAI] Instructions API response is OK. Parsing JSON...');
+        devLog('[useAI] Instructions API response is OK. Parsing JSON...');
         const instructionsResult = instructionsResponse.data;
-        console.log(
+        devLog(
           '[useAI] Successfully parsed instructions JSON:',
           JSON.stringify(instructionsResult, null, 2)
         );
@@ -112,17 +113,17 @@ export default function useAI() {
           );
           throw new Error('No instruction content found');
         }
-        console.log(
+        devLog(
           '[useAI] Combined allInstructionsContent. Length:',
           allInstructionsContent.length
         );
 
         // 2. 기능(Features) 데이터 가져오기 (API 사용 - POST 요청)
-        console.log(`[useAI] Fetching features from: /ai/features/get-list`);
+        devLog(`[useAI] Fetching features from: /ai/features/get-list`);
         let featuresResponse;
         try {
           featuresResponse = await apiClient.post('/ai/features/get-list', {});
-          console.log(
+          devLog(
             '[useAI] Features API response received. Status:',
             featuresResponse.status
           );
@@ -144,9 +145,9 @@ export default function useAI() {
           );
         }
 
-        console.log('[useAI] Features API response is OK. Parsing JSON...');
+        devLog('[useAI] Features API response is OK. Parsing JSON...');
         const featuresResult = featuresResponse.data;
-        console.log(
+        devLog(
           '[useAI] Successfully parsed features JSON:',
           JSON.stringify(featuresResult, null, 2)
         );
@@ -168,15 +169,15 @@ export default function useAI() {
             'Could not extract features from API response or data is missing.'
           );
         }
-        console.log(
+        devLog(
           '[useAI] Combined featuresDataString. Length:',
           featuresDataString.length
         );
 
         const userPhoneCode = user?.countryCode;
-        let mappedIsoCode = 'US';
-        let targetLanguage = 'en';
-        let targetCountryName = 'United States';
+        let mappedIsoCode = 'KR';
+        let targetLanguage = 'ko';
+        let targetCountryName = 'South Korea';
 
         const phoneToIsoMap: { [key: string]: string } = {
           '+82': 'KR',
@@ -216,7 +217,7 @@ export default function useAI() {
           );
         }
 
-        console.log(
+        devLog(
           `[useAI] User phone code: ${userPhoneCode}, Mapped ISO code: ${mappedIsoCode}, Target language: ${targetLanguage}, Target country: ${targetCountryName}`
         );
 
@@ -323,14 +324,14 @@ JSON 생성 시 주의사항:
 `;
 
         const updatedSystemInstruction = `${allInstructionsContent}<DATA>\n${featuresDataString}\n</DATA>\n\n${localizationInstruction}`;
-        console.log(
+        devLog(
           '[useAI] Initializing AI with combined System Instruction. Length:',
           updatedSystemInstruction.length
         );
 
         const vertexAI = getVertexAI();
 
-        console.log(
+        devLog(
           `[useAI] Initializing GenerativeModel with model: ${modelIdentifier}`
         );
         const generativeModelInstance = getGenerativeModel(vertexAI, {
@@ -338,12 +339,12 @@ JSON 생성 시 주의사항:
           systemInstruction: updatedSystemInstruction,
         });
         model.current = generativeModelInstance;
-        console.log('[useAI] GenerativeModel initialized. Starting chat...');
+        devLog('[useAI] GenerativeModel initialized. Starting chat...');
 
         chat.current = generativeModelInstance.startChat();
-        console.log('[useAI] Chat session started successfully.');
+        devLog('[useAI] Chat session started successfully.');
 
-        console.log(
+        devLog(
           `[useAI] AI Model (${modelIdentifier}) and Chat initialized successfully.`
         );
         initialized.current = true;
@@ -356,10 +357,10 @@ JSON 생성 시 주의사항:
       }
     };
 
-    console.log('[useAI] Starting AI initialization process...');
+    devLog('[useAI] Starting AI initialization process...');
     initializeAI()
       .then(() => {
-        console.log(
+        devLog(
           '[useAI] AI initialization completed, initialized.current =',
           initialized.current
         );
@@ -371,9 +372,9 @@ JSON 생성 시 주의사항:
   }, [user, modelIdentifier]); // modelIdentifier를 의존성 배열에 추가
 
   useEffect(() => {
-    console.log('[useAI] Current initialization status:', initialized.current);
+    devLog('[useAI] Current initialization status:', initialized.current);
     return () => {
-      console.log(
+      devLog(
         '[useAI] Component using useAI is unmounting, initialized =',
         initialized.current
       );
@@ -383,7 +384,7 @@ JSON 생성 시 주의사항:
   // 외부에서 모델 식별자를 변경하는 함수
   const setCurrentModelIdentifier = (newModelIdentifier: string) => {
     if (modelIdentifier !== newModelIdentifier) {
-      console.log(
+      devLog(
         `[useAI] Changing model identifier to: ${newModelIdentifier}`
       );
       setModelIdentifier(newModelIdentifier);

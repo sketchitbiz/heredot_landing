@@ -10,6 +10,7 @@ import {
 } from 'firebase/storage';
 import { FileData } from 'firebase/vertexai';
 import { ChangeEvent } from 'react';
+import {devLog} from '@/lib/utils/devLogger';
 
 export interface FileUploadData extends FileData {
   name: string;
@@ -46,15 +47,15 @@ export async function uploadFile(
     'state_changed',
     (snapshot: UploadTaskSnapshot) => {
       const percent = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-      // console.log(`Upload is ${percent}% done`);
+      // devLog(`Upload is ${percent}% done`);
       if (progress) progress(percent);
 
       switch (snapshot.state) {
         case 'paused':
-          console.log('Upload is paused');
+          devLog('Upload is paused');
           break;
         case 'running':
-          console.log('Upload is running');
+          devLog('Upload is running');
           break;
       }
     },
@@ -62,19 +63,19 @@ export async function uploadFile(
       console.error(error);
     },
     () => {
-      console.log('Upload complete');
+      devLog('Upload complete');
       getDownloadURL(uploadTask.snapshot.ref).then((downloadURL: string) => {
-        console.log('File available at', downloadURL);
+        devLog('File available at', downloadURL);
 
         if (deleteUrl) {
-          console.log('Delete  url', deleteUrl);
+          devLog('Delete  url', deleteUrl);
 
           deleteObject(storageRef(getStorage(), deleteUrl))
             .then(() => {
-              console.log('File deleted successfully');
+              devLog('File deleted successfully');
             })
             .catch((error: unknown) => {
-              console.log('Uh-oh, an error occurred!', error);
+              devLog('Uh-oh, an error occurred!', error);
             });
         }
         onUpload({
@@ -99,11 +100,11 @@ export function deleteImage(
 ) {
   deleteObject(storageRef(getStorage(), url))
     .then(() => {
-      console.log('File deleted successfully');
+      devLog('File deleted successfully');
       if (onSuccess) onSuccess(url);
     })
     .catch((error: unknown) => {
-      console.log('Uh-oh, an error occurred!', error);
+      devLog('Uh-oh, an error occurred!', error);
       if (onError) onError(url);
     });
 }
@@ -143,11 +144,11 @@ export function uploadFiles(files: File[], options: UploadImageOptions) {
   ];
 
   files.forEach((file) => {
-    console.log('Attempting to upload file:', file.name, 'Type:', file.type);
+    devLog('Attempting to upload file:', file.name, 'Type:', file.type);
     // file.type이 비어있는 경우도 고려 (예: 일부 시스템에서 확장자만 있고 MIME 타입이 없는 경우)
     // 이 경우 파일 확장자로 추가 검사를 할 수도 있지만, 우선은 MIME 타입 기준으로 처리합니다.
     if (file && allowedMimeTypes.includes(file.type)) {
-      console.log('Allowed file type, proceeding with upload:', file.name);
+      devLog('Allowed file type, proceeding with upload:', file.name);
       uploadFile(file, options);
     } else {
       console.warn(

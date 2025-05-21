@@ -21,6 +21,7 @@ import { useApiLimit } from '@/hooks/useApiLimit';
 import useAiFlowStore from '@/store/aiFlowStore';
 import DropdownInput from '@/components/DropdownInput';
 import { userStamp } from '@/lib/api/user/api';
+import { devLog } from '@/lib/utils/devLogger';
 
 // 컴포넌트 임포트
 import { getStepData, ChatDictionary } from './components/StepData';
@@ -177,11 +178,11 @@ const generateInvoicePDF = async (
       );
       // 추가적인 디버깅을 위해 invoiceNode 자체를 캡처 시도 (스타일이 깨질 수 있음)
       // const canvas = await html2canvas(invoiceNode as HTMLElement, { ... });
-      // console.log('invoiceNode를 직접 캡처 시도함.');
+      // devLog('invoiceNode를 직접 캡처 시도함.');
       return;
     }
 
-    console.log(
+    devLog(
       '#printable-invoice-content 요소를 찾았습니다. 캡처를 시도합니다.',
       printableContent
     );
@@ -250,7 +251,26 @@ const generateInvoicePDF = async (
       }
     }
 
-    pdf.save(`견적서-${invoiceDetailsData.parsedJson.project || '내역'}.pdf`);
+    const pdfBlob = pdf.output('blob');
+    const pdfUrl = URL.createObjectURL(pdfBlob);
+    const newWindow = window.open(pdfUrl, '_blank');
+
+    // 새 창이 열린 후 URL을 해제하여 메모리 누수를 방지합니다.
+    // 팝업 차단 등에 의해 새 창이 안 열릴 수도 있으므로 newWindow 객체 확인
+    if (newWindow) {
+      newWindow.onload = () => {
+        URL.revokeObjectURL(pdfUrl);
+      };
+    } else {
+      // 새 창 열기 실패 시 사용자에게 알림을 주거나 콘솔에 로깅할 수 있습니다.
+      console.error(
+        'PDF를 새 창으로 열지 못했습니다. 팝업 차단 설정을 확인해주세요.'
+      );
+      // 이 경우에도 URL을 즉시 해제합니다.
+      URL.revokeObjectURL(pdfUrl);
+      // 사용자에게 파일 다운로드를 유도할 수도 있습니다.
+      // pdf.save(`견적서-${invoiceDetailsData.parsedJson.project || '내역'}.pdf`);
+    }
   } catch (pdfError) {
     console.error('PDF 생성 중 오류 발생:', pdfError);
     // 사용자에게 오류 알림 (예: setMessages 사용)
@@ -323,7 +343,7 @@ export default function AiPageContent() {
     try {
       const loginDataStr = localStorage.getItem('loginData');
       if (loginDataStr) {
-        console.log('로컬 스토리지에서 로그인 데이터 발견');
+        devLog('로컬 스토리지에서 로그인 데이터 발견');
         const loginData = JSON.parse(loginDataStr);
         if (Array.isArray(loginData) && loginData.length > 0) {
           const result = loginData[0];
@@ -336,13 +356,13 @@ export default function AiPageContent() {
             const userData = result.data[0];
             login(userData);
             if (!userData.cellphone) {
-              console.log('전화번호 정보가 없어 추가 정보 모달 표시');
+              devLog('전화번호 정보가 없어 추가 정보 모달 표시');
               openAdditionalInfoModal();
             } else {
-              console.log('전화번호 정보가 이미 존재함');
+              devLog('전화번호 정보가 이미 존재함');
             }
             localStorage.removeItem('loginData');
-            console.log('로그인 처리 완료 및 로컬 스토리지 데이터 삭제');
+            devLog('로그인 처리 완료 및 로컬 스토리지 데이터 삭제');
           }
         }
       }
@@ -390,29 +410,29 @@ export default function AiPageContent() {
   ]);
 
   useEffect(() => {
-    console.log('[AiPageContent] Firebase auth listener - MOUNTING');
+    devLog('[AiPageContent] Firebase auth listener - MOUNTING');
     setIsFirebaseChecking(true); // 리스너 시작 시 체크 중으로 설정
 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       // async 키워드 추가
-      console.log(
+      devLog(
         '[AiPageContent] onAuthStateChanged CALLBACK TRIGGERED. Firebase user:',
         user
       );
       if (user) {
         // 사용자가 이미 로그인되어 있는 경우 (일반 로그인 또는 이전 익명 로그인 포함)
-        console.log(
+        devLog(
           `[AiPageContent] Firebase user DETECTED (UID: ${user.uid}, Anonymous: ${user.isAnonymous})`
         );
         setIsFirebaseChecking(false); // 사용자 확인 후 체크 완료
       } else {
         // 로그인된 사용자가 없는 경우, 익명으로 로그인 시도
-        console.log(
+        devLog(
           '[AiPageContent] No Firebase user DETECTED. Attempting anonymous sign-in...'
         );
         try {
           await signInAnonymously(auth);
-          console.log(
+          devLog(
             '[AiPageContent] Firebase anonymous sign-in attempt successful. Waiting for new auth state.'
           );
           // 익명 로그인 성공 후, onAuthStateChanged가 새로운 user 정보와 함께 다시 호출됩니다.
@@ -430,7 +450,7 @@ export default function AiPageContent() {
     });
 
     return () => {
-      console.log(
+      devLog(
         '[AiPageContent] Firebase auth listener - UNMOUNTING. Unsubscribing.'
       );
       unsubscribe();
@@ -529,7 +549,7 @@ export default function AiPageContent() {
     action: string,
     data?: { featureId?: string }
   ) => {
-    console.log('[AiPageContent] handleActionClick called with:', action, data);
+    devLog('[AiPageContent] handleActionClick called with:', action, data);
 
     const addMessageToChat = (newMessage: Message) => {
       setMessages((prevMessages) => [...prevMessages, newMessage]);
@@ -557,16 +577,16 @@ export default function AiPageContent() {
         });
       }
     } else if (action === 'download_pdf') {
-      console.log('PDF 다운로드 요청');
+      devLog('PDF 다운로드 요청');
       if (invoiceDetails && invoiceDetails.parsedJson) {
         const userCountry = authStore.getState().user?.countryCode || 'KR';
         await generateInvoicePDF(invoiceDetails, lang, userCountry, t);
       } else {
-      addMessageToChat({
-        id: Date.now(),
-        sender: 'ai',
+        addMessageToChat({
+          id: Date.now(),
+          sender: 'ai',
           text: '견적서 데이터를 찾을 수 없어 PDF를 생성할 수 없습니다.',
-      });
+        });
       }
       return;
     } else if (action === 'discount_extend_8w_20p') {
@@ -599,7 +619,7 @@ export default function AiPageContent() {
         'AI 심층 분석 및 기능 제안을 요청했습니다.';
       addMessageToChat({ id: Date.now(), sender: 'user', text: feedbackMsg });
       setCurrentModelIdentifier('gemini-2.5-flash-preview-04-17');
-      console.log(
+      devLog(
         '[AiPageContent] Switched model for AI suggestion to gemini-2.5-flash-preview-04-17.'
       );
       await new Promise<void>((resolve) => {
@@ -609,7 +629,7 @@ export default function AiPageContent() {
             modelName === 'gemini-2.5-flash-preview-04-17'
           ) {
             clearInterval(interval);
-            console.log(
+            devLog(
               '[AiPageContent] Advanced model initialized for suggestion.'
             );
             resolve();
@@ -638,7 +658,7 @@ export default function AiPageContent() {
         addMessageToChat({ id: Date.now(), sender: 'ai', text: errorMsg });
       } finally {
         setCurrentModelIdentifier('gemini-2.0-flash');
-        console.log(
+        devLog(
           '[AiPageContent] Switched back to default model gemini-2.0-flash.'
         );
       }
@@ -661,11 +681,11 @@ export default function AiPageContent() {
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = e.target.files;
     if (!selectedFiles) return;
-    console.log(
+    devLog(
       '[AiPageContent] handleFileInputChange triggered. Files:',
       selectedFiles
     );
-    console.log(
+    devLog(
       '[AiPageContent] Current Firebase User (auth.currentUser) before uploadFiles (via input change):',
       auth.currentUser
     );
@@ -695,11 +715,8 @@ export default function AiPageContent() {
     setIsDragging(false);
     const droppedFiles = e.dataTransfer.files;
     if (!droppedFiles) return;
-    console.log(
-      '[AiPageContent] handleDropFiles triggered. Files:',
-      droppedFiles
-    );
-    console.log(
+    devLog('[AiPageContent] handleDropFiles triggered. Files:', droppedFiles);
+    devLog(
       '[AiPageContent] Current Firebase User (auth.currentUser) before uploadFiles (via drop):',
       auth.currentUser
     );
@@ -778,7 +795,7 @@ export default function AiPageContent() {
           submissionPrompt
         );
         localStorage.setItem('updateQuoteTitleFor', currentSessionId);
-        console.log(
+        devLog(
           `[AiPageContent] First user message for session ${currentSessionId} saved to localStorage:`,
           submissionPrompt
         );
@@ -902,7 +919,7 @@ export default function AiPageContent() {
           aiResponseText += chunkText;
         }
       }
-      console.log('AI 전체 응답 (aiResponseText):', aiResponseText);
+      devLog('AI 전체 응답 (aiResponseText):', aiResponseText);
 
       // --- AI 응답 저장 로직 추가 시작 ---
       if (currentSessionId && aiResponseText.trim()) {
@@ -910,7 +927,7 @@ export default function AiPageContent() {
           `aiResponseFor_${currentSessionId}`,
           aiResponseText
         );
-        console.log(
+        devLog(
           `[AiPageContent] AI response for session ${currentSessionId} saved to localStorage.`
         );
       }
@@ -919,29 +936,29 @@ export default function AiPageContent() {
       const jsonScriptRegex =
         /<script type="application\/json" id="invoiceData">([\s\S]*?)<\/script>/;
       const jsonMatch = aiResponseText.match(jsonScriptRegex);
-      console.log('JSON 추출 시도 결과 (jsonMatch):', jsonMatch);
+      devLog('JSON 추출 시도 결과 (jsonMatch):', jsonMatch);
       let parsedInvoiceData: InvoiceDataType | null = null;
       let naturalLanguageText = aiResponseText;
       if (jsonMatch && jsonMatch[1]) {
         const jsonString = jsonMatch[1];
-        console.log('추출된 JSON 문자열 (jsonString):', jsonString);
+        devLog('추출된 JSON 문자열 (jsonString):', jsonString);
         try {
           parsedInvoiceData = JSON.parse(jsonString) as InvoiceDataType;
-          console.log(
+          devLog(
             '파싱된 견적서 JSON 객체 (parsedInvoiceData):',
             parsedInvoiceData
           );
           naturalLanguageText = aiResponseText
             .replace(jsonScriptRegex, '')
             .trim();
-          console.log(
+          devLog(
             'JSON 제거 후 자연어 텍스트 (naturalLanguageText):',
             naturalLanguageText
           );
           if (parsedInvoiceData && parsedInvoiceData.invoiceGroup) {
             const initialItems = parsedInvoiceData.invoiceGroup.flatMap(
               (group) =>
-              group.items.map((item) => ({ ...item, isDeleted: false }))
+                group.items.map((item) => ({ ...item, isDeleted: false }))
             );
             const { amount, duration, pages } = calculateTotals(initialItems);
             setInvoiceDetails({
@@ -994,7 +1011,7 @@ export default function AiPageContent() {
           });
         }
       } else {
-        console.log(
+        devLog(
           '스크립트 태그에서 견적서 JSON 데이터를 찾지 못했습니다. AI 응답을 자연어로만 처리합니다.'
         );
         setInvoiceDetails(null);
@@ -1041,24 +1058,22 @@ export default function AiPageContent() {
 
   // Firebase 인증 상태 리스너 (AiPageContent 내에서 관리)
   useEffect(() => {
-    console.log('[AiPageContent] Firebase auth listener - MOUNTING');
+    devLog('[AiPageContent] Firebase auth listener - MOUNTING');
     setIsFirebaseChecking(true);
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      console.log(
+      devLog(
         '[AiPageContent] onAuthStateChanged CALLBACK TRIGGERED. Firebase user:',
         user
       );
       setIsFirebaseChecking(false);
       if (user) {
-        console.log(
-          `[AiPageContent] Firebase user DETECTED (UID: ${user.uid})`
-        );
+        devLog(`[AiPageContent] Firebase user DETECTED (UID: ${user.uid})`);
       } else {
-        console.log('[AiPageContent] No Firebase user DETECTED.');
+        devLog('[AiPageContent] No Firebase user DETECTED.');
       }
     });
     return () => {
-      console.log(
+      devLog(
         '[AiPageContent] Firebase auth listener - UNMOUNTING. Unsubscribing.'
       );
       unsubscribe();
@@ -1082,12 +1097,13 @@ export default function AiPageContent() {
             isNarrowScreen={isNarrowScreen}
             isFreeFormMode={isFreeFormMode}
             currentStepData={currentStepData}
-                    initialSelection={initialSelection}
+            initialSelection={initialSelection}
             isDragging={isDragging}
             messages={messages}
             loading={loading}
             error={error}
             invoiceDetails={invoiceDetails}
+            handleGeminiSubmit={handleGeminiSubmit}
             handleActionClick={handleActionClick}
             handleNext={handleNext}
             handlePrevious={handlePrevious}

@@ -11,10 +11,9 @@ import useAuthStore from '@/store/authStore';
 import { useLang } from '@/contexts/LangContext';
 import { aiChatDictionary } from '@/lib/i18n/aiChat';
 import { ChatDictionary } from '@/app/ai/components/StepData'; // ChatDictionary 타입 임포트
-import  useAiFlowStore  from '@/store/aiFlowStore';
+import useAiFlowStore from '@/store/aiFlowStore';
 import { useTranslation } from 'react-i18next';
 import { getStepData } from '@/app/ai/components/StepData';
-
 
 /**
  * AiChatMessage 컴포넌트
@@ -940,7 +939,6 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
   const { t: translate } = useTranslation();
   const selections = useAiFlowStore((state) => state.selections);
   const stepData = getStepData(t as any);
-
 
   const selectionStrings = Object.entries(selections)
     .map(([stepId, selectedIds]) => {
