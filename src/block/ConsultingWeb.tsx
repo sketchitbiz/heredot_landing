@@ -17,6 +17,7 @@ interface ConsultingProps {
   downloadText: string;
   gridHeaders: string[];
   gridContents: string[][];
+  onEnterSection?: () => void; // ✅ 추가
 }
 
 gsap.registerPlugin(ScrollTrigger);
@@ -218,6 +219,7 @@ const ConsultingWeb: React.FC<ConsultingProps> = ({
   downloadText,
   gridHeaders,
   gridContents,
+  onEnterSection,
 }) => {
   const { lang } = useLang();
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -273,11 +275,17 @@ const ConsultingWeb: React.FC<ConsultingProps> = ({
           setVisibleMap(Array(3).fill([0, 0, 0, 0]));
           setHeaderVisible([0, 0, 0, 0]);
           tl.restart();
+          if (!isMobile) {
+            onEnterSection?.(); // ✅ 추가
+          }
         },
         onEnterBack: () => {
           setVisibleMap(Array(3).fill([0, 0, 0, 0]));
           setHeaderVisible([0, 0, 0, 0]);
           tl.restart();
+          if (!isMobile) {
+            onEnterSection?.(); // ✅ 추가
+          }
         },
         
       },

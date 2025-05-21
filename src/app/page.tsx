@@ -1,5 +1,7 @@
 'use client';
 
+import useAuthStore from '@/store/authStore';
+
 import React, { useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { useLang } from '@/contexts/LangContext';
@@ -32,30 +34,48 @@ import { userStamp } from '@/lib/api/user/api';
 import { AIBlock } from '@/block/AIBlock';
 import EventBlock from '@/block/EventBlock';
 import Container3D from '@/block/Container3D';
+import { devLog } from '@/lib/utils/devLogger';
+import { app } from '@/lib/firebase/firebase.config';
 
-const getOrCreateLogId = () => {
+
+export const getOrCreateLogId = (): string => {
+  const authStore = useAuthStore.getState();
+
+  // 1. 로그인 상태
+  if (authStore.isLoggedIn && authStore.user?.uuid) {
+    devLog('[LogId] 로그인ID:', authStore.user.uuid);
+    return authStore.user.uuid;
+  }
+
+  // 2. 비로그인 상태
   const logIdKey = 'logId';
-  const logId = localStorage.getItem(logIdKey);
-  if (logId) return logId;
+  const existing = localStorage.getItem(logIdKey);
+  if (existing) {
+    devLog('[LogId] 로컬스토리지 ID:', existing);
+    return existing;
+  }
+
   const newLogId = uuidv4();
   localStorage.setItem(logIdKey, newLogId);
+  devLog('[LogId] ID 생성:', newLogId);
   return newLogId;
 };
 
 const sectionMap: Record<string, { content: string; memo: string }> = {
-  header: { content: 'Header', memo: 'header' },
-  // partner: { content: "Partner", memo: "anti_drone" },
+  header: { content: 'Header', memo: '해더' },
+  partner: { content: "Partner", memo: "anti_drone" },
   // "partner-sensor": { content: "Partner", memo: "partner" },
-  consulting: { content: 'Consulting', memo: 'consulting' },
+  consulting: { content: 'Consulting', memo: '기능명세' },
   // design: { content: "Design", memo: "design" },
   // "design-sensor": { content: "Design", memo: "design" },
-  appblock: { content: 'AppBlock', memo: 'appblock' },
-  community: { content: 'Community', memo: 'community' },
-  portfolio: { content: 'Portfolio', memo: 'portfolio' },
-  members: { content: 'Members', memo: 'members' },
-  video: { content: 'Video', memo: 'video' },
-  ai: { content: 'AI', memo: 'ai' },
-  contact: { content: 'Contact', memo: 'contact' },
+  appblock: { content: 'AppBlock', memo: '디자인시스템' },
+  community: { content: 'Community', memo: '창업커뮤니티' },
+  portfolio: { content: 'Portfolio', memo: '포트폴리오' },
+  members: { content: 'Members', memo: '팀원소개' },
+  video: { content: 'Video', memo: '고객후기' },
+  event: { content: 'Event', memo: '기획전' },
+  ai: { content: 'AI', memo: 'AI' },
+  contact: { content: 'Contact', memo: '연락' },
 };
 
 const logSectionView = async (
@@ -106,8 +126,13 @@ export default function HomePage() {
   const aliasMap: Record<string, string> = {
     about: 'header',
     portfolio: 'portfolio',
+    partner: 'partner',
+    appblock: 'appblock',
+    members: 'members',
+    review: 'video',
+    design: 'design',
     contact: 'contact',
-    service: 'community',
+    community: 'community',
     market: 'market',
     estimate: 'ai',
     promotion: 'event',
@@ -200,26 +225,41 @@ export default function HomePage() {
     const generalObserver = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
+    
           const id = entry.target.id;
           const isVisible = entry.isIntersecting;
           const currentScrollY = window.scrollY;
-          const isScrollingDown = currentScrollY > lastScrollY;
           lastScrollY = currentScrollY;
 
-          if (
-            id !== 'header' &&
-            isVisible &&
-            isScrollingDown &&
-            id !== lastLoggedId &&
-            !isAutoScrollingRef.current
-          ) {
+
+          if (id !== 'header' && isVisible && id !== lastLoggedId && !isAutoScrollingRef.current) {
             lastLoggedId = id;
+          
+            // ✅ URL은 위든 아래든 항상 바꿔줌
+            const path = Object.entries(aliasMap).find(([, targetId]) => targetId === id)?.[0];
+            if (path) {
+              const newUrl = `/${path}`;
+              if (window.location.pathname !== newUrl) {
+                history.replaceState(null, '', newUrl);
+              }
+            }
+          
+            // ✅ 스탬프는 아래로 스크롤할 때만
+            const currentScrollY = window.scrollY;
+            const isScrollingDown = currentScrollY > lastScrollY;
+            lastScrollY = currentScrollY;
+          
             const section = sectionMap[id];
             if (section) {
               setCurrentSection(section.content);
-              logSectionView(section.content, section.memo);
+          
+              if (isScrollingDown) {
+                logSectionView(section.content, section.memo);
+              }
             }
           }
+          
+          
         });
       },
       { threshold: 0.3 }
@@ -267,15 +307,15 @@ export default function HomePage() {
         },
         {
           label: t.nav[3],
-          targetId: 'AI Estimate',
-          content: 'appbar',
-          memo: 'ai',
-        },
-        {
-          label: t.nav[4],
           targetId: 'event',
           content: 'appbar',
           memo: 'event',
+        },
+        {
+          label: t.nav[4],
+          targetId: 'AI Estimate',
+          content: 'appbar',
+          memo: 'AI Estimate',
         },
       ]}
       onNavigate={scrollToTargetId}
@@ -314,8 +354,6 @@ export default function HomePage() {
       id: 'partner',
       $backgroundColor: AppColors.surface,
       content: (
-        <>
-          {/* <div id="partner-sensor" style={{ height: "1px" }} /> */}
           <Partner
             title1={t.partner.title1}
             title2={t.partner.title2}
@@ -326,13 +364,17 @@ export default function HomePage() {
             onEnterSection={(index, tab) => {
               setCurrentSection('Partner');
               if (isAutoScrollingRef.current) return;
+              const newUrl = '/partner'; // 또는 원하는 aliasMap key
+              if (window.location.pathname !== newUrl) {
+                history.replaceState(null, '', newUrl);
+              }
               void logSectionView('Partner', `스크롤: ${tab}`);
             }}
           />
-        </>
       ),
       $zIndex: 1001,
-    },
+    }
+    ,
     {
       id: 'rolling',
       $backgroundColor: AppColors.background,
@@ -343,6 +385,7 @@ export default function HomePage() {
     {
       id: 'consulting',
       $backgroundColor: AppColors.surface,
+      $zIndex: 1001,
       content: (
         <Consulting
           title={t.consulting.title}
@@ -350,10 +393,21 @@ export default function HomePage() {
           downloadText={t.consulting.downloadText}
           gridHeaders={t.consulting.gridHeaders}
           gridContents={t.consulting.gridContents}
+          onEnterSection={() => {
+            setCurrentSection('Consulting');
+            if (isAutoScrollingRef.current) return;
+    
+            const newUrl = '/consulting';
+            if (window.location.pathname !== newUrl) {
+              history.replaceState(null, '', newUrl);
+            }
+    
+            // void logSectionView('Consulting', '기능명세');
+          }}
         />
       ),
-      $zIndex: 1001,
     },
+    
     {
       id: 'design',
       $backgroundColor: AppColors.background,
@@ -369,6 +423,10 @@ export default function HomePage() {
             onEnterSection={(index, tab) => {
               setCurrentSection('Design');
               if (isAutoScrollingRef.current) return;
+              const newUrl = '/design';
+              if (window.location.pathname !== newUrl) {
+                history.replaceState(null, '', newUrl);
+              }
               void logSectionView('Design', `스크롤: ${tab}`);
             }}
           />
@@ -531,7 +589,7 @@ export default function HomePage() {
           bottomLabel={t.arrival}
           title={t.contract.title}
           description={t.contract.description}
-          onTopArrowClick={() => scrollToTargetId('video', 'contact', 'video')}
+          onTopArrowClick={() => scrollToTargetId('ai', 'contact', 'ai')}
         />
       ),
     },

@@ -9,7 +9,7 @@ export const dictionary = {
     },
 
     aiBlock: {
-      title: '이제는 재대로 시작해야할 때',
+      title: '이제는 제대로 시작해야할 때',
       description: '이유 있는 견적, AI에게 부담없이 물어보아요',
       buttonTitle: 'AI 견적서 바로가기',
       buttonLink: '/ai',
@@ -17,7 +17,7 @@ export const dictionary = {
       buttonDescription: 'AI 견적서로 간편하게',
     },
     arrival: '도착',
-    nav: ['핵심강점', '포트폴리오', '팀원소개', 'AI 견적서', '기획전'],
+    nav: ['핵심강점', '포트폴리오', '팀원소개', '기획전','AI 견적서' ],
     customNavigator: {
       community: '창업커뮤니티',
       portpolio: '포트폴리오',
