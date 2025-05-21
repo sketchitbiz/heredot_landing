@@ -64,7 +64,7 @@ const PhoneFrameWrapper = styled.div`
   @media (max-width: ${Breakpoints.mobile}px) {
     width: 100%;
     max-width: 650px;
-    height: 1032px;
+    height: 680px;
   }
 `;
 

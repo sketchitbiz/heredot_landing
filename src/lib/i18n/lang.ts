@@ -9,7 +9,7 @@ export const dictionary = {
     },
 
     aiBlock: {
-      title: '이제는 재대로 시작해야할 때',
+      title: '이제는 제대로 시작해야할 때',
       description: '이유 있는 견적, AI에게 부담없이 물어보아요',
       buttonTitle: 'AI 견적서 바로가기',
       buttonLink: '/ai',

@@ -40,14 +40,26 @@ export const PopupContainer: React.FC<PopupContainerProps> = ({
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
+  const [viewportHeight, setViewportHeight] = useState<number>(typeof window !== 'undefined' ? window.innerHeight : 800);
 
   const childArray = React.Children.toArray(children);
 
   useEffect(() => {
-    const update = () => setIsMobile(window.innerWidth < 768);
-    update();
-    window.addEventListener('resize', update);
-    return () => window.removeEventListener('resize', update);
+    const updateSize = () => {
+      setIsMobile(window.innerWidth < 768);
+      const visualH = window.visualViewport?.height || window.innerHeight;
+      setViewportHeight(visualH);
+    };
+
+    updateSize();
+
+    window.addEventListener('resize', updateSize);
+    window.visualViewport?.addEventListener('resize', updateSize);
+
+    return () => {
+      window.removeEventListener('resize', updateSize);
+      window.visualViewport?.removeEventListener('resize', updateSize);
+    };
   }, []);
 
   const swipeHandlers = useSwipeable(
@@ -64,21 +76,15 @@ export const PopupContainer: React.FC<PopupContainerProps> = ({
 
   useEffect(() => {
     if (!open) return;
-  
-    // 1. 팝업 열릴 때 히스토리 스택 추가
+
     history.pushState({ popup: true }, '');
-  
-    // 2. 뒤로 가기 감지 시 팝업 닫기
-    const handlePopState = (e: PopStateEvent) => {
-      onClose(); // 팝업 닫기
-    };
-  
+    const handlePopState = () => onClose();
     window.addEventListener('popstate', handlePopState);
-  
+
     return () => {
       window.removeEventListener('popstate', handlePopState);
       if (history.state?.popup) {
-        history.back(); // 팝업 히스토리 제거
+        history.back();
       }
     };
   }, [open, onClose]);
@@ -98,14 +104,14 @@ export const PopupContainer: React.FC<PopupContainerProps> = ({
   if (!open) return null;
 
   const popupJSX = (
-    <Overlay $isFullScreen={isFullScreen}>
+    <Overlay $isFullScreen={isFullScreen} $viewportHeight={viewportHeight}>
       <NavZone $isMobile={isMobile} $position="left">
         <NavButton
           $isFullScreen={isFullScreen}
           onClick={() => {
             const next = Math.max(currentIndex - 1, 0);
             setCurrentIndex(next);
-            onChangeIndex?.(next); // ✅ 콜백 호출
+            onChangeIndex?.(next);
           }}
           disabled={currentIndex === 0}
         >
@@ -113,7 +119,11 @@ export const PopupContainer: React.FC<PopupContainerProps> = ({
         </NavButton>
       </NavZone>
 
-      <Popup $padding={padding} $heightPercent={heightPercent} $isFullScreen={isFullScreen}>
+      <Popup
+        $padding={padding}
+        $heightPercent={heightPercent}
+        $isFullScreen={isFullScreen}
+      >
         <CloseButton
           $isFullScreen={isFullScreen}
           $appBarHeight={appBarHeight}
@@ -130,7 +140,7 @@ export const PopupContainer: React.FC<PopupContainerProps> = ({
           onClick={() => {
             const next = Math.min(currentIndex + 1, childArray.length - 1);
             setCurrentIndex(next);
-            onChangeIndex?.(next); // ✅ 콜백 호출
+            onChangeIndex?.(next);
           }}
           disabled={currentIndex === childArray.length - 1}
         >
@@ -147,19 +157,18 @@ export const PopupContainer: React.FC<PopupContainerProps> = ({
 // Styled Components
 // ==========================
 
-const Overlay = styled.div<{ $isFullScreen?: boolean }>`
+const Overlay = styled.div<{ $isFullScreen?: boolean; $viewportHeight: number }>`
   position: fixed;
   top: 0;
   left: 0;
   width: 100dvw;
-  height: 100dvh;
+  height: ${({ $viewportHeight }) => `${$viewportHeight}px`};
   background: rgba(0, 0, 0, 0.8);
   z-index: 9999;
   display: flex;
   align-items: center;
   justify-content: center;
 `;
-
 
 const NavZone = styled.div<{ $isMobile?: boolean; $position?: 'left' | 'right' }>`
   width: 200px;
@@ -177,7 +186,7 @@ const NavZone = styled.div<{ $isMobile?: boolean; $position?: 'left' | 'right' }
     ${$position}: 0;
     width: 80px;
     min-width: unset;
-    height: 70px; /* ✅ only takes button height */
+    height: 70px;
     z-index: 10;
     pointer-events: auto;
   `}
@@ -213,7 +222,7 @@ const Popup = styled.div<{
   width: 800px;
   min-width: 800px;
   height: ${({ $isFullScreen, $heightPercent }) =>
-    $isFullScreen ? '100vh' : `${$heightPercent}vh`};
+    $isFullScreen ? '100%' : `${$heightPercent}vh`};
   position: relative;
   border-radius: ${({ $isFullScreen }) => ($isFullScreen ? '0px' : '8px')};
   overflow: hidden;

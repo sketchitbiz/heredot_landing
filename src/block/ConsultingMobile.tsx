@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import DownloadIcon from '@mui/icons-material/Download';
 import { downloadLinks } from '@/lib/i18n/downloadLinks';
@@ -8,10 +8,12 @@ import { userStamp } from '@/lib/api/user/api';
 interface ConsultingProps {
   title: string;
   descriptions: string[];
+  downloadText: string;
   gridHeaders: string[];
   gridContents: string[][];
-  downloadText: string;
+  onEnterSection?: () => void; // ✅ 추가
 }
+
 
 const logButtonClick = async (content: string, memo: string) => {
   try {
@@ -180,9 +182,30 @@ const ConsultingMobile: React.FC<ConsultingProps> = ({
   gridHeaders,
   gridContents,
   downloadText,
+  onEnterSection,
 }) => {
 
     const { lang } = useLang();
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+      const el = containerRef.current;
+      if (!el || !onEnterSection) return;
+  
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) {
+            onEnterSection();
+          }
+        },
+        {
+          threshold: 0.3, // 30% 이상 보이면 감지
+        }
+      );
+  
+      observer.observe(el);
+      return () => observer.unobserve(el);
+    }, [onEnterSection]);
 
     const handleDownloadClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
       e.preventDefault();
@@ -192,7 +215,7 @@ const ConsultingMobile: React.FC<ConsultingProps> = ({
     };
 
   return (
-    <Container>
+    <Container ref={containerRef}>
       <Title>
         {title.split('\n').map((line, i) => (
           <span key={i}>

@@ -4,9 +4,18 @@ import styled from 'styled-components';
 import { Breakpoints } from '@/constants/layoutConstants';
 import ResponsiveView from '@/layout/ResponsiveView';
 import React, { useEffect, useRef, useState } from 'react';
-import { ChevronDown, ChevronUp } from 'lucide-react'; // 아이콘 사용
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useLang } from '@/contexts/LangContext';
 import { dictionary } from '@/lib/i18n/lang';
+
+// ✅ ResponsiveDescription: isMobile props를 받아 조건 처리
+const ResponsiveDescription: React.FC<{ text: string; isMobile: boolean }> = ({
+  text,
+  isMobile,
+}) => {
+  const [firstLine] = text.split('\n');
+  return <LeftDescription>{isMobile ? firstLine : text}</LeftDescription>;
+};
 
 interface LandingSection {
   id?: string;
@@ -15,7 +24,7 @@ interface LandingSection {
   $zIndex?: number;
   $isOverLayout?: boolean;
   isWithAppBar?: boolean;
-  showFloatingBox?: boolean; // ✅ 추가
+  showFloatingBox?: boolean;
 }
 
 interface LandingBaseWrapperProps {
@@ -39,13 +48,6 @@ const AppBarContentWrapper = styled.div`
   max-width: ${Breakpoints.desktop}px;
   margin: 0 auto;
   box-sizing: border-box;
-  /* padding-left: 16px; */
-  /* padding-right: 16px; */
-
-  @media (max-width: ${Breakpoints.mobile}px) {
-    /* padding-left: 12px; */
-    /* padding-right: 12px; */
-  }
 `;
 
 const SectionWrapper = styled.section<{
@@ -76,27 +78,28 @@ const ContentWrapper = styled.div<{ $isOverLayout?: boolean }>`
       $isOverLayout ? '100%' : `${Breakpoints.desktop}px`};
   }
 `;
+
 const FloatingToggleButton = styled.div<{ $scrollX: number }>`
   position: fixed;
   bottom: 100px;
   left: 0;
   width: 100%;
-  min-width: ${Breakpoints.desktop}px; // ✅ 데스크탑일 땐 고정
-  transform: translateX(${({ $scrollX }) => -$scrollX}px); // ✅ 스크롤 반영
+  min-width: ${Breakpoints.desktop}px;
+  transform: translateX(${({ $scrollX }) => -$scrollX}px);
   display: flex;
   justify-content: center;
   z-index: 1001;
   pointer-events: none;
 
   @media (max-width: ${Breakpoints.mobile}px) {
-    min-width: 100%; // ✅ 모바일에서 최소 너비 해제
+    min-width: 100%;
   }
 `;
 
 const FloatingToggleButtonInner = styled.div`
   width: 100%;
   max-width: ${Breakpoints.desktop}px;
-  min-width: ${Breakpoints.desktop}px; // ✅ 데스크탑일 땐 고정
+  min-width: ${Breakpoints.desktop}px;
   display: flex;
   justify-content: flex-end;
   padding: 0 20px;
@@ -104,7 +107,7 @@ const FloatingToggleButtonInner = styled.div`
 
   @media (max-width: ${Breakpoints.mobile}px) {
     max-width: 100%;
-    min-width: 0; // ✅ 모바일에서 최소 너비 해제
+    min-width: 0;
     padding: 0 34px;
   }
 `;
@@ -131,7 +134,7 @@ const BottomFloatingBox = styled.div<{
   left: 0;
   width: 100%;
   min-width: ${Breakpoints.desktop}px;
-  transform: translateX(${({ $scrollX }) => -$scrollX}px); // ✅ 스크롤 반영
+  transform: translateX(${({ $scrollX }) => -$scrollX}px);
   background: ${({ $isCollapsed }) =>
     $isCollapsed
       ? 'transparent'
@@ -143,17 +146,18 @@ const BottomFloatingBox = styled.div<{
   padding: 0 32px;
   overflow: hidden;
   transition: height 0.3s ease, opacity 0.3s ease;
-  height: ${({ $isCollapsed }) => ($isCollapsed ? '120px' : '120px')};
+  height: 120px;
 
   @media (max-width: ${Breakpoints.mobile}px) {
     padding: 0 16px;
-    min-width: 0; // ✅ 모바일에서 최소 너비 해제
+    min-width: 0;
   }
 `;
+
 const BoxInnerWrapper = styled.div<{ $isCollapsed: boolean }>`
   width: 100%;
   max-width: ${Breakpoints.desktop}px;
-  min-width: ${Breakpoints.desktop}px; // ✅ 데스크탑 고정
+  min-width: ${Breakpoints.desktop}px;
   display: flex;
   justify-content: ${({ $isCollapsed }) =>
     $isCollapsed ? 'center' : 'space-between'};
@@ -163,14 +167,13 @@ const BoxInnerWrapper = styled.div<{ $isCollapsed: boolean }>`
 
   @media (max-width: ${Breakpoints.mobile}px) {
     max-width: 100%;
-    min-width: 0; // ✅ 모바일에서 제한 없음
+    min-width: 0;
     gap: ${({ $isCollapsed }) => ($isCollapsed ? '0' : '16px')};
   }
 `;
 
 const LeftColumn = styled.div<{ $isCollapsed: boolean }>`
-  display: ${({ $isCollapsed }) =>
-    $isCollapsed ? 'none' : 'flex'}; // 접힌 상태일 때 숨김
+  display: ${({ $isCollapsed }) => ($isCollapsed ? 'none' : 'flex')};
   flex-direction: column;
   gap: 20px;
 `;
@@ -188,10 +191,8 @@ const LeftDescription = styled.div`
   color: #fff;
 
   @media (max-width: ${Breakpoints.mobile}px) {
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    white-space: normal; /* ✅ pre-line 해제 필요 */
-    font-size: 12px;
+    white-space: normal;
+    /* font-size: 12px; */
   }
 `;
 
@@ -199,10 +200,8 @@ const RightRow = styled.div`
   display: flex;
   align-items: center;
   gap: 12px;
-
   font-size: 18px;
   font-weight: 700;
-
   color: #fff;
 
   img {
@@ -219,11 +218,20 @@ const LandingBaseWrapper: React.FC<LandingBaseWrapperProps> = ({
   const [scrollX, setScrollX] = useState(0);
   const sectionRefs = useRef<(HTMLElement | null)[]>([]);
   const [isFloatingVisible, setIsFloatingVisible] = useState(false);
-
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isMobile, setIsMobile] = useState(false); // ✅ 모바일 감지용 state
 
   const { lang } = useLang();
   const t = dictionary[lang].landingBottomBox;
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < Breakpoints.mobile);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -242,7 +250,7 @@ const LandingBaseWrapper: React.FC<LandingBaseWrapperProps> = ({
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll(); // 초기 체크
+    handleScroll();
 
     return () => window.removeEventListener('scroll', handleScroll);
   }, [sections]);
@@ -284,12 +292,7 @@ const LandingBaseWrapper: React.FC<LandingBaseWrapperProps> = ({
                 </ContentWrapper>
               }
               mobileView={
-                <div
-                  style={{
-                    width: '100%',
-                    boxSizing: 'border-box',
-                  }}
-                >
+                <div style={{ width: '100%', boxSizing: 'border-box' }}>
                   {content}
                 </div>
               }
@@ -297,6 +300,7 @@ const LandingBaseWrapper: React.FC<LandingBaseWrapperProps> = ({
           </SectionWrapper>
         )
       )}
+
       {isFloatingVisible && (
         <>
           <FloatingToggleButton $scrollX={scrollX}>
@@ -315,7 +319,7 @@ const LandingBaseWrapper: React.FC<LandingBaseWrapperProps> = ({
             <BoxInnerWrapper $isCollapsed={isCollapsed}>
               <LeftColumn $isCollapsed={isCollapsed}>
                 <LeftTitle>{t.title}</LeftTitle>
-                <LeftDescription>{t.description}</LeftDescription>
+                <ResponsiveDescription text={t.description} isMobile={isMobile} />
               </LeftColumn>
               <RightRow
                 onClick={() =>

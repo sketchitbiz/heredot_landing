@@ -1,6 +1,7 @@
 import { callApiPost } from '@/lib/methods/callApiPost';
 import { callNullCheck } from '@/lib/utils/nullChecker';
 import { triggerAdminLogout } from '@/contexts/AdminAuthContext';
+import { devLog } from '@/lib/utils/devLogger';
 
 export async function callAdminApi<T = any>({
   title,
@@ -15,7 +16,7 @@ export async function callAdminApi<T = any>({
 }): Promise<T[]> {
   const accessToken = localStorage.getItem('admin_access_token') ?? ''
 
-  console.log('accessToken', accessToken);
+  devLog('accessToken', accessToken);
 
   const raw = await callApiPost({
     title,
