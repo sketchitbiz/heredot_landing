@@ -1,137 +1,226 @@
 'use client';
+import React, { useCallback, useMemo, useRef, useState } from 'react'; // useRef 추가
 
-import { useEffect, useState } from 'react';
-import { devError } from '@/lib/utils/devLogger';
-import LandingBaseWrapper from '@/layout/LandingBaseWrapper';
-import ScreenWrapper from '@/layout/ScreenWrapper';
-import { useRouter } from 'next/navigation'; // 리다이렉트를 위한 useRouter 사용
-import { useAdminAuth } from '@/contexts/AdminAuthContext';
+import GenericListUI, {
+  FetchParams,
+  FetchResult,
+} from '@/components/CustomList/GenericListUI';
+import { ColumnDefinition } from '@/components/CustomList/GenericDataTable';
+import { promptGetList } from '@/lib/api/admin/adminApi';
+import dayjs from 'dayjs';
+import styled from 'styled-components';
+import { THEME_COLORS } from '@/styles/theme_colors';
+import ActionButton from '@/components/ActionButton';
+import CmsPopup from '@/components/CmsPopup';
+import { TextField } from '@/components/TextField';
+import SelectionField from '@/components/selectionField';
+import { AppColors } from '@/styles/colors';
+import { Validators } from '@/lib/utils/validators';
+import { toast, ToastContainer } from 'react-toastify';
+import { adminCreate } from '@/lib/api/admin';
+import Switch from '@/components/Switch';
+import { SwitchInput } from '@/components/SwitchInput';
+import { devLog } from '@/lib/utils/devLogger';
+import SimpleGenericList from '@/components/CustomList/\bSimpleGenericList';
+import PromptPopup from './popup';
 
-type DataContainerProps = {
-  message: string;
-  successChild: React.ReactNode;
-  noDataChild?: React.ReactNode;
+type Prompt = {
+  index: number;
+  key: string;
+  category: string;
+  label: string;
+  description: string;
+  descricreatedIdption: string;
+  updateId: string;
+  createdTime: string | null;
+  updateTime: string | null;
 };
 
-function DataContainer({ message, successChild, noDataChild }: DataContainerProps) {
-  const isSuccess = message === 'success';
-  return (
-    <div style={{ flex: 1 }}>
-      {isSuccess ? successChild : noDataChild ?? <p>No data available.</p>}
-    </div>
+const PopupFooter = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+`;
+
+const FooterButton = styled.button`
+  width: 120px;
+  height: 48px;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 16px;
+  cursor: pointer;
+  border: none;
+`;
+
+const CancelButton = styled(FooterButton)`
+  background-color: #ffffff;
+  color: ${AppColors.onSurface};
+  border: 1px solid ${AppColors.border};
+`;
+
+const SaveButton = styled(FooterButton)`
+  background-color: ${AppColors.primary};
+  color: ${AppColors.onPrimary};
+`;
+
+const FormContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  gap: 22px;
+  justify-content: space-evenly;
+`;
+
+const RegisterButton = styled(ActionButton)<{ $themeMode: 'light' | 'dark' }>`
+  background: ${({ $themeMode }) =>
+    $themeMode === 'light'
+      ? THEME_COLORS.light.primary
+      : THEME_COLORS.dark.buttonText};
+  color: ${({ $themeMode }) =>
+    $themeMode === 'light' ? '#f8f8f8' : THEME_COLORS.dark.primary};
+  border: none;
+  &:hover:not(:disabled) {
+    background-color: ${({ $themeMode }) =>
+      $themeMode === 'light' ? '#e8e8e8' : '#424451'};
+  }
+`;
+
+// const SwitchButton = styled.div<{ checked: boolean; readOnly?: boolean }>`
+//   display: inline-block;
+//   margin: 0 auto;
+//   width: 40px;
+//   height: 20px;
+//   background-color: ${({ checked }) => (checked ? '#4EFF63' : '#D2D3D7')};
+//   border-radius: 20px;
+//   position: relative;
+//   cursor: ${({ readOnly }) => (readOnly ? 'default' : 'pointer')};
+//   transition: background-color 0.3s;
+//   &::before {
+//     content: '';
+//     position: absolute;
+//     top: 2px;
+//     left: ${({ checked }) => (checked ? '20px' : '2px')};
+//     width: 16px;
+//     height: 16px;
+//     background-color: white;
+//     border-radius: 50%;
+//     transition: left 0.3s;
+//   }
+// `;
+
+const PromptPage: React.FC = () => {
+  const [selectedItem, setSelectedItem] = useState<Partial<Prompt> | null>(
+    null
   );
-}
 
-type ProductDetailContentProps = {
-  title: string;
-  data: any;
-  color?: string;
-};
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
 
-function ProductDetailContent({ title, data, color }: ProductDetailContentProps) {
-  return (
-    <div style={{ backgroundColor: color, padding: '1rem', borderRadius: '8px' }}>
-      <h3>{title}</h3>
-      <pre style={{ fontSize: '13px', overflowX: 'auto' }}>
-        {JSON.stringify(data, null, 2)}
-      </pre>
-    </div>
-  );
-}
+  const listRef = useRef<{ refetch: () => void }>(null);
 
-export default function DashboardPage() {
-  const [dashboardData, setDashboardData] = useState<any>(null);
-  const [dashboardError, setDashboardError] = useState<string | null>(null);
 
-  const [productDetail1, setProductDetail1] = useState<any>(null);
-  const [productDetail9999, setProductDetail9999] = useState<any>(null);
-
-  const router = useRouter(); // Next.js의 useRouter 훅 사용
-
-  ;
-
-  const { logout } = useAdminAuth();
-
-  const handleLogout = () => {
-    logout(); // ✅ context 상태까지 동기화
-    router.push('/cms'); // 로그인 페이지로 이동
+  const handleHeaderButtonClick = () => {
+    setIsPopupOpen(true);
   };
 
-  return (
-      <ScreenWrapper>
-        <main style={{ paddingTop: '2rem', paddingBottom: '2rem' }}>
-          <h1>📊 관리자 대시보드</h1>
+  const handleRowClick = (item: Prompt) => {
+    setSelectedItem(item); // index 저장
+    setIsPopupOpen(true);
+  };
+  
 
-          <button
-            onClick={handleLogout}
-            style={{
-              marginBottom: '1rem',
-              padding: '10px 20px',
-              backgroundColor: '#d32f2f',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-            }}
-          >
-            로그아웃
-          </button>
+  const closePopup = () => {
+    setIsPopupOpen(false);
+  };
 
-          {dashboardError && <p style={{ color: 'red' }}>{dashboardError}</p>}
-          {!dashboardData && !dashboardError && <p>대시보드 데이터 불러오는 중...</p>}
 
-          {dashboardData && (
-            <section
-              style={{
-                margin: '2rem 0',
-                padding: '1rem',
-                backgroundColor: '#f9f9f9',
-                borderRadius: '8px',
-              }}
-            >
-              <h2>📈 대시보드 원본 데이터</h2>
-              <pre>{JSON.stringify(dashboardData, null, 2)}</pre>
-            </section>
-          )}
-
-          <section style={{ display: 'flex', gap: '2rem', marginTop: '2rem' }}>
-            <DataContainer
-              message={productDetail1?.[0]?.message ?? ''}
-              successChild={
-                <ProductDetailContent
-                  title="✅ 구독자 있음 (productIndex: 25)"
-                  data={productDetail1}
-                  color="#e0f7fa"
-                />
-              }
-              noDataChild={
-                <ProductDetailContent
-                  title="❌ 구독자 없음 (productIndex: 25)"
-                  data={productDetail1}
-                  color="#ffe0b2"
-                />
-              }
-            />
-
-            <DataContainer
-              message={productDetail9999?.[0]?.message ?? ''}
-              successChild={
-                <ProductDetailContent
-                  title="✅ 구독자 있음 (productIndex: 9999)"
-                  data={productDetail9999}
-                  color="#e0f7fa"
-                />
-              }
-              noDataChild={
-                <ProductDetailContent
-                  title="❌ 구독자 없음 (productIndex: 9999)"
-                  data={productDetail9999}
-                  color="#ffe0b2"
-                />
-              }
-            />
-          </section>
-        </main>
-      </ScreenWrapper>
+  const fetchData = useCallback(
+    async (params: FetchParams): Promise<FetchResult<Prompt>> => {
+      const raw = await promptGetList({ keyword: params.keyword ?? '' });
+      const wrapper = raw?.[0];
+      const data = wrapper?.data ?? [];
+      const totalItems = wrapper?.metadata?.totalCnt ?? data.length;
+      const allItems = wrapper?.metadata?.allCnt ?? totalItems;
+      return { data, totalItems, allItems };
+    },
+    []
   );
-}
+
+
+  const columns: ColumnDefinition<Prompt>[] = useMemo(
+    () => [
+      { header: 'No', accessor: 'no' },
+      {
+        header: '최종수정일',
+        accessor: 'updateTime',
+        formatter: (value) => (value ? dayjs(value).format('YYYY-MM-DD') : '-'),
+      },
+      {
+        header: '최종수정자',
+        accessor: 'updateId',
+      },
+      {
+        header: '작성자',
+        accessor: 'createdId',
+      },
+      {
+        header: '카테고리',
+        accessor: 'category',
+        sortable: true,
+        formatter: (value) => value ?? '-',
+      },
+      {
+        header: '프롬프트명항목',
+        accessor: 'label',
+        sortable: true,
+        formatter: (value) => value ?? '-',
+      },
+      {
+        header: '프롬프트설명설명',
+        accessor: 'description',
+        sortable: true,
+        formatter: (value) => value ?? '-',
+      },
+    ],
+    []
+  );
+
+  return (
+    <>
+      <ToastContainer
+        position="top-center"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+        style={{ zIndex: 10000 }}
+      ></ToastContainer>
+      <GenericListUI<Prompt>
+        ref={listRef}
+        title="AI 프롬프트 관리"
+        excelFileName="PromptList"
+        columns={columns}
+        fetchData={fetchData}
+        enableSearch
+        enableDateFilter={false}
+        searchPlaceholder="프롬프트 검색"
+        onRowClick={handleRowClick}
+        themeMode="light"
+      />
+
+<PromptPopup
+  index={selectedItem?.index ? Number(selectedItem.index) : 0}
+  isOpen={isPopupOpen}
+  onClose={closePopup}
+/>
+
+    </>
+  );
+};
+
+export default PromptPage;

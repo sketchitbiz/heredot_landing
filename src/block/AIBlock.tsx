@@ -91,9 +91,11 @@ const LeftImageBlock = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
+  overflow: hidden;
+  touch-action: none; /* 터치 스크롤 방지 */
 
   @media (max-width: ${Breakpoints.mobile}px) {
-    width: 100%; /* 모바일에서 블록 전체 넓이 확보 */
+    width: 100%;
     max-width: 350px;
   }
 
@@ -108,6 +110,7 @@ const LeftImageBlock = styled.div`
     }
   }
 `;
+
 
 const RightTextBlock = styled.div`
   flex: 1;

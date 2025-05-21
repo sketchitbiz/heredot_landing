@@ -4,9 +4,14 @@ import {
   AdminGetListParams,
   AdminCreateParams,
   TermGetListParams,
+  PromptGetListParams,
+  PromptHistoryGetListParams,
+  PromptUpdateParams,
 } from './adminApi.types';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_HOST!;
+
+// ***************** 인증 관련
 
 export async function adminLogin(
   params: AdminLoginParams) {
@@ -17,6 +22,8 @@ export async function adminLogin(
     isCallPageLoader: true,
   });
 }
+
+// ***************** 관리자
 
 export async function adminGetList(
   params: AdminGetListParams) {
@@ -49,6 +56,8 @@ export async function adminCreate(
 } 
 
 
+// ***************** 약관
+
 export async function termGetList() {
   return callAdminApi({
     title: '약관 목록',
@@ -70,3 +79,38 @@ export async function termUpdate(
     isCallPageLoader: true,
   });
 }
+
+// ***************** 프롬프트
+
+export async function promptGetList(
+  params: PromptGetListParams) {
+  return callAdminApi({
+    title: '프롬프트 목록',
+    url: `${BASE_URL}/cms/ai/prompt/get-list`,
+    body: { keyword: params.keyword },
+    isCallPageLoader: true,
+  });
+}
+export async function promptHistoryGetList(
+  params: PromptHistoryGetListParams) {
+  return callAdminApi({
+    title: '프롬프트 히스토리 목록',
+    url: `${BASE_URL}/cms/ai/prompt/history/get-list`,
+    body: { index: params.index },
+    isCallPageLoader: true,
+  });
+}
+
+export async function promptUpdate(
+  params: PromptUpdateParams) {
+  return callAdminApi({
+    title: '프롬프트 수정',
+    url: `${BASE_URL}/cms/ai/prompt/update`,
+    body: {
+      index: params.index,
+      content: params.content,
+    },
+    isCallPageLoader: true,
+  });
+}
+

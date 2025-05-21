@@ -1,44 +1,38 @@
-'use client'
+'use client';
 
 import { THEME_COLORS, ThemeMode } from "@/styles/theme_colors";
-import React from "react";
 import styled from "styled-components";
-// 열 정의를 위한 더 일반적인 타입 정의
+import React, { useEffect, useRef } from "react";
+
 export interface ColumnDefinition<T> {
-  header: string; // 헤더에 표시할 텍스트
-  accessor: keyof T | string; // 행 객체에서 데이터를 액세스하는 키 또는 '__index__'와 같은 특수 문자열
-  sortable?: boolean; // 열이 정렬 가능한지 여부
-  formatter?: (value: any, item: T, rowIndex: number) => React.ReactNode; // 사용자 정의 셀 렌더러
-  headerStyle?: React.CSSProperties; // 헤더에 대한 선택적 스타일
-  cellStyle?: React.CSSProperties | ((value: any, item: T) => React.CSSProperties); // 셀에 대한 선택적 스타일
+  header: string;
+  accessor: keyof T | string;
+  sortable?: boolean;
+  formatter?: (value: any, item: T, rowIndex: number) => React.ReactNode;
+  headerStyle?: React.CSSProperties;
+  cellStyle?: React.CSSProperties | ((value: any, item: T) => React.CSSProperties);
+  flex?: number; // ✅ flex 비율
 }
 
 interface GenericDataTableProps<T> {
-  data: T[]; // 현재 페이지의 실제 데이터 배열
-  columns: ColumnDefinition<T>[]; // 열에 대한 구성
-  isLoading?: boolean; // 선택적 로딩 상태
-  error?: string | null; // 선택적 오류 메시지
-  maxLength?: number; // 표시할 최대 행 수 (데이터가 미리 슬라이싱되지 않은 경우 유용)
-  onRowClick?: (item: T, rowIndex: number) => void; // 행 클릭 시 콜백
-  onHeaderClick?: (accessor: keyof T | string) => void; // 헤더 클릭 시 콜백 (정렬 용)
-  sortKey?: keyof T | string | null; // 현재 활성화된 정렬 키
-  sortOrder?: "asc" | "desc"; // 현재 정렬 순서
-  keyExtractor: (item: T, index: number) => string | number; // 각 행에 대한 고유 키를 얻는 함수
-  themeMode?: ThemeMode; // 테마 속성 수정
+  data: T[];
+  columns: ColumnDefinition<T>[];
+  isLoading?: boolean;
+  error?: string | null;
+  maxLength?: number;
+  onRowClick?: (item: T, rowIndex: number) => void;
+  onHeaderClick?: (accessor: keyof T | string) => void;
+  sortKey?: keyof T | string | null;
+  sortOrder?: "asc" | "desc";
+  keyExtractor: (item: T, index: number) => string | number;
+  themeMode?: ThemeMode;
 }
 
-// 중첩된 속성 값을 가져오는 헬퍼 함수
+// 중첩 키 처리
 const getPropertyValue = <T,>(obj: T, path: keyof T | string): any => {
-  if (typeof path !== "string") return obj[path]; // 직접적인 키 액세스를 처리
+  if (typeof path !== "string") return obj[path];
   const keys = path.split(".");
-  let value: any = obj;
-  for (const key of keys) {
-    if (value === null || typeof value !== "object") {
-      return undefined;
-    }
-    value = value[key];
-  }
-  return value;
+  return keys.reduce((acc: any, key: string) => acc?.[key], obj);
 };
 
 const GenericDataTable = <T extends object>({
@@ -54,92 +48,99 @@ const GenericDataTable = <T extends object>({
   keyExtractor,
   themeMode = "dark",
 }: GenericDataTableProps<T>) => {
-  const renderCellContent = (item: T, column: ColumnDefinition<T>, rowIndex: number) => {
-    const rawValue = getPropertyValue(item, column.accessor);
-
-    if (column.formatter) {
-      return column.formatter(rawValue, item, rowIndex);
-    }
-    // 일반적인 타입을 위한 기본 렌더링
-    if (rawValue instanceof Date) {
-      return rawValue.toLocaleString();
-    }
-    if (typeof rawValue === "boolean") {
-      return rawValue ? "Yes" : "No";
-    }
-    if (rawValue === null || rawValue === undefined) {
-      return "-"; // 또는 다른 placeholder
-    }
-    return String(rawValue); // 기본적으로 문자열로 변환
-  };
-
-  const getCellStyle = (item: T, column: ColumnDefinition<T>): React.CSSProperties | undefined => {
-    if (!column.cellStyle) return undefined;
-    if (typeof column.cellStyle === "function") {
-      const rawValue = getPropertyValue(item, column.accessor);
-      return column.cellStyle(rawValue, item);
-    }
-    return column.cellStyle;
-  };
-
-  if (isLoading) {
-    // 더 정교한 로딩 인디케이터를 원할 수 있음
-    return <LoadingContainer $themeMode={themeMode}>로딩 중...</LoadingContainer>;
-  }
-
-  if (error) {
-    return <ErrorMessage $themeMode={themeMode}>오류: {error}</ErrorMessage>;
-  }
-
-  if (!data || data.length === 0) {
-    return <NoDataMessage $themeMode={themeMode}>표시할 데이터가 없습니다.</NoDataMessage>;
-  }
+  const totalFlex = columns.reduce((sum, col) => sum + (col.flex ?? 0), 0);
 
   const displayData = maxLength ? data.slice(0, maxLength) : data;
+  const tableRef = useRef<HTMLTableElement>(null);
+
+  useEffect(() => {
+    const logFlexStatus = () => {
+      const tableWidth = tableRef.current?.offsetWidth;
+      console.log("============== 📐 GenericDataTable Layout Info ==============");
+      console.log("📏 window.innerWidth:", window.innerWidth);
+      console.log("📐 table.offsetWidth:", tableWidth);
+      console.log("📊 totalFlex:", totalFlex);
+      columns.forEach((col, i) => {
+        const flex = col.flex ?? 0;
+        const percent = totalFlex > 0 ? ((flex / totalFlex) * 100).toFixed(2) : "0";
+        console.log(`  ▸ Column ${i} (${col.header}): flex=${flex}, widthPercent=${percent}%`);
+      });
+      console.log("=============================================================");
+    };
+  
+    logFlexStatus(); // 초기 렌더 시 출력
+    window.addEventListener("resize", logFlexStatus);
+    return () => window.removeEventListener("resize", logFlexStatus);
+  }, [columns, totalFlex]);
+  ;
+  
 
   return (
-    <Table $themeMode={themeMode}>
+<Table $themeMode={themeMode} ref={tableRef}>
+      {totalFlex > 0 && (
+        <colgroup>
+          {columns.map((col, i) => (
+            <col
+              key={i}
+              style={{ width: col.flex ? `${(col.flex / totalFlex) * 100}%` : undefined }}
+            />
+          ))}
+        </colgroup>
+      )}
       <thead>
-      <tr>
-  {columns.map((column, headerIndex) => {
-    // column.sortable가 undefined일 경우 기본값 true로 설정
-    const isSortable = (column.sortable ?? true) && onHeaderClick;
-    const isSortedColumn = isSortable && column.accessor === sortKey;
-
-    return (
-      <Th
-        key={`header-${String(column.accessor)}-${headerIndex}`}
-        onClick={isSortable ? () => onHeaderClick(column.accessor) : undefined}
-        style={{ ...column.headerStyle, cursor: isSortable ? "pointer" : "default" }}
-        $isSortable={!!isSortable}
-        $themeMode={themeMode}
-      >
-        {column.header}
-        {isSortedColumn && <SortIcon $themeMode={themeMode}>{sortOrder === "asc" ? " ▲" : " ▼"}</SortIcon>}
-      </Th>
-    );
-  })}
-</tr>
+        <tr>
+          {columns.map((col, i) => {
+            const sortable = (col.sortable ?? true) && onHeaderClick;
+            const isSorted = sortable && col.accessor === sortKey;
+            return (
+              <Th
+                key={i}
+                onClick={sortable ? () => onHeaderClick(col.accessor) : undefined}
+                style={{ ...col.headerStyle, cursor: sortable ? "pointer" : "default" }}
+                $isSortable={!!sortable}
+                $themeMode={themeMode}
+              >
+                {col.header}
+                {isSorted && <SortIcon $themeMode={themeMode}>{sortOrder === "asc" ? " ▲" : " ▼"}</SortIcon>}
+              </Th>
+            );
+          })}
+        </tr>
       </thead>
       <tbody>
-        {displayData.map((item, rowIndex) => (
-          <TableRow
-            key={keyExtractor(item, rowIndex)}
-            $isEven={rowIndex % 2 === 0}
-            onClick={onRowClick ? () => onRowClick(item, rowIndex) : undefined}
-            $isClickable={!!onRowClick}
-            $themeMode={themeMode}>
-            {columns.map((column, cellIndex) => (
-              <Td
-                key={`cell-${String(column.accessor)}-${rowIndex}-${cellIndex}`}
-                style={getCellStyle(item, column)}
-                $isEven={rowIndex % 2 === 0}
-                $themeMode={themeMode}>
-                {renderCellContent(item, column, rowIndex)}
-              </Td>
-            ))}
-          </TableRow>
-        ))}
+        {data.length === 0 ? (
+          <tr>
+            <TdNoData colSpan={columns.length} $themeMode={themeMode}>
+              <NoDataWrapper>
+                <p>데이터가 없습니다.</p>
+              </NoDataWrapper>
+            </TdNoData>
+          </tr>
+        ) : (
+          displayData.map((item, rowIdx) => (
+            <TableRow
+              key={keyExtractor(item, rowIdx)}
+              $isEven={rowIdx % 2 === 0}
+              $isClickable={!!onRowClick}
+              $themeMode={themeMode}
+              onClick={() => onRowClick?.(item, rowIdx)}
+            >
+              {columns.map((col, colIdx) => {
+                const value = getPropertyValue(item, col.accessor);
+                const content = col.formatter ? col.formatter(value, item, rowIdx) : String(value ?? "-");
+                const style =
+                  typeof col.cellStyle === "function"
+                    ? col.cellStyle(value, item)
+                    : col.cellStyle;
+                return (
+                  <Td key={colIdx} style={style} $isEven={rowIdx % 2 === 0} $themeMode={themeMode}>
+                    {content}
+                  </Td>
+                );
+              })}
+            </TableRow>
+          ))
+        )}
       </tbody>
     </Table>
   );
@@ -147,137 +148,64 @@ const GenericDataTable = <T extends object>({
 
 export default GenericDataTable;
 
-// --- 스타일 컴포넌트 (UserDataTable의 원본과 유사하게, props에 맞게 조정됨) ---
+// --- Styles ---
 
 const Table = styled.table<{ $themeMode: ThemeMode }>`
   width: 100%;
+  /* min-width: 600px; */
+  /* table-layout: fixed; */
   border-collapse: collapse;
-  margin: 0;
   font-size: 14px;
   text-align: center;
   background-color: ${({ $themeMode }) =>
     $themeMode === "light" ? THEME_COLORS.light.tableBackground : THEME_COLORS.dark.tableBackground};
 `;
 
-interface ThProps extends React.ThHTMLAttributes<HTMLTableCellElement> {
-  $isSortable?: boolean;
-  $themeMode: ThemeMode;
-}
-
-const Th = styled.th<ThProps>`
+const Th = styled.th<{ $isSortable?: boolean; $themeMode: ThemeMode }>`
   padding: 12px 8px;
-  border-bottom: 1px solid
-    ${({ $themeMode }) => ($themeMode === "light" ? THEME_COLORS.light.borderColor : THEME_COLORS.dark.borderColor)};
-  font-family: "Pretendard Variable", sans-serif;
-  font-size: 14px;
-  font-weight: 600;
-  color: ${({ $themeMode }) =>
-    $themeMode === "light" ? THEME_COLORS.light.tableHeaderText : THEME_COLORS.dark.tableHeaderText};
-  background-color: ${({ $themeMode }) =>
-    $themeMode === "light" ? THEME_COLORS.light.tableHeaderBackground : THEME_COLORS.dark.tableHeaderBackground};
-  cursor: ${(props) => (props.$isSortable ? "pointer" : "default")};
-  user-select: none;
+  border-bottom: 1px solid ${({ $themeMode }) => THEME_COLORS[$themeMode].borderColor};
+  background-color: ${({ $themeMode }) => THEME_COLORS[$themeMode].tableHeaderBackground};
+  color: ${({ $themeMode }) => THEME_COLORS[$themeMode].tableHeaderText};
+  font-weight: bold;
   white-space: nowrap;
-  text-align: center;
+  user-select: none;
   position: sticky;
   top: 0;
   z-index: 1;
-
-  &:hover {
-    background-color: ${(props) => {
-      if (props.$isSortable) {
-        return props.$themeMode === "light" ? "#F0F0F0" : "#424451";
-      }
-      return props.$themeMode === "light"
-        ? THEME_COLORS.light.tableHeaderBackground
-        : THEME_COLORS.dark.tableHeaderBackground;
-    }};
-  }
 `;
 
 const SortIcon = styled.span<{ $themeMode: ThemeMode }>`
   margin-left: 4px;
   font-size: 12px;
-  vertical-align: middle;
-  color: ${({ $themeMode }) =>
-    $themeMode === "light" ? THEME_COLORS.light.tableHeaderText : THEME_COLORS.dark.tableHeaderText};
+  color: ${({ $themeMode }) => THEME_COLORS[$themeMode].tableHeaderText};
 `;
 
-interface TableRowProps extends React.HTMLAttributes<HTMLTableRowElement> {
-  $isEven: boolean;
-  $isClickable: boolean;
-  $themeMode: ThemeMode;
-}
-
-const TableRow = styled.tr<TableRowProps>`
-  background-color: ${({ $isEven, $themeMode }) => {
-    return $isEven
-      ? $themeMode === "light"
-        ? THEME_COLORS.light.tableRowEven
-        : THEME_COLORS.dark.tableRowEven
-      : $themeMode === "light"
-      ? THEME_COLORS.light.tableRowOdd
-      : THEME_COLORS.dark.tableRowOdd;
-  }};
+const TableRow = styled.tr<{ $isEven: boolean; $isClickable: boolean; $themeMode: ThemeMode }>`
+  background-color: ${({ $isEven, $themeMode }) =>
+    $isEven ? THEME_COLORS[$themeMode].tableRowEven : THEME_COLORS[$themeMode].tableRowOdd};
   cursor: ${({ $isClickable }) => ($isClickable ? "pointer" : "default")};
-  transition: background-color 0.2s ease;
 
   &:hover {
-    background-color: ${({ $themeMode }) => ($themeMode === "light" ? "#e0e0e0" : "#424451")};
+    background-color: ${({ $themeMode }) => ($themeMode === "light" ? "#f5f5f5" : "#3d3f4a")};
   }
 `;
 
-interface TdProps extends React.TdHTMLAttributes<HTMLTableCellElement> {
-  $isEven: boolean; // 홀수/짝수 행 구분용 속성 추가
-  $themeMode: ThemeMode;
-}
-
-const Td = styled.td<TdProps>`
+const Td = styled.td<{ $isEven: boolean; $themeMode: ThemeMode }>`
   padding: 12px 8px;
-  background: ${({ $isEven, $themeMode }) => {
-    return $isEven
-      ? $themeMode === "light"
-        ? THEME_COLORS.light.tableRowEven
-        : THEME_COLORS.dark.tableRowEven
-      : $themeMode === "light"
-      ? THEME_COLORS.light.tableRowOdd
-      : THEME_COLORS.dark.tableRowOdd;
-  }};
-  font-family: "Pretendard Variable", sans-serif;
-  font-size: 14px;
-  font-weight: 400;
-  color: ${({ $themeMode }) => ($themeMode === "light" ? THEME_COLORS.light.tableText : THEME_COLORS.dark.tableText)};
-  border-bottom: 1px solid
-    ${({ $themeMode }) => ($themeMode === "light" ? THEME_COLORS.light.borderColor : THEME_COLORS.dark.borderColor)};
-  vertical-align: middle;
+  border-bottom: 1px solid ${({ $themeMode }) => THEME_COLORS[$themeMode].borderColor};
+  background-color: ${({ $isEven, $themeMode }) =>
+    $isEven ? THEME_COLORS[$themeMode].tableRowEven : THEME_COLORS[$themeMode].tableRowOdd};
+  color: ${({ $themeMode }) => THEME_COLORS[$themeMode].tableText};
   text-align: center;
-  word-break: break-word;
 `;
 
-const LoadingContainer = styled.div<{ $themeMode: ThemeMode }>`
+const TdNoData = styled.td<{ $themeMode: ThemeMode }>`
   padding: 40px;
-  text-align: center;
-  color: ${({ $themeMode }) => ($themeMode === "light" ? THEME_COLORS.light.text : THEME_COLORS.dark.text)};
-  font-size: 16px;
-  background-color: ${({ $themeMode }) =>
-    $themeMode === "light" ? THEME_COLORS.light.tableBackground : THEME_COLORS.dark.tableBackground};
+  color: #aaa;
+  background-color: ${({ $themeMode }) => THEME_COLORS[$themeMode].tableBackground};
 `;
 
-const ErrorMessage = styled.div<{ $themeMode: ThemeMode }>`
-  padding: 40px;
+const NoDataWrapper = styled.div`
   text-align: center;
-  color: red;
-  font-size: 16px;
-  font-weight: bold;
-  background-color: ${({ $themeMode }) =>
-    $themeMode === "light" ? THEME_COLORS.light.tableBackground : THEME_COLORS.dark.tableBackground};
-`;
-
-const NoDataMessage = styled.div<{ $themeMode: ThemeMode }>`
-  padding: 40px;
-  text-align: center;
-  color: ${({ $themeMode }) => ($themeMode === "light" ? THEME_COLORS.light.text : THEME_COLORS.dark.text)};
-  font-size: 16px;
-  background-color: ${({ $themeMode }) =>
-    $themeMode === "light" ? THEME_COLORS.light.tableBackground : THEME_COLORS.dark.tableBackground};
+  width: 100%;
 `;

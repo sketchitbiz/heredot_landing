@@ -1,32 +1,40 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
-import { AppColors } from '@/styles/colors'; // 이 줄 반드시 존재해야 색상 사용 가능
+import { AppColors } from '@/styles/colors';
 
 type CmsPopupProps = {
   title: string;
   children: React.ReactNode;
   isOpen: boolean;
   onClose: () => void;
+  isWide?: boolean;
+  showRequiredMark?: boolean;
 };
 
-const Overlay = styled.div`
+const Overlay = styled.div<{ $scrollX: number }>`
   position: fixed;
   top: 0;
   left: 0;
   z-index: 9999;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  min-width: 1200px;
+  height: 100%;
   background: rgba(0, 0, 0, 0.4);
+  overflow-x: auto;
+  overflow-y: auto;
+  padding: 40px 0;
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: flex-start;
+  transform: translateX(${({ $scrollX }) => -$scrollX}px);
 `;
 
-const PopupContainer = styled.div`
+const PopupContainer = styled.div<{ $isWide?: boolean }>`
   position: relative;
-  width: 800px;
+  width: ${({ $isWide }) => ($isWide ? '1200px' : '800px')};
+  min-width: 1200px;
   height: 85vh;
   background: white;
   border-radius: 8px;
@@ -34,6 +42,7 @@ const PopupContainer = styled.div`
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  flex-shrink: 0;
 `;
 
 const CloseButton = styled.button`
@@ -59,7 +68,7 @@ const HeaderRow = styled.div`
   justify-content: space-between;
   align-items: center;
   padding: 24px;
-  padding-right: 48px; /* CloseButton 영역 고려 */
+  padding-right: 48px;
   font-size: 20px;
   font-weight: 600;
   color: #000;
@@ -84,16 +93,34 @@ const PopupContent = styled.div`
   }
 `;
 
-const CmsPopup: React.FC<CmsPopupProps> = ({ title, children, isOpen, onClose }) => {
+const CmsPopup: React.FC<CmsPopupProps> = ({
+  title,
+  children,
+  isOpen,
+  onClose,
+  isWide,
+  showRequiredMark = false,
+}) => {
+  const [scrollX, setScrollX] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrollX(window.scrollX || window.pageXOffset);
+    };
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   if (!isOpen) return null;
 
   return (
-    <Overlay>
-      <PopupContainer>
+    <Overlay $scrollX={scrollX}>
+      <PopupContainer $isWide={isWide}>
         <CloseButton onClick={onClose} aria-label="닫기">×</CloseButton>
         <HeaderRow>
           <span>{title}</span>
-          <RequiredMark>*필수값</RequiredMark>
+          {showRequiredMark && <RequiredMark>*필수값</RequiredMark>}
         </HeaderRow>
         <PopupContent>{children}</PopupContent>
       </PopupContainer>

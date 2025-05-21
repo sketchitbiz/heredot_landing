@@ -61,13 +61,14 @@ export const getOrCreateLogId = (): string => {
   return newLogId;
 };
 
-const sectionMap: Record<string, { content: string; memo: string }> = {
+const sectionMap: Record<
+  string,
+  { content: string; memo: string; log?: boolean }
+> = {
   header: { content: 'Header', memo: '해더' },
-  partner: { content: "Partner", memo: "anti_drone" },
-  // "partner-sensor": { content: "Partner", memo: "partner" },
+  partner: { content: 'Partner', memo: 'anti_drone' },
+  firstMap: { content: 'FirstMap', memo: 'firstMap', log: false }, // ✅ 스탬프 제외
   consulting: { content: 'Consulting', memo: '기능명세' },
-  // design: { content: "Design", memo: "design" },
-  // "design-sensor": { content: "Design", memo: "design" },
   appblock: { content: 'AppBlock', memo: '디자인시스템' },
   community: { content: 'Community', memo: '창업커뮤니티' },
   portfolio: { content: 'Portfolio', memo: '포트폴리오' },
@@ -77,6 +78,7 @@ const sectionMap: Record<string, { content: string; memo: string }> = {
   ai: { content: 'AI', memo: 'AI' },
   contact: { content: 'Contact', memo: '연락' },
 };
+
 
 const logSectionView = async (
   content: string,
@@ -231,6 +233,13 @@ export default function HomePage() {
           const currentScrollY = window.scrollY;
           lastScrollY = currentScrollY;
 
+          if (id === 'firstMap' && isVisible && !isAutoScrollingRef.current) {
+            if (window.location.pathname !== '/') {
+              history.replaceState(null, '', '/');
+            }
+          }
+          
+
 
           if (id !== 'header' && isVisible && id !== lastLoggedId && !isAutoScrollingRef.current) {
             lastLoggedId = id;
@@ -253,11 +262,12 @@ export default function HomePage() {
             if (section) {
               setCurrentSection(section.content);
           
-              if (isScrollingDown) {
+              if (isScrollingDown && section.log !== false) {
                 logSectionView(section.content, section.memo);
               }
             }
           }
+
           
           
         });

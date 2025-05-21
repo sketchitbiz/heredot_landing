@@ -3,11 +3,23 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 0,
+            "activePatchIndex": 3,
             "patches": [
                 {
                     "date": 1747735056852,
                     "content": "Index: \n===================================================================\n--- \n+++ \n"
+                },
+                {
+                    "date": 1747809511130,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -22,4 +22,8 @@\n     index: number;\n     termsType: string;\n     content: string;\n   };\n+\n+  export type PromptGetListParams = {\n+    keyword: string;\n+  };\n"
+                },
+                {
+                    "date": 1747814915218,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -26,4 +26,8 @@\n \n   export type PromptGetListParams = {\n     keyword: string;\n   };\n+\n+  export type PromptHistoryGetListParams = {\n+    index: number;\n+  };\n"
+                },
+                {
+                    "date": 1747819529181,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -30,4 +30,10 @@\n \n   export type PromptHistoryGetListParams = {\n     index: number;\n   };\n+\n+  export type PromptUpdateParams = {\n+    index: number;\n+    content: string;\n+  };\n+\n"
                 }
             ],
             "date": 1747735056852,
