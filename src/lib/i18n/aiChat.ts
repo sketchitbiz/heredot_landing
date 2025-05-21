@@ -9,6 +9,7 @@ export const aiChatDictionary = {
     invoiceTitle: '프로젝트 견적',
     tableHeaders: {
       category: '구분',
+      menu: '메뉴',
       item: '항목',
       detail: '세부 내용',
       amount: '예상 금액',
@@ -155,6 +156,7 @@ export const aiChatDictionary = {
     invoiceTitle: 'Project Estimate',
     tableHeaders: {
       category: 'Category',
+      menu: 'Menu',
       item: 'Item',
       detail: 'Details',
       amount: 'Estimated Cost',

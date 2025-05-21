@@ -494,6 +494,11 @@ const InvoiceTable = styled.table`
     text-align: center;
     font-weight: 500;
   }
+    .col-menu {
+    width: 18%;
+    text-align: center;
+    font-weight: 500;
+  }
   .col-feature {
     width: 25%;
     text-align: center;
@@ -1055,16 +1060,19 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
       >
         <thead>
           <tr>
-            <th style={{ ...headerCellStyle, width: '20%' }}>
+            <th style={{ ...headerCellStyle, width: '15%' }}>
               {t.tableHeaders.category}
             </th>
-            <th style={{ ...headerCellStyle, width: '25%' }}>
-              {t.tableHeaders.item}
-            </th>
-            <th style={{ ...headerCellStyle, width: '35%' }}>
-              {t.tableHeaders.detail}
+            <th style={{ ...headerCellStyle, width: '20%' }}> 
+              {t.tableHeaders.menu}
             </th>
             <th style={{ ...headerCellStyle, width: '20%' }}>
+              {t.tableHeaders.item}
+            </th>
+            <th style={{ ...headerCellStyle, width: '30%' }}>
+              {t.tableHeaders.detail}
+            </th>
+            <th style={{ ...headerCellStyle, width: '15%' }}>
               {t.tableHeaders.amount}
             </th>
           </tr>
@@ -1090,6 +1098,9 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
                     {group.category}
                   </td>
                 )}
+                 <td style={{ ...valueCellStyle, textAlign: 'center' }}> {/* << 메뉴 데이터 표시 */}
+    {item.menu}
+  </td>
                 <td style={{ ...valueCellStyle, textAlign: 'center' }}>
                   {item.feature}
                 </td>
@@ -1416,6 +1427,16 @@ export function AiChatMessage({
                           </span>
                         </div>
                         <div className="item-row">
+                        <span className="label">{t.tableHeaders.menu}</span> 
+                        <span
+                          className={`value ${
+                            isActuallyDeleted ? 'deleted' : ''
+                          }`}
+                        >
+                          {item.menu} 
+                        </span>
+                      </div>
+                        <div className="item-row">
                           <span className="label">{t.tableHeaders.item}</span>
                           <span
                             className={`value ${
@@ -1564,11 +1585,12 @@ export function AiChatMessage({
                 <thead>
                   <tr>
                     <th className="col-category">{t.tableHeaders.category}</th>
+                    <th className="col-menu">{t.tableHeaders.menu}</th> 
                     <th className="col-feature">{t.tableHeaders.item}</th>
                     <th className="col-description">{t.tableHeaders.detail}</th>
                     <th className="col-amount">{t.tableHeaders.amount}</th>
                     <th className="col-actions">
-                      {t.tableHeaders.actions || '관리'}
+                      {t.tableHeaders.management}
                     </th>
                   </tr>
                 </thead>
@@ -1601,6 +1623,20 @@ export function AiChatMessage({
                                 {group.category}
                               </td>
                             ) : null}
+                              <td
+      className="col-menu" 
+      style={{
+        textDecoration: isActuallyDeleted
+          ? 'line-through'
+          : 'none',
+        color: isActuallyDeleted
+          ? AppColors.disabled
+          : AppColors.onBackground,
+        textAlign: 'center', 
+      }}
+    >
+      {item.menu} 
+    </td>
                             <td
                               className="col-feature"
                               style={{

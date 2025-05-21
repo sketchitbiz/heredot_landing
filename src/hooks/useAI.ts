@@ -17,6 +17,8 @@ export default function useAI() {
   // 모델 이름을 상태로 관리하여 동적으로 변경 가능하도록 수정
   const [modelIdentifier, setModelIdentifier] = useState('gemini-2.0-flash'); // 기본 모델
 
+  //gemini-2.0-flash
+  //gemini-2.5-flash-preview-04-17
   // useRef 타입 직접 지정, 초기값 null
   const model = useRef<GenerativeModel | null>(null);
   const chat = useRef<ChatSession | null>(null);
