@@ -17,7 +17,7 @@ export const dictionary = {
       buttonDescription: 'AI 견적서로 간편하게',
     },
     arrival: '도착',
-    nav: ['핵심강점', '포트폴리오', '팀원소개', 'AI 견적서', '기획전'],
+    nav: ['핵심강점', '포트폴리오', '팀원소개', '기획전','AI 견적서' ],
     customNavigator: {
       community: '창업커뮤니티',
       portpolio: '포트폴리오',

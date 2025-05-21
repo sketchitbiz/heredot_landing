@@ -267,15 +267,15 @@ export default function HomePage() {
         },
         {
           label: t.nav[3],
-          targetId: 'AI Estimate',
-          content: 'appbar',
-          memo: 'ai',
-        },
-        {
-          label: t.nav[4],
           targetId: 'event',
           content: 'appbar',
           memo: 'event',
+        },
+        {
+          label: t.nav[4],
+          targetId: 'AI Estimate',
+          content: 'appbar',
+          memo: 'AI Estimate',
         },
       ]}
       onNavigate={scrollToTargetId}
@@ -531,7 +531,7 @@ export default function HomePage() {
           bottomLabel={t.arrival}
           title={t.contract.title}
           description={t.contract.description}
-          onTopArrowClick={() => scrollToTargetId('video', 'contact', 'video')}
+          onTopArrowClick={() => scrollToTargetId('ai', 'contact', 'ai')}
         />
       ),
     },
