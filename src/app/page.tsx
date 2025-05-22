@@ -7,12 +7,8 @@ import { usePathname } from 'next/navigation';
 import { useLang } from '@/contexts/LangContext';
 import { dictionary } from '@/lib/i18n/lang';
 import { downloadLinks } from '@/lib/i18n/downloadLinks';
-import ResponsiveView from '@/layout/ResponsiveView';
-import DesignWeb from '@/block/DesignWeb';
-import DesignMobile from '@/block/DesignMobile';
 import LandingAppBar from '@/components/LandingAppBar';
 import LandingBaseWrapper from '@/layout/LandingBaseWrapper';
-
 import HeaderBlock from '@/block/HeaderBlock';
 import FirstMapBlock from '@/block/FirstMapBlock';
 import Partner from '@/block/Partner';
@@ -24,7 +20,6 @@ import { MembersTabSection } from '@/block/MembersTabSection';
 import { VideoGrid } from '@/block/VideoGrid';
 import { ContactSection } from '@/components/Landing/ContactSection';
 import { Footer } from '@/block/Footer';
-
 import { AppColors } from '@/styles/colors';
 import AppBlock from '@/block/AppBlock';
 import DesignBlock from '@/block/Design';
@@ -33,10 +28,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { userStamp } from '@/lib/api/user/api';
 import { AIBlock } from '@/block/AIBlock';
 import EventBlock from '@/block/EventBlock';
-import Container3D from '@/block/Container3D';
 import { devLog } from '@/lib/utils/devLogger';
-import { app } from '@/lib/firebase/firebase.config';
-
+import Container3DStackScroll from '@/block/Container3D';
 
 export const getOrCreateLogId = (): string => {
   const authStore = useAuthStore.getState();
@@ -116,14 +109,17 @@ export default function HomePage() {
   const isAutoScrollingRef = useRef(false);
 
   const startAutoScroll = () => {
+    console.log('[AutoScroll] 시작');
     setIsAutoScrolling(true);
     isAutoScrollingRef.current = true;
   };
-
+  
   const endAutoScroll = () => {
+    console.log('[AutoScroll] 종료');
     setIsAutoScrolling(false);
     isAutoScrollingRef.current = false;
   };
+  
 
   const aliasMap: Record<string, string> = {
     about: 'header',
@@ -146,28 +142,47 @@ export default function HomePage() {
         ? window.location.pathname.split('/')[1]
         : '';
     const targetId = aliasMap[path];
-    if (targetId) {
-      startAutoScroll();
+    if (!targetId) return;
+  
+    startAutoScroll();
+  
+    const maxWait = 3000;
+    const intervalMs = 200;
+    const start = Date.now();
+  
+    const interval = setInterval(() => {
       const el = document.getElementById(targetId);
-      if (el) {
-        requestAnimationFrame(() => {
-          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        });
+      const elapsed = Date.now() - start;
+  
+      if (el && el.offsetHeight > 0) {
+        console.log('[AutoScroll] Element detected. Scrolling to:', targetId);
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  
+        const observer = new IntersectionObserver(
+          (entries) => {
+            if (entries[0].isIntersecting) {
+              console.log('[AutoScroll] 도달 확인:', targetId);
+              endAutoScroll();
+              observer.disconnect();
+            }
+          },
+          { threshold: 0.3 }
+        );
+        observer.observe(el);
+  
+        clearInterval(interval);
       }
-      let scrollTimer: ReturnType<typeof setTimeout>;
-      const handleScroll = () => {
-        clearTimeout(scrollTimer);
-        scrollTimer = setTimeout(() => {
-          endAutoScroll();
-        }, 300);
-      };
-      window.addEventListener('scroll', handleScroll);
-      return () => {
-        clearTimeout(scrollTimer);
-        window.removeEventListener('scroll', handleScroll);
-      };
-    }
+  
+      if (elapsed > maxWait) {
+        console.warn('[AutoScroll] Element not found within timeout:', targetId);
+        clearInterval(interval);
+        endAutoScroll(); // fallback 종료
+      }
+    }, intervalMs);
+  
+    return () => clearInterval(interval);
   }, []);
+  ;
 
   const scrollToTargetId = (
     targetId: string,
@@ -227,53 +242,50 @@ export default function HomePage() {
     const generalObserver = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-    
           const id = entry.target.id;
           const isVisible = entry.isIntersecting;
           const currentScrollY = window.scrollY;
-          lastScrollY = currentScrollY;
-
+    
+          console.log(`[Observer] id: ${id}, isVisible: ${isVisible}, scrollY: ${currentScrollY}`);
+    
           if (id === 'firstMap' && isVisible && !isAutoScrollingRef.current) {
             if (window.location.pathname !== '/') {
               history.replaceState(null, '', '/');
             }
           }
-          
-
-
+    
           if (id !== 'header' && isVisible && id !== lastLoggedId && !isAutoScrollingRef.current) {
+            console.log(`[Observer] Section 진입: ${id}`);
             lastLoggedId = id;
-          
-            // ✅ URL은 위든 아래든 항상 바꿔줌
+    
+            if (!isAutoScrollingRef.current) {
             const path = Object.entries(aliasMap).find(([, targetId]) => targetId === id)?.[0];
             if (path) {
               const newUrl = `/${path}`;
               if (window.location.pathname !== newUrl) {
+                console.log('[Observer] URL 변경:', newUrl);
                 history.replaceState(null, '', newUrl);
               }
             }
-          
-            // ✅ 스탬프는 아래로 스크롤할 때만
-            const currentScrollY = window.scrollY;
+            }
+    
             const isScrollingDown = currentScrollY > lastScrollY;
             lastScrollY = currentScrollY;
-          
+    
             const section = sectionMap[id];
             if (section) {
               setCurrentSection(section.content);
-          
               if (isScrollingDown && section.log !== false) {
+                console.log(`[Observer] 스탬프 전송: ${section.content}`);
                 logSectionView(section.content, section.memo);
               }
             }
           }
-
-          
-          
         });
       },
       { threshold: 0.3 }
     );
+    
 
     const headerEl = document.getElementById('header');
     if (headerEl) headerObserver.observe(headerEl);
@@ -349,9 +361,10 @@ export default function HomePage() {
     //   id: '3d',
     //   $backgroundColor: AppColors.background,
     //   content: (
-    //     <Container3D
+    //     <Container3DStackScroll
     //     />
     //   ),
+    //   $zIndex: 1001,
     // },
     {
       id: 'firstMap',

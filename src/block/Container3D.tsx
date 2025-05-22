@@ -1,113 +1,92 @@
-import React, { useEffect, useRef, useState } from 'react';
+'use client';
+
+import React, { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import ScrollTrigger from 'gsap/ScrollTrigger';
 
 const colors = ['#FF6B6B', '#4ECDC4', '#FFD93D'];
 const containerHeight = 600;
 const gap = 100;
-const step = containerHeight + gap;
-const maxRotateXList = [-30, -15, 0];
 
 gsap.registerPlugin(ScrollTrigger);
 
 const Container3DStackScroll: React.FC = () => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const pinRef = useRef<HTMLDivElement>(null);
-  const [relativeScrollY, setRelativeScrollY] = useState(0);
+  const boxRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {
-    if (!containerRef.current || !pinRef.current) return;
+    const triggers: ScrollTrigger[] = [];
 
-    const ctx = gsap.context(() => {
-      ScrollTrigger.create({
-        id: '3d',
-        trigger: pinRef.current,
-        start: 'top top',
-        end: () => `${colors.length * step}px`,
-        pin: true,
-        scrub: true,
-        // markers: true, // ← 개발 중 디버깅용 표시
+    boxRefs.current.forEach((el, i) => {
+      if (!el) return;
+
+      // 초기 상태 설정
+      gsap.set(el, {
+        transformStyle: 'preserve-3d',
+        rotateX: 0,
       });
-    }, containerRef);
 
-    const handleScroll = () => {
-      const rect = pinRef.current!.getBoundingClientRect();
-      setRelativeScrollY(-rect.top);
-    };
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: el,
+          start: `top-=${i * gap} top`,
+          end: `+=${containerHeight}`,
+          scrub: true, // ✅ 스크롤에 따라 자연스럽게
+          pin: true,
+          pinSpacing: false,
+          anticipatePin: 1,
+        },
+      });
 
-    handleScroll(); // 초기값 설정
+      tl.to(el, {
+        rotateX: -30,
+        ease: 'none',
+        yPercent: -50,
+        x: '0%',
+        y: '50%',
+      });
+      
 
-    window.addEventListener('scroll', handleScroll);
+      triggers.push(tl.scrollTrigger!);
+    });
+
     return () => {
-      ctx.revert();
-      window.removeEventListener('scroll', handleScroll);
+      triggers.forEach((trigger) => trigger.kill());
     };
   }, []);
 
   return (
     <div
-      ref={containerRef}
       style={{
+        height: `${colors.length * (containerHeight + gap)}px`,
         position: 'relative',
-        width: '100vw',
-        height: `${colors.length * step + 100}px`,
-        background: '#111',
-        perspective: '1000px',
-        overflowX: 'hidden',
+        perspective: '1000px', // ✅ 원근감 부여
       }}
     >
-      <div
-        ref={pinRef}
-        style={{
-          position: 'relative',
-          height: `${colors.length * step}px`, // ✅ pin 대상 height 늘림
-        }}
-      >
-        {colors.map((color, index) => {
-          const initialY = index * step;
-          const endY = initialY * 0.1;
-
-          const visibleY = Math.max(0, initialY - relativeScrollY);
-          const top = Math.max(endY, visibleY);
-
-          const maxRotate = maxRotateXList[index];
-          let rotateX = 0;
-          const rotateStartY = initialY + containerHeight;
-          if (maxRotate !== 0 && relativeScrollY >= rotateStartY) {
-            const progress = Math.min(1, (relativeScrollY - rotateStartY) / step);
-            rotateX = progress * maxRotate;
-          }
-
-          return (
-            <div
-              key={index}
-              style={{
-                position: 'absolute',
-                top,
-                left: '50%',
-                width: 1200,
-                height: containerHeight,
-                backgroundColor: color,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '32px',
-                fontWeight: 'bold',
-                color: '#fff',
-                border: '2px solid #000',
-                zIndex: index,
-                transition: 'top 0.2s ease-out, transform 0.2s ease-out',
-                transformStyle: 'preserve-3d',
-                transformOrigin: 'top center',
-                transform: `translateX(-50%) rotateX(${rotateX}deg)`,
-                willChange: 'transform',
-              }}
-            >
-              {rotateX.toFixed(1)}°
-            </div>
-          );
-        })}
-      </div>
+      {colors.map((color, index) => (
+        <div
+          key={index}
+          ref={(el) => {
+            boxRefs.current[index] = el;
+          }}
+          style={{
+            position: 'relative',
+            width: '100%',
+            height: `${containerHeight}px`,
+            backgroundColor: color,
+            zIndex: colors.length - index,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '32px',
+            color: 'white',
+            fontWeight: 'bold',
+            transformOrigin: 'center center',
+            willChange: 'transform', // ✅ 성능 최적화
+          }}
+        >
+          Box {index + 1}
+        </div>
+      ))}
     </div>
   );
 };

@@ -27,6 +27,7 @@ const SectionWrapper = styled.div`
   padding: 0 20px;
   box-sizing: border-box;
   min-width: ${Breakpoints.desktop}px;
+  /* background-color: ${AppColors.error}; */
 
   @media (max-width: ${Breakpoints.mobile}px) {
     min-width: 100%;
@@ -43,7 +44,7 @@ const Container = styled.div`
   justify-content: space-between;
   align-items: center;
   gap: 40px;
-  padding: 40px 20px;
+  /* padding: 40px 20px; */
   box-sizing: border-box;
   border-radius: 16px;
 
@@ -60,11 +61,12 @@ const PhoneFrameWrapper = styled.div`
   position: relative;
   width: 350px;
   height: 750px;
+  /* background-color: #fff; */
 
   @media (max-width: ${Breakpoints.mobile}px) {
     width: 100%;
     max-width: 650px;
-    height: 680px;
+    height: 720px;
   }
 `;
 
@@ -82,7 +84,7 @@ const StyledVideo = styled.video`
     top: 10%;
     left: 8%;
     width: 85%;
-    height: 56%;
+    height: 87%;
   }
 `;
 
@@ -91,11 +93,9 @@ const LeftImageBlock = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  overflow: hidden;
-  touch-action: none; /* 터치 스크롤 방지 */
 
   @media (max-width: ${Breakpoints.mobile}px) {
-    width: 100%;
+    width: 100%; /* 모바일에서 블록 전체 넓이 확보 */
     max-width: 350px;
   }
 
@@ -110,7 +110,6 @@ const LeftImageBlock = styled.div`
     }
   }
 `;
-
 
 const RightTextBlock = styled.div`
   flex: 1;
