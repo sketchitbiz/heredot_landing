@@ -34,6 +34,7 @@ export interface InvoiceFeatureItem {
   duration?: string; // 개발 기간 (선택적)
   category?: string; // 카테고리 (선택적)
   pages?: number | string; // 페이지 수 (선택적)
+  menu?: string; // 메뉴 (추가)
   note?: string; // 추가 참고사항 (선택적)
 }
 
@@ -1137,7 +1138,7 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
             ));
           })}
           <tr>
-            <td colSpan={3} style={{ ...headerCellStyle, textAlign: 'right' }}>
+            <td colSpan={4} style={{ ...headerCellStyle, textAlign: 'right' }}>
               <strong>{t.estimateInfo.totalSum}</strong>
             </td>
             <td
@@ -1154,7 +1155,7 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
             </td>
           </tr>
           <tr>
-            <td colSpan={3} style={{ ...headerCellStyle, textAlign: 'right' }}>
+            <td colSpan={4} style={{ ...headerCellStyle, textAlign: 'right' }}>
               <strong>{t.estimateInfo.vatIncluded}</strong>
             </td>
             <td
@@ -1173,7 +1174,7 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
           {invoiceDetailsForPdf.currentTotalDuration > 0 && (
             <tr>
               <td
-                colSpan={3}
+                colSpan={4}
                 style={{ ...headerCellStyle, textAlign: 'right' }}
               >
                 {t.estimateInfo.totalDuration}
@@ -1194,7 +1195,7 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
           {invoiceDetailsForPdf.currentTotalPages > 0 && (
             <tr>
               <td
-                colSpan={3}
+                colSpan={4}
                 style={{ ...headerCellStyle, textAlign: 'right' }}
               >
                 {t.estimateInfo.totalPages}
@@ -1711,7 +1712,7 @@ export function AiChatMessage({
                     </React.Fragment>
                   ))}
                   <tr>
-                    <td colSpan={3} className="total-label">
+                    <td colSpan={4} className="total-label">
                       <strong>{t.estimateInfo.totalSum}</strong>
                     </td>
                     <td className="col-amount">
@@ -1730,7 +1731,7 @@ export function AiChatMessage({
                     <td></td>
                   </tr>
                   <tr>
-                    <td colSpan={3} className="total-label">
+                    <td colSpan={4} className="total-label">
                       <strong>{t.estimateInfo.vatIncluded}</strong>
                     </td>
                     <td className="col-amount">
@@ -1748,7 +1749,7 @@ export function AiChatMessage({
                   </tr>
                   {calculatedTotalDuration !== undefined && (
                     <tr>
-                      <td colSpan={3} className="total-label">
+                      <td colSpan={4} className="total-label">
                         {t.estimateInfo.totalDuration}
                       </td>
                       <td className="col-amount">
@@ -1765,7 +1766,7 @@ export function AiChatMessage({
                   )}
                   {calculatedTotalPages !== undefined && (
                     <tr>
-                      <td colSpan={3} className="total-label">
+                      <td colSpan={4} className="total-label">
                         {t.estimateInfo.totalPages}
                       </td>
                       <td className="col-amount">
@@ -1781,7 +1782,7 @@ export function AiChatMessage({
             {/* 할인 및 PDF 저장 옵션 */}
             <div
               style={{
-                marginTop: '1.5rem',
+                marginTop: '0',
                 paddingTop: '1rem',
                 borderTop: `1px solid ${AppColors.aiBorder}`,
               }}

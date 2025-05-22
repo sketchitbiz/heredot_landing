@@ -15,7 +15,9 @@ import { devLog } from '@/lib/utils/devLogger';
 
 export default function useAI() {
   // 모델 이름을 상태로 관리하여 동적으로 변경 가능하도록 수정
-  const [modelIdentifier, setModelIdentifier] = useState('gemini-2.0-flash'); // 기본 모델
+  const [modelIdentifier, setModelIdentifier] = useState(
+    'gemini-2.5-flash-preview-04-17'
+  ); // 기본 모델
 
   //gemini-2.0-flash
   //gemini-2.5-flash-preview-04-17
@@ -23,9 +25,10 @@ export default function useAI() {
   const model = useRef<GenerativeModel | null>(null);
   const chat = useRef<ChatSession | null>(null);
   const initialized = useRef(false);
-
-  // 사용자 정보 가져오기
   const user = useAuthStore((state) => state.user);
+  const [currentThinkingBudget, setCurrentThinkingBudget] = useState<
+    number | undefined
+  >(500);
 
   useEffect(() => {
     // 초기화 로직은 한 번만 실행 (또는 모델 식별자가 변경될 때)
@@ -348,9 +351,23 @@ ${localizationInstruction}`;
         devLog(
           `[useAI] Initializing GenerativeModel with model: ${modelIdentifier}`
         );
+
+        // thinkingBudget 설정을 위한 generationConfig 객체 생성
+        // currentThinkingBudget이 undefined가 아닐 경우에만 thinkingConfig를 추가합니다.
+        const generationConfig: {
+          thinkingConfig?: { thinking_budget: number };
+        } = {};
+        if (currentThinkingBudget !== undefined) {
+          generationConfig.thinkingConfig = {
+            thinking_budget: currentThinkingBudget,
+          };
+        }
+        devLog(`[useAI] Applying thinkingBudget: ${currentThinkingBudget}`);
+
         const generativeModelInstance = getGenerativeModel(vertexAI, {
           model: modelIdentifier, // 상태에서 현재 모델 식별자 사용
           systemInstruction: updatedSystemInstruction,
+          generationConfig: generationConfig, // 여기에 generationConfig 적용
         });
         model.current = generativeModelInstance;
         devLog('[useAI] GenerativeModel initialized. Starting chat...');
@@ -359,7 +376,7 @@ ${localizationInstruction}`;
         devLog('[useAI] Chat session started successfully.');
 
         devLog(
-          `[useAI] AI Model (${modelIdentifier}) and Chat initialized successfully.`
+          `[useAI] AI Model (${modelIdentifier}) and Chat initialized successfully.${currentThinkingBudget}`
         );
         initialized.current = true;
       } catch (error) {
@@ -383,7 +400,7 @@ ${localizationInstruction}`;
         console.error('[useAI] AI initialization FAILED with error:', e);
         initialized.current = false;
       });
-  }, [user, modelIdentifier]); // modelIdentifier를 의존성 배열에 추가
+  }, [user, modelIdentifier, currentThinkingBudget]); // modelIdentifier를 의존성 배열에 추가
 
   useEffect(() => {
     devLog('[useAI] Current initialization status:', initialized.current);

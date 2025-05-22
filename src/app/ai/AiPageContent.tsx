@@ -625,10 +625,10 @@ export default function AiPageContent() {
         'AI 심층 분석 및 기능 제안을 요청했습니다.';
       addMessageToChat({ id: Date.now(), sender: 'user', text: feedbackMsg });
 
-      setCurrentModelIdentifier('gemini-2.5-flash-preview-04-17');
-      devLog(
-        '[AiPageContent] Switched model for AI suggestion to gemini-2.5-flash-preview-04-17.'
-      );
+      // setCurrentModelIdentifier('gemini-2.5-flash-preview-04-17');
+      // devLog(
+      //   '[AiPageContent] Switched model for AI suggestion to gemini-2.5-flash-preview-04-17.'
+      // );
 
       try {
         await new Promise<void>((resolve, reject) => {
@@ -666,10 +666,10 @@ export default function AiPageContent() {
             : 'An error occurred while processing the AI suggestion.';
         addMessageToChat({ id: Date.now(), sender: 'ai', text: errorMsg });
       } finally {
-        setCurrentModelIdentifier('gemini-2.0-flash');
-        devLog(
-          '[AiPageContent] Switched back to default model gemini-2.0-flash.'
-        );
+        // setCurrentModelIdentifier('gemini-2.0-flash');
+        // devLog(
+        //   '[AiPageContent] Switched back to default model gemini-2.0-flash.'
+        // );
         isModelInitializing = false;
       }
     } else {
@@ -923,13 +923,30 @@ export default function AiPageContent() {
       }
       const streamResult = await chat.current.sendMessageStream(parts);
       let aiResponseText = '';
-      for await (const item of streamResult.stream) {
-        const chunkText = item.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (chunkText) {
-          aiResponseText += chunkText;
+      console.log('[AI 스트림 결과]', streamResult); // 스트림 결과 객체 확인
+      if (streamResult && streamResult.stream) {
+        console.log('[AI 스트림 루프 진입 시도]');
+        for await (const item of streamResult.stream) {
+          console.log('[AI 스트림 아이템]', item); // 각 아이템 전체 확인
+          const chunkText = item.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (chunkText) {
+            console.log('[AI 응답 조각]', chunkText);
+            aiResponseText += chunkText;
+          } else {
+            console.log(
+              '[AI 응답 조각 없음]',
+              'chunkText가 비어있거나 해당 경로에 없음'
+            );
+          }
         }
+        console.log('[AI 스트림 루프 종료]');
+      } else {
+        console.log(
+          '[AI 스트림 없음]',
+          'streamResult 또는 streamResult.stream이 유효하지 않음'
+        );
       }
-      devLog('AI 전체 응답 (aiResponseText):', aiResponseText);
+      console.log('AI 전체 응답 (aiResponseText):', aiResponseText);
 
       // --- AI 응답 저장 로직 추가 시작 ---
       if (currentSessionId && aiResponseText.trim()) {
