@@ -12,7 +12,7 @@ import { devLog } from '@/lib/utils/devLogger';
 import { app } from '@/lib/firebase/firebase.config'; // 임포트 경로 확인
 
 export default function useAI() {
-  const [modelIdentifier, setModelIdentifier] = useState('gemini-2.0-flash'); 
+  const [modelIdentifier, setModelIdentifier] = useState('gemini-2.5-flash-preview-05-20'); 
 
   // vertexAILocation 관련 상태 및 함수 제거
   // const [vertexAILocation, setVertexAILocation] = useState('asia-northeast3');

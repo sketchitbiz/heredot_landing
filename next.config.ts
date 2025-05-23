@@ -3,7 +3,6 @@ import type { Configuration as WebpackConfig } from 'webpack';
 import path from 'path';
 
 const nextConfig: NextConfig = {
-  output: "standalone",
   compiler: {
     styledComponents: true,
   },
