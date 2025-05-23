@@ -12,8 +12,12 @@ import { devLog } from '@/lib/utils/devLogger';
 import { app } from '@/lib/firebase/firebase.config'; // 임포트 경로 확인
 
 export default function useAI() {
-  const [modelIdentifier, setModelIdentifier] = useState('gemini-2.0-flash'); 
+  const [modelIdentifier, setModelIdentifier] = useState(
+    'gemini-2.0-flash'
+  );
 
+  //gemini-2.0-flash
+  //gemini-2.5-flash-preview-05-20
   // vertexAILocation 관련 상태 및 함수 제거
   // const [vertexAILocation, setVertexAILocation] = useState('asia-northeast3');
 
@@ -28,12 +32,16 @@ export default function useAI() {
   useEffect(() => {
     const initializeAI = async () => {
       // devLog(`[useAI] Starting AI initialization with model: ${modelIdentifier}, location: ${vertexAILocation}...`); // location 관련 로그 제거
-      devLog(`[useAI] Starting AI initialization with model: ${modelIdentifier}...`);
+      devLog(
+        `[useAI] Starting AI initialization with model: ${modelIdentifier}...`
+      );
       initialized.current = false;
       try {
         if (!app) {
-          console.error("[useAI] ERROR: Firebase app instance is not initialized. Cannot initialize Vertex AI.");
-          throw new Error("Firebase app not available.");
+          console.error(
+            '[useAI] ERROR: Firebase app instance is not initialized. Cannot initialize Vertex AI.'
+          );
+          throw new Error('Firebase app not available.');
         }
 
         const apiHost = process.env.NEXT_PUBLIC_API_HOST || '';

@@ -1571,14 +1571,14 @@ export function AiChatMessage({
                       </span>
                     </div>
                   )}
-                  {calculatedTotalPages !== undefined && (
+                  {/* {calculatedTotalPages !== undefined && (
                     <div className="item-row">
                       <span className="label">{t.estimateInfo.totalPages}</span>
                       <span className="value">
                         {calculatedTotalPages} {t.estimateInfo.page}
                       </span>
                     </div>
-                  )}
+                  )} */}
                 </MobileInvoiceCardItem>
               </MobileInvoiceContainer>
             ) : (
@@ -1764,7 +1764,7 @@ export function AiChatMessage({
                       <td></td>
                     </tr>
                   )}
-                  {calculatedTotalPages !== undefined && (
+                  {/* {calculatedTotalPages !== undefined && (
                     <tr>
                       <td colSpan={4} className="total-label">
                         {t.estimateInfo.totalPages}
@@ -1774,7 +1774,7 @@ export function AiChatMessage({
                       </td>
                       <td></td>
                     </tr>
-                  )}
+                  )} */}
                 </tbody>
               </InvoiceTable>
             )}
