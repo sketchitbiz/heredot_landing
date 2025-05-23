@@ -25,7 +25,6 @@ gsap.registerPlugin(ScrollTrigger);
 const logButtonClick = async (content: string, memo: string) => {
   try {
     await userStamp({
-      uuid: localStorage.getItem('logId') ?? 'anonymous',
       category: '버튼',
       content,
       memo,

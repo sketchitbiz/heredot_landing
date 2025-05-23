@@ -50,6 +50,14 @@ export const StyledInput = styled.input<BaseInputElementProps>`
   &::placeholder {
     color: ${AppColors.iconDisabled};
   }
+
+  ${({ readOnly }) =>
+    readOnly &&
+    `
+    background-color: #f5f5f5;
+    color: #666;
+    cursor: default;
+  `}
 `;
 
 /** 멀티라인 textarea 필드 (자동 높이 조절) */

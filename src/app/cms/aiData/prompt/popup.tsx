@@ -23,15 +23,18 @@ type PromptHistory = {
   content: string;
   createdTime: string;
   createdId: string;
+
 };
 
 type PromptPopupProps = {
   index: number;
   isOpen: boolean;
+  firstCreatedTime: string;
+  firstContent: string; 
   onClose: () => void;
 };
 
-const PromptPopup: React.FC<PromptPopupProps> = ({ index, isOpen, onClose }) => {
+const PromptPopup: React.FC<PromptPopupProps> = ({ index, isOpen, onClose, firstContent, firstCreatedTime }) => {
   const [selected, setSelected] = useState<PromptHistory | null>(null);
   const [description, setDescription] = useState('');
   const [promptList, setPromptList] = useState<PromptHistory[]>([]);
@@ -40,18 +43,34 @@ const PromptPopup: React.FC<PromptPopupProps> = ({ index, isOpen, onClose }) => 
     const raw = await promptHistoryGetList({ index: Number(index) });
     const wrapper = raw?.[0];
     const data = wrapper?.data ?? [];
-    const totalItems = data.length;
-    setPromptList(data);
-
-    console.log('promptList:', data);
-
-    if (data.length > 0) {
-      setSelected(data[0]);
-      setDescription(data[0].content ?? '');
+  
+    if (data.length === 0) {
+      return { data: [], totalItems: 0, allItems: 0 };
     }
-
-    return { data, totalItems, allItems: totalItems };
+  
+    const base = data[0];
+    const firstItem: PromptHistory = {
+      ...base,
+      id: -1, // 가상의 ID
+      index: base.index + 1,
+      content: firstContent,
+      createdTime: firstCreatedTime,
+    };
+  
+    const combinedData = [firstItem, ...data];
+  
+    setPromptList(combinedData);
+    setSelected(firstItem);
+    setDescription(firstItem.content);
+  
+    return {
+      data: combinedData,
+      totalItems: combinedData.length,
+      allItems: combinedData.length,
+    };
   };
+  
+  
 
   const handleViewClick = (targetIndex: number) => {
     console.log('targetIndex:', targetIndex);
@@ -94,7 +113,6 @@ const PromptPopup: React.FC<PromptPopupProps> = ({ index, isOpen, onClose }) => 
       flex: 1,
     },
     { header: '작성자', accessor: 'createdId' , flex: 1},
-    { header: '프롬프트명', accessor: 'label' , flex: 1},
     {
       header: '보기',
       accessor: 'index',
@@ -165,7 +183,6 @@ const RightSection = styled.div`
   flex: 1;
   overflow: hidden;
   min-width: 0;
-  max-width: 600px;
   
   /* min-width: 600px; */
 `;
@@ -174,7 +191,7 @@ const LabelTitle = styled.h2`
   font-size: 20px;
   font-weight: bold;
   margin: 0 0 16px 0;
-  color: ${AppColors.primary};
+  color: '#fff';
 `;
 
 const SubTitle = styled.h2`
@@ -182,7 +199,7 @@ const SubTitle = styled.h2`
   font-weight: 500;
     margin: 0 0 16px 0;
     margin-bottom: 20px;
-  color: ${AppColors.primary};
+    color: '#fff';
 `;
 
 const ContentBox = styled.div`

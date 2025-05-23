@@ -116,7 +116,6 @@ export const ReBlingPopup = () => {
   gradient="linear-gradient(to bottom, #e6dcc9, #ddc180)"
   onClick={() => {
     void userStamp({
-      uuid: localStorage.getItem("logId") ?? "anonymous",
       category: "버튼",
       content: "명품역경매",
       memo: `외부 링크: ${btn.title}`,

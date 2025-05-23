@@ -53,8 +53,12 @@ const ContentWrapper = styled.div`
   overflow: hidden; // 텍스트 콘텐츠 넘침 방지
 `;
 
-const CardImage = styled(Image)`
-  display: block;
+const CardImage = styled.img`
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
   object-position: top;
 `;
@@ -117,11 +121,10 @@ export const LandingCard: React.FC<LandingCardProps> = ({
       {contentType === "image" ? (
         imageUrl ? (
           <CardImage
-            src={imageUrl}
-            alt={altText}
-            fill
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          />
+          src={imageUrl}
+          alt={altText}
+          className="w-full h-full object-cover"
+        />
         ) : (
           <PlaceholderContainer>
             <ImageIcon />

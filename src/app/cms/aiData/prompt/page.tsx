@@ -31,6 +31,7 @@ type Prompt = {
   label: string;
   description: string;
   descricreatedIdption: string;
+  content: string;
   updateId: string;
   createdTime: string | null;
   updateTime: string | null;
@@ -217,6 +218,14 @@ const PromptPage: React.FC = () => {
   index={selectedItem?.index ? Number(selectedItem.index) : 0}
   isOpen={isPopupOpen}
   onClose={closePopup}
+  firstCreatedTime={
+    selectedItem?.createdTime
+      ? dayjs(selectedItem.createdTime).format('YYYY-MM-DD')
+      : ''
+  }
+  firstContent={
+    selectedItem?.content ?? ''
+  }
 />
 
     </>

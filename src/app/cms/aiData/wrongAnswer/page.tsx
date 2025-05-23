@@ -1,137 +1,136 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { devError } from '@/lib/utils/devLogger';
-import LandingBaseWrapper from '@/layout/LandingBaseWrapper';
-import ScreenWrapper from '@/layout/ScreenWrapper';
-import { useRouter } from 'next/navigation'; // 리다이렉트를 위한 useRouter 사용
-import { useAdminAuth } from '@/contexts/AdminAuthContext';
+import GenericTreeListUI from "@/components/CustomList/GenericTreeListUI";
+import React from "react";
 
-type DataContainerProps = {
-  message: string;
-  successChild: React.ReactNode;
-  noDataChild?: React.ReactNode;
-};
-
-function DataContainer({ message, successChild, noDataChild }: DataContainerProps) {
-  const isSuccess = message === 'success';
-  return (
-    <div style={{ flex: 1 }}>
-      {isSuccess ? successChild : noDataChild ?? <p>No data available.</p>}
-    </div>
-  );
+// 🔷 인터페이스 정의 (GenericTreeListUI가 요구하는 구조)
+interface TreeNode {
+  id: string | number;
+  [key: string]: any;
+  children?: TreeNode[];
 }
 
-type ProductDetailContentProps = {
-  title: string;
-  data: any;
-  color?: string;
-};
-
-function ProductDetailContent({ title, data, color }: ProductDetailContentProps) {
-  return (
-    <div style={{ backgroundColor: color, padding: '1rem', borderRadius: '8px' }}>
-      <h3>{title}</h3>
-      <pre style={{ fontSize: '13px', overflowX: 'auto' }}>
-        {JSON.stringify(data, null, 2)}
-      </pre>
-    </div>
-  );
+interface FetchParams {
+  fromDate?: string;
+  toDate?: string;
+  keyword?: string;
 }
 
-export default function DashboardPage() {
-  const [dashboardData, setDashboardData] = useState<any>(null);
-  const [dashboardError, setDashboardError] = useState<string | null>(null);
+interface FetchResult {
+  data: TreeNode[];
+  totalItems: number;
+  allItems?: number;
+}
 
-  const [productDetail1, setProductDetail1] = useState<any>(null);
-  const [productDetail9999, setProductDetail9999] = useState<any>(null);
+// 🔷 더미 데이터 정의
+const dummyData: TreeNode[] = [
+  {
+    id: 1,
+    name: "홍길동",
+    profile: "/sample_avatar1.jpg",
+    userId: "1234567891234567890",
+    email: "hgd123@gmail.com",
+    date: "25-05-01(thu)",
+    project: "AI 견적서 시스템",
+    feature: "관리자 등록 기능",
+    children: [
+      {
+        id: 2,
+        date: "25-05-02(fri)",
+        project: "AI 견적서 시스템",
+        feature: "관리자 등록 기능",
+      },
+      {
+        id: 3,
+        date: "25-05-01(thu)",
+        project: "전산 솔루션",
+        feature: "관리자 등록 기능",
+      },
+    ],
+  },
+  {
+    id: 4,
+    name: "강태원",
+    profile: "/sample_avatar4.jpg",
+    userId: "1234567891234567890",
+    email: "hgd123@gmail.com",
+    date: "25-05-02(fri)",
+    project: "드론",
+    feature: "관리자 등록 기능",
+  },
+  {
+    id: 5,
+    name: "임정기",
+    profile: "/sample_avatar5.jpg",
+    userId: "1234567891234567890",
+    email: "hgd123@gmail.com",
+    date: "25-05-02(fri)",
+    project: "중고거래",
+    feature: "관리자 등록 기능",
+  },
+  {
+    id: 6,
+    name: "곽준규",
+    profile: "/sample_avatar6.jpg",
+    userId: "1234567891234567890",
+    email: "hgd123@gmail.com",
+    date: "25-05-02(fri)",
+    project: "금융 / 펀드",
+    feature: "관리자 등록 기능",
+  },
+];
 
-  const router = useRouter(); // Next.js의 useRouter 훅 사용
 
-  ;
+// 🔷 컬럼 정의
+const columns = [
+  { header: "유저", accessor: "name", editable: true },
+  {
+    header: "프로필",
+    accessor: "profile",
+    // formatter: (value) => <img src={value} alt="프로필" style={{ width: 32, height: 32, borderRadius: "50%" }} />,
+    noPopup: true,
+  },
+  { header: "아이디", accessor: "userId" },
+  { header: "이메일", accessor: "email" , editable: true},
+  { header: "날짜", accessor: "date" },
+  { header: "프로젝트", accessor: "project" },
+  { header: "기능제목", accessor: "feature" },
+  {
+    header: "파일 다운로드",
+    accessor: "download",
+    formatter: () => <button style={{ background: "#123B64", color: "white", padding: "5px 10px" }}>파일 다운로드</button>,
+    noPopup: true,
+  },
+];
 
-  const { logout } = useAdminAuth();
 
-  const handleLogout = () => {
-    logout(); // ✅ context 상태까지 동기화
-    router.push('/cms'); // 로그인 페이지로 이동
+// 🔷 fetchData 구현
+const fetchData = async (params: FetchParams): Promise<FetchResult> => {
+  console.log("📦 fetchData called with params:", params);
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve({
+        data: dummyData,
+        totalItems: dummyData.length,
+      });
+    }, 300);
+  });
+};
+
+// 🔷 페이지 컴포넌트
+export default function TreeGridPage() {
+  const handleCellChange = (id: string | number, key: string, value: any) => {
+    console.log("✅ 셀 변경:", { id, key, value });
   };
 
   return (
-      <ScreenWrapper>
-        <main style={{ paddingTop: '2rem', paddingBottom: '2rem' }}>
-          <h1>📊 관리자 대시보드</h1>
-
-          <button
-            onClick={handleLogout}
-            style={{
-              marginBottom: '1rem',
-              padding: '10px 20px',
-              backgroundColor: '#d32f2f',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-            }}
-          >
-            로그아웃
-          </button>
-
-          {dashboardError && <p style={{ color: 'red' }}>{dashboardError}</p>}
-          {!dashboardData && !dashboardError && <p>대시보드 데이터 불러오는 중...</p>}
-
-          {dashboardData && (
-            <section
-              style={{
-                margin: '2rem 0',
-                padding: '1rem',
-                backgroundColor: '#f9f9f9',
-                borderRadius: '8px',
-              }}
-            >
-              <h2>📈 대시보드 원본 데이터</h2>
-              <pre>{JSON.stringify(dashboardData, null, 2)}</pre>
-            </section>
-          )}
-
-          <section style={{ display: 'flex', gap: '2rem', marginTop: '2rem' }}>
-            <DataContainer
-              message={productDetail1?.[0]?.message ?? ''}
-              successChild={
-                <ProductDetailContent
-                  title="✅ 구독자 있음 (productIndex: 25)"
-                  data={productDetail1}
-                  color="#e0f7fa"
-                />
-              }
-              noDataChild={
-                <ProductDetailContent
-                  title="❌ 구독자 없음 (productIndex: 25)"
-                  data={productDetail1}
-                  color="#ffe0b2"
-                />
-              }
-            />
-
-            <DataContainer
-              message={productDetail9999?.[0]?.message ?? ''}
-              successChild={
-                <ProductDetailContent
-                  title="✅ 구독자 있음 (productIndex: 9999)"
-                  data={productDetail9999}
-                  color="#e0f7fa"
-                />
-              }
-              noDataChild={
-                <ProductDetailContent
-                  title="❌ 구독자 없음 (productIndex: 9999)"
-                  data={productDetail9999}
-                  color="#ffe0b2"
-                />
-              }
-            />
-          </section>
-        </main>
-      </ScreenWrapper>
+    <GenericTreeListUI
+      title="AI 대화이력 관리"
+      columns={columns}
+      fetchData={fetchData}
+      onCellChange={handleCellChange} // ✅ 추가
+      themeMode="light"
+    />
   );
 }
+

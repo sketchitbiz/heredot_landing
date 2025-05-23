@@ -207,7 +207,6 @@ const DesignMobile: React.FC<DesignMobileBlockProps> = ({
   rel="noopener noreferrer"
   onClick={() => {
     userStamp({
-      uuid: localStorage.getItem("logId") ?? "anonymous",
       category: "버튼",
       content: "Design",
       memo: "디자인 제안서 다운로드",

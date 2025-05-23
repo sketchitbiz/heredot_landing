@@ -3,10 +3,13 @@ import {
   AdminLoginParams,
   AdminGetListParams,
   AdminCreateParams,
+  AdminUpdateParams,
   TermGetListParams,
   PromptGetListParams,
   PromptHistoryGetListParams,
   PromptUpdateParams,
+  AdminPasswordUpdateParams,
+  UnitPriceGetListParams,
 } from './adminApi.types';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_HOST!;
@@ -38,6 +41,9 @@ export async function adminGetList(
 
 export async function adminCreate(
   params: AdminCreateParams) {
+
+    console.log('params', params);
+
   return callAdminApi({
     title: '관리자 생성',
     url: `${BASE_URL}/cms/admin/create`,
@@ -54,6 +60,41 @@ export async function adminCreate(
     isCallPageLoader: true,
   });
 } 
+
+//test0521 a!111111
+
+export async function adminUpdate(
+
+  params: AdminUpdateParams) {
+  console.log('params', params);
+  return callAdminApi({
+    title: '관리자 수정',
+    url: `${BASE_URL}/cms/admin/update`,
+    body: {
+      targetAdminId: params.targetAdminId,
+      name: params.name,
+      cellphone: params.cellphone,
+      description: params.description,
+      email: params.email,
+      emailYn: params.emailYn,
+      smsYn: params.smsYn,
+    },
+    isCallPageLoader: true,
+  });
+}
+
+export async function adminPasswordUpdate(
+  params: AdminPasswordUpdateParams) {
+  return callAdminApi({
+    title: '관리자 비밀번호 수정',
+    url: `${BASE_URL}/cms/admin/password/update`,
+    body: {
+      targetAdminId: params.targetAdminId,
+      password: params.password,
+    },
+    isCallPageLoader: true,
+  });
+}
 
 
 // ***************** 약관
@@ -114,3 +155,12 @@ export async function promptUpdate(
   });
 }
 
+// ***************** 가격
+export async function unitPriceGetList(
+  params: UnitPriceGetListParams) {
+  return callAdminApi({
+    title: '단가 리스트 조회',
+    url: `${BASE_URL}/cms/ai/unit-price/get-list`,
+    isCallPageLoader: true,
+  });
+}

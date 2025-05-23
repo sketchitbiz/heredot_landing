@@ -163,7 +163,6 @@ export const Footer: React.FC = () => {
               onClick={() => {
                 setShowMore((prev) => !prev);
                 void userStamp({
-                  uuid: localStorage.getItem('logId') ?? 'anonymous',
                   category: '버튼',
                   content: 'Footer',
                   memo: `더보기 ${!showMore ? '열기' : '닫기'}`,

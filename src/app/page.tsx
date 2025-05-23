@@ -31,29 +31,6 @@ import EventBlock from '@/block/EventBlock';
 import { devLog } from '@/lib/utils/devLogger';
 import Container3DStackScroll from '@/block/Container3D';
 
-export const getOrCreateLogId = (): string => {
-  const authStore = useAuthStore.getState();
-
-  // 1. 로그인 상태
-  if (authStore.isLoggedIn && authStore.user?.uuid) {
-    devLog('[LogId] 로그인ID:', authStore.user.uuid);
-    return authStore.user.uuid;
-  }
-
-  // 2. 비로그인 상태
-  const logIdKey = 'logId';
-  const existing = localStorage.getItem(logIdKey);
-  if (existing) {
-    devLog('[LogId] 로컬스토리지 ID:', existing);
-    return existing;
-  }
-
-  const newLogId = uuidv4();
-  localStorage.setItem(logIdKey, newLogId);
-  devLog('[LogId] ID 생성:', newLogId);
-  return newLogId;
-};
-
 const sectionMap: Record<
   string,
   { content: string; memo: string; log?: boolean }
@@ -80,7 +57,6 @@ const logSectionView = async (
 ) => {
   try {
     const res = await userStamp({
-      uuid: getOrCreateLogId(),
       category: '스크롤',
       content,
       memo,
@@ -92,7 +68,6 @@ const logSectionView = async (
 const logButtonClick = async (content: string, memo: string) => {
   try {
     const res = await userStamp({
-      uuid: getOrCreateLogId(),
       category: '버튼',
       content,
       memo,
@@ -109,13 +84,13 @@ export default function HomePage() {
   const isAutoScrollingRef = useRef(false);
 
   const startAutoScroll = () => {
-    console.log('[AutoScroll] 시작');
+    devLog('[AutoScroll] 시작');
     setIsAutoScrolling(true);
     isAutoScrollingRef.current = true;
   };
   
   const endAutoScroll = () => {
-    console.log('[AutoScroll] 종료');
+    devLog('[AutoScroll] 종료');
     setIsAutoScrolling(false);
     isAutoScrollingRef.current = false;
   };
@@ -147,40 +122,53 @@ export default function HomePage() {
     startAutoScroll();
   
     const maxWait = 3000;
-    const intervalMs = 200;
     const start = Date.now();
+    let frameId: number;
+    let scrollTimeout: NodeJS.Timeout;
   
-    const interval = setInterval(() => {
+    const tryScroll = () => {
       const el = document.getElementById(targetId);
       const elapsed = Date.now() - start;
   
       if (el && el.offsetHeight > 0) {
-        console.log('[AutoScroll] Element detected. Scrolling to:', targetId);
-        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const rect = el.getBoundingClientRect();
+        const scrollY = window.scrollY + rect.top;
   
-        const observer = new IntersectionObserver(
-          (entries) => {
-            if (entries[0].isIntersecting) {
-              console.log('[AutoScroll] 도달 확인:', targetId);
-              endAutoScroll();
-              observer.disconnect();
-            }
-          },
-          { threshold: 0.3 }
-        );
-        observer.observe(el);
+        // ✅ AppBar 높이 보정 (예: 80px)
+        const scrollOffset = scrollY - 80;
   
-        clearInterval(interval);
+        // 직접 스크롤
+        window.scrollTo({ top: scrollOffset, behavior: 'smooth' });
+  
+        // 보정 체크 (애니메이션 후 확인)
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(() => {
+          const rectAfter = el.getBoundingClientRect();
+          if (Math.abs(rectAfter.top - 80) < 10) {
+            endAutoScroll();
+          } else {
+            frameId = requestAnimationFrame(tryScroll);
+          }
+        }, 600); // 스크롤 애니메이션이 대체로 500~600ms
+  
+        return;
       }
   
       if (elapsed > maxWait) {
         console.warn('[AutoScroll] Element not found within timeout:', targetId);
-        clearInterval(interval);
-        endAutoScroll(); // fallback 종료
+        endAutoScroll();
+        return;
       }
-    }, intervalMs);
   
-    return () => clearInterval(interval);
+      frameId = requestAnimationFrame(tryScroll);
+    };
+  
+    frameId = requestAnimationFrame(tryScroll);
+  
+    return () => {
+      cancelAnimationFrame(frameId);
+      clearTimeout(scrollTimeout);
+    };
   }, []);
   ;
 
@@ -246,7 +234,7 @@ export default function HomePage() {
           const isVisible = entry.isIntersecting;
           const currentScrollY = window.scrollY;
     
-          console.log(`[Observer] id: ${id}, isVisible: ${isVisible}, scrollY: ${currentScrollY}`);
+          devLog(`[Observer] id: ${id}, isVisible: ${isVisible}, scrollY: ${currentScrollY}`);
     
           if (id === 'firstMap' && isVisible && !isAutoScrollingRef.current) {
             if (window.location.pathname !== '/') {
@@ -255,7 +243,7 @@ export default function HomePage() {
           }
     
           if (id !== 'header' && isVisible && id !== lastLoggedId && !isAutoScrollingRef.current) {
-            console.log(`[Observer] Section 진입: ${id}`);
+            devLog(`[Observer] Section 진입: ${id}`);
             lastLoggedId = id;
     
             if (!isAutoScrollingRef.current) {
@@ -263,7 +251,7 @@ export default function HomePage() {
             if (path) {
               const newUrl = `/${path}`;
               if (window.location.pathname !== newUrl) {
-                console.log('[Observer] URL 변경:', newUrl);
+                devLog('[Observer] URL 변경:', newUrl);
                 history.replaceState(null, '', newUrl);
               }
             }
@@ -276,7 +264,7 @@ export default function HomePage() {
             if (section) {
               setCurrentSection(section.content);
               if (isScrollingDown && section.log !== false) {
-                console.log(`[Observer] 스탬프 전송: ${section.content}`);
+                devLog(`[Observer] 스탬프 전송: ${section.content}`);
                 logSectionView(section.content, section.memo);
               }
             }

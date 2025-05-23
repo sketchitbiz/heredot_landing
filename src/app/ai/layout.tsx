@@ -29,7 +29,6 @@ const HeaderLanguageSwitcher = () => {
 
   const logLanguageChange = (lang: 'ko' | 'en') => {
     userStamp({
-      uuid: localStorage.getItem('logId') ?? 'anonymous',
       category: '버튼',
       content: 'LanguageSwitcher',
       memo: `언어 변경: ${lang}`,

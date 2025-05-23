@@ -8,6 +8,7 @@ import { useDevice } from '@/contexts/DeviceContext';
 import type { DeviceType } from '@/types/device';
 import { StyledInput, StyledTextarea } from '@/elements/InputElement';
 import { InputStyles, LabelStyles } from '@/constants/componentConstants';
+import { read } from 'fs';
 
 const Label = styled.label<{ $labelPosition: 'vertical' | 'horizontal' }>`
   margin-left: 8px;
@@ -64,6 +65,7 @@ interface TextFieldProps {
   errorMessage?: string;
   showSuffixIcon?: boolean;
   isPasswordField?: boolean;
+  readOnly?: boolean;
 
   multiline?: boolean;
   minLines?: number;
@@ -88,6 +90,7 @@ export const TextField = ({
   errorMessage,
   showSuffixIcon,
   isPasswordField = false,
+  readOnly = false,
 
   multiline = false,
   minLines,
@@ -118,6 +121,7 @@ export const TextField = ({
     height,
     padding,
     paddingRight,
+    readOnly,
     $hasSuffix: !!(showSuffixIcon && isPasswordField),
     $device: device,
     autoComplete,

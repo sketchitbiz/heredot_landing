@@ -108,7 +108,6 @@ export default function EventBlock({
 
   const handleImageClick = (href: string) => {
     void userStamp({
-      uuid: localStorage.getItem('logId') ?? 'anonymous',
       category: '버튼',
       content: 'EventBlock',
       memo: `링크 버튼: ${href}`,

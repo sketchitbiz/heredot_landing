@@ -84,7 +84,7 @@ const BannerItem = styled.div<{ $isActive: boolean }>`
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 `;
 
-const BannerImage = styled(Image)`
+const BannerImage = styled.img`
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -179,12 +179,10 @@ export const ScrollingBannerSection: React.FC<BannerProps> = ({
             {banners.map((banner, index) => (
               <BannerItem key={banner.id} $isActive={index === currentIndex}>
                 <BannerImage
-                  src={banner.imageUrl}
-                  alt={banner.altText || `Banner ${banner.id}`}
-                  fill
-                  sizes="(max-width: 600px) 80vw, (max-width: 992px) 70vw, 60vw"
-                  priority={index <= 1}
-                />
+  src={banner.imageUrl}
+  alt={banner.altText || `Banner ${banner.id}`}
+  className="w-full h-full object-cover"
+/>
               </BannerItem>
             ))}
           </BannerTrack>

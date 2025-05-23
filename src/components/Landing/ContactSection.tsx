@@ -50,7 +50,6 @@ const ContactGrid = styled.div`
 
 const logButtonClick = (memo: string) => {
   userStamp({
-    uuid: localStorage.getItem('logId') ?? 'anonymous',
     category: '버튼',
     content: 'Contact',
     memo,

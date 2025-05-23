@@ -2,7 +2,6 @@
 
 import React from "react";
 import styled from "styled-components";
-import Image from "next/image";
 import { AppColors } from "@/styles/colors";
 import { userStamp } from "@/lib/api/user/api";
 
@@ -38,15 +37,19 @@ const CardContainer = styled.a`
   }
 `;
 
-const CardImage = styled(Image)`
-  display: block;
+const CardImage = styled.img`
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  transition: transform 0.3s ease;
+  object-position: top;
 `;
+
 export const VideoCard: React.FC<VideoCardProps> = ({ imageUrl, videoUrl, title = "Video" }) => {
   const handleClick = () => {
     void userStamp({
-      uuid: localStorage.getItem("logId") ?? "anonymous",
       category: "버튼",
       content: "Video",
       memo: `영상: ${title}`,
@@ -60,12 +63,11 @@ export const VideoCard: React.FC<VideoCardProps> = ({ imageUrl, videoUrl, title 
       rel="noopener noreferrer"
       onClick={handleClick} // ✅ 클릭시 스탬프 찍기
     >
-      <CardImage
-        src={imageUrl}
-        alt={title}
-        fill
-        sizes="(max-width: 768px) 50vw, 33vw"
-      />
+<CardImage
+  src={imageUrl}
+  alt={title}
+  className="w-full h-full object-cover"
+/>
     </CardContainer>
   );
 };

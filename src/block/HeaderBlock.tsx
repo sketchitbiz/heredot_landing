@@ -143,7 +143,6 @@ const HeaderBlock: React.FC<HeaderBlockProps> = ({ title, subtitle, downloadLabe
           style={{ textDecoration: 'none' }}
           onClick={() =>
             userStamp({
-              uuid: localStorage.getItem('logId') ?? 'anonymous',
               category: '버튼',
               content: 'Header',
               memo: '기업 소개서 다운로드',

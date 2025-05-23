@@ -4,7 +4,6 @@ import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { useLang } from '@/contexts/LangContext';
 import { Breakpoints } from '@/constants/layoutConstants';
-import { userStamp } from '@/lib/api/user/api';
 
 interface ProjectPopupContentProps {
   imageUrl: string;

@@ -1,5 +1,4 @@
 import styled from "styled-components";
-import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useLang } from "@/contexts/LangContext";
 import { dictionary } from "@/lib/i18n/lang";
@@ -36,11 +35,16 @@ const CardWrapper = styled.div<{ width?: string | number; height?: string | numb
   }
 `;
 
-const CardImage = styled(Image)`
+const CardImage = styled.img`
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: top;
 `;
+
 
 const SpeechBubble = styled.div<{ $isVisible: boolean; $shouldRender: boolean }>`
   position: absolute;
@@ -129,13 +133,11 @@ export const MemberCard: React.FC<MemberCardProps> = ({
 
   return (
     <CardWrapper width={width} height={height}>
-      <CardImage
-        src={imageUrl}
-        alt={name}
-        fill
-        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-        priority
-      />
+<CardImage
+  src={imageUrl}
+  alt={name}
+  className="w-full h-full object-cover"
+/>
       <SpeechBubble $isVisible={isVisible} $shouldRender={shouldRender}>
         {currentMessage}
       </SpeechBubble>

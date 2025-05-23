@@ -129,7 +129,6 @@ export const ExitoPopup = () => {
               title={title}
               onClick={() => {
                 void userStamp({
-                  uuid: localStorage.getItem('logId') ?? 'anonymous',
                   category: '버튼',
                   content: '엑시토',
                   memo: `외부 링크: ${title}`,

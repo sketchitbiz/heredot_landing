@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 36,
+            "activePatchIndex": 37,
             "patches": [
                 {
                     "date": 1747719476073,
@@ -152,6 +152,10 @@
                 {
                     "date": 1747726981890,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -24,10 +24,10 @@\n   position: absolute;\n   bottom: 16px;\n   right: 16px;\n   padding-right: 20px;\n-  font-size: 28px;\n-  font-weight: 700;\n+  font-size: 24px;\n+  font-weight: 500;\n   color: ${({ $color }) => ($color === 'white' ? '#ffffff' : '#000000')};\n   animation: bounceY 1.5s ease-in-out infinite;\n   pointer-events: none;\n \n"
+                },
+                {
+                    "date": 1747965469602,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -107,9 +107,8 @@\n   };\n \n   const handleImageClick = (href: string) => {\n     void userStamp({\n-      uuid: localStorage.getItem('logId') ?? 'anonymous',\n       category: '버튼',\n       content: 'EventBlock',\n       memo: `링크 버튼: ${href}`,\n     });\n"
                 }
             ],
             "date": 1747719476073,

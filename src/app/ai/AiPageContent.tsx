@@ -98,7 +98,6 @@ const PageLanguageSwitcher = () => {
 
   const logLanguageChange = (selectedLang: 'ko' | 'en') => {
     userStamp({
-      uuid: localStorage.getItem('logId') ?? 'anonymous',
       category: '버튼',
       content: 'PageLanguageSwitcher',
       memo: `언어 변경: ${selectedLang}`,

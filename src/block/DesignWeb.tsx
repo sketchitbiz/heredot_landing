@@ -236,7 +236,6 @@ const DesignWeb: React.FC<DesignProps> = ({
 
     // 버튼 로그는 여전히 여기서 찍을 수 있음 (옵션)
     userStamp({
-      uuid: localStorage.getItem("logId") ?? "anonymous",
       category: "버튼",
       content: "Design",
       memo: `탭: ${tabs[index]}`,
@@ -280,7 +279,6 @@ const DesignWeb: React.FC<DesignProps> = ({
               rel="noopener noreferrer"
               onClick={() =>
                 userStamp({
-                  uuid: localStorage.getItem("logId") ?? "anonymous",
                   category: "버튼",
                   content: "Design",
                   memo: "디자인 제안서 다운로드",

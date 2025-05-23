@@ -94,7 +94,6 @@ export const PortfolioGrid: React.FC<PortfolioGridProps> = ({
     const card = cardData[index];
     const title = (t.portfolioCards as Record<string, string>)[card.id];
     void userStamp({
-      uuid: localStorage.getItem("logId") ?? "anonymous",
       category: "버튼",
       content: "Portfolio",
       memo: `포트폴리오: ${title}`,
@@ -133,7 +132,6 @@ export const PortfolioGrid: React.FC<PortfolioGridProps> = ({
           const card = cardData[index];
           const title = (t.portfolioCards as Record<string, string>)[card.id];
           void userStamp({
-            uuid: localStorage.getItem("logId") ?? "anonymous",
             category: "버튼",
             content: "Portfolio",
             memo: `포트폴리오: ${title}`,

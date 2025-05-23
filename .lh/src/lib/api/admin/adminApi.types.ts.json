@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 3,
+            "activePatchIndex": 6,
             "patches": [
                 {
                     "date": 1747735056852,
@@ -20,6 +20,18 @@
                 {
                     "date": 1747819529181,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -30,4 +30,10 @@\n \n   export type PromptHistoryGetListParams = {\n     index: number;\n   };\n+\n+  export type PromptUpdateParams = {\n+    index: number;\n+    content: string;\n+  };\n+\n"
+                },
+                {
+                    "date": 1747893283248,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -17,8 +17,18 @@\n     emailYn: string;\n     smsYn: string;\n   };\n \n+  export type AdminUpdateParams = {\n+    adminId: string; // 로그인 ID\n+    name?: string;\n+    cellphone?: string;\n+    description?: string;\n+    email?: string;\n+    emailYn?: 'Y' | 'N';\n+    smsYn?: 'Y' | 'N';\n+  };\n+\n   export type TermGetListParams = {\n     index: number;\n     termsType: string;\n     content: string;\n"
+                },
+                {
+                    "date": 1747897252162,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -18,9 +18,9 @@\n     smsYn: string;\n   };\n \n   export type AdminUpdateParams = {\n-    adminId: string; // 로그인 ID\n+    targetAdminId: string; // 로그인 ID\n     name?: string;\n     cellphone?: string;\n     description?: string;\n     email?: string;\n"
+                },
+                {
+                    "date": 1747898897317,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -27,8 +27,14 @@\n     emailYn?: 'Y' | 'N';\n     smsYn?: 'Y' | 'N';\n   };\n \n+  export type AdminPasswordUpdateParams = {\n+    targetAdminId: string; // 로그인 ID\n+    password: string;\n+  };\n+\n+\n   export type TermGetListParams = {\n     index: number;\n     termsType: string;\n     content: string;\n"
                 }
             ],
             "date": 1747735056852,

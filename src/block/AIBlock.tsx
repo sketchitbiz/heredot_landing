@@ -194,7 +194,6 @@ export const AIBlock: React.FC<AIBlockProps> = ({
 
   const handleClick = () => {
     void userStamp({
-      uuid: localStorage.getItem('logId') ?? 'anonymous',
       category: '버튼',
       content: 'AIBlock',
       memo: `AI 버튼 클릭: ${buttonText}`,

@@ -1,7 +1,6 @@
 "use client";
 
 import styled from "styled-components";
-import Image from "next/image";
 import { AppColors } from "@/styles/colors";
 import { useState, useEffect, useRef } from "react";
 import { SectionHeader } from "../components/Landing/SectionHeader";
@@ -55,7 +54,7 @@ const Slide = styled.div<{ $isActive: boolean }>`
   z-index: ${({ $isActive }) => ($isActive ? 1 : 0)}; // 활성 슬라이드가 위로
 `;
 
-const BannerImage = styled(Image)`
+const BannerImage = styled.img`
   display: block;
   object-fit: cover;
   width: 100%;
@@ -140,12 +139,11 @@ export const ScrollingBannerSection: React.FC<ScrollingBannerSectionProps> = ({
           {bannerData.map((banner, index) => (
             <Slide key={banner.id} $isActive={index === currentIndex}>
               <BannerImage
-                src={banner.imageUrl}
-                alt={banner.altText || `Banner ${banner.id}`}
-                fill
-                sizes="(max-width: 1100px) 90vw, 1000px" // 컨테이너 너비에 맞게 sizes 조정
-                priority={index === 0} // 첫 이미지만 우선 로드
-              />
+  src={banner.imageUrl}
+  alt={banner.altText || `Banner ${banner.id}`}
+  style={{ width: "100%", height: "100%" }} // 명시적으로 크기 설정
+  sizes="(max-width: 1100px) 90vw, 1000px"
+/>
             </Slide>
           ))}
         </SlideWrapper>

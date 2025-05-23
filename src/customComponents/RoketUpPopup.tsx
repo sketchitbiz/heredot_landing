@@ -98,7 +98,6 @@ export const RocketPopup = () => {
               title={btn.title}
               onClick={() => {
                                               void userStamp({
-                                                uuid: localStorage.getItem("logId") ?? "anonymous",
                                                 category: "버튼",
                                                 content: "로켓업",
                                                 memo: `외부 링크: ${btn.title}`,

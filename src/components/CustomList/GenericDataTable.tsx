@@ -8,6 +8,7 @@ export interface ColumnDefinition<T> {
   header: string;
   accessor: keyof T | string;
   sortable?: boolean;
+  noPopup?: boolean; // ✅ 팝업 비활성화
   formatter?: (value: any, item: T, rowIndex: number) => React.ReactNode;
   headerStyle?: React.CSSProperties;
   cellStyle?: React.CSSProperties | ((value: any, item: T) => React.CSSProperties);
@@ -49,7 +50,6 @@ const GenericDataTable = <T extends object>({
   themeMode = "dark",
 }: GenericDataTableProps<T>) => {
   const totalFlex = columns.reduce((sum, col) => sum + (col.flex ?? 0), 0);
-
   const displayData = maxLength ? data.slice(0, maxLength) : data;
   const tableRef = useRef<HTMLTableElement>(null);
 
@@ -67,16 +67,13 @@ const GenericDataTable = <T extends object>({
       });
       console.log("=============================================================");
     };
-  
-    logFlexStatus(); // 초기 렌더 시 출력
+    logFlexStatus();
     window.addEventListener("resize", logFlexStatus);
     return () => window.removeEventListener("resize", logFlexStatus);
   }, [columns, totalFlex]);
-  ;
-  
 
   return (
-<Table $themeMode={themeMode} ref={tableRef}>
+    <Table $themeMode={themeMode} ref={tableRef}>
       {totalFlex > 0 && (
         <colgroup>
           {columns.map((col, i) => (
@@ -121,19 +118,27 @@ const GenericDataTable = <T extends object>({
             <TableRow
               key={keyExtractor(item, rowIdx)}
               $isEven={rowIdx % 2 === 0}
-              $isClickable={!!onRowClick}
+              $isClickable={false}
               $themeMode={themeMode}
-              onClick={() => onRowClick?.(item, rowIdx)}
             >
               {columns.map((col, colIdx) => {
                 const value = getPropertyValue(item, col.accessor);
                 const content = col.formatter ? col.formatter(value, item, rowIdx) : String(value ?? "-");
                 const style =
-                  typeof col.cellStyle === "function"
-                    ? col.cellStyle(value, item)
-                    : col.cellStyle;
+                  typeof col.cellStyle === "function" ? col.cellStyle(value, item) : col.cellStyle;
                 return (
-                  <Td key={colIdx} style={style} $isEven={rowIdx % 2 === 0} $themeMode={themeMode}>
+                  <Td
+                    key={colIdx}
+                    style={{
+                      ...style,
+                      cursor: col.noPopup ? "default" : "pointer",
+                    }}
+                    $isEven={rowIdx % 2 === 0}
+                    $themeMode={themeMode}
+                    onClick={() => {
+                      if (!col.noPopup && onRowClick) onRowClick(item, rowIdx);
+                    }}
+                  >
                     {content}
                   </Td>
                 );
@@ -152,11 +157,10 @@ export default GenericDataTable;
 
 const Table = styled.table<{ $themeMode: ThemeMode }>`
   width: 100%;
-  /* min-width: 600px; */
-  /* table-layout: fixed; */
   border-collapse: collapse;
   font-size: 14px;
   text-align: center;
+  table-layout: auto;
   background-color: ${({ $themeMode }) =>
     $themeMode === "light" ? THEME_COLORS.light.tableBackground : THEME_COLORS.dark.tableBackground};
 `;

@@ -38,11 +38,10 @@ const Container3DStackScroll: React.FC = () => {
       });
 
       tl.to(el, {
-        rotateX: -30,
+        rotateX: -15,
+        rotateZ: -15,
+        perspective: 1000,
         ease: 'none',
-        yPercent: -50,
-        x: '0%',
-        y: '50%',
       });
       
 
@@ -59,7 +58,6 @@ const Container3DStackScroll: React.FC = () => {
       style={{
         height: `${colors.length * (containerHeight + gap)}px`,
         position: 'relative',
-        perspective: '1000px', // ✅ 원근감 부여
       }}
     >
       {colors.map((color, index) => (
@@ -81,7 +79,6 @@ const Container3DStackScroll: React.FC = () => {
             color: 'white',
             fontWeight: 'bold',
             transformOrigin: 'center center',
-            willChange: 'transform', // ✅ 성능 최적화
           }}
         >
           Box {index + 1}

@@ -69,13 +69,17 @@ interface InitialState {
 
 // GenericListUI Props 정의 (수정)
 interface GenericListUIProps<T extends BaseRecord> {
-  // 필수 Props
   title: React.ReactNode;
   columns: ColumnDefinition<T>[];
-  fetchData: (params: FetchParams) => Promise<FetchResult<T>>; // 파라미터 타입 변경됨
+  fetchData: (params: FetchParams) => Promise<FetchResult<T>>;
   excelFileName?: string;
 
-  // 옵션 Props
+  // 새로 변경된 props
+  addButtonLabel?: string;
+  deleteBtnCallBack?: () => void;
+  isShowExcelTemplate?: boolean;
+  excelUploadBtnCallBack?: (() => void);
+
   initialState?: InitialState;
   keyExtractor?: (item: T, index: number) => string | number;
   enableSearch?: boolean;
@@ -85,10 +89,49 @@ interface GenericListUIProps<T extends BaseRecord> {
   itemsPerPageOptions?: number[];
   themeMode?: ThemeMode;
   onRowClick?: (item: T, rowIndex: number) => void;
-  renderHeaderActionButton?: () => React.ReactNode;
   renderTabs?: () => React.ReactNode;
-  // customExcelDownload?: (dataToDownload: T[]) => void; // 제거 (기본 로직 강화)
 }
+
+// 등록, 템플릿 버튼 (밝은 톤)
+const PrimaryButton = styled(ActionButton)<{ $themeMode: ThemeMode }>`
+  width: 110px;
+  height: 40px;
+  background: ${({ $themeMode }) =>
+    $themeMode === 'light'
+      ? THEME_COLORS.light.primary
+      : THEME_COLORS.dark.buttonText};
+  color: ${({ $themeMode }) =>
+    $themeMode === 'light' ? '#f8f8f8' : THEME_COLORS.dark.primary};
+  border: none;
+  &:hover:not(:disabled) {
+    background-color: ${({ $themeMode }) => ($themeMode === "light" ? "#e8e8e8" : "#555555")};
+  }
+`;
+
+// 삭제, 업로드 버튼 (어두운 톤)
+const SecondaryButton = styled(ActionButton)<{ $themeMode: ThemeMode }>`
+  width: 110px;
+  height: 40px;
+  background: ${({ $themeMode }) => ($themeMode === "light" ? "#eeeeee" : "#333333")};
+  color: ${({ $themeMode }) => ($themeMode === "light" ? "#333333" : "#eeeeee")};
+  border: none;
+  &:hover:not(:disabled) {
+    background-color: ${({ $themeMode }) => ($themeMode === "light" ? "#dddddd" : "#555555")};
+  }
+`;
+
+// 다운로드 버튼 (특정 색)
+const DownloadButton = styled(ActionButton)`
+  width: 110px;
+  height: 40px;
+  background: #51815a;
+  color: white;
+  border: none;
+  &:hover:not(:disabled) {
+    background-color: #3e6b47;
+  }
+`;
+
 
 // --- The Component --- (상태 및 로직 대폭 수정)
 const GenericListUIInner = <T extends BaseRecord>(
@@ -105,8 +148,11 @@ const GenericListUIInner = <T extends BaseRecord>(
     itemsPerPageOptions = [12, 30, 50, 100],
     themeMode = "light",
     onRowClick,
-    renderHeaderActionButton,
     renderTabs,
+    addButtonLabel = "추가",
+    isShowExcelTemplate,
+    deleteBtnCallBack,
+    excelUploadBtnCallBack,
   }: GenericListUIProps<T>,
   ref: React.Ref<{ refetch: () => void }>
 ) => {
@@ -330,7 +376,7 @@ const GenericListUIInner = <T extends BaseRecord>(
       </TopHeader>
 
       <ControlHeader>
-        <LeftControls>
+        <APIControls>
           {enableDateFilter && (
             <DateRangePickerContainer>
               <GenericDateRangePicker
@@ -358,41 +404,62 @@ const GenericListUIInner = <T extends BaseRecord>(
               </SearchButton>
             </SearchContainer>
           )}
-        </LeftControls>
+        </APIControls>
 
-        <RightControls>
-          <ListInfo $themeMode={themeMode}>
-            {renderHeaderActionButton && renderHeaderActionButton()}
-            <ExcelButton onClick={handleDownloadClick} $themeMode={themeMode} disabled={isLoading}>
-              {isLoading ? "다운로드 중..." : "엑셀 다운로드"}
-            </ExcelButton>
-            <Cnt $themeMode={themeMode}>전체 {`${displayAllItems ?? "-"}건 중 ${displayTotalItems}건`}</Cnt>
-          </ListInfo>
-          <PaginationControls>
-            <NavButton
-              onClick={() => handlePageNumChange(currentPage - 1)}
-              disabled={currentPage <= 1 || isLoading}
-              $themeMode={themeMode}>
-              &lt;
-            </NavButton>
-            <PageBox $themeMode={themeMode}>
-              {currentPage} / {totalPages > 0 ? totalPages : 1}
-            </PageBox>
-            <NavButton
-              onClick={() => handlePageNumChange(currentPage + 1)}
-              disabled={currentPage >= totalPages || isLoading}
-              $themeMode={themeMode}>
-              &gt;
-            </NavButton>
-            <DropdownCustom
-              value={itemsPerPage}
-              onChange={handleItemsPerPageChange}
-              options={itemsPerPageOptions}
-              themeMode={themeMode}
-            />
-            <ItemsPerPageText $themeMode={themeMode}>개씩 보기</ItemsPerPageText>
-          </PaginationControls>
-        </RightControls>
+        <EventControls>
+  <LeftControls>
+    {addButtonLabel && (
+      <PrimaryButton $themeMode={themeMode} onClick={() => console.log("등록 클릭됨")}>
+        {addButtonLabel}
+      </PrimaryButton>
+    )}
+    {deleteBtnCallBack && (
+      <SecondaryButton $themeMode={themeMode} onClick={deleteBtnCallBack}>삭제</SecondaryButton>
+    )}
+  </LeftControls>
+
+  <RightControls>
+    {isShowExcelTemplate && (
+      <PrimaryButton $themeMode={themeMode} onClick={() => console.log("엑셀 템플릿")}>
+        엑셀 템플릿
+      </PrimaryButton>
+    )}
+    {excelUploadBtnCallBack && (
+      <SecondaryButton $themeMode={themeMode} onClick={excelUploadBtnCallBack}>
+        엑셀 업로드
+      </SecondaryButton>
+    )}
+    <DownloadButton onClick={handleDownloadClick} $themeMode={themeMode} disabled={isLoading}>
+      {isLoading ? "다운로드 중..." : "엑셀 다운로드"}
+    </DownloadButton>
+
+    <PaginationControls>
+      <NavButton
+        onClick={() => handlePageNumChange(currentPage - 1)}
+        disabled={currentPage <= 1 || isLoading}
+        $themeMode={themeMode}>
+        &lt;
+      </NavButton>
+      <PageBox $themeMode={themeMode}>
+        {currentPage} / {totalPages > 0 ? totalPages : 1}
+      </PageBox>
+      <NavButton
+        onClick={() => handlePageNumChange(currentPage + 1)}
+        disabled={currentPage >= totalPages || isLoading}
+        $themeMode={themeMode}>
+        &gt;
+      </NavButton>
+      <DropdownCustom
+        value={itemsPerPage}
+        onChange={handleItemsPerPageChange}
+        options={itemsPerPageOptions}
+        themeMode={themeMode}
+      />
+      <ItemsPerPageText $themeMode={themeMode}>개씩 보기</ItemsPerPageText>
+    </PaginationControls>
+  </RightControls>
+</EventControls>
+
       </ControlHeader>
 
         <TableContainer $themeMode={themeMode}>
@@ -423,29 +490,26 @@ export default GenericListUI;
 
 // --- 스타일 컴포넌트 (레이아웃 관련 수정) ---
 
+
+
 const Container = styled.div<{ $themeMode: ThemeMode }>`
-  justify-content: start;
-  width: calc(100%-50px);
-  height: auto;
-  padding: 30px;
+  min-width: 1200px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 30px 30px 30px 30px; // 오른쪽 패딩 포함
   background-color: ${({ $themeMode }) =>
     $themeMode === "light" ? THEME_COLORS.light.background : THEME_COLORS.dark.background};
-  box-sizing: border-box;
-  color: ${({ $themeMode }) => ($themeMode === "light" ? THEME_COLORS.light.text : THEME_COLORS.dark.text)};
+  color: ${({ $themeMode }) =>
+    $themeMode === "light" ? THEME_COLORS.light.text : THEME_COLORS.dark.text};
 `;
+
+
 
 const TopHeader = styled.div`
   display: flex;
-  flex-direction: column; /* 세로 배치 */
+  flex-direction: column;
   margin-bottom: 20px;
   gap: 15px;
-  @media (max-width: 1400px) {
-    width: 1150px;
-  }
-
-  @media (min-width: 2050px) {
-    width: 1800px;
-  }
 `;
 
 const TitleContainer = styled.div`
@@ -456,21 +520,11 @@ const ControlHeader = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  margin-top: 20px;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
+  margin: 20px 0;
   gap: 20px;
-
-  @media (max-width: 1400px) {
-    width: 1150px;
-  }
-
-  @media (min-width: 2050px) {
-    width: 1800px;
-  }
 `;
 
-const LeftControls = styled.div`
+const APIControls = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -478,14 +532,27 @@ const LeftControls = styled.div`
   gap: 15px;
 `;
 
-const RightControls = styled.div`
+const EventControls = styled.div`
   display: flex;
-  justify-content: end;
+  justify-content: space-between;
 
   align-items: center;
   flex-wrap: wrap;
   gap: 20px;
 `;
+
+const LeftControls = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+`;
+
+const RightControls = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 20px;
+`;
+
 
 const SearchContainer = styled.div`
   display: flex;
@@ -594,21 +661,19 @@ const ItemsPerPageText = styled.p<{ $themeMode: ThemeMode }>`
 
 const TableContainer = styled.div<{ $themeMode: ThemeMode }>`
   width: 100%;
-  overflow-x: auto;
+  min-width: 1000px;
   border: 1px solid
     ${({ $themeMode }) => ($themeMode === "light" ? THEME_COLORS.light.borderColor : THEME_COLORS.dark.borderColor)};
   border-radius: 4px;
   background: ${({ $themeMode }) =>
     $themeMode === "light" ? THEME_COLORS.light.tableBackground : THEME_COLORS.dark.tableBackground};
+  overflow: visible; /* 가로/세로 스크롤 방지 */
 
   @media (max-width: 1400px) {
-    width: 1150px;
-  }
-
-  @media (min-width: 2050px) {
-    width: 1800px;
+    min-width: 1000px;
   }
 `;
+
 
 const LoadingContainer = styled.div<{ $themeMode: ThemeMode }>`
   display: flex;

@@ -84,10 +84,6 @@ export const AppColors = {
   borderLight: '#E0E0E0',
   borderDark: '#9E9E9E',
   borderError: '#B00020',
-  border: "#5E5E5E",
-  borderLight: "#E0E0E0",
-  borderDark: "#9E9E9E",
-  borderError: "#B00020",
 
   // 기타
   // Others / Miscellaneous

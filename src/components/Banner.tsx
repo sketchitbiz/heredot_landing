@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { useEffect, useState } from "react";
 
 interface BannerProps {
@@ -38,19 +37,17 @@ export default function Banner({ images }: BannerProps) {
   return (
     <div className="relative w-full h-[200px] md:h-[300px] overflow-hidden">
       {images.map((image, index) => (
-        <div
-          key={image.id}
-          className={`absolute w-full h-full transition-opacity duration-500 ${
-            index === currentIndex ? "opacity-100" : "opacity-0"
-          }`}>
-          <Image
-            src={isMobile ? image.mobileImageUrl : image.imageUrl}
-            alt={image.altText}
-            fill
-            className="object-cover"
-            priority={index === 0}
-          />
-        </div>
+  <div
+  key={image.id}
+  className={`absolute w-full h-full transition-opacity duration-500 ${
+    index === currentIndex ? "opacity-100" : "opacity-0"
+  }`}>
+  <img
+    src={isMobile ? image.mobileImageUrl : image.imageUrl}
+    alt={image.altText}
+    className="object-cover w-full h-full"
+  />
+</div>
       ))}
       <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
         {images.map((_, index) => (
