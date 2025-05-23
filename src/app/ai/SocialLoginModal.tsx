@@ -11,12 +11,9 @@ import { useGoogleLogin } from '@react-oauth/google';
 import apiClient from '@/lib/apiClient';
 import { useLang } from '@/contexts/LangContext';
 import { aiChatDictionary } from '@/lib/i18n/aiChat';
-import { ChatDictionary } from './components/StepData';
-
-interface SocialLoginModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
+import { ChatDictionary } from './components/StepData'; // ChatDictionary 경로 확인
+import { useRouter } from 'next/navigation'; // useRouter 임포트
+import { toast } from 'react-toastify'; // toast 메시지를 위해 추가
 
 const ModalOverlay = styled.div<{ isOpen: boolean }>`
   position: fixed;
@@ -87,6 +84,7 @@ const MainSloganText = styled.h3`
   line-height: 1.3;
 `;
 
+// 🚨 GoogleLoginButton 스타일 복구
 const GoogleLoginButton = styled.button`
   background-color: white;
   color: #3c4043;
@@ -121,6 +119,7 @@ const GoogleLoginButton = styled.button`
   }
 `;
 
+
 const StyledCloseButton = styled.button`
   position: absolute;
   top: 15px;
@@ -138,76 +137,10 @@ const StyledCloseButton = styled.button`
     color: ${AppColors.onSurface};
   }
 `;
-
-const ManualJsonInput = styled.textarea`
-  width: 100%;
-  height: 120px;
-  margin-top: 20px;
-  padding: 10px;
-  border: 1px solid #cccccc;
-  border-radius: 8px;
-  font-size: 14px;
-  font-family: monospace;
-  resize: vertical;
-
-  &:focus {
-    outline: none;
-    border-color: ${AppColors.secondary};
-  }
-`;
-
-const ManualJsonButton = styled.button`
-  margin-top: 10px;
-  padding: 8px 16px;
-  background-color: ${AppColors.secondary};
-  color: white;
-  border: none;
-  border-radius: 4px;
-  font-size: 14px;
-  cursor: pointer;
-
-  &:hover {
-    background-color: #3f51b5;
-  }
-
-  &:disabled {
-    background-color: #cccccc;
-    cursor: not-allowed;
-  }
-`;
-
-const OrDivider = styled.div`
-  width: 100%;
-  text-align: center;
-  margin: 20px 0;
-  position: relative;
-
-  &::before,
-  &::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    width: 45%;
-    height: 1px;
-    background-color: #cccccc;
-  }
-
-  &::before {
-    left: 0;
-  }
-
-  &::after {
-    right: 0;
-  }
-
-  span {
-    background-color: white;
-    padding: 0 10px;
-    position: relative;
-    z-index: 1;
-    color: ${AppColors.onSurfaceVariant};
-  }
-`;
+interface SocialLoginModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
 
 export const SocialLoginModal: React.FC<SocialLoginModalProps> = ({
   isOpen,
@@ -215,25 +148,29 @@ export const SocialLoginModal: React.FC<SocialLoginModalProps> = ({
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
+
+  // 🚨 `sendInitialChatMessageAndSetupSession` 제거
   const { login, openAdditionalInfoModal } = useAuthStore();
+  const router = useRouter();
 
   const { lang } = useLang();
   const t = aiChatDictionary[lang] as ChatDictionary;
 
   const LOGIN_ENDPOINT = '/user/login';
 
-  const handleLoginSuccess = (
-    userData: UserData,
-    rawResponseData?: unknown
-  ) => {
-    // localStorage.setItem('loginData', JSON.stringify(rawResponseData)); // 이미 주석처리됨
-    // if (userData.accessToken) { ... } // 이미 주석처리됨
-    login(userData);
+  const handleLoginSuccess = async (userData: UserData) => {
+    await login(userData); // login 액션이 Promise를 반환하므로 await
+
     if (!userData.name || userData.name.trim() === '') {
       openAdditionalInfoModal();
-    } else {
-      // window.location.href = '/ai';
+      onClose(); // 모달 닫기
+      return;
     }
+
+    // 🚨 로그인 성공 및 추가 정보 확인 후, 파라미터 없이 /ai로 이동
+    onClose(); // 모달 닫기
+    router.push('/ai');
+    toast.success('로그인되었습니다!'); // 사용자에게 로그인 성공 알림
   };
 
   const handleGoogleLogin = useGoogleLogin({
@@ -265,7 +202,6 @@ export const SocialLoginModal: React.FC<SocialLoginModalProps> = ({
             result.data.length > 0
           ) {
             const rawUserData: UserData = result.data[0];
-            // 날짜 필드를 ISOString으로 변환
             const userData: UserData = {
               ...rawUserData,
               createdTime: new Date(rawUserData.createdTime).toISOString(),
@@ -274,7 +210,7 @@ export const SocialLoginModal: React.FC<SocialLoginModalProps> = ({
                 : null,
               lastLoginTime: new Date(rawUserData.lastLoginTime).toISOString(),
             };
-            handleLoginSuccess(userData, response.data);
+            await handleLoginSuccess(userData);
           } else {
             setLoginError(result.message || '로그인에 실패했습니다.');
           }
@@ -296,56 +232,8 @@ export const SocialLoginModal: React.FC<SocialLoginModalProps> = ({
     flow: 'implicit',
   });
 
-  const openGoogleLoginPopup = () => {
-    setIsLoading(true);
-    setLoginError(null);
-
-    const redirectUri = encodeURIComponent(
-      `${window.location.origin}/api/user/login/callback`
-    );
-
-    const apiHost = process.env.NEXT_PUBLIC_API_HOST || '';
-
-    const googleLoginUrl = `${apiHost}${LOGIN_ENDPOINT}?redirect_uri=${redirectUri}`;
-
-    console.log(`로그인 URL: ${googleLoginUrl}`);
-
-    window.location.href = googleLoginUrl;
-  };
-
-  const handleManualJsonSubmit = () => {
-    if (!manualJsonInput.trim()) return;
-
-    try {
-      const jsonData = JSON.parse(manualJsonInput);
-
-      if (Array.isArray(jsonData) && jsonData.length > 0) {
-        const result = jsonData[0];
-        if (
-          result.statusCode === 200 &&
-          result.data &&
-          Array.isArray(result.data) &&
-          result.data.length > 0
-        ) {
-          const userData: UserData = result.data[0];
-
-          handleLoginSuccess(userData, jsonData);
-
-          setManualJsonInput('');
-          setLoginError(null);
-        } else {
-          setLoginError(result.message || '유효하지 않은 데이터 형식입니다.');
-        }
-      } else {
-        setLoginError('유효하지 않은 데이터 형식입니다.');
-      }
-    } catch {
-      setLoginError('JSON 파싱 오류: 올바른 형식의 JSON을 입력해주세요.');
-    }
-  };
-
   useEffect(() => {
-    const handleMessage = (event: MessageEvent) => {
+    const handleMessage = async (event: MessageEvent) => {
       if (event.data && event.data.type === 'GOOGLE_LOGIN_SUCCESS') {
         setIsLoading(false);
 
@@ -363,7 +251,6 @@ export const SocialLoginModal: React.FC<SocialLoginModalProps> = ({
             result.data.length > 0
           ) {
             const rawUserData: UserData = result.data[0];
-            // 날짜 필드를 ISOString으로 변환
             const userData: UserData = {
               ...rawUserData,
               createdTime: new Date(rawUserData.createdTime).toISOString(),
@@ -372,7 +259,7 @@ export const SocialLoginModal: React.FC<SocialLoginModalProps> = ({
                 : null,
               lastLoginTime: new Date(rawUserData.lastLoginTime).toISOString(),
             };
-            handleLoginSuccess(userData, responseData);
+            await handleLoginSuccess(userData);
           } else {
             setLoginError(
               result.message ||
@@ -394,7 +281,7 @@ export const SocialLoginModal: React.FC<SocialLoginModalProps> = ({
     return () => {
       window.removeEventListener('message', handleMessage);
     };
-  }, [login, openAdditionalInfoModal]);
+  }, [login, openAdditionalInfoModal, router]); // 의존성 배열 업데이트 (sendInitialChatMessageAndSetupSession 제거)
 
   useEffect(() => {
     if (!isOpen) {
@@ -437,17 +324,6 @@ export const SocialLoginModal: React.FC<SocialLoginModalProps> = ({
               {loginError}
             </p>
           )}
-
-          {/* 수동 JSON 입력 부분 (개발/테스트용으로 유지한다면) */}
-          {/* <OrDivider><span>OR</span></OrDivider>
-          <ManualJsonInput 
-            value={manualJsonInput} 
-            onChange={(e) => setManualJsonInput(e.target.value)}
-            placeholder='로그인 응답 JSON 붙여넣기' 
-          />
-          <ManualJsonButton onClick={handleManualJsonSubmit} disabled={isLoading}>
-            수동 로그인
-          </ManualJsonButton> */}
         </RightPanel>
       </ModalContent>
     </ModalOverlay>

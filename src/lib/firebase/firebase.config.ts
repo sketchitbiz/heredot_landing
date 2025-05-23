@@ -1,7 +1,9 @@
+// src/firebaseConfig.ts
 import { initializeApp, getApps, getApp, FirebaseOptions } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
+import { getVertexAI } from 'firebase/vertexai'; // Vertex AI SDK 임포트 추가
 import {devLog} from '@/lib/utils/devLogger';
 
 // 필요한 다른 Firebase 서비스 import (예: getAnalytics)
@@ -10,7 +12,7 @@ import {devLog} from '@/lib/utils/devLogger';
 const firebaseConfig: FirebaseOptions = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  // databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL, // Realtime Database 사용 시 주석 해제
+  // databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL, 
   projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
   storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
@@ -35,9 +37,14 @@ if (!getApps().length) {
 
 // 필요한 Firebase 서비스 객체 생성
 const auth = getAuth(app);
-const db = app ? getFirestore(app) : null; // Firestore
-const storage = getStorage(app); // Storage
+// app이 null이 아닐 때만 Firestore와 Storage 초기화 (초기화 오류 방지)
+const db = app ? getFirestore(app) : null; 
+const storage = app ? getStorage(app) : null; 
+// Vertex AI 초기화 시 app 인스턴스 전달 (기본 리전 설정 없이)
+const vertexAI = app ? getVertexAI(app) : null; 
+
 // const analytics = typeof window !== 'undefined' ? getAnalytics(app) : null; // Analytics (클라이언트 전용)
 
 // 필요한 서비스 export
-export { app, auth, db, storage /*, analytics */ };
+// vertexAI 인스턴스를 추가로 export 합니다.
+export { app, auth, db, storage, vertexAI /*, analytics */ };

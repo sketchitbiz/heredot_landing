@@ -45,14 +45,14 @@ export const aiChatDictionary = {
       title: '견적가 할인받기',
       description: '견적가의 할인을 원하시면 다음 옵션을 선택할 수 있습니다:',
       options: [
-        '[프로모션] 개발 기간을 여유 있게! 8주 연장 시 20% 할인 혜택 제공',
-        '[예산절감] 필수 기능만 남기고, 예산을 스마트하게 줄여보세요',
-        '[AI 제안] AI 심층 분석을 통해 필요기능을 제안 받아보세요 (AI 심층 분석은 평균 1분 내외 소요됩니다.)',
+        // '[프로모션] 개발 기간을 여유 있게! 8주 연장 시 20% 할인 혜택 제공',
+        '[💰 예산절감] 필수 기능만 남기고, 예산을 스마트하게 줄여보세요',
+        '[✨ AI 제안] AI 심층 분석을 통해 필요기능을 제안 받아보세요 (AI 심층 분석은 평균 1분 내외 소요됩니다.)',
       ],
-      optionsButtonTexts: ['프로모션 선택', '예산절감 선택', 'AI제안 선택'],
+      optionsButtonTexts: ['예산절감 선택', 'AI제안 선택'],
     },
     pdf: {
-      title: 'PDF로 저장',
+      title: '⬇️ PDF로 저장',
     },
     loading: '페이지 로딩 중...',
     status: {
@@ -75,8 +75,8 @@ export const aiChatDictionary = {
     },
 
     userActionFeedback: {
-      discountExtend8w20p:
-        '[프로모션] 개발 기간 8주 연장 및 20% 할인 옵션을 선택했습니다.',
+      // discountExtend8w20p:
+      // '[프로모션] 개발 기간 8주 연장 및 20% 할인 옵션을 선택했습니다.',
       discountRemoveFeaturesBudget:
         '[예산절감] 필수 기능 중심, 예산 절감 옵션을 선택했습니다.',
       discountAiSuggestion:
@@ -113,7 +113,7 @@ export const aiChatDictionary = {
       estimate: '여기닷에게',
       categoryInProgress: '카테고리 선택 중',
       generatingEstimate: '견적 생성 중',
-      customEstimateInProgress: '맞춤 견적 제작 중...',
+      newChatTitle: '새로운 채팅',
     },
 
     // AiProgressBar 컴포넌트 관련 번역
@@ -193,18 +193,13 @@ export const aiChatDictionary = {
       description:
         'If you want a discount on the estimate, you can choose from the following options:',
       options: [
-        '[Promotion] Flexible development timeline! Get a 20% discount for an 8-week extension.',
-        '[Budget Saving] Keep only essential features and smartly reduce your budget.',
-        '[AI Suggestion] Get feature suggestions through in-depth AI analysis (In-depth AI analysis takes about 20 seconds on average.)',
+        '[💰 Budget Saving] Keep only essential features and smartly reduce your budget.',
+        '[✨ AI Suggestion] Get feature suggestions through in-depth AI analysis (In-depth AI analysis takes about 20 seconds on average.)',
       ],
-      optionsButtonTexts: [
-        'Select Promotion',
-        'Select Budget Saving',
-        'Select AI Suggestion',
-      ],
+      optionsButtonTexts: ['Select Budget Saving', 'Select AI Suggestion'],
     },
     pdf: {
-      title: 'Save as PDF',
+      title: '⬇️ Save as PDF',
     },
     loading: 'Loading page...',
     status: {
@@ -227,8 +222,8 @@ export const aiChatDictionary = {
     },
 
     userActionFeedback: {
-      discountExtend8w20p:
-        'Selected [Promotion] Extend development by 8 weeks for 20% off.',
+      // discountExtend8w20p:
+      // 'Selected [Promotion] Extend development by 8 weeks for 20% off.',
       discountRemoveFeaturesBudget:
         'Selected [Budget Saving] Focus on essential features to reduce budget.',
       discountAiSuggestion:
@@ -267,7 +262,7 @@ export const aiChatDictionary = {
       estimate: 'To HereDot',
       categoryInProgress: 'Selecting Category',
       generatingEstimate: 'Generating Estimate',
-      customEstimateInProgress: 'Creating custom estimate...',
+      newChatTitle: 'New Chat',
     },
 
     // AiProgressBar 컴포넌트 관련 번역

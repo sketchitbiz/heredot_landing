@@ -17,11 +17,10 @@ import SelectionField from '@/components/selectionField';
 import { AppColors } from '@/styles/colors';
 import { Validators } from '@/lib/utils/validators';
 import { toast, ToastContainer } from 'react-toastify';
-import { adminCreate,adminUpdate } from '@/lib/api/admin';
+import { adminCreate, adminUpdate } from '@/lib/api/admin';
 import Switch from '@/components/Switch';
 import { SwitchInput } from '@/components/SwitchInput';
 import { devLog } from '@/lib/utils/devLogger';
-import PasswordPopup from './PasswordPopup';
 
 const SwitchRow = styled.div`
   display: flex;
@@ -58,7 +57,6 @@ const PopupFooter = styled.div`
   gap: 12px;
 `;
 
-
 const FooterButton = styled.button`
   width: 120px;
   height: 48px;
@@ -80,7 +78,6 @@ const SaveButton = styled(FooterButton)`
   border: 1px solid ${AppColors.border};
   color: ${AppColors.onPrimary};
 `;
-
 
 const PwdChangeButton = styled(FooterButton)`
   background-color: ${AppColors.primary};
@@ -136,7 +133,6 @@ const AdminMngPage: React.FC = () => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [isPwdChangeOpen, setIsPwdChangeOpen] = useState(false);
 
-
   const listRef = useRef<{ refetch: () => void }>(null);
 
   const clearFormErrors = useCallback(() => {
@@ -179,14 +175,16 @@ const AdminMngPage: React.FC = () => {
 
   const handleSave = async () => {
     let valid = true;
-  
+
     if (!Validators.required(userId) || !Validators.id(userId)) {
       setIdError('아이디는 영문자와 숫자를 포함한 6~20자여야 합니다.');
       valid = false;
     } else setIdError(null);
-  
+
     if (!selectedUser && !Validators.password(password)) {
-      setPwdError('비밀번호는 영문, 숫자, 특수문자를 포함해 8자 이상이어야 합니다.');
+      setPwdError(
+        '비밀번호는 영문, 숫자, 특수문자를 포함해 8자 이상이어야 합니다.'
+      );
       valid = false;
     } else setPwdError(null);
 
@@ -194,24 +192,24 @@ const AdminMngPage: React.FC = () => {
       setConfirmPwdError('비밀번호가 일치하지 않습니다.');
       valid = false;
     } else setConfirmPwdError(null);
-  
+
     if (!Validators.required(name)) {
       setNameError('이름을 입력해주세요.');
       valid = false;
     } else setNameError(null);
-  
+
     if (!Validators.email(email)) {
       setEmailError('올바른 이메일 형식이 아닙니다.');
       valid = false;
     } else setEmailError(null);
-  
+
     if (!Validators.phone(cellphone)) {
       setCellphoneError('연락처는 숫자 11자리여야 합니다.');
       valid = false;
     } else setCellphoneError(null);
-  
+
     if (!valid) return;
-  
+
     try {
       if (selectedUser) {
         const updatePayload = {
@@ -223,7 +221,7 @@ const AdminMngPage: React.FC = () => {
           emailYn,
           smsYn,
         };
-  
+
         const response = await adminUpdate(updatePayload);
         if (response?.[0]?.message === 'success') {
           toast.success('관리자 정보가 수정되었습니다.');
@@ -231,7 +229,9 @@ const AdminMngPage: React.FC = () => {
           listRef.current?.refetch();
         } else {
           const errorMessage =
-            response?.[0]?.error?.customMessage || response?.[0]?.message || '수정에 실패했습니다.';
+            response?.[0]?.error?.customMessage ||
+            response?.[0]?.message ||
+            '수정에 실패했습니다.';
           toast.error(errorMessage);
         }
       } else {
@@ -245,7 +245,7 @@ const AdminMngPage: React.FC = () => {
           emailYn,
           smsYn,
         };
-  
+
         const response = await adminCreate(createPayload);
         if (response?.[0]?.message === 'success') {
           toast.success('관리자가 성공적으로 등록되었습니다.');
@@ -253,17 +253,18 @@ const AdminMngPage: React.FC = () => {
           listRef.current?.refetch();
         } else {
           const errorMessage =
-            response?.[0]?.error?.customMessage || response?.[0]?.message || '등록에 실패했습니다.';
+            response?.[0]?.error?.customMessage ||
+            response?.[0]?.message ||
+            '등록에 실패했습니다.';
           toast.error(errorMessage);
         }
       }
     } catch (error: any) {
-      const errorMessage = error?.customMessage || error?.message || '처리에 실패했습니다.';
+      const errorMessage =
+        error?.customMessage || error?.message || '처리에 실패했습니다.';
       toast.error(errorMessage);
     }
   };
-  
-  
 
   const fetchData = useCallback(
     async (params: FetchParams): Promise<FetchResult<AdminUser>> => {
@@ -280,16 +281,18 @@ const AdminMngPage: React.FC = () => {
   const handleDropdownChange = useCallback(
     async (adminId: string, type: 'emailYn' | 'smsYn', newValue: 'Y' | 'N') => {
       try {
-
         console.log('handleDropdownChange', adminId, type, newValue);
 
         const response = await adminUpdate({
-          targetAdminId: adminId,       [type]: newValue,
+          targetAdminId: adminId,
+          [type]: newValue,
         } as any); // 강제로 캐스팅 (type-safe 방식은 별도 타입 유틸 필요)
-  
+
         const isSuccess = response?.[0]?.message === 'success';
         if (isSuccess) {
-          toast.success(`${type === 'emailYn' ? '메일' : 'SMS'} 수신 설정이 변경되었습니다.`);
+          toast.success(
+            `${type === 'emailYn' ? '메일' : 'SMS'} 수신 설정이 변경되었습니다.`
+          );
           listRef.current?.refetch();
         } else {
           toast.error('변경에 실패했습니다.');
@@ -300,7 +303,6 @@ const AdminMngPage: React.FC = () => {
     },
     []
   );
-  
 
   const columns: ColumnDefinition<AdminUser>[] = useMemo(
     () => [
@@ -387,181 +389,167 @@ const AdminMngPage: React.FC = () => {
         searchPlaceholder="이름, 이메일, 아이디 검색"
         onRowClick={handleRowClick}
         themeMode="light"
-        addButtonLabel='관리자 등록'
-        deleteBtnCallBack={()=>{}}
-        isShowExcelTemplate= {true}
-        excelUploadBtnCallBack={()=>{}}
+        addButtonLabel="관리자 등록"
+        deleteBtnCallBack={() => {}}
+        isShowExcelTemplate={true}
+        excelUploadBtnCallBack={() => {}}
       />
 
-<CmsPopup
-  title="관리자등록"
-  isOpen={isPopupOpen}
-  onClose={closePopup}
-  isWide={false}
-  showRequiredMark={true}
-  bottomFloating={
-<PopupFooter>
-  {/* 왼쪽 영역: 삭제 버튼 */}
-  {selectedUser ? (
-    <CancelButton
-      style={{ backgroundColor: 'eeeeee', color: '#333333' }}
-      onClick={() => toast.info('삭제 기능은 추후 구현 예정입니다.')}
-    >
-      삭제
-    </CancelButton>
-  ) : (
-    <div /> // 빈 영역 유지
-  )}
+      <CmsPopup
+        title="관리자등록"
+        isOpen={isPopupOpen}
+        onClose={closePopup}
+        isWide={false}
+        showRequiredMark={true}
+        bottomFloating={
+          <PopupFooter>
+            {/* 왼쪽 영역: 삭제 버튼 */}
+            {selectedUser ? (
+              <CancelButton
+                style={{ backgroundColor: 'eeeeee', color: '#333333' }}
+                onClick={() => toast.info('삭제 기능은 추후 구현 예정입니다.')}
+              >
+                삭제
+              </CancelButton>
+            ) : (
+              <div /> // 빈 영역 유지
+            )}
 
-  {/* 오른쪽 영역: 저장/닫기 */}
-  <div style={{ display: 'flex', gap: '12px' }}>
-    <SaveButton onClick={handleSave}>저장</SaveButton>
-    <CancelButton onClick={closePopup}>닫기</CancelButton>
-  </div>
-</PopupFooter>
-
-  }
-  
->
-  <FormContainer>
-  <TextField
-  radius="0"
-  value={userId}
-  label="* 아이디"
-  autoComplete="off"
-  $labelPosition="horizontal"
-  labelColor="white"
-  onChange={(e) => setUserId(e.target.value)}
-  placeholder="영문자와 숫자를 포함한 6~20자"
-  errorMessage={idError ?? undefined}
-  readOnly={!!selectedUser} // ✅ 조건부 readOnly
-/>
-
-  {/* 신규 등록 시: 아이디 아래에 비밀번호 입력 */}
-  {!selectedUser && (
-    <TextField
-      radius="0"
-      value={password}
-      showSuffixIcon={true}
-      label="* 비밀번호"
-      autoComplete="new-password"
-      $labelPosition="horizontal"
-      labelColor="white"
-      onChange={(e) => setPassword(e.target.value)}
-      placeholder="영문 + 숫자 + 특수문자 1개 포함 8자리 이상"
-      isPasswordField={true}
-      errorMessage={pwdError ?? undefined}
-    />
-  )}
-  {/* // 비밀번호 확인 필드 */}
-  {!selectedUser && (
-    <TextField
-      radius="0"
-      value={confirmPassword}
-      showSuffixIcon={true}
-      label="* 비밀번호 확인"
-      autoComplete="new-password"
-      $labelPosition="horizontal"
-      labelColor="white"
-      onChange={(e) => setConfirmPassword(e.target.value)}
-      placeholder="영문 + 숫자 + 특수문자 1개 포함 8자리 이상"
-      isPasswordField={true}
-      errorMessage={confirmPwdError ?? undefined}
-    />
-  )}
-
-
-    <TextField
-      radius="0"
-      value={name}
-      label="* 이름"
-      $labelPosition="horizontal"
-      labelColor="white"
-      onChange={(e) => setName(e.target.value)}
-      placeholder="이름을 입력하세요"
-      errorMessage={nameError ?? undefined}
-    />
-    <TextField
-      radius="0"
-      value={email}
-      label="* 이메일"
-      $labelPosition="horizontal"
-      labelColor="white"
-      onChange={(e) => setEmail(e.target.value)}
-      placeholder="이메일 형식으로 입력하세요"
-      errorMessage={emailError ?? undefined}
-    />
-    <TextField
-      radius="0"
-      value={cellphone}
-      label="* 연락처"
-      $labelPosition="horizontal"
-      labelColor="white"
-      onChange={(e) => {
-        const input = e.target.value;
-        if (/^\d*$/.test(input)) {
-          setCellphone(input);
+            {/* 오른쪽 영역: 저장/닫기 */}
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <SaveButton onClick={handleSave}>저장</SaveButton>
+              <CancelButton onClick={closePopup}>닫기</CancelButton>
+            </div>
+          </PopupFooter>
         }
-      }}
-      placeholder="- 제외 하고 입력하세요"
-      errorMessage={cellphoneError ?? undefined}
-    />
+      >
+        <FormContainer>
+          <TextField
+            radius="0"
+            value={userId}
+            label="* 아이디"
+            autoComplete="off"
+            $labelPosition="horizontal"
+            labelColor="white"
+            onChange={(e) => setUserId(e.target.value)}
+            placeholder="영문자와 숫자를 포함한 6~20자"
+            errorMessage={idError ?? undefined}
+            readOnly={!!selectedUser} // ✅ 조건부 readOnly
+          />
 
+          {/* 신규 등록 시: 아이디 아래에 비밀번호 입력 */}
+          {!selectedUser && (
+            <TextField
+              radius="0"
+              value={password}
+              showSuffixIcon={true}
+              label="* 비밀번호"
+              autoComplete="new-password"
+              $labelPosition="horizontal"
+              labelColor="white"
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="영문 + 숫자 + 특수문자 1개 포함 8자리 이상"
+              isPasswordField={true}
+              errorMessage={pwdError ?? undefined}
+            />
+          )}
+          {/* // 비밀번호 확인 필드 */}
+          {!selectedUser && (
+            <TextField
+              radius="0"
+              value={confirmPassword}
+              showSuffixIcon={true}
+              label="* 비밀번호 확인"
+              autoComplete="new-password"
+              $labelPosition="horizontal"
+              labelColor="white"
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="영문 + 숫자 + 특수문자 1개 포함 8자리 이상"
+              isPasswordField={true}
+              errorMessage={confirmPwdError ?? undefined}
+            />
+          )}
 
-  {/* 수정 모드일 때: 이메일 수신 Switch 위에 비밀번호 변경 버튼 */}
-  {selectedUser && (
-    <SwitchRow>
-      <SwitchLabel>비밀번호 변경</SwitchLabel>
-      <PwdChangeButton
-  style={{ width: 'auto', padding: '0 16px', fontSize: '14px' }}
-  onClick={() => setIsPwdChangeOpen(true)}
->
-  비밀번호 변경
-</PwdChangeButton>
+          <TextField
+            radius="0"
+            value={name}
+            label="* 이름"
+            $labelPosition="horizontal"
+            labelColor="white"
+            onChange={(e) => setName(e.target.value)}
+            placeholder="이름을 입력하세요"
+            errorMessage={nameError ?? undefined}
+          />
+          <TextField
+            radius="0"
+            value={email}
+            label="* 이메일"
+            $labelPosition="horizontal"
+            labelColor="white"
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="이메일 형식으로 입력하세요"
+            errorMessage={emailError ?? undefined}
+          />
+          <TextField
+            radius="0"
+            value={cellphone}
+            label="* 연락처"
+            $labelPosition="horizontal"
+            labelColor="white"
+            onChange={(e) => {
+              const input = e.target.value;
+              if (/^\d*$/.test(input)) {
+                setCellphone(input);
+              }
+            }}
+            placeholder="- 제외 하고 입력하세요"
+            errorMessage={cellphoneError ?? undefined}
+          />
 
-    </SwitchRow>
-  )}
+          {/* 수정 모드일 때: 이메일 수신 Switch 위에 비밀번호 변경 버튼 */}
+          {selectedUser && (
+            <SwitchRow>
+              <SwitchLabel>비밀번호 변경</SwitchLabel>
+              <PwdChangeButton
+                style={{ width: 'auto', padding: '0 16px', fontSize: '14px' }}
+                onClick={() => setIsPwdChangeOpen(true)}
+              >
+                비밀번호 변경
+              </PwdChangeButton>
+            </SwitchRow>
+          )}
 
+          <SwitchInput
+            label="이메일 수신"
+            value={emailYn}
+            onChange={setEmailYn}
+            $labelPosition="horizontal"
+            labelColor="white"
+          />
 
-    <SwitchInput
-      label="이메일 수신"
-      value={emailYn}
-      onChange={setEmailYn}
-      $labelPosition="horizontal"
-      labelColor="white"
-    />
+          <SwitchInput
+            label="SMS 수신"
+            value={smsYn}
+            onChange={setSmsYn}
+            $labelPosition="horizontal"
+            labelColor="white"
+          />
 
-    <SwitchInput
-      label="SMS 수신"
-      value={smsYn}
-      onChange={setSmsYn}
-      $labelPosition="horizontal"
-      labelColor="white"
-    />
-
-    <TextField
-      radius="0"
-      multiline
-      minLines={4}
-      maxLines={10}
-      height="200px"
-      value={description}
-      label="비고"
-      $labelPosition="horizontal"
-      labelColor="white"
-      onChange={(e) => setDescription(e.target.value)}
-      placeholder="비고를 입력하세요"
-    />
-  </FormContainer>
-</CmsPopup>
-
-<PasswordPopup
-  adminId={userId}
-  isOpen={isPwdChangeOpen}
-  onClose={() => setIsPwdChangeOpen(false)}
-/>
-
-
+          <TextField
+            radius="0"
+            multiline
+            minLines={4}
+            maxLines={10}
+            height="200px"
+            value={description}
+            label="비고"
+            $labelPosition="horizontal"
+            labelColor="white"
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="비고를 입력하세요"
+          />
+        </FormContainer>
+      </CmsPopup>
     </>
   );
 };

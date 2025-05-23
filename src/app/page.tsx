@@ -49,7 +49,6 @@ const sectionMap: Record<
   contact: { content: 'Contact', memo: '연락' },
 };
 
-
 const logSectionView = async (
   content: string,
   memo: string,
@@ -88,13 +87,12 @@ export default function HomePage() {
     setIsAutoScrolling(true);
     isAutoScrollingRef.current = true;
   };
-  
+
   const endAutoScroll = () => {
     devLog('[AutoScroll] 종료');
     setIsAutoScrolling(false);
     isAutoScrollingRef.current = false;
   };
-  
 
   const aliasMap: Record<string, string> = {
     about: 'header',
@@ -118,9 +116,9 @@ export default function HomePage() {
         : '';
     const targetId = aliasMap[path];
     if (!targetId) return;
-  
+
     startAutoScroll();
-  
+
     const maxWait = 3000;
     const start = Date.now();
     let frameId: number;
@@ -129,7 +127,7 @@ export default function HomePage() {
     const tryScroll = () => {
       const el = document.getElementById(targetId);
       const elapsed = Date.now() - start;
-  
+
       if (el && el.offsetHeight > 0) {
         const rect = el.getBoundingClientRect();
         const scrollY = window.scrollY + rect.top;
@@ -153,7 +151,7 @@ export default function HomePage() {
   
         return;
       }
-  
+
       if (elapsed > maxWait) {
         console.warn('[AutoScroll] Element not found within timeout:', targetId);
         endAutoScroll();
@@ -170,8 +168,6 @@ export default function HomePage() {
       clearTimeout(scrollTimeout);
     };
   }, []);
-  ;
-
   const scrollToTargetId = (
     targetId: string,
     content: string,
@@ -245,7 +241,7 @@ export default function HomePage() {
           if (id !== 'header' && isVisible && id !== lastLoggedId && !isAutoScrollingRef.current) {
             devLog(`[Observer] Section 진입: ${id}`);
             lastLoggedId = id;
-    
+
             if (!isAutoScrollingRef.current) {
             const path = Object.entries(aliasMap).find(([, targetId]) => targetId === id)?.[0];
             if (path) {
@@ -256,10 +252,10 @@ export default function HomePage() {
               }
             }
             }
-    
+
             const isScrollingDown = currentScrollY > lastScrollY;
             lastScrollY = currentScrollY;
-    
+
             const section = sectionMap[id];
             if (section) {
               setCurrentSection(section.content);
@@ -273,7 +269,6 @@ export default function HomePage() {
       },
       { threshold: 0.3 }
     );
-    
 
     const headerEl = document.getElementById('header');
     if (headerEl) headerObserver.observe(headerEl);
@@ -365,27 +360,26 @@ export default function HomePage() {
       id: 'partner',
       $backgroundColor: AppColors.surface,
       content: (
-          <Partner
-            title1={t.partner.title1}
-            title2={t.partner.title2}
-            subtitle={t.partner.subtitle}
-            tabs={t.partner.tabs}
-            slides={t.partner.slides}
-            downloadText={t.partner.downloadText}
-            onEnterSection={(index, tab) => {
-              setCurrentSection('Partner');
-              if (isAutoScrollingRef.current) return;
-              const newUrl = '/partner'; // 또는 원하는 aliasMap key
-              if (window.location.pathname !== newUrl) {
-                history.replaceState(null, '', newUrl);
-              }
-              void logSectionView('Partner', `스크롤: ${tab}`);
-            }}
-          />
+        <Partner
+          title1={t.partner.title1}
+          title2={t.partner.title2}
+          subtitle={t.partner.subtitle}
+          tabs={t.partner.tabs}
+          slides={t.partner.slides}
+          downloadText={t.partner.downloadText}
+          onEnterSection={(index, tab) => {
+            setCurrentSection('Partner');
+            if (isAutoScrollingRef.current) return;
+            const newUrl = '/partner'; // 또는 원하는 aliasMap key
+            if (window.location.pathname !== newUrl) {
+              history.replaceState(null, '', newUrl);
+            }
+            void logSectionView('Partner', `스크롤: ${tab}`);
+          }}
+        />
       ),
       $zIndex: 1001,
-    }
-    ,
+    },
     {
       id: 'rolling',
       $backgroundColor: AppColors.background,
@@ -407,18 +401,18 @@ export default function HomePage() {
           onEnterSection={() => {
             setCurrentSection('Consulting');
             if (isAutoScrollingRef.current) return;
-    
+
             const newUrl = '/consulting';
             if (window.location.pathname !== newUrl) {
               history.replaceState(null, '', newUrl);
             }
-    
+
             // void logSectionView('Consulting', '기능명세');
           }}
         />
       ),
     },
-    
+
     {
       id: 'design',
       $backgroundColor: AppColors.background,

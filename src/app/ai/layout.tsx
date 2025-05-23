@@ -2,7 +2,7 @@
 
 import styled from 'styled-components';
 import AiNavigationBar from '@/components/Ai/AiNavigationBar';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import { Menu, Edit } from '@mui/icons-material';
 import useAuthStore from '@/store/authStore';
@@ -12,13 +12,17 @@ import { useLang } from '@/contexts/LangContext';
 import DropdownInput from '@/components/DropdownInput';
 import { userStamp } from '@/lib/api/user/api';
 import { aiChatDictionary } from '@/lib/i18n/aiChat';
+import { useRouter, useSearchParams } from 'next/navigation'; // useSearchParams 추가
+import useChatSessionList, {
+  ChatSession,
+} from '@/hooks/chat/useChatSessionList';
 
 // PageLoader를 클라이언트 사이드에서만 렌더링하도록 dynamic import
 const ClientOnlyPageLoader = dynamic(() => import('@/components/PageLoader'), {
   ssr: false,
 });
 
-// layout.tsx에서 사용할 커스텀 LanguageSwitcher
+// layout.tsx에서 사용할 커스텀 LanguageSwitcher (변동 없음)
 const HeaderLanguageSwitcher = () => {
   const { lang, setLang } = useLang();
 
@@ -60,9 +64,10 @@ const HeaderLanguageSwitcher = () => {
 };
 
 interface NavigationItemData {
-  id?: string;
+  id: string;
   name: string;
   status: '진행' | '완료' | '추가중';
+  sessionIndex?: number;
 }
 
 interface NavigationGroup {
@@ -70,257 +75,207 @@ interface NavigationGroup {
   items: NavigationItemData[];
 }
 
-// 초기 네비게이션 데이터 (한 번만 정의)
-const initialNavigationItemsData: NavigationGroup[] = [
-  {
-    title: '오늘',
-    items: [
-      { name: '전산개발 견적', status: '진행' },
-      { name: 'IoT 앱 견적', status: '완료' },
-      { name: '쇼핑 어플 견적 문의', status: '진행' },
-    ],
-  },
-  {
-    title: '일주일 전',
-    items: [
-      { name: '전산개발 견적', status: '완료' },
-      { name: 'IoT 앱 견적', status: '완료' },
-      { name: '쇼핑 어플 견적 문의', status: '완료' },
-    ],
-  },
-];
-
 export default function AiLayout({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
+  const searchParams = useSearchParams(); // searchParams 가져오기
+  const sessionIdFromUrl = searchParams.get('sessionId'); // URL에서 sessionId 파라미터 읽기
+
   const [isLoading, setIsLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   const user = useAuthStore((state) => state.user);
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
+  const currentSessionIndex = useAuthStore(
+    (state) => state.currentSessionIndex
+  ); // currentSessionIndex 가져오기
+  const setCurrentSessionIndex = useAuthStore(
+    (state) => state.setCurrentSessionIndex
+  );
+  const resetCurrentSession = useAuthStore(
+    (state) => state.resetCurrentSession
+  ); // 🚨 resetCurrentSession 액션 가져오기
+
   const { lang } = useLang();
   const t = aiChatDictionary[lang];
-  const [currentNavigationItems, setCurrentNavigationItems] = useState<
-    NavigationGroup[]
-  >(initialNavigationItemsData);
 
-  // --- Firebase Auth State Listener 시작 (global-wrapper.tsx로 이동) ---
-  // useEffect(() => {
-  //   console.log('[AiLayout] useEffect for onAuthStateChanged - mounting');
-  //   const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-  //     console.log(
-  //       '[AiLayout] onAuthStateChanged triggered. Firebase user:',
-  //       firebaseUser
-  //     );
-  //     if (firebaseUser) {
-  //       try {
-  //         console.log(
-  //           '[AiLayout] Firebase user found. Attempting to get ID token.'
-  //         );
-  //         const token = await firebaseUser.getIdToken();
-  //         console.log(
-  //           '[AiLayout] ID token obtained. Preparing UserData for login.'
-  //         );
-  //         const userDataForStore = {
-  //           uuid: firebaseUser.uid,
-  //           email: firebaseUser.email || '',
-  //           accessToken: token,
-  //           name: firebaseUser.displayName || '',
-  //           countryCode: null,
-  //           cellphone: firebaseUser.phoneNumber || null,
-  //           providerId: firebaseUser.providerData[0]?.providerId || '',
-  //           withdrawYn: 'N',
-  //           createdTime: firebaseUser.metadata.creationTime
-  //             ? new Date(firebaseUser.metadata.creationTime).toISOString()
-  //             : new Date().toISOString(),
-  //           updateTime: firebaseUser.metadata.lastSignInTime
-  //             ? new Date(firebaseUser.metadata.lastSignInTime).toISOString()
-  //             : null,
-  //           lastLoginTime: firebaseUser.metadata.lastSignInTime
-  //             ? new Date(firebaseUser.metadata.lastSignInTime).toISOString()
-  //             : new Date().toISOString(),
-  //           profileUrl: firebaseUser.photoURL || undefined,
-  //         };
-  //         console.log(
-  //           '[AiLayout] Calling authStore.login with UserData:',
-  //           userDataForStore
-  //         );
-  //         login(userDataForStore);
-  //       } catch (error) {
-  //         console.error(
-  //           '[AiLayout] Error getting ID token or preparing UserData:',
-  //           error
-  //         );
-  //         console.log('[AiLayout] Calling authStore.logout due to error.');
-  //         logout();
-  //       }
-  //     } else {
-  //       console.log(
-  //         '[AiLayout] No Firebase user found (or user signed out).'
-  //       );
-  //       // logout();
-  //     }
-  //   });
-  //
-  //   return () => {
-  //     console.log(
-  //       '[AiLayout] useEffect for onAuthStateChanged - unmounting. Unsubscribing.'
-  //     );
-  //     unsubscribe();
-  //   };
-  // }, [login, logout]); // login, logout 의존성 제거
-  // --- Firebase Auth State Listener 끝 ---
+  const {
+    fetchChatSessions,
+    sessions,
+    isLoading: isSessionsLoading,
+  } = useChatSessionList();
 
+  // 세션 데이터를 가공하여 NavigationGroup 형태로 변환
+  const transformSessionsToNavigationGroups = useCallback(
+    (sessions: ChatSession[], currentLang: string): NavigationGroup[] => {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const oneWeekAgo = new Date(today);
+      oneWeekAgo.setDate(today.getDate() - 7);
+
+      const todayItems: NavigationItemData[] = [];
+      const lastWeekItems: NavigationItemData[] = [];
+
+      sessions.forEach((session) => {
+        const [datePart, timePart] = session.createdTime.split(' ');
+        const [year, month, day] = datePart.split('-').map(Number);
+        const [hours, minutes, seconds] = timePart.split(':').map(Number);
+        const sessionDate = new Date(
+          year,
+          month - 1,
+          day,
+          hours,
+          minutes,
+          seconds
+        );
+
+        // 🚨 서버에서 title이 null로 올 경우 클라이언트에서 기본값 부여
+        const sessionTitle =
+          session.title ||
+          aiChatDictionary[currentLang]?.navigation?.newChatTitle ||
+          '새로운 채팅';
+        const status: '진행' | '완료' | '추가중' = session.lastMessage
+          ? '완료'
+          : '진행';
+
+        const navItem: NavigationItemData = {
+          id: session.uuid || `session_${session.index}`,
+          name: sessionTitle,
+          status: status,
+          sessionIndex: session.index,
+        };
+
+        if (sessionDate >= today) {
+          todayItems.unshift(navItem);
+        } else if (sessionDate >= oneWeekAgo) {
+          lastWeekItems.unshift(navItem);
+        }
+      });
+
+      const groups: NavigationGroup[] = [];
+      const todayTitle =
+        aiChatDictionary[currentLang]?.navigation?.period?.today || '오늘';
+      const lastWeekTitle =
+        aiChatDictionary[currentLang]?.navigation?.period?.lastWeek ||
+        '일주일 전';
+
+      if (todayItems.length > 0) {
+        groups.push({ title: todayTitle, items: todayItems });
+      }
+      if (lastWeekItems.length > 0) {
+        groups.push({ title: lastWeekTitle, items: lastWeekItems });
+      }
+
+      // 🚨 로그인 상태이고, 현재 표시할 세션이 없을 경우 '새로운 채팅' 플레이스홀더 추가
+      // (기존에는 authStore에서 createOrNavigateNewChatSession을 호출했으나, 이제는 ChatInput에서 첫 메시지 시 생성)
+      if (isLoggedIn && sessions.length === 0) {
+        groups.push({
+          title: todayTitle,
+          items: [
+            {
+              id: 'new-session-placeholder',
+              name:
+                aiChatDictionary[currentLang]?.navigation?.newChatTitle ||
+                '새로운 채팅',
+              status: '진행', // 새 채팅은 '진행' 상태로 표시
+            },
+          ],
+        });
+      }
+
+      return groups;
+    },
+    [lang, isLoggedIn]
+  );
+
+  // 컴포넌트 마운트 시 초기 세션 목록 불러오기 및 리사이즈 이벤트 처리
   useEffect(() => {
-    // 페이지 초기 로딩 시뮬레이션
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 500);
+    setIsLoading(true);
 
-    // 화면 크기 변경 감지
+    const loadSessions = async () => {
+      if (isLoggedIn) {
+        await fetchChatSessions();
+      }
+      setIsLoading(false);
+    };
+
+    loadSessions();
+
     const checkMobile = () => {
       const isMobileView = window.innerWidth <= 1200;
       setIsMobile(isMobileView);
-      if (isMobileView) {
-        setIsSidebarOpen(false);
-      } else {
-        setIsSidebarOpen(true);
-      }
+      setIsSidebarOpen(!isMobileView);
     };
 
-    // 초기 로드 시 체크
     checkMobile();
-
-    // 리사이즈 이벤트 리스너 등록
     window.addEventListener('resize', checkMobile);
 
-    // --- 네비게이션 아이템 업데이트 로직 시작 ---
-    const quoteIdForProvisionalTitle = localStorage.getItem(
-      'addProvisionalQuoteTitleFor'
-    );
-    const quoteIdForTitleUpdate = localStorage.getItem('updateQuoteTitleFor');
-    const firstMessage = quoteIdForTitleUpdate
-      ? localStorage.getItem(`firstUserMessageFor_${quoteIdForTitleUpdate}`)
-      : null;
-
-    setCurrentNavigationItems((prevItems) => {
-      let newItems = [...prevItems]; // 상태 변경을 위해 새 배열로 시작
-      let provisionalItemAddedOrFound = false;
-
-      // 1. 제목 업데이트 먼저 시도 (첫 메시지가 있고, 해당 ID의 임시 항목이 존재하거나 새로 추가될 예정일 때)
-      if (quoteIdForTitleUpdate && firstMessage) {
-        const targetItemId = `quote_${quoteIdForTitleUpdate}`;
-        let itemUpdated = false;
-        newItems = newItems.map((group) => ({
-          ...group,
-          items: group.items.map((item) => {
-            if (item.id === targetItemId) {
-              itemUpdated = true;
-              return { ...item, name: firstMessage, status: '진행' };
-            }
-            return item;
-          }),
-        }));
-
-        // 만약 업데이트할 아이템을 못 찾았고, provisional 플래그가 같은 ID를 가리킨다면, 지금 바로 제목과 함께 추가
-        if (
-          !itemUpdated &&
-          quoteIdForProvisionalTitle === quoteIdForTitleUpdate
-        ) {
-          const newNavItem: NavigationItemData = {
-            id: targetItemId,
-            name: firstMessage,
-            status: '진행',
-          };
-          const todaySectionTitle = t.navigation?.period?.today || '오늘';
-          const todaySectionIndex = newItems.findIndex(
-            (group) => group.title === todaySectionTitle
-          );
-
-          const alreadyExists = newItems.some((g) =>
-            g.items.some((i) => i.id === targetItemId)
-          );
-          if (!alreadyExists) {
-            if (todaySectionIndex > -1) {
-              newItems[todaySectionIndex] = {
-                ...newItems[todaySectionIndex],
-                items: [newNavItem, ...newItems[todaySectionIndex].items],
-              };
-            } else {
-              newItems = [
-                { title: todaySectionTitle, items: [newNavItem] },
-                ...newItems,
-              ];
-            }
-            provisionalItemAddedOrFound = true; // 제목과 함께 추가되었으므로, 별도의 "제작중" 항목 추가 불필요
-          }
-        }
-        localStorage.removeItem(`firstUserMessageFor_${quoteIdForTitleUpdate}`);
-        localStorage.removeItem('updateQuoteTitleFor');
-        if (quoteIdForProvisionalTitle === quoteIdForTitleUpdate) {
-          localStorage.removeItem('addProvisionalQuoteTitleFor');
-        }
-      }
-
-      // 2. "맞춤 견적 제작중..." 항목 추가 (위에서 제목과 함께 바로 추가되지 않은 경우에만)
-      if (quoteIdForProvisionalTitle && !provisionalItemAddedOrFound) {
-        const targetItemId = `quote_${quoteIdForProvisionalTitle}`;
-        const alreadyExists = newItems.some((g) =>
-          g.items.some((i) => i.id === targetItemId)
-        );
-
-        if (!alreadyExists) {
-          const newNavItemName =
-            t.navigation?.customEstimateInProgress || '맞춤 견적 제작중...';
-          const newNavItem: NavigationItemData = {
-            id: targetItemId,
-            name: newNavItemName,
-            status: '진행',
-          };
-          const todaySectionTitle = t.navigation?.period?.today || '오늘';
-          const todaySectionIndex = newItems.findIndex(
-            (group) => group.title === todaySectionTitle
-          );
-
-          if (todaySectionIndex > -1) {
-            newItems[todaySectionIndex] = {
-              ...newItems[todaySectionIndex],
-              items: [newNavItem, ...newItems[todaySectionIndex].items],
-            };
-          } else {
-            newItems = [
-              { title: todaySectionTitle, items: [newNavItem] },
-              ...newItems,
-            ];
-          }
-        }
-        // updateQuoteTitleFor 플래그가 이 ID를 가리키고 있지 않다면, addProvisionalQuoteTitleFor를 제거
-        // (위에서 이미 firstMessage와 함께 처리된 경우를 제외하기 위함)
-        if (quoteIdForTitleUpdate !== quoteIdForProvisionalTitle) {
-          localStorage.removeItem('addProvisionalQuoteTitleFor');
-        }
-      }
-      return newItems;
-    });
-
     return () => {
-      clearTimeout(timer);
       window.removeEventListener('resize', checkMobile);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lang]); // lang이 바뀌면 t가 바뀌므로 의존성 추가
+  }, [isLoggedIn, fetchChatSessions]);
 
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
-  };
+  // `sessions` 또는 `lang`이 변경될 때마다 navigationItems 업데이트
+  const [currentNavigationItems, setCurrentNavigationItems] = useState<
+    NavigationGroup[]
+  >([]);
+  useEffect(() => {
+    console.log(
+      'AiLayout - useEffect (sessions/lang): sessions 상태:',
+      sessions,
+      'lang:',
+      lang
+    );
+    if (sessions) {
+      const transformed = transformSessionsToNavigationGroups(sessions, lang);
+      console.log(
+        'AiLayout - useEffect (sessions/lang): 변환된 navigationItems:',
+        transformed
+      );
+      setCurrentNavigationItems(transformed);
+    } else {
+      // 세션이 아직 로딩되지 않았거나 없는 경우 (빈 배열인 경우 포함)
+      const newChatTitle =
+        aiChatDictionary[lang]?.navigation?.newChatTitle || '새로운 채팅';
+      const todayTitle =
+        aiChatDictionary[lang]?.navigation?.period?.today || '오늘';
+      const defaultItems: NavigationGroup[] = isLoggedIn
+        ? [
+            {
+              title: todayTitle,
+              items: [
+                {
+                  id: 'new-session-placeholder',
+                  name: newChatTitle,
+                  status: '진행',
+                },
+              ],
+            },
+          ]
+        : [];
+      console.log(
+        'AiLayout - useEffect (sessions/lang): 세션이 없어서 기본값 설정:',
+        defaultItems
+      );
+      setCurrentNavigationItems(defaultItems);
+    }
+  }, [sessions, lang, transformSessionsToNavigationGroups, isLoggedIn]);
 
-  const handleEditClick = () => {
-    const newQuoteSessionId = Date.now().toString();
-    // currentQuoteId는 현재 세션을 식별하는 용도로 계속 사용 가능 (AiPageContent에서 읽을 수 있도록)
-    localStorage.setItem('currentQuoteId', newQuoteSessionId);
-    // "맞춤 견적 제작중..." 상태를 표시하기 위한 플래그
-    localStorage.setItem('addProvisionalQuoteTitleFor', newQuoteSessionId);
-    // 아직 사용자 첫 메시지가 없으므로 updateQuoteTitleFor 관련 플래그는 여기서는 설정 안 함
-    window.location.href = `/ai?sessionId=${newQuoteSessionId}`;
-  };
+  const toggleSidebar = useCallback(() => {
+    setIsSidebarOpen((prev) => !prev);
+  }, []);
+
+  // 🚨 새 채팅 시작 버튼 클릭 핸들러 (authStore의 액션을 직접 사용하지 않음)
+  const handleNewChatClick = useCallback(() => {
+    router.push('/ai'); // 파라미터 없이 /ai 경로로 이동
+    // 이 이동이 발생하면 useEffect의 URL 파라미터 감지 로직에 의해
+    // currentSessionIndex가 null로 초기화될 것입니다.
+    if (isMobile) toggleSidebar(); // 모바일에서 새 채팅 클릭 시 사이드바 닫기
+  }, [router, isMobile, toggleSidebar]);
+
+  // 전체 로딩 상태는 API 로딩 상태와 PageLoader 로딩 상태를 합쳐서 관리
+  const overallLoading = isLoading || isSessionsLoading;
 
   return (
     <>
@@ -331,21 +286,17 @@ export default function AiLayout({ children }: { children: React.ReactNode }) {
             <MenuButton onClick={toggleSidebar}>
               <Menu />
             </MenuButton>
-            <EditButton onClick={handleEditClick}>
+            <EditButton onClick={handleNewChatClick}>
               <Edit />
             </EditButton>
           </LeftSection>
           <HeaderTitle>
             {isLoggedIn && user?.name ? (
               <>
-                {user?.profileUrl ? (
-                  <UserAvatar
-                    src={user.profileUrl}
-                    alt={user.name || '사용자'}
-                  />
-                ) : (
-                  <Avatar />
-                )}
+                <UserAvatar
+                  src={user?.profileUrl || '/default-avatar.png'}
+                  alt={user.name || '사용자'}
+                />
                 {lang === 'ko'
                   ? `${user.name}님의 견적서`
                   : `${user.name}'s Quote`}
@@ -363,23 +314,28 @@ export default function AiLayout({ children }: { children: React.ReactNode }) {
       )}
 
       <LayoutContainer $isMobile={isMobile}>
-        {/* PageLoader */}
-        <ClientOnlyPageLoader isOpen={isLoading} />
+        <ClientOnlyPageLoader isOpen={overallLoading} />
 
-        {/* 사이드바 및 내비게이션 */}
         <AiNavigationBar
           navigationItems={currentNavigationItems}
           isMobile={isMobile}
           isSidebarOpen={isSidebarOpen}
           toggleSidebar={toggleSidebar}
+          onAddNewEstimateRequest={handleNewChatClick} // 🚨 새 견적 요청 버튼 핸들러 전달
+          onSessionClick={(sessionIndex) => {
+            setCurrentSessionIndex(sessionIndex); // Zustand에 현재 세션 인덱스 저장
+            router.push(`/ai?sessionId=${sessionIndex}`); // router.push 사용
+            if (isMobile) toggleSidebar(); // 모바일에서 세션 클릭 시 사이드바 닫기
+          }}
         />
 
-        {/* 메인 콘텐츠 */}
         <MainContent $isMobile={isMobile}>{children}</MainContent>
       </LayoutContainer>
     </>
   );
 }
+
+// --- Styled Components (변동 없음) ---
 
 const FixedHeader = styled.header`
   position: fixed;
@@ -417,7 +373,6 @@ const MenuButton = styled(ActionButton)`
 `;
 const EditButton = styled(ActionButton)``;
 
-// 왼쪽 영역
 const LeftSection = styled.div`
   flex: 1;
   display: flex;
@@ -426,7 +381,6 @@ const LeftSection = styled.div`
   gap: 8px;
 `;
 
-// 오른쪽 영역
 const RightSection = styled.div`
   flex: 1;
   display: flex;

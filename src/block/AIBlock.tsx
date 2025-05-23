@@ -81,10 +81,14 @@ const StyledVideo = styled.video`
   border-radius: 20px;
 
   @media (max-width: ${Breakpoints.mobile}px) {
-    top: 10%;
+    top: 16%;
     left: 8%;
     width: 85%;
+<<<<<<< HEAD
+    height: 86%;
+=======
     height: 87%;
+>>>>>>> f9bb75bf4c3ce83b59f777aab6e951cb23a6880c
   }
 `;
 

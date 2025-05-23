@@ -1,43 +1,41 @@
-// import { SYSTEM_INSTRUCTION } from "@/config/ai/instruction"; // 경로 수정
-// import { collection, getDocs, getFirestore, query } from "firebase/firestore"; // Firestore 관련 import 제거
+// src/hooks/useAI.ts
 import {
-  ChatSession, // 타입 직접 사용
-  GenerativeModel, // 타입 직접 사용
-  getGenerativeModel, // 함수 사용
-  getVertexAI, // 함수 사용
-} from 'firebase/vertexai'; // 미리보기(-preview) 제거
-import { useEffect, useRef, useState } from 'react'; // useState 추가
-import apiClient from '@/lib/apiClient'; // apiClient import 추가
-import useAuthStore from '@/store/authStore'; // authStore import 추가
+  ChatSession,
+  GenerativeModel,
+  getGenerativeModel,
+  getVertexAI,
+} from 'firebase/vertexai';
+import { useEffect, useRef, useState } from 'react';
+import apiClient from '@/lib/apiClient';
+import useAuthStore from '@/store/authStore';
 import { devLog } from '@/lib/utils/devLogger';
-
-// GenerativeModelType, ChatSessionType 제거
+import { app } from '@/lib/firebase/firebase.config'; // 임포트 경로 확인
 
 export default function useAI() {
-  // 모델 이름을 상태로 관리하여 동적으로 변경 가능하도록 수정
-  const [modelIdentifier, setModelIdentifier] = useState('gemini-2.0-flash'); // 기본 모델
+  const [modelIdentifier, setModelIdentifier] = useState('gemini-2.0-flash'); 
 
-  //gemini-2.0-flash
-  //gemini-2.5-flash-preview-04-17
-  // useRef 타입 직접 지정, 초기값 null
+  // vertexAILocation 관련 상태 및 함수 제거
+  // const [vertexAILocation, setVertexAILocation] = useState('asia-northeast3');
+
   const model = useRef<GenerativeModel | null>(null);
   const chat = useRef<ChatSession | null>(null);
   const initialized = useRef(false);
-
-  // 사용자 정보 가져오기
   const user = useAuthStore((state) => state.user);
+  // const [currentThinkingBudget, setCurrentThinkingBudget] = useState<
+  //   number | undefined
+  // >(500);
 
   useEffect(() => {
-    // 초기화 로직은 한 번만 실행 (또는 모델 식별자가 변경될 때)
-    // initialized.current = false; // 모델 변경 시 재초기화를 위해 초기화 상태를 리셋할 수 있으나, 전체 로직 재실행은 비효율적일 수 있음
-    // 여기서는 modelIdentifier 변경 시 전체 재초기화 로직을 따름
-
     const initializeAI = async () => {
-      devLog(
-        `[useAI] Starting AI initialization with model: ${modelIdentifier}...`
-      );
-      initialized.current = false; // 재초기화 시작 시 플래그 리셋
+      // devLog(`[useAI] Starting AI initialization with model: ${modelIdentifier}, location: ${vertexAILocation}...`); // location 관련 로그 제거
+      devLog(`[useAI] Starting AI initialization with model: ${modelIdentifier}...`);
+      initialized.current = false;
       try {
+        if (!app) {
+          console.error("[useAI] ERROR: Firebase app instance is not initialized. Cannot initialize Vertex AI.");
+          throw new Error("Firebase app not available.");
+        }
+
         const apiHost = process.env.NEXT_PUBLIC_API_HOST || '';
         if (!apiHost) {
           console.error(
@@ -47,7 +45,7 @@ export default function useAI() {
         }
         devLog(`[useAI] API Host: ${apiHost}`);
 
-        // 1. 지침(Instructions) 데이터 가져오기 (API 사용 - POST 요청)
+        // --- 지침 및 가격 데이터 로딩 로직 시작 ---
         devLog(`[useAI] Fetching instructions from: /ai/instructions/get-list`);
         let instructionsResponse;
         try {
@@ -118,7 +116,6 @@ export default function useAI() {
           allInstructionsContent.length
         );
 
-        // 2. 기능(Features) 데이터 가져오기 (API 사용 - POST 요청)
         devLog(`[useAI] Fetching unit prices from: /ai/unit-price/get-list`);
         let unitPriceResponse;
         try {
@@ -126,10 +123,6 @@ export default function useAI() {
             '/ai/unit-price/get-list',
             {}
           );
-          // devLog(
-          //   '[useAI] Unit Price API response received. Status:',
-          //   unitPriceResponse.status
-          // );
         } catch (fetchError) {
           console.error(
             `[useAI] Fetch error for unit prices: ${
@@ -150,11 +143,6 @@ export default function useAI() {
 
         devLog('[useAI] Unit Price API response is OK. Parsing JSON...');
         const unitPriceResult = unitPriceResponse.data;
-        // devLog(
-        //   '[useAI] Successfully parsed unit price JSON:',
-        //   JSON.stringify(unitPriceResult, null, 2)
-        // );
-
         let unitPriceDataString = '';
         if (
           unitPriceResult &&
@@ -231,12 +219,6 @@ export default function useAI() {
           `[useAI] User phone code: ${userPhoneCode}, Mapped ISO code: ${mappedIsoCode}, Target language: ${targetLanguage}, Target country: ${targetCountryName}`
         );
 
-        // 다국어 및 통화 변환 관련 지침 수정
-        //country_code: ${mappedIsoCode}
-        //default_country: ${targetCountryName} // 동적으로 설정된 국가 이름 사용
-
-        //country_code: +081
-        //default_country: japan
         const localizationInstruction = `
 <USER_COUNTRY_INFO>
 country_code: ${mappedIsoCode}
@@ -251,36 +233,7 @@ AI 지침:
    - 'JP': 일본어
    - 'CN', 'HK', 'TW': 중국어(간체 또는 번체)
    - 'DE', 'AT', 'CH': 독일어
-   - 'FR', 'BE', 'CH': 프랑스어Unhandled Runtime Error
-
-
-Error: valueCellStyle is not defined
-
-src/components/Ai/AiChatMessage.tsx (1472:36) @ AiChatMessage
-
-
-  1470 |                       <strong>{t.estimateInfo.vatIncluded}</strong>
-  1471 |                     </td>
-> 1472 |                     <td style={{...valueCellStyle, textAlign: 'right', fontWeight: 'bold'}}>
-       |                                    ^
-  1473 |                       <strong>
-  1474 |                         {formatAmountWithCurrency(
-  1475 |                           Math.round((calculatedTotalAmount || 0) * 1.1),
-Call Stack
-6
-
-AiChatMessage
-src/components/Ai/AiChatMessage.tsx (1472:36)
-eval
-src/app/ai/components/ChatContent.tsx (234:11)
-Array.map
-<anonymous> (0:0)
-ChatContent
-src/app/ai/components/ChatContent.tsx (233:19)
-AiPageContent
-src/app/ai/AiPageContent.tsx (1067:11)
-AIPage
-src/app/ai/page.tsx (9:7)
+   - 'FR', 'BE', 'CH': 프랑스어
    - 'ES', 'MX', 'AR', 'CO': 스페인어
    - 'PT', 'BR': 포르투갈어
    - 'IT': 이탈리아어
@@ -338,19 +291,34 @@ ${unitPriceDataString}
 </DATA>
 
 ${localizationInstruction}`;
+        // --- 지침 및 가격 데이터 로딩 로직 끝 ---
+
         devLog(
           '[useAI] Initializing AI with combined System Instruction. Length:',
           updatedSystemInstruction.length
         );
 
-        const vertexAI = getVertexAI();
+        // Vertex AI 호출 시 location을 명시적으로 제거하고, Firebase 앱 인스턴스만 전달
+        const vertexAI = getVertexAI(app); // location 옵션 제거
 
         devLog(
           `[useAI] Initializing GenerativeModel with model: ${modelIdentifier}`
         );
+
+        const generationConfig: {
+          thinkingConfig?: { thinking_budget: number };
+        } = {};
+        // if (currentThinkingBudget !== undefined) {
+        //   generationConfig.thinkingConfig = {
+        //     thinking_budget: currentThinkingBudget,
+        //   };
+        // }
+        // devLog(`[useAI] Applying thinkingBudget: ${currentThinkingBudget}`);
+
         const generativeModelInstance = getGenerativeModel(vertexAI, {
-          model: modelIdentifier, // 상태에서 현재 모델 식별자 사용
+          model: modelIdentifier,
           systemInstruction: updatedSystemInstruction,
+          generationConfig: generationConfig,
         });
         model.current = generativeModelInstance;
         devLog('[useAI] GenerativeModel initialized. Starting chat...');
@@ -358,9 +326,8 @@ ${localizationInstruction}`;
         chat.current = generativeModelInstance.startChat();
         devLog('[useAI] Chat session started successfully.');
 
-        devLog(
-          `[useAI] AI Model (${modelIdentifier}) and Chat initialized successfully.`
-        );
+        // devLog(`[useAI] AI Model (${modelIdentifier}) and Chat initialized successfully. ThinkingBudget: ${currentThinkingBudget}, Location: ${vertexAILocation}`); // location 관련 로그 제거
+        // devLog(`[useAI] AI Model (${modelIdentifier}) and Chat initialized successfully. ThinkingBudget: ${currentThinkingBudget}`);
         initialized.current = true;
       } catch (error) {
         console.error(
@@ -383,7 +350,7 @@ ${localizationInstruction}`;
         console.error('[useAI] AI initialization FAILED with error:', e);
         initialized.current = false;
       });
-  }, [user, modelIdentifier]); // modelIdentifier를 의존성 배열에 추가
+  }, [user, modelIdentifier]); // 의존성 배열에서 vertexAILocation 제거
 
   useEffect(() => {
     devLog('[useAI] Current initialization status:', initialized.current);
@@ -395,20 +362,28 @@ ${localizationInstruction}`;
     };
   }, []);
 
-  // 외부에서 모델 식별자를 변경하는 함수
   const setCurrentModelIdentifier = (newModelIdentifier: string) => {
     if (modelIdentifier !== newModelIdentifier) {
       devLog(`[useAI] Changing model identifier to: ${newModelIdentifier}`);
       setModelIdentifier(newModelIdentifier);
-      // initialized.current = false; // 모델 변경 시 재초기화 플래그 설정 (useEffect에서 이미 처리됨)
     }
   };
+
+  // setAIChatLocation 함수 제거
+  // const setAIChatLocation = (newLocation: string) => {
+  //   if (vertexAILocation !== newLocation) {
+  //     devLog(`[useAI] Changing Vertex AI location to: ${newLocation}`);
+  //     setVertexAILocation(newLocation);
+  //   }
+  // };
 
   return {
     model,
     chat,
-    modelName: modelIdentifier, // 현재 모델 식별자 반환
+    modelName: modelIdentifier,
+    // aiLocation: vertexAILocation, // 반환 값에서도 제거
     isInitialized: initialized,
-    setCurrentModelIdentifier, // 모델 변경 함수 노출
+    setCurrentModelIdentifier,
+    // setAIChatLocation, // 반환 값에서도 제거
   };
 }
