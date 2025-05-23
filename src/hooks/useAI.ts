@@ -15,10 +15,12 @@ import { devLog } from '@/lib/utils/devLogger';
 
 export default function useAI() {
   // 모델 이름을 상태로 관리하여 동적으로 변경 가능하도록 수정
-  const [modelIdentifier, setModelIdentifier] = useState('gemini-2.0-flash'); // 기본 모델
+  const [modelIdentifier, setModelIdentifier] = useState(
+    'gemini-2.5-flash-preview-05-20'
+  ); // 기본 모델
 
   //gemini-2.0-flash
-  //gemini-2.5-flash-preview-04-17
+  //gemini-2.5-flash-preview-05-20
   // useRef 타입 직접 지정, 초기값 null
   const model = useRef<GenerativeModel | null>(null);
   const chat = useRef<ChatSession | null>(null);
@@ -251,36 +253,7 @@ AI 지침:
    - 'JP': 일본어
    - 'CN', 'HK', 'TW': 중국어(간체 또는 번체)
    - 'DE', 'AT', 'CH': 독일어
-   - 'FR', 'BE', 'CH': 프랑스어Unhandled Runtime Error
-
-
-Error: valueCellStyle is not defined
-
-src/components/Ai/AiChatMessage.tsx (1472:36) @ AiChatMessage
-
-
-  1470 |                       <strong>{t.estimateInfo.vatIncluded}</strong>
-  1471 |                     </td>
-> 1472 |                     <td style={{...valueCellStyle, textAlign: 'right', fontWeight: 'bold'}}>
-       |                                    ^
-  1473 |                       <strong>
-  1474 |                         {formatAmountWithCurrency(
-  1475 |                           Math.round((calculatedTotalAmount || 0) * 1.1),
-Call Stack
-6
-
-AiChatMessage
-src/components/Ai/AiChatMessage.tsx (1472:36)
-eval
-src/app/ai/components/ChatContent.tsx (234:11)
-Array.map
-<anonymous> (0:0)
-ChatContent
-src/app/ai/components/ChatContent.tsx (233:19)
-AiPageContent
-src/app/ai/AiPageContent.tsx (1067:11)
-AIPage
-src/app/ai/page.tsx (9:7)
+   - 'FR', 'BE', 'CH': 프랑스어
    - 'ES', 'MX', 'AR', 'CO': 스페인어
    - 'PT', 'BR': 포르투갈어
    - 'IT': 이탈리아어
@@ -337,7 +310,6 @@ JSON 생성 시 주의사항:
 ${unitPriceDataString}
 </DATA>
 
-${localizationInstruction}`;
         devLog(
           '[useAI] Initializing AI with combined System Instruction. Length:',
           updatedSystemInstruction.length
@@ -351,6 +323,10 @@ ${localizationInstruction}`;
         const generativeModelInstance = getGenerativeModel(vertexAI, {
           model: modelIdentifier, // 상태에서 현재 모델 식별자 사용
           systemInstruction: updatedSystemInstruction,
+          // thinkingbudget 추가
+          generationConfig: {
+            thinkingbudget: 0, 
+          },
         });
         model.current = generativeModelInstance;
         devLog('[useAI] GenerativeModel initialized. Starting chat...');
