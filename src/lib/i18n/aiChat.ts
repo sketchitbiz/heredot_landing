@@ -75,8 +75,8 @@ export const aiChatDictionary = {
     },
 
     userActionFeedback: {
-      discountExtend8w20p:
-        '[프로모션] 개발 기간 8주 연장 및 20% 할인 옵션을 선택했습니다.',
+      // discountExtend8w20p:
+      // '[프로모션] 개발 기간 8주 연장 및 20% 할인 옵션을 선택했습니다.',
       discountRemoveFeaturesBudget:
         '[예산절감] 필수 기능 중심, 예산 절감 옵션을 선택했습니다.',
       discountAiSuggestion:
@@ -113,7 +113,7 @@ export const aiChatDictionary = {
       estimate: '여기닷에게',
       categoryInProgress: '카테고리 선택 중',
       generatingEstimate: '견적 생성 중',
-      customEstimateInProgress: '맞춤 견적 제작 중...',
+      newChatTitle: '새로운 채팅',
     },
 
     // AiProgressBar 컴포넌트 관련 번역
@@ -196,10 +196,7 @@ export const aiChatDictionary = {
         '[💰 Budget Saving] Keep only essential features and smartly reduce your budget.',
         '[✨ AI Suggestion] Get feature suggestions through in-depth AI analysis (In-depth AI analysis takes about 20 seconds on average.)',
       ],
-      optionsButtonTexts: [
-        'Select Budget Saving',
-        'Select AI Suggestion',
-      ],
+      optionsButtonTexts: ['Select Budget Saving', 'Select AI Suggestion'],
     },
     pdf: {
       title: '⬇️ Save as PDF',
@@ -225,8 +222,8 @@ export const aiChatDictionary = {
     },
 
     userActionFeedback: {
-      discountExtend8w20p:
-        'Selected [Promotion] Extend development by 8 weeks for 20% off.',
+      // discountExtend8w20p:
+      // 'Selected [Promotion] Extend development by 8 weeks for 20% off.',
       discountRemoveFeaturesBudget:
         'Selected [Budget Saving] Focus on essential features to reduce budget.',
       discountAiSuggestion:
@@ -265,7 +262,7 @@ export const aiChatDictionary = {
       estimate: 'To HereDot',
       categoryInProgress: 'Selecting Category',
       generatingEstimate: 'Generating Estimate',
-      customEstimateInProgress: 'Creating custom estimate...',
+      newChatTitle: 'New Chat',
     },
 
     // AiProgressBar 컴포넌트 관련 번역

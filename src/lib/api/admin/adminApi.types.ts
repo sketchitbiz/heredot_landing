@@ -23,3 +23,17 @@ export type AdminLoginParams = {
     termsType: string;
     content: string;
   };
+
+  export type PromptGetListParams = {
+    keyword: string;
+  };
+
+  export type PromptHistoryGetListParams = {
+    index: number;
+  };
+
+  export type PromptUpdateParams = {
+    index: number;
+    content: string;
+  };
+

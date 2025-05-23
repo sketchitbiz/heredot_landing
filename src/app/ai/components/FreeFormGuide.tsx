@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { AppColors } from '@/styles/colors';
 import { aiChatDictionary } from '@/lib/i18n/aiChat';
@@ -124,6 +124,7 @@ interface FreeFormGuideProps {
     actionPrompt?: string,
     isSystemInitiatedPrompt?: boolean
   ) => void;
+  onAddMessage: (message: Message) => void;
 }
 
 const FreeFormGuide: React.FC<FreeFormGuideProps> = ({
@@ -131,11 +132,14 @@ const FreeFormGuide: React.FC<FreeFormGuideProps> = ({
   lang,
   onSurveyDataReady,
   handleGeminiSubmit,
+  onAddMessage,
 }) => {
   const tFromDictionary = aiChatDictionary[lang];
   const { t: translate } = useTranslation();
   const selections = useAiFlowStore((state) => state.selections);
   const stepData = getStepData(tFromDictionary as any as ChatDictionary);
+  const hasAddedInitialMessage = useRef(false);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const selectionStrings = Object.entries(selections)
     .map(([stepId, selectedIds]) => {
@@ -148,6 +152,7 @@ const FreeFormGuide: React.FC<FreeFormGuideProps> = ({
     })
     .filter(Boolean)
     .join(' / ');
+  console.log('FreeFormGuide 컴포넌트 렌더링'); // 🚨🚨🚨 이 로그 추가
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -155,7 +160,7 @@ const FreeFormGuide: React.FC<FreeFormGuideProps> = ({
     }, 1000);
     return () => clearTimeout(timer);
   }, []);
-
+  
   const guideText = tFromDictionary.freeFormGuide || {
     greeting:
       lang === 'ko'

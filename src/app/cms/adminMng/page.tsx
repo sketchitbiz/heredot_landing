@@ -20,6 +20,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import { adminCreate } from '@/lib/api/admin';
 import Switch from '@/components/Switch';
 import { SwitchInput } from '@/components/SwitchInput';
+import { devLog } from '@/lib/utils/devLogger';
 
 const SwitchRow = styled.div`
   display: flex;
@@ -223,16 +224,23 @@ const AdminMngPage: React.FC = () => {
         smsYn,
       });
 
+      devLog('관리자 등록 응답', response);
+
       // 성공 메시지 확인
       if (response?.[0]?.message === 'success') {
         toast.success('관리자가 성공적으로 등록되었습니다.');
         setIsPopupOpen(false); // 팝업 닫기
         listRef.current?.refetch(); // 목록 리프레시
+
+    
       } else {
-        toast.error(response?.[0]?.message || '관리자 등록에 실패했습니다.');
+        const errorMessage =
+        response?.[0]?.error?.customMessage || response?.[0]?.message || '관리자 등록에 실패했습니다.';
+      toast.error(errorMessage);
       }
     } catch (error: any) {
-      toast.error(error?.message || '관리자 등록에 실패했습니다.');
+      const errorMessage = error?.customMessage || error?.message || '관리자 등록에 실패했습니다.';
+      toast.error(errorMessage);
     }
   };
 
@@ -315,7 +323,7 @@ const AdminMngPage: React.FC = () => {
   return (
     <>
       <ToastContainer
-        position="top-right"
+        position="top-center"
         autoClose={3000}
         hideProgressBar={false}
         newestOnTop={false}
@@ -325,6 +333,7 @@ const AdminMngPage: React.FC = () => {
         draggable
         pauseOnHover
         theme="light"
+        style={{ zIndex: 10000 }}
       ></ToastContainer>
       <GenericListUI<AdminUser>
         ref={listRef}
@@ -438,8 +447,9 @@ const AdminMngPage: React.FC = () => {
           />
 
           <PopupFooter>
-            <CancelButton onClick={closePopup}>닫기</CancelButton>
+  
             <SaveButton onClick={handleSave}>저장</SaveButton>
+            <CancelButton onClick={closePopup}>닫기</CancelButton>
           </PopupFooter>
         </FormContainer>
       </CmsPopup>

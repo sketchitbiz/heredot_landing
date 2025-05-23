@@ -1780,7 +1780,7 @@ export function AiChatMessage({
             )}
 
             {/* 할인 및 PDF 저장 옵션 */}
-            <div
+            {/* <div
               style={{
                 marginTop: '0',
                 paddingTop: '1rem',
@@ -1881,7 +1881,20 @@ export function AiChatMessage({
               >
                 {t.buttons.downloadPdf}
               </ActionButton>
-            </div>
+            </div> */}
+            <div>
+            <h4 style={{ marginBottom: '0.75rem', fontSize: '1em' }}>
+            {t.pdf.title} </h4>
+            <ActionButton
+                onClick={() => onActionClick('download_pdf')}
+                style={{
+                  backgroundColor: '#2E7D32',
+                  width: '150px',
+                }}
+              >
+                {t.buttons.downloadPdf}
+              </ActionButton>
+              </div>
           </StyledInvoiceContainer>
         )}
 

@@ -27,6 +27,7 @@ const SectionWrapper = styled.div`
   padding: 0 20px;
   box-sizing: border-box;
   min-width: ${Breakpoints.desktop}px;
+  /* background-color: ${AppColors.error}; */
 
   @media (max-width: ${Breakpoints.mobile}px) {
     min-width: 100%;
@@ -43,7 +44,7 @@ const Container = styled.div`
   justify-content: space-between;
   align-items: center;
   gap: 40px;
-  padding: 40px 20px;
+  /* padding: 40px 20px; */
   box-sizing: border-box;
   border-radius: 16px;
 
@@ -60,11 +61,12 @@ const PhoneFrameWrapper = styled.div`
   position: relative;
   width: 350px;
   height: 750px;
+  /* background-color: #fff; */
 
   @media (max-width: ${Breakpoints.mobile}px) {
     width: 100%;
     max-width: 650px;
-    height: 680px;
+    height: 720px;
   }
 `;
 
@@ -82,7 +84,11 @@ const StyledVideo = styled.video`
     top: 16%;
     left: 8%;
     width: 85%;
+<<<<<<< HEAD
     height: 86%;
+=======
+    height: 87%;
+>>>>>>> f9bb75bf4c3ce83b59f777aab6e951cb23a6880c
   }
 `;
 

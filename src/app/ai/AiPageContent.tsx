@@ -11,7 +11,7 @@ import useAI from '@/hooks/useAI';
 import { useLang } from '@/contexts/LangContext';
 import { aiChatDictionary } from '@/lib/i18n/aiChat';
 import { FileUploadData, uploadFiles } from '@/lib/firebase/firebase.functions';
-import { Part, FileData } from 'firebase/vertexai';
+import { Part, FileData } from '@google/generative-ai'; // 'firebase/vertexai' 대신 '@google/generative-ai' 사용 권장
 import { SocialLoginModal } from './SocialLoginModal';
 import authStore, { AuthState } from '@/store/authStore';
 import { auth } from '@/lib/firebase/firebase.config';
@@ -22,6 +22,8 @@ import useAiFlowStore from '@/store/aiFlowStore';
 import DropdownInput from '@/components/DropdownInput';
 import { userStamp } from '@/lib/api/user/api';
 import { devLog } from '@/lib/utils/devLogger';
+import useCreateChatMessage from '@/hooks/chat/useCreateChatMessage';
+import useAuthStore from '@/store/authStore'; // useAuthStore 임포트
 
 // 컴포넌트 임포트
 import { getStepData, ChatDictionary } from './components/StepData';
@@ -31,8 +33,19 @@ import ChatContent from './components/ChatContent';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { createRoot } from 'react-dom/client'; // React 18용
-// import ReactDOM from 'react-dom'; // React 17용
 import { PrintableInvoice } from '@/components/Ai/AiChatMessage'; // PrintableInvoice 임포트
+
+// ChatMessagePayload 인터페이스를 명확하게 정의합니다.
+interface ChatMessagePayload {
+  role: 'USER' | 'AI';
+  sessionIndex: number; // 숫자 타입이어야 함
+  content: {
+    message: string;
+    files?: { name: string; uri: string; mimeType: string }[];
+    invoiceData?: InvoiceDataType; // InvoiceDataType 또는 관련 타입으로 대체 필요
+  };
+  title?: string;
+}
 
 // 견적서 상세 정보 상태 인터페이스 정의 수정
 interface InvoiceDetails {
@@ -138,7 +151,6 @@ const generateInvoicePDF = async (
 ) => {
   if (!invoiceDetailsData || !invoiceDetailsData.parsedJson) {
     console.error('PDF 생성을 위한 견적서 데이터가 없습니다.');
-    // 사용자에게 오류 메시지를 표시할 수 있습니다 (예: alert 또는 채팅 메시지).
     return;
   }
 
@@ -150,22 +162,18 @@ const generateInvoicePDF = async (
   invoiceNode.style.zIndex = '-1'; // 화면에 보이지 않도록
   document.body.appendChild(invoiceNode);
 
-  // React 18+ createRoot 사용
   const root = createRoot(invoiceNode);
   root.render(
     <PrintableInvoice
       invoiceData={invoiceDetailsData.parsedJson}
-      invoiceDetailsForPdf={invoiceDetailsData} // currentItems 포함된 전체 invoiceDetails 전달
-      t={translations} // 전체 번역 객체 전달
+      invoiceDetailsForPdf={invoiceDetailsData}
+      t={translations}
       countryCode={userCountryCode}
       lang={currentLang}
     />
   );
-  // React 17의 경우:
-  // ReactDOM.render(<PrintableInvoice ... />, invoiceNode);
 
   try {
-    // 잠시 기다려 DOM 업데이트 및 스타일 적용 시간 확보 (시간 증가)
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     const printableContent = invoiceNode.querySelector(
@@ -176,9 +184,6 @@ const generateInvoicePDF = async (
         'PDF로 변환할 #printable-invoice-content 요소를 찾을 수 없습니다. invoiceNode 내부를 확인합니다:',
         invoiceNode.innerHTML
       );
-      // 추가적인 디버깅을 위해 invoiceNode 자체를 캡처 시도 (스타일이 깨질 수 있음)
-      // const canvas = await html2canvas(invoiceNode as HTMLElement, { ... });
-      // devLog('invoiceNode를 직접 캡처 시도함.');
       return;
     }
 
@@ -189,12 +194,12 @@ const generateInvoicePDF = async (
     const canvas = await html2canvas(printableContent as HTMLElement, {
       scale: 2,
       useCORS: true,
-      logging: process.env.NODE_ENV === 'development', // 개발 모드에서만 로깅 활성화
-      backgroundColor: '#ffffff', // 배경색 흰색으로 명시
-      scrollX: 0, // 내부 스크롤 고려 안함
-      scrollY: -window.scrollY, // 현재 페이지 스크롤 위치 보정
-      windowWidth: printableContent.scrollWidth, // 콘텐츠 너비 사용
-      windowHeight: printableContent.scrollHeight, // 콘텐츠 높이 사용
+      logging: process.env.NODE_ENV === 'development',
+      backgroundColor: '#ffffff',
+      scrollX: 0,
+      scrollY: -window.scrollY,
+      windowWidth: printableContent.scrollWidth,
+      windowHeight: printableContent.scrollHeight,
     });
 
     const imgData = canvas.toDataURL('image/png');
@@ -206,7 +211,7 @@ const generateInvoicePDF = async (
 
     const pdfWidth = pdf.internal.pageSize.getWidth();
     const pdfHeight = pdf.internal.pageSize.getHeight();
-    const margin = 10; // 양쪽 여백 10mm
+    const margin = 10;
     const contentWidth = pdfWidth - margin * 2;
 
     const pxFullHeight = canvas.height;
@@ -225,17 +230,16 @@ const generateInvoicePDF = async (
         break;
       }
 
-      // 원본 이미지에서 필요한 부분만 잘라서 복사
       ctx.drawImage(
         canvas,
         0,
-        position, // 원본 이미지 시작 위치
+        position,
         canvas.width,
-        canvasPage.height, // 원본에서 자를 크기
+        canvasPage.height,
         0,
-        0, // 대상 캔버스 위치
+        0,
         canvas.width,
-        canvasPage.height // 대상 캔버스 크기
+        canvasPage.height
       );
 
       const imgDataPage = canvasPage.toDataURL('image/png');
@@ -245,7 +249,6 @@ const generateInvoicePDF = async (
 
       position += pxPageHeight;
 
-      // 다음 페이지 추가 필요 시
       if (position < pxFullHeight) {
         pdf.addPage();
       }
@@ -255,30 +258,20 @@ const generateInvoicePDF = async (
     const pdfUrl = URL.createObjectURL(pdfBlob);
     const newWindow = window.open(pdfUrl, '_blank');
 
-    // 새 창이 열린 후 URL을 해제하여 메모리 누수를 방지합니다.
-    // 팝업 차단 등에 의해 새 창이 안 열릴 수도 있으므로 newWindow 객체 확인
     if (newWindow) {
       newWindow.onload = () => {
         URL.revokeObjectURL(pdfUrl);
       };
     } else {
-      // 새 창 열기 실패 시 사용자에게 알림을 주거나 콘솔에 로깅할 수 있습니다.
       console.error(
         'PDF를 새 창으로 열지 못했습니다. 팝업 차단 설정을 확인해주세요.'
       );
-      // 이 경우에도 URL을 즉시 해제합니다.
       URL.revokeObjectURL(pdfUrl);
-      // 사용자에게 파일 다운로드를 유도할 수도 있습니다.
-      // pdf.save(`견적서-${invoiceDetailsData.parsedJson.project || '내역'}.pdf`);
     }
   } catch (pdfError) {
     console.error('PDF 생성 중 오류 발생:', pdfError);
-    // 사용자에게 오류 알림 (예: setMessages 사용)
   } finally {
-    // React 18+ createRoot 사용 시
     root.unmount();
-    // React 17의 경우:
-    // ReactDOM.unmountComponentAtNode(invoiceNode);
     if (invoiceNode.parentNode) {
       invoiceNode.parentNode.removeChild(invoiceNode);
     }
@@ -290,6 +283,20 @@ export default function AiPageContent() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const chatEndRef = useRef<HTMLDivElement>(null);
+
+  // useAuthStore에서 currentSessionIndex와 setCurrentSessionIndex 가져오기
+  const currentSessionIndexFromStore = useAuthStore(
+    (state) => state.currentSessionIndex
+  );
+  const setCurrentSessionIndex = useAuthStore(
+    (state) => state.setCurrentSessionIndex
+  );
+
+  // useCreateChatMessage 훅 사용
+  const { createChatMessage } = useCreateChatMessage();
+
+  const [isFirstApiUserMessageSent, setIsFirstApiUserMessageSent] =
+    useState(false); // 첫 번째 사용자 메시지 전송 여부 추적
 
   const { lang } = useLang();
   const t = aiChatDictionary[lang] as ChatDictionary;
@@ -336,9 +343,11 @@ export default function AiPageContent() {
 
   const { remainingCount, decreaseCount, isLimitInitialized } =
     useApiLimit(isLoggedIn);
+  const prevSelectionsParamRef = useRef<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   let isModelInitializing = false;
+
   useEffect(() => {
     try {
       const loginDataStr = localStorage.getItem('loginData');
@@ -372,9 +381,61 @@ export default function AiPageContent() {
   }, [login, openAdditionalInfoModal]);
 
   useEffect(() => {
+    const urlSessionId = searchParams.get('sessionId');
+    const newSessionIndex = null;
+    const currentSelectionsParam = searchParams.get('selections'); // 현재 URL의 selections 값
+
+    // `selections` 파라미터가 변경되었는지 확인
+    const isSelectionsChanged =
+      prevSelectionsParamRef.current !== currentSelectionsParam;
+
+    // 첫 렌더링 시에는 prevSelectionsParamRef.current가 null이므로,
+    // currentSelectionsParam이 존재하면 변경으로 간주하여 초기화합니다.
+    // 그 이후부터는 이전 값과 현재 값을 비교합니다.
+    if (
+      (prevSelectionsParamRef.current === null &&
+        currentSelectionsParam !== null) ||
+      (prevSelectionsParamRef.current !== null && isSelectionsChanged)
+    ) {
+      devLog(
+        '[AiPageContent] "selections" URL param changed. Resetting chat state.'
+      );
+      setMessages([]); // 채팅 메시지 초기화
+      setInvoiceDetails(null); // 견적서 상세 정보 초기화
+      setPromptText(''); // 프롬프트 입력창 초기화
+      setUploadedFiles([]); // 업로드된 파일 초기화
+      setUploadProgress(0); // 업로드 진행률 초기화
+      setError(''); // 에러 메시지 초기화
+      setLoading(false); // 로딩 상태 초기화
+      setIsFirstApiUserMessageSent(false); // 첫 API 메시지 플래그 초기화
+    } else if (
+      prevSelectionsParamRef.current === null &&
+      currentSelectionsParam === null
+    ) {
+      // 컴포넌트가 처음 로드될 때 `selections` 파라미터가 없는 경우 (초기 상태)
+      // 이 경우에도 필요한 초기화 작업을 수행할 수 있습니다.
+      // 여기서는 추가적인 초기화 없이, 첫 API 메시지 플래그만 초기화합니다.
+      // 만약 `selections` 없이 `sessionId`만 바뀌었을 때도 채팅이 초기화되어야 한다면,
+      // 그 로직을 여기에 추가하거나 별도의 `if` 블록으로 다룰 수 있습니다.
+      setIsFirstApiUserMessageSent(false);
+      setCurrentSessionIndex(newSessionIndex); // sessionId는 동기화만
+      devLog('[AiPageContent] No "selections" param present. Basic init.');
+    } else {
+      // `selections` 파라미터가 변경되지 않은 경우 (다른 파라미터만 변경되었거나, 변화 없음)
+      devLog('[AiPageContent] "selections" param unchanged. No full reset.');
+      // 이 경우에도 sessionId는 항상 최신 상태로 동기화해야 합니다.
+      setCurrentSessionIndex(newSessionIndex);
+    }
+
+    // 🚨 현재 `selections` 파라미터 값을 Ref에 저장 (다음 렌더링을 위해)
+    prevSelectionsParamRef.current = currentSelectionsParam;
+  }, [searchParams]);
+
+  useEffect(() => {
     const stepParam = searchParams.get('step');
     const selectionsParam = searchParams.get('selections');
     const modeParam = searchParams.get('mode');
+    const sessionIdParam = searchParams.get('sessionId'); // URL에서 sessionId 가져오기
 
     let step = 0;
     if (stepParam) {
@@ -401,32 +462,51 @@ export default function AiPageContent() {
 
     const freeForm = modeParam === 'freeform';
     setIsFreeFormMode(freeForm);
+
+    // URL에서 sessionId를 가져와 Zustand 스토어에 저장
+    if (sessionIdParam) {
+      const parsedSessionId = parseInt(sessionIdParam, 10);
+      if (!isNaN(parsedSessionId)) {
+        setCurrentSessionIndex(parsedSessionId);
+        devLog(
+          `[AiPageContent] URL에서 세션 ID '${parsedSessionId}'를 가져와 Zustand에 저장.`
+        );
+      }
+    } else {
+      // URL에 sessionId가 없으면, 기존 currentSessionIndexFromStore 값을 유지하거나 null로 초기화
+      // 여기서는 명시적으로 null로 설정하여 URL에 없을 경우 새로 시작할 수 있도록 합니다.
+      // 또는 첫 진입 시 새로운 세션을 생성하도록 유도할 수 있습니다.
+      // 필요에 따라 'ai?sessionId=new'와 같은 형태로 처리할 수도 있습니다.
+      // 현재는 URL에 세션 ID가 없으면 '새로운 채팅'으로 간주될 가능성이 높습니다.
+      // setCurrentSessionIndex(null);
+      devLog(
+        '[AiPageContent] URL에 세션 ID가 없어, Zustand의 세션 ID를 초기화하거나 기존 값 유지.'
+      );
+    }
   }, [
     searchParams,
     stepData.length,
     setCurrentStep,
     setAiFlowStoreSelections,
     setIsFreeFormMode,
+    setCurrentSessionIndex, // 의존성 배열에 추가
   ]);
 
   useEffect(() => {
     devLog('[AiPageContent] Firebase auth listener - MOUNTING');
-    setIsFirebaseChecking(true); // 리스너 시작 시 체크 중으로 설정
+    setIsFirebaseChecking(true);
 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      // async 키워드 추가
       devLog(
         '[AiPageContent] onAuthStateChanged CALLBACK TRIGGERED. Firebase user:',
         user
       );
       if (user) {
-        // 사용자가 이미 로그인되어 있는 경우 (일반 로그인 또는 이전 익명 로그인 포함)
         devLog(
           `[AiPageContent] Firebase user DETECTED (UID: ${user.uid}, Anonymous: ${user.isAnonymous})`
         );
-        setIsFirebaseChecking(false); // 사용자 확인 후 체크 완료
+        setIsFirebaseChecking(false);
       } else {
-        // 로그인된 사용자가 없는 경우, 익명으로 로그인 시도
         devLog(
           '[AiPageContent] No Firebase user DETECTED. Attempting anonymous sign-in...'
         );
@@ -435,15 +515,11 @@ export default function AiPageContent() {
           devLog(
             '[AiPageContent] Firebase anonymous sign-in attempt successful. Waiting for new auth state.'
           );
-          // 익명 로그인 성공 후, onAuthStateChanged가 새로운 user 정보와 함께 다시 호출됩니다.
-          // 그때 위의 if (user) 블록이 실행되면서 setIsFirebaseChecking(false)가 호출될 것입니다.
-          // 따라서 이 부분에서 즉시 setIsFirebaseChecking(false)를 호출할 필요는 없습니다.
         } catch (error) {
           console.error(
             '[AiPageContent] Firebase anonymous sign-in FAILED:',
             error
           );
-          // 익명 로그인 시도 자체가 실패하면, 체크 상태를 false로 설정하여 무한 로딩 등을 방지합니다.
           setIsFirebaseChecking(false);
         }
       }
@@ -599,7 +675,7 @@ export default function AiPageContent() {
         `${feedbackMsg} 이 옵션을 적용하여 견적을 조정해주세요. 사용자의 현재 견적서는 다음과 같습니다: ${JSON.stringify(
           invoiceDetails?.parsedJson
         )}`,
-        true // 시스템 시작 프롬프트로 표시
+        true
       );
     } else if (action === 'discount_remove_features_budget') {
       const feedbackMsg =
@@ -611,12 +687,12 @@ export default function AiPageContent() {
         `${feedbackMsg} 현재 견적서에서 제거할 만한 핵심 보조 기능들을 제안해주세요. 사용자의 현재 견적서는 다음과 같습니다: ${JSON.stringify(
           invoiceDetails?.parsedJson
         )}`,
-        true // 시스템 시작 프롬프트로 표시
+        true
       );
     } else if (action === 'discount_ai_suggestion') {
       if (isModelInitializing) {
         devLog('[AiPageContent] 모델 초기화 중복 요청 방지됨.');
-        return; // 이미 초기화 중이면 바로 리턴
+        return;
       }
       isModelInitializing = true;
 
@@ -625,17 +701,12 @@ export default function AiPageContent() {
         'AI 심층 분석 및 기능 제안을 요청했습니다.';
       addMessageToChat({ id: Date.now(), sender: 'user', text: feedbackMsg });
 
-      // setCurrentModelIdentifier('gemini-2.5-flash-preview-04-17');
-      // devLog(
-      //   '[AiPageContent] Switched model for AI suggestion to gemini-2.5-flash-preview-04-17.'
-      // );
-
       try {
         await new Promise<void>((resolve, reject) => {
           const timeout = setTimeout(() => {
             clearInterval(interval);
             reject(new Error('모델 초기화 시간이 초과되었습니다.'));
-          }, 5000); // 5초로 연장
+          }, 5000);
 
           const interval = setInterval(() => {
             clearInterval(interval);
@@ -666,10 +737,6 @@ export default function AiPageContent() {
             : 'An error occurred while processing the AI suggestion.';
         addMessageToChat({ id: Date.now(), sender: 'ai', text: errorMsg });
       } finally {
-        // setCurrentModelIdentifier('gemini-2.0-flash');
-        // devLog(
-        //   '[AiPageContent] Switched back to default model gemini-2.0-flash.'
-        // );
         isModelInitializing = false;
       }
     } else {
@@ -762,16 +829,22 @@ export default function AiPageContent() {
     setUploadedFiles((prev) => prev.filter((f) => f.fileUri !== fileUri));
   };
 
+  // src/app/ai/AiPageContent.tsx (handleGeminiSubmit 함수 내)
+
   const handleGeminiSubmit = async (
     e?: React.FormEvent | null,
     actionPrompt?: string,
     isSystemInitiatedPrompt?: boolean
   ) => {
     e?.preventDefault();
+
+    // 🚨🚨🚨 로그인 여부에 따른 처리 로직 강화 🚨🚨🚨
+    // 비회원 사용량 제한 초과 시 로그인 모달
     if (!isLoggedIn && isLimitInitialized && remainingCount <= 0) {
       openLoginModal();
       return;
     }
+
     const submissionPrompt = actionPrompt || promptText;
     if ((!submissionPrompt && uploadedFiles.length === 0) || loading) {
       return;
@@ -779,6 +852,8 @@ export default function AiPageContent() {
     if (!isFreeFormMode) {
       return;
     }
+
+    // 비로그인 사용자 카운트 감소
     if (!isLoggedIn && isLimitInitialized) {
       const canProceed = decreaseCount();
       if (!canProceed) {
@@ -787,58 +862,39 @@ export default function AiPageContent() {
       }
     }
 
-    // --- 네비게이션 제목 업데이트 로직 추가 시작 ---
-    const queryParams = new URLSearchParams(window.location.search);
-    const currentSessionId = queryParams.get('sessionId');
-
-    // messages 배열이 비어있거나, 사용자의 첫번째 메시지라고 판단되는 시점에 실행
-    // (actionPrompt가 없고, isSystemInitiatedPrompt가 false일 때 사용자가 직접 입력한 첫 메시지로 간주)
-    if (
-      currentSessionId &&
-      !actionPrompt &&
-      !isSystemInitiatedPrompt &&
-      messages.filter((m) => m.sender === 'user').length === 0
-    ) {
-      if (submissionPrompt.trim()) {
-        localStorage.setItem(
-          `firstUserMessageFor_${currentSessionId}`,
-          submissionPrompt
-        );
-        localStorage.setItem('updateQuoteTitleFor', currentSessionId);
-        devLog(
-          `[AiPageContent] First user message for session ${currentSessionId} saved to localStorage:`,
-          submissionPrompt
-        );
-      }
-    }
-    // --- 네비게이션 제목 업데이트 로직 추가 끝 ---
-
     setLoading(true);
     setError('');
-    let userMessageText = submissionPrompt;
+
+    let userMessageTextForUi = submissionPrompt;
     let userMessageImageUrl: string | undefined = undefined;
     let userMessageFileType: string | undefined = undefined;
-    if (uploadedFiles.length > 0) {
-      userMessageText += `\n\n(첨부 파일: ${uploadedFiles
+
+    const currentFiles = [...uploadedFiles];
+
+    if (currentFiles.length > 0) {
+      userMessageTextForUi += `\n\n(첨부 파일: ${currentFiles
         .map((f) => f.name)
         .join(', ')})`;
-      const firstImageFile = uploadedFiles.find((file) =>
+      const firstImageFile = currentFiles.find((file) =>
         file.mimeType.startsWith('image/')
       );
       if (firstImageFile) {
         userMessageImageUrl = firstImageFile.fileUri;
         userMessageFileType = firstImageFile.mimeType;
-      } else if (uploadedFiles.length > 0) {
-        userMessageFileType = uploadedFiles[0].mimeType;
+      } else if (currentFiles.length > 0) {
+        userMessageFileType = currentFiles[0].mimeType;
       }
     }
-    const userMessage = {
+
+    // 사용자 UI 메시지 생성
+    const userMessageForUi: Message = {
       id: Date.now(),
-      sender: 'user' as const,
-      text: userMessageText,
+      sender: 'user',
+      text: userMessageTextForUi,
       imageUrl: userMessageImageUrl,
       fileType: userMessageFileType,
     };
+
     const aiMessageId = Date.now() + 1;
     const initialAiMessage: Message = {
       id: aiMessageId,
@@ -846,24 +902,130 @@ export default function AiPageContent() {
       text: '',
       invoiceData: undefined,
     };
+
     const messagesToAdd = [initialAiMessage];
     if (!isSystemInitiatedPrompt) {
-      messagesToAdd.unshift(userMessage as Message);
+      // 이 조건문이 빠져있을 수 있습니다.
+      messagesToAdd.unshift(userMessageForUi);
     }
+    // UI에 메시지 바로 추가 (로딩 상태를 보여주기 위해)
     setMessages((prev) => [...prev, ...messagesToAdd]);
+
     if (!actionPrompt && !isSystemInitiatedPrompt) {
       setPromptText('');
     }
-    const currentFiles = [...uploadedFiles];
     setUploadedFiles([]);
     setUploadProgress(0);
+
     if (
       actionPrompt !== '견적서를 보여줘' &&
       actionPrompt !== '견적 데이터 보기'
     ) {
       setInvoiceDetails(null);
     }
+
     try {
+      // 세션 인덱스를 저장할 변수 (초기값은 현재 상태, API 호출 후 업데이트될 수 있음)
+      let sessionIndexForApiCall: number | null = currentSessionIndexFromStore;
+
+      // --- 사용자 메시지를 백엔드 API로 전송 ---
+      // 🚨🚨🚨 로그인 상태일 때만 createChatMessage 호출 🚨🚨🚨
+      if (isLoggedIn) {
+        const userApiPayload: ChatMessagePayload = {
+          role: 'USER',
+          // currentSessionIndexFromStore가 null이면 새 세션 생성 (useCreateChatMessage 내부 로직)
+          ...(sessionIndexForApiCall !== null && {
+            sessionIndex: sessionIndexForApiCall,
+          }),
+          content: {
+            message: submissionPrompt,
+            files: currentFiles.map((f) => ({
+              name: f.name,
+              uri: f.fileUri,
+              mimeType: f.mimeType,
+            })),
+          },
+          // 첫 사용자 메시지일 경우에만 title 설정.
+          // useCreateChatMessage에서 sessionIndex가 undefined일 때 title을 사용하여 새 세션을 생성합니다.
+          title: isFirstApiUserMessageSent ? undefined : '새로운 채팅',
+        };
+
+        devLog(
+          '[AiPageContent] Sending user message to custom API:',
+          userApiPayload
+        );
+        const apiResponse = await createChatMessage(userApiPayload);
+
+        // API 응답으로 새로운 세션 인덱스를 받았으면 업데이트
+        if (
+          apiResponse &&
+          apiResponse.chatSession &&
+          apiResponse.chatSession.index !== undefined
+        ) {
+          sessionIndexForApiCall = apiResponse.chatSession.index;
+          // useCreateChatMessage 내부에서 이미 setCurrentSessionIndex가 호출되었을 것입니다.
+          // 하지만 혹시 모를 상황을 대비하여 명시적으로 다시 설정하거나,
+          // 이 값을 이후 API 호출에만 활용하고 Zustand 상태는 useCreateChatMessage가 관리하도록 할 수 있습니다.
+          // 여기서는 `sessionIndexForApiCall` 변수를 통해 일관성을 유지합니다.
+        } else if (
+          isFirstApiUserMessageSent === false &&
+          sessionIndexForApiCall === null
+        ) {
+          // 첫 메시지인데 세션이 생성되지 않은 경우 (API 문제)
+          console.error(
+            '[AiPageContent] Failed to create new session or get session index from API response on first message.'
+          );
+          setError(
+            '세션 생성에 실패했습니다. 페이지를 새로고침 후 다시 시도해주세요.'
+          );
+          setLoading(false);
+          // 에러 발생 시 UI에 추가했던 메시지 제거
+          setMessages((prev) =>
+            prev.filter(
+              (msg) => msg.id !== userMessageForUi.id && msg.id !== aiMessageId
+            )
+          );
+          return;
+        }
+        if (!isFirstApiUserMessageSent) {
+          setIsFirstApiUserMessageSent(true);
+        }
+      } else if (!isLoggedIn) {
+        devLog(
+          '[AiPageContent] Skipping user message API call for non-logged-in user.'
+        );
+        // 비로그인 시 세션 인덱스 로직은 건너뜁니다.
+      }
+
+      // --- 네비게이션 제목 업데이트 로직 추가 시작 ---
+      // 로그인 상태이고, 유효한 세션 인덱스가 있으며, 첫 사용자 메시지 (시스템/액션 프롬프트 아님)일 경우
+      // 이때의 `sessionIndexForApiCall`은 이제 확실히 유효한 세션 인덱스입니다.
+      if (
+        isLoggedIn &&
+        sessionIndexForApiCall !== null &&
+        sessionIndexForApiCall !== undefined &&
+        !actionPrompt &&
+        !isSystemInitiatedPrompt &&
+        messages.filter((m) => m.sender === 'user').length === 0 // 첫 사용자 메시지
+      ) {
+        if (submissionPrompt.trim()) {
+          localStorage.setItem(
+            `firstUserMessageFor_${sessionIndexForApiCall}`,
+            submissionPrompt
+          );
+          localStorage.setItem(
+            'updateQuoteTitleFor',
+            sessionIndexForApiCall.toString()
+          );
+          devLog(
+            `[AiPageContent] First user message for session ${sessionIndexForApiCall} saved to localStorage:`,
+            submissionPrompt
+          );
+        }
+      }
+      // --- 네비게이션 제목 업데이트 로직 추가 끝 ---
+
+      // Gemini API 호출을 위한 `parts` 생성 로직
       const parts: Part[] = [];
       let selectionSummary = '';
       Object.entries(selections).forEach(([stepId, selectedOptions]) => {
@@ -879,6 +1041,7 @@ export default function AiPageContent() {
       });
       selectionSummary += '\n';
       if (selectionSummary.trim()) parts.push({ text: selectionSummary });
+
       if (
         invoiceDetails &&
         invoiceDetails.items &&
@@ -886,13 +1049,14 @@ export default function AiPageContent() {
       ) {
         let currentInvoiceStateText =
           '현재 사용자가 보고 있는 견적서 상태입니다. 일부 항목은 사용자에 의해 삭제 처리되었을 수 있습니다 (isDeleted: true로 표시됨):\n';
-        invoiceDetails.items.forEach((item) => {
-          currentInvoiceStateText += `- 항목: ${item.feature}, 금액: ${item.amount}, 삭제됨: ${item.isDeleted}\n`;
-        });
+        // `invoiceStateText`는 외부에 선언된 변수일 수 있습니다.
+        // 여기서는 `currentInvoiceStateText`만 사용해도 무방합니다.
         currentInvoiceStateText += `현재 총액: ${invoiceDetails.currentTotal}, 총 기간: ${invoiceDetails.currentTotalDuration}일, 총 페이지: ${invoiceDetails.currentTotalPages}페이지\n`;
         parts.push({ text: currentInvoiceStateText });
       }
+
       if (submissionPrompt) parts.push({ text: submissionPrompt });
+
       currentFiles.forEach((file) => {
         parts.push({
           fileData: {
@@ -901,6 +1065,7 @@ export default function AiPageContent() {
           } as FileData,
         });
       });
+
       if (!chat.current) {
         console.error(
           '[AI] Chat session is not initialized. Waiting for initialization...'
@@ -921,25 +1086,20 @@ export default function AiPageContent() {
           );
         }
       }
+
       const streamResult = await chat.current.sendMessageStream(parts);
       let aiResponseText = '';
-      console.log('[AI 스트림 결과]', streamResult); // 스트림 결과 객체 확인
+      console.log('[AI 스트림 결과]', streamResult);
       if (streamResult && streamResult.stream) {
-        console.log('[AI 스트림 루프 진입 시도]');
+        console.log('[AI 스트림 루프 진입 시도 - 스트리밍 효과 제거됨]');
         for await (const item of streamResult.stream) {
-          console.log('[AI 스트림 아이템]', item); // 각 아이템 전체 확인
+          // 모든 스트림 청크를 한 번에 aiResponseText에 누적합니다.
           const chunkText = item.candidates?.[0]?.content?.parts?.[0]?.text;
           if (chunkText) {
-            console.log('[AI 응답 조각]', chunkText);
             aiResponseText += chunkText;
-          } else {
-            console.log(
-              '[AI 응답 조각 없음]',
-              'chunkText가 비어있거나 해당 경로에 없음'
-            );
           }
         }
-        console.log('[AI 스트림 루프 종료]');
+        console.log('[AI 스트림 루프 종료 - 스트리밍 효과 제거됨]');
       } else {
         console.log(
           '[AI 스트림 없음]',
@@ -948,17 +1108,35 @@ export default function AiPageContent() {
       }
       console.log('AI 전체 응답 (aiResponseText):', aiResponseText);
 
-      // --- AI 응답 저장 로직 추가 시작 ---
-      if (currentSessionId && aiResponseText.trim()) {
+      // 🚨🚨🚨 여기를 추가하거나 수정합니다: 최종 응답을 받았을 때 한 번에 UI 업데이트 🚨🚨🚨
+      setMessages((prevMessages: Message[]) => {
+        return prevMessages.map((msg) =>
+          msg.id === aiMessageId // 현재 AI 메시지 ID와 일치하는 메시지를 찾아
+            ? { ...msg, text: aiResponseText } // 최종 완성된 텍스트로 한 번에 업데이트
+            : msg
+        );
+      });
+
+      // --- AI 응답 저장 로직 시작 (localStorage) ---
+      // 🚨🚨🚨 로그인 상태일 때만 이 로직 실행 🚨🚨🚨
+      if (
+        isLoggedIn &&
+        sessionIndexForApiCall !== null && // 확보된 세션 인덱스 사용
+        aiResponseText.trim()
+      ) {
         localStorage.setItem(
-          `aiResponseFor_${currentSessionId}`,
+          `aiResponseFor_${sessionIndexForApiCall}`,
           aiResponseText
         );
         devLog(
-          `[AiPageContent] AI response for session ${currentSessionId} saved to localStorage.`
+          `[AiPageContent] AI response for session ${sessionIndexForApiCall} saved to localStorage.`
+        );
+      } else if (!isLoggedIn) {
+        devLog(
+          '[AiPageContent] Skipping AI response localStorage save for non-logged-in user.'
         );
       }
-      // --- AI 응답 저장 로직 추가 끝 ---
+      // --- AI 응답 저장 로직 끝 (localStorage) ---
 
       const jsonScriptRegex =
         /<script type="application\/json" id="invoiceData">([\s\S]*?)<\/script>/;
@@ -966,6 +1144,7 @@ export default function AiPageContent() {
       devLog('JSON 추출 시도 결과 (jsonMatch):', jsonMatch);
       let parsedInvoiceData: InvoiceDataType | null = null;
       let naturalLanguageText = aiResponseText;
+
       if (jsonMatch && jsonMatch[1]) {
         const jsonString = jsonMatch[1];
         devLog('추출된 JSON 문자열 (jsonString):', jsonString);
@@ -982,6 +1161,7 @@ export default function AiPageContent() {
             'JSON 제거 후 자연어 텍스트 (naturalLanguageText):',
             naturalLanguageText
           );
+
           if (parsedInvoiceData && parsedInvoiceData.invoiceGroup) {
             const initialItems = parsedInvoiceData.invoiceGroup.flatMap(
               (group) =>
@@ -1045,22 +1225,69 @@ export default function AiPageContent() {
         setMessages((prevMessages: Message[]) => {
           return prevMessages.map((msg) =>
             msg.id === aiMessageId
-              ? { ...msg, text: aiResponseText, invoiceData: undefined }
+              ? { ...msg, text: naturalLanguageText, invoiceData: undefined }
               : msg
           );
         });
+      }
+
+      // --- AI 응답을 백엔드 API로 전송 ---
+      // 🚨🚨🚨 로그인 상태일 때만 createChatMessage 호출 🚨🚨🚨
+      if (isLoggedIn && aiResponseText.trim()) {
+        if (
+          sessionIndexForApiCall === null || // 확보된 세션 인덱스 사용
+          sessionIndexForApiCall === undefined
+        ) {
+          console.error(
+            '[AiPageContent] No valid session index found for sending AI response to API. (loggedIn but no session after initial message)'
+          );
+          // 이 경우 이미 사용자 메시지가 성공적으로 전송되었다고 가정하므로 UI 오류는 발생시키지 않고 로그만 남깁니다.
+          // 다만, AI 응답 저장은 건너뜁니다.
+          setLoading(false);
+        }
+        try {
+          const aiApiPayload: ChatMessagePayload = {
+            role: 'AI',
+            sessionIndex: sessionIndexForApiCall, // 확보된 세션 인덱스 사용
+            content: {
+              message: naturalLanguageText || aiResponseText,
+              ...(parsedInvoiceData && { invoiceData: parsedInvoiceData }),
+            },
+          };
+          devLog(
+            '[AiPageContent] Sending AI response to custom API:',
+            aiApiPayload
+          );
+          await createChatMessage(aiApiPayload);
+        } catch (apiCallError) {
+          console.error(
+            'Failed to send AI response to custom API:',
+            apiCallError
+          );
+        }
+      } else if (!isLoggedIn) {
+        devLog(
+          '[AiPageContent] Skipping AI response API call for non-logged-in user.'
+        );
       }
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.';
       setError(errorMessage);
-      console.error("❌ Error in handleGeminiSubmit's try block:", err);
+      console.error("❌ Error in handleGeminiSubmit's main try block:", err);
+      // 오류 발생 시 UI에 추가했던 AI 메시지 제거
       setMessages((prevMessages: Message[]) => {
-        return prevMessages.map((msg) =>
-          msg.id === aiMessageId
-            ? { ...msg, text: `오류: ${errorMessage}`, invoiceData: undefined }
-            : msg
-        );
+        return prevMessages
+          .filter((msg) => msg.id !== aiMessageId)
+          .map((msg) =>
+            msg.id === userMessageForUi.id
+              ? {
+                  ...msg,
+                  text: `${msg.text}\n오류: ${errorMessage}`,
+                  invoiceData: undefined,
+                } // 사용자 메시지 아래에 오류 추가
+              : msg
+          );
       });
       setInvoiceDetails(null);
     } finally {
@@ -1138,6 +1365,9 @@ export default function AiPageContent() {
             handleDragOver={handleDragOver}
             handleDragLeave={handleDragLeave}
             lang={lang}
+            onAddMessage={(newMessage) =>
+              setMessages((prev) => [...prev, newMessage])
+            }
           />
 
           <MessageInput

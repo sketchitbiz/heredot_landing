@@ -1,3 +1,7 @@
+// src/components/Ai/AiNavigationBar.tsx
+
+'use client'; // 클라이언트 컴포넌트임을 명시
+
 import { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { ProfileDataContainer } from '@/components/ProfileDataContainer';
@@ -14,13 +18,17 @@ import { AppTextStyles } from '@/styles/textStyles';
 import useAuthStore from '@/store/authStore';
 import { useLang } from '@/contexts/LangContext';
 import { aiChatDictionary } from '@/lib/i18n/aiChat';
-import { ChatDictionary } from '@/app/ai/components/StepData';
 import { EstimateRequestModal } from './EstimateRequestModal';
 import { toast } from 'react-toastify';
+import { useRouter } from 'next/navigation'; // useRouter 임포트
+import { useSendInquireMessage } from '@/hooks/inquire/useSendInquireMessage'; // 🚨 useSendInquireMessage 훅 임포트
 
+// AiLayout에서 전달받는 NavigationItemData 및 NavigationGroup 인터페이스 재사용
 interface NavigationItemData {
-  name: string;
-  status?: string;
+  id: string; // 세션 uuid 또는 index
+  name: string; // 세션 title
+  status: '진행' | '완료' | '추가중';
+  sessionIndex?: number; // 세션 index 추가
 }
 
 interface NavigationGroup {
@@ -29,11 +37,12 @@ interface NavigationGroup {
 }
 
 interface AiNavigationBarProps {
-  navigationItems: NavigationGroup[];
+  navigationItems: NavigationGroup[]; // AiLayout에서 가공된 데이터 받음
   isMobile?: boolean;
   isSidebarOpen?: boolean;
   toggleSidebar?: () => void;
-  onAddNewEstimateRequest?: () => void;
+  onAddNewEstimateRequest?: () => void; // 새 견적 요청 버튼 클릭 시 호출될 콜백
+  onSessionClick?: (sessionIndex: number) => void; // 세션 아이템 클릭 시 호출될 콜백
 }
 
 const BlurredOverlay = styled.div`
@@ -256,6 +265,11 @@ const NavigationItem = styled.div`
 const ItemText = styled.span`
   ${AppTextStyles.body1};
   color: ${AppColors.onBackground};
+  white-space: nowrap; // 텍스트가 한 줄로 표시되도록
+  overflow: hidden; // 넘치는 부분 숨김
+  text-overflow: ellipsis; // 넘치는 부분 ...으로 표시
+  flex-grow: 1; // 텍스트가 공간을 최대한 차지하도록
+  margin-right: 8px; // 버튼과의 간격
 `;
 
 const NavigationStatusButton = styled(ButtonElement)`
@@ -266,6 +280,7 @@ const NavigationStatusButton = styled(ButtonElement)`
   font-weight: 400;
   display: flex;
   align-items: center;
+  flex-shrink: 0; // 버튼이 줄어들지 않도록
 
   &:hover:not(:disabled) {
     background-color: ${AppColors.primary};
@@ -281,18 +296,21 @@ const LogoutButtonContainer = styled.div`
 `;
 
 const AiNavigationBar = ({
-  navigationItems,
+  navigationItems, // AiLayout에서 가공된 세션 데이터를 받습니다.
   isMobile = false,
   isSidebarOpen = false,
   toggleSidebar = () => {},
   onAddNewEstimateRequest = () => {},
+  onSessionClick = () => {},
 }: AiNavigationBarProps) => {
+  const router = useRouter(); // router 훅 사용
   const { lang } = useLang();
-  const t = aiChatDictionary[lang] as ChatDictionary;
+  const t = aiChatDictionary[lang];
 
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
   const openLoginModal = useAuthStore((state) => state.openLoginModal);
   const user = useAuthStore((state) => state.user);
+  const logout = useAuthStore((state) => state.logout); // logout 액션 가져오기
 
   const [expandedSections, setExpandedSections] = useState<
     Record<string, boolean>
@@ -305,18 +323,29 @@ const AiNavigationBar = ({
   const touchEndX = useRef<number | null>(null);
   const swipeThreshold = 50;
 
+  // 🚨 useSendInquireMessage 훅 사용
+  const {
+    sendInquireMessage,
+    isLoading: isSendingInquire,
+    error: inquireError,
+  } = useSendInquireMessage();
+
   useEffect(() => {
+    // 섹션 확장 상태 초기화: 로그인 상태에 따라 모든 섹션을 확장하거나 '오늘'만 확장
     const initialExpandedState: Record<string, boolean> = {};
     if (!isLoggedIn) {
       navigationItems.forEach((group) => {
         initialExpandedState[group.title] = true;
       });
     } else {
-      const todayTitle = t.navigation.period.today || '오늘';
-      initialExpandedState[todayTitle] = true;
+      // 로그인 시 기본적으로 '오늘' 섹션만 열고 다른 섹션은 닫힌 상태로 시작
+      navigationItems.forEach((group) => {
+        initialExpandedState[group.title] =
+          group.title === (t.navigation?.period?.today || '오늘');
+      });
     }
     setExpandedSections(initialExpandedState);
-  }, [isLoggedIn, navigationItems, t.navigation.period.today]);
+  }, [isLoggedIn, navigationItems, t.navigation?.period?.today]); // navigationItems가 변경될 때마다 재설정
 
   const toggleSection = (title: string) => {
     setExpandedSections((prev) => ({
@@ -326,21 +355,48 @@ const AiNavigationBar = ({
   };
 
   const handleOpenEstimateModal = (itemName: string) => {
-    const modalTitle = `견적을 여기닷에 문의하시겠습니까?`;
-    setCurrentEstimateTitle(modalTitle);
+    // 모달 타이틀을 현재 선택된 아이템의 이름으로 설정합니다.
+    setCurrentEstimateTitle(itemName); // 🚨 item.name을 모달 타이틀로 사용
     setIsEstimateModalOpen(true);
   };
 
-  const handleConfirmEstimate = () => {
-    console.log(`견적 문의 요청 API 호출: ${currentEstimateTitle}`);
-    toast.info('문의 요청이 완료되었습니다.');
-    setIsEstimateModalOpen(false);
+  // 🚨 견적 요청 API 호출 로직 추가
+  const handleConfirmEstimate = async () => {
+    // user?.name이 없으면 '익명 사용자'로 설정 또는 로그인 유도
+    const userName = user?.name || t.commonUser;
+
+    // 모달에서 사용할 payload 구성 (name은 사용자 이름, title은 선택된 견적 항목 이름)
+    const payload = {
+      name: userName,
+      title: currentEstimateTitle, // handleOpenEstimateModal에서 설정한 itemName
+    };
+
+    const success = await sendInquireMessage(payload);
+
+    if (success) {
+      toast.info(t.common?.inquireSuccess || '문의 요청이 완료되었습니다.');
+      setIsEstimateModalOpen(false);
+    } else {
+      // 에러 메시지가 있다면 표시, 없다면 일반적인 오류 메시지
+      toast.error(
+        inquireError ||
+          t.common?.inquireFail ||
+          '문의 요청 중 오류가 발생했습니다.'
+      );
+      // setIsEstimateModalOpen(false); // 오류 시 모달을 닫을지 말지는 UX에 따라 결정
+    }
   };
 
   const handleCreateNewEstimateClick = () => {
-    window.location.href = '/ai';
+    // AiLayout에서 props로 받은 콜백 함수 호출
     if (onAddNewEstimateRequest) {
       onAddNewEstimateRequest();
+    }
+  };
+
+  const handleSessionItemClick = (sessionIndex: number) => {
+    if (onSessionClick) {
+      onSessionClick(sessionIndex);
     }
   };
 
@@ -449,44 +505,45 @@ const AiNavigationBar = ({
         </ProfileSection>
 
         <NavigationContent>
-          {isLoggedIn && (
-            <NavigationSection key={t.navigation.period.today || '오늘'}>
-              <SectionHeader
-                onClick={() =>
-                  toggleSection(t.navigation.period.today || '오늘')
-                }
-              >
-                <SectionTitle>
-                  {t.navigation.period.today || '오늘'}
-                </SectionTitle>
+          {/* API에서 받아온 navigationItems를 렌더링 */}
+          {navigationItems.map((group) => (
+            <NavigationSection key={group.title}>
+              <SectionHeader onClick={() => toggleSection(group.title)}>
+                <SectionTitle>{group.title}</SectionTitle>
                 <SectionContent>
-                  {t.navigation.customEstimateTo || '여기닷에게'}
+                  {t.navigation.estimate || '여기닷에게'}
                 </SectionContent>
               </SectionHeader>
-              {expandedSections[t.navigation.period.today || '오늘'] && (
+              {expandedSections[group.title] && (
                 <ItemList>
-                  <NavigationItem key="custom-estimate">
-                    <ItemText>
-                      {t.navigation.customEstimateInProgress ||
-                        '맞춤 견적 제작중 ...'}
-                    </ItemText>
-                    <NavigationStatusButton
-                      size="small"
-                      isRounded
+                  {group.items.map((item) => (
+                    <NavigationItem
+                      key={item.id}
                       onClick={() =>
-                        handleOpenEstimateModal(
-                          t.navigation.customEstimateInProgress ||
-                            '맞춤 견적 제작중 ...'
-                        )
+                        item.sessionIndex &&
+                        handleSessionItemClick(item.sessionIndex)
                       }
                     >
-                      {t.buttons.estimate || '견적요청'}
-                    </NavigationStatusButton>
-                  </NavigationItem>
+                      <ItemText>{item.name}</ItemText>
+                      <NavigationStatusButton
+                        size="small"
+                        isRounded
+                        onClick={(e) => {
+                          e.stopPropagation(); // 부모 클릭 이벤트 방지
+                          handleOpenEstimateModal(item.name); // 🚨 item.name을 전달
+                        }}
+                        disabled={isSendingInquire} // 🚨 API 호출 중 버튼 비활성화
+                      >
+                        {isSendingInquire
+                          ? t.buttons.sending
+                          : t.buttons.estimate || '견적요청'}
+                      </NavigationStatusButton>
+                    </NavigationItem>
+                  ))}
                 </ItemList>
               )}
             </NavigationSection>
-          )}
+          ))}
         </NavigationContent>
 
         <LogoutButtonContainer>
@@ -494,7 +551,7 @@ const AiNavigationBar = ({
             <NavigationStatusButton
               size="small"
               isRounded
-              onClick={() => useAuthStore.getState().logout()}
+              onClick={() => logout(router)}
             >
               <Logout
                 fontSize="small"
@@ -535,13 +592,14 @@ const AiNavigationBar = ({
             {isSidebarOpen ? <ChevronLeft /> : <ChevronRight />}
           </SidebarToggleButton>
         )}
+        {/* 사이드바가 열려있을 때만 내용을 렌더링하여 불필요한 렌더링 방지 */}
         {isSidebarOpen && renderSidebarContent()}
       </Sidebar>
       <EstimateRequestModal
         isOpen={isEstimateModalOpen}
         onClose={() => setIsEstimateModalOpen(false)}
         onConfirm={handleConfirmEstimate}
-        title={currentEstimateTitle}
+        title={currentEstimateTitle} // 모달에 제목 전달
       />
     </Container>
   );

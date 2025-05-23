@@ -1,6 +1,6 @@
-import type { NextConfig } from "next";
-import type { Configuration as WebpackConfig } from "webpack";
-import path from "path";
+import type { NextConfig } from 'next';
+import type { Configuration as WebpackConfig } from 'webpack';
+import path from 'path';
 
 const nextConfig: NextConfig = {
   compiler: {
@@ -17,7 +17,7 @@ const nextConfig: NextConfig = {
       ...config.resolve,
       alias: {
         ...(config.resolve?.alias || {}),
-        "@": path.resolve(__dirname, "src"),
+        '@': path.resolve(__dirname, 'src'),
       },
     };
     return config;

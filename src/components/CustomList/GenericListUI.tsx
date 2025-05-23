@@ -11,6 +11,8 @@ import { THEME_COLORS, ThemeMode } from "@/styles/theme_colors";
 import ActionButton from "../ActionButton";
 
 
+
+
 // Helper: getPropertyValue (기존 유지, UserListPage 버전 개선 적용)
 const getPropertyValue = <T extends object>(obj: T, path: keyof T | string): any => {
   if (!obj) return undefined;
@@ -85,8 +87,6 @@ interface GenericListUIProps<T extends BaseRecord> {
   onRowClick?: (item: T, rowIndex: number) => void;
   renderHeaderActionButton?: () => React.ReactNode;
   renderTabs?: () => React.ReactNode;
-  noDataMessage?: string;
-  noDataComponent?: React.ReactNode;
   // customExcelDownload?: (dataToDownload: T[]) => void; // 제거 (기본 로직 강화)
 }
 
@@ -107,8 +107,6 @@ const GenericListUIInner = <T extends BaseRecord>(
     onRowClick,
     renderHeaderActionButton,
     renderTabs,
-    noDataMessage = "데이터가 없습니다.",
-    noDataComponent,
   }: GenericListUIProps<T>,
   ref: React.Ref<{ refetch: () => void }>
 ) => {
@@ -239,6 +237,9 @@ const GenericListUIInner = <T extends BaseRecord>(
     setSearchKeyword(searchTermInput.trim());
     fetchDataCallback(); // 조회 버튼 클릭 시 API 재호출
   };
+
+
+  
 
   // 엑셀 다운로드 핸들러 (수정: 클라이언트 데이터 사용)
   const handleDownloadClick = () => {
@@ -394,23 +395,6 @@ const GenericListUIInner = <T extends BaseRecord>(
         </RightControls>
       </ControlHeader>
 
-      {isLoading && allData.length === 0 ? (
-        <LoadingContainer $themeMode={themeMode}>
-          <LoadingSpinner $themeMode={themeMode} />
-        </LoadingContainer>
-      ) : error ? (
-        <ErrorContainer $themeMode={themeMode}>
-          <ErrorMessage $themeMode={themeMode}>{error}</ErrorMessage>
-        </ErrorContainer>
-      ) : allData.length === 0 ? (
-        noDataComponent || (
-          <NoDataContainer $themeMode={themeMode}>
-            <NoDataText $themeMode={themeMode}>
-              {searchKeyword ? `'${searchKeyword}' 검색 결과가 없습니다.` : noDataMessage}
-            </NoDataText>
-          </NoDataContainer>
-        )
-      ) : (
         <TableContainer $themeMode={themeMode}>
           <GenericDataTable
             data={paginatedData}
@@ -425,7 +409,7 @@ const GenericListUIInner = <T extends BaseRecord>(
             themeMode={themeMode}
           />
         </TableContainer>
-      )}
+      {/* )} */}
     </Container>
   );
 };
@@ -671,21 +655,6 @@ const ErrorMessage = styled.p<{ $themeMode: ThemeMode }>`
   text-align: center;
 `;
 
-const NoDataContainer = styled.div<{ $themeMode: ThemeMode }>`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 300px;
-  width: 100%;
-  background-color: ${({ $themeMode }) =>
-    $themeMode === "light" ? THEME_COLORS.light.tableBackground : THEME_COLORS.dark.tableBackground};
-`;
-
-const NoDataText = styled.p<{ $themeMode: ThemeMode }>`
-  color: ${({ $themeMode }) => ($themeMode === "light" ? "#757575" : "#AAAAAA")};
-  font-size: 16px;
-  text-align: center;
-`;
 
 const DateRangePickerContainer = styled.div`
   /* 특별한 스타일 불필요 */
