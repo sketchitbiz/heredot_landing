@@ -16,6 +16,8 @@ import { useRouter, useSearchParams } from 'next/navigation'; // useSearchParams
 import useChatSessionList, {
   ChatSession,
 } from '@/hooks/chat/useChatSessionList';
+import { devLog } from '@/lib/utils/devLogger';
+
 
 // PageLoader를 클라이언트 사이드에서만 렌더링하도록 dynamic import
 const ClientOnlyPageLoader = dynamic(() => import('@/components/PageLoader'), {
@@ -221,7 +223,7 @@ export default function AiLayout({ children }: { children: React.ReactNode }) {
     NavigationGroup[]
   >([]);
   useEffect(() => {
-    console.log(
+    devLog(
       'AiLayout - useEffect (sessions/lang): sessions 상태:',
       sessions,
       'lang:',
@@ -229,7 +231,7 @@ export default function AiLayout({ children }: { children: React.ReactNode }) {
     );
     if (sessions) {
       const transformed = transformSessionsToNavigationGroups(sessions, lang);
-      console.log(
+      devLog(
         'AiLayout - useEffect (sessions/lang): 변환된 navigationItems:',
         transformed
       );
@@ -254,7 +256,7 @@ export default function AiLayout({ children }: { children: React.ReactNode }) {
             },
           ]
         : [];
-      console.log(
+      devLog(
         'AiLayout - useEffect (sessions/lang): 세션이 없어서 기본값 설정:',
         defaultItems
       );

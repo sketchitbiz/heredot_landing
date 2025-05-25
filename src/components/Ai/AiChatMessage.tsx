@@ -14,6 +14,7 @@ import { ChatDictionary } from '@/app/ai/components/StepData'; // ChatDictionary
 import useAiFlowStore from '@/store/aiFlowStore';
 import { useTranslation } from 'react-i18next';
 import { getStepData } from '@/app/ai/components/StepData';
+import { devLog } from '@/lib/utils/devLogger';
 
 /**
  * AiChatMessage 컴포넌트
@@ -495,7 +496,7 @@ const InvoiceTable = styled.table`
     text-align: center;
     font-weight: 500;
   }
-    .col-menu {
+  .col-menu {
     width: 18%;
     text-align: center;
     font-weight: 500;
@@ -1064,7 +1065,7 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
             <th style={{ ...headerCellStyle, width: '15%' }}>
               {t.tableHeaders.category}
             </th>
-            <th style={{ ...headerCellStyle, width: '20%' }}> 
+            <th style={{ ...headerCellStyle, width: '20%' }}>
               {t.tableHeaders.menu}
             </th>
             <th style={{ ...headerCellStyle, width: '20%' }}>
@@ -1099,9 +1100,11 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
                     {group.category}
                   </td>
                 )}
-                 <td style={{ ...valueCellStyle, textAlign: 'center' }}> {/* << 메뉴 데이터 표시 */}
-    {item.menu}
-  </td>
+                <td style={{ ...valueCellStyle, textAlign: 'center' }}>
+                  {' '}
+                  {/* << 메뉴 데이터 표시 */}
+                  {item.menu}
+                </td>
                 <td style={{ ...valueCellStyle, textAlign: 'center' }}>
                   {item.feature}
                 </td>
@@ -1192,7 +1195,7 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
               </td>
             </tr>
           )}
-          {invoiceDetailsForPdf.currentTotalPages > 0 && (
+          {/* {invoiceDetailsForPdf.currentTotalPages > 0 && (
             <tr>
               <td
                 colSpan={4}
@@ -1204,7 +1207,7 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
                 {invoiceDetailsForPdf.currentTotalPages} {t.estimateInfo.page}
               </td>
             </tr>
-          )}
+          )} */}
         </tbody>
       </table>
 
@@ -1428,15 +1431,15 @@ export function AiChatMessage({
                           </span>
                         </div>
                         <div className="item-row">
-                        <span className="label">{t.tableHeaders.menu}</span> 
-                        <span
-                          className={`value ${
-                            isActuallyDeleted ? 'deleted' : ''
-                          }`}
-                        >
-                          {item.menu} 
-                        </span>
-                      </div>
+                          <span className="label">{t.tableHeaders.menu}</span>
+                          <span
+                            className={`value ${
+                              isActuallyDeleted ? 'deleted' : ''
+                            }`}
+                          >
+                            {item.menu}
+                          </span>
+                        </div>
                         <div className="item-row">
                           <span className="label">{t.tableHeaders.item}</span>
                           <span
@@ -1516,14 +1519,24 @@ export function AiChatMessage({
                       {t.estimateInfo.totalSum}
                     </span>
                     <span className="value" style={{ fontWeight: 'bold' }}>
-                      {invoiceData.total?.totalConvertedDisplay &&
+                    {invoiceData.total?.totalConvertedDisplay &&
                       typeof invoiceData.total.totalConvertedDisplay ===
                         'string'
-                        ? invoiceData.total.totalConvertedDisplay
+                        ? formatAmountWithCurrency(
+                            Math.round(
+                              (calculatedTotalAmount ||
+                                invoiceData.total?.amount ||
+                                0) * 1
+                            ),
+                            true
+                          )
                         : calculatedTotalAmount !== undefined
-                        ? formatAmountWithCurrency(calculatedTotalAmount, true)
+                        ? formatAmountWithCurrency(
+                            Math.round(calculatedTotalAmount * 1),
+                            true
+                          )
                         : formatAmountWithCurrency(
-                            invoiceData.total?.amount,
+                            Math.round((invoiceData.total?.amount || 0) * 1),
                             true
                           )}
                     </span>
@@ -1586,13 +1599,11 @@ export function AiChatMessage({
                 <thead>
                   <tr>
                     <th className="col-category">{t.tableHeaders.category}</th>
-                    <th className="col-menu">{t.tableHeaders.menu}</th> 
+                    <th className="col-menu">{t.tableHeaders.menu}</th>
                     <th className="col-feature">{t.tableHeaders.item}</th>
                     <th className="col-description">{t.tableHeaders.detail}</th>
                     <th className="col-amount">{t.tableHeaders.amount}</th>
-                    <th className="col-actions">
-                      {t.tableHeaders.management}
-                    </th>
+                    <th className="col-actions">{t.tableHeaders.management}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1624,20 +1635,20 @@ export function AiChatMessage({
                                 {group.category}
                               </td>
                             ) : null}
-                              <td
-      className="col-menu" 
-      style={{
-        textDecoration: isActuallyDeleted
-          ? 'line-through'
-          : 'none',
-        color: isActuallyDeleted
-          ? AppColors.disabled
-          : AppColors.onBackground,
-        textAlign: 'center', 
-      }}
-    >
-      {item.menu} 
-    </td>
+                            <td
+                              className="col-menu"
+                              style={{
+                                textDecoration: isActuallyDeleted
+                                  ? 'line-through'
+                                  : 'none',
+                                color: isActuallyDeleted
+                                  ? AppColors.disabled
+                                  : AppColors.onBackground,
+                                textAlign: 'center',
+                              }}
+                            >
+                              {item.menu}
+                            </td>
                             <td
                               className="col-feature"
                               style={{
@@ -1780,7 +1791,7 @@ export function AiChatMessage({
             )}
 
             {/* 할인 및 PDF 저장 옵션 */}
-            {/* <div
+            <div
               style={{
                 marginTop: '0',
                 paddingTop: '1rem',
@@ -1805,10 +1816,10 @@ export function AiChatMessage({
                 {t.discount.options.map((optionText, index) => {
                   let action = '';
                   if (index === 0) {
-                    action = 'discount_extend_8w_20p';
-                  } else if (index === 1) {
+                    //   action = 'discount_extend_8w_20p';
+                    // } else if (index === 1) {
                     action = 'discount_remove_features_budget';
-                  } else if (index === 2) {
+                  } else if (index === 1) {
                     action = 'discount_ai_suggestion';
                   }
 
@@ -1855,7 +1866,7 @@ export function AiChatMessage({
                       )}
                       <ActionButton
                         onClick={() => {
-                          console.log(
+                          devLog(
                             `[AiChatMessage] ActionButton clicked. Action: ${action}, Index: ${index}`
                           );
                           onActionClick(action);
@@ -1869,8 +1880,10 @@ export function AiChatMessage({
                   );
                 })}
               </ul>
+            </div>
+            <div>
               <h4 style={{ marginBottom: '0.75rem', fontSize: '1em' }}>
-                {t.pdf.title}
+                {t.pdf.title}{' '}
               </h4>
               <ActionButton
                 onClick={() => onActionClick('download_pdf')}
@@ -1881,20 +1894,7 @@ export function AiChatMessage({
               >
                 {t.buttons.downloadPdf}
               </ActionButton>
-            </div> */}
-            <div>
-            <h4 style={{ marginBottom: '0.75rem', fontSize: '1em' }}>
-            {t.pdf.title} </h4>
-            <ActionButton
-                onClick={() => onActionClick('download_pdf')}
-                style={{
-                  backgroundColor: '#2E7D32',
-                  width: '150px',
-                }}
-              >
-                {t.buttons.downloadPdf}
-              </ActionButton>
-              </div>
+            </div>
           </StyledInvoiceContainer>
         )}
 

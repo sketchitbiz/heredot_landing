@@ -1088,61 +1088,61 @@ export default function AiPageContent() {
       const streamResult = await chat.current.sendMessageStream(parts);
       let accumulatedText = ''; // 누적된 텍스트
       let accumulatedThought = ''; // 누적된 추론 요약 (만약 SDK가 지원한다면)
-  
+
       // AI 응답이 시작되었음을 나타내는 로딩 상태 해제 (텍스트가 나올 것이므로)
       // setLoading(false); // 이 위치에서 해제하면 'AI is typing...'과 같은 효과가 안 나올 수 있음.
-                        // 아래 `setMessages`에서 텍스트가 추가되면 `loading` 상태를 조정하는게 좋음.
-  
+      // 아래 `setMessages`에서 텍스트가 추가되면 `loading` 상태를 조정하는게 좋음.
+
       devLog('[AI 스트림 루프 진입 - 실시간 출력 시작]');
       for await (const item of streamResult.stream) {
-          const chunkText = item.candidates?.[0]?.content?.parts?.[0]?.text;
-  
-          // ⭐ 텍스트 청크가 있을 때마다 UI를 업데이트 ⭐
-          if (chunkText) {
-              accumulatedText += chunkText;
-              setMessages((prevMessages: Message[]) =>
-                  prevMessages.map((msg) =>
-                      msg.id === aiMessageId
-                          ? { ...msg, text: accumulatedText } // 텍스트를 점진적으로 업데이트
-                          : msg
-                  )
-              );
-              // 메시지가 추가될 때마다 스크롤을 맨 아래로 이동
-              chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-          }
-  
-          // ⭐ 추론 요약(Thought Summaries) 처리 (SDK가 지원하는 경우) ⭐
-          // 이 부분은 SDK의 실제 응답 구조를 디버깅하여 확인해야 합니다.
-          // 현재 Firebase Vertex AI SDK의 `StreamGenerateContentResponse`의 `item` (Chunk) 객체는
-          // `candidates[0].content.parts[0].text` 외에 `thought` 같은 속성을 직접 노출하지 않을 수 있습니다.
-          // 만약 Google Cloud Vertex AI API의 `v1alpha` 버전에서만 `thinking_config`가 지원된다면,
-          // 현재 `firebase/vertexai` SDK로는 직접 접근이 어려울 수 있습니다.
-          // 하지만 만약을 위해 구조는 남겨둡니다.
-          if (item.candidates && item.candidates.length > 0) {
-              for (const candidate of item.candidates) {
-                  if (candidate.content && candidate.content.parts) {
-                      for (const part of candidate.content.parts) {
-                          // SDK의 `Part` 타입 정의를 확인하세요.
-                          // 가상의 `isThought` 속성 또는 `type` 속성을 통한 구분.
-                          // 예: if (part.type === 'THOUGHT' && part.text)
-                          // 또는 `if ('thought' in part && (part as any).thought === true && typeof part.text === 'string')`
-                          // 정확한 필드명은 `console.log(item)`으로 디버깅하여 확인해야 합니다.
-                          // 일반적으로 생각 요약은 `text` 필드에 들어오고, 특정 메타데이터로 구분됩니다.
-                          // 만약 별도의 'thought' 필드가 있다면 아래와 같이 처리할 수 있습니다.
-                          if ('thought' in part && typeof (part as any).thought === 'string' && (part as any).thought.length > 0) {
-                              accumulatedThought += (part as any).thought; // 생각 내용 자체를 누적
-                              // 이 `accumulatedThought`를 별도의 UI 요소(예: "AI가 생각 중입니다..." 아래에 작은 텍스트)로 표시
-                              // 또는 개발자 콘솔에만 로깅.
-                              devLog('[AiPageContent] AI Thought Stream:', (part as any).thought);
-                          }
-                      }
-                  }
+        const chunkText = item.candidates?.[0]?.content?.parts?.[0]?.text;
+
+        // ⭐ 텍스트 청크가 있을 때마다 UI를 업데이트 ⭐
+        if (chunkText) {
+          accumulatedText += chunkText;
+          setMessages((prevMessages: Message[]) =>
+            prevMessages.map((msg) =>
+              msg.id === aiMessageId
+                ? { ...msg, text: accumulatedText } // 텍스트를 점진적으로 업데이트
+                : msg
+            )
+          );
+          // 메시지가 추가될 때마다 스크롤을 맨 아래로 이동
+          chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // ⭐ 추론 요약(Thought Summaries) 처리 (SDK가 지원하는 경우) ⭐
+        // 이 부분은 SDK의 실제 응답 구조를 디버깅하여 확인해야 합니다.
+        // 현재 Firebase Vertex AI SDK의 `StreamGenerateContentResponse`의 `item` (Chunk) 객체는
+        // `candidates[0].content.parts[0].text` 외에 `thought` 같은 속성을 직접 노출하지 않을 수 있습니다.
+        // 만약 Google Cloud Vertex AI API의 `v1alpha` 버전에서만 `thinking_config`가 지원된다면,
+        // 현재 `firebase/vertexai` SDK로는 직접 접근이 어려울 수 있습니다.
+        // 하지만 만약을 위해 구조는 남겨둡니다.
+        if (item.candidates && item.candidates.length > 0) {
+          for (const candidate of item.candidates) {
+            if (candidate.content && candidate.content.parts) {
+              for (const part of candidate.content.parts) {
+                if (
+                  'thought' in part &&
+                  typeof (part as any).thought === 'string' &&
+                  (part as any).thought.length > 0
+                ) {
+                  accumulatedThought += (part as any).thought; // 생각 내용 자체를 누적
+                  // 이 `accumulatedThought`를 별도의 UI 요소(예: "AI가 생각 중입니다..." 아래에 작은 텍스트)로 표시
+                  // 또는 개발자 콘솔에만 로깅.
+                  devLog(
+                    '[AiPageContent] AI Thought Stream:',
+                    (part as any).thought
+                  );
+                }
               }
+            }
           }
+        }
       }
       devLog('[AI 스트림 루프 종료 - 실시간 출력 완료]');
       // 최종 응답 텍스트는 `accumulatedText`에 모두 들어있으므로, 더 이상 `setMessages`를 반복 호출할 필요 없음.
-  
+
       // JSON 추출 및 `setInvoiceDetails` 로직
       const jsonScriptRegex =
         /<script type="application\/json" id="invoiceData">([\s\S]*?)<\/script>/;
@@ -1150,80 +1150,80 @@ export default function AiPageContent() {
       devLog('JSON 추출 시도 결과 (jsonMatch):', jsonMatch);
       let parsedInvoiceData: InvoiceDataType | null = null;
       let naturalLanguageText = accumulatedText; // ⭐ aiResponseText 대신 accumulatedText 사용 ⭐
-  
+
       if (jsonMatch && jsonMatch[1]) {
         // ... (기존 JSON 파싱 로직 유지) ...
         const jsonString = jsonMatch[1];
-          devLog('추출된 JSON 문자열 (jsonString):', jsonString);
-          try {
-            parsedInvoiceData = JSON.parse(jsonString) as InvoiceDataType;
-            devLog(
-              '파싱된 견적서 JSON 객체 (parsedInvoiceData):',
-              parsedInvoiceData
+        devLog('추출된 JSON 문자열 (jsonString):', jsonString);
+        try {
+          parsedInvoiceData = JSON.parse(jsonString) as InvoiceDataType;
+          devLog(
+            '파싱된 견적서 JSON 객체 (parsedInvoiceData):',
+            parsedInvoiceData
+          );
+          naturalLanguageText = accumulatedText // 여기도 accumulatedText
+            .replace(jsonScriptRegex, '')
+            .trim();
+          devLog(
+            'JSON 제거 후 자연어 텍스트 (naturalLanguageText):',
+            naturalLanguageText
+          );
+
+          if (parsedInvoiceData && parsedInvoiceData.invoiceGroup) {
+            const initialItems = parsedInvoiceData.invoiceGroup.flatMap(
+              (group) =>
+                group.items.map((item) => ({ ...item, isDeleted: false }))
             );
-            naturalLanguageText = accumulatedText // 여기도 accumulatedText
-              .replace(jsonScriptRegex, '')
-              .trim();
-            devLog(
-              'JSON 제거 후 자연어 텍스트 (naturalLanguageText):',
-              naturalLanguageText
-            );
-  
-            if (parsedInvoiceData && parsedInvoiceData.invoiceGroup) {
-              const initialItems = parsedInvoiceData.invoiceGroup.flatMap(
-                (group) =>
-                  group.items.map((item) => ({ ...item, isDeleted: false }))
+            const { amount, duration, pages } = calculateTotals(initialItems);
+            setInvoiceDetails({
+              parsedJson: parsedInvoiceData,
+              items: initialItems,
+              currentTotal: amount,
+              currentTotalDuration: duration,
+              currentTotalPages: pages,
+            });
+            setMessages((prevMessages: Message[]) => {
+              return prevMessages.map((msg) =>
+                msg.id === aiMessageId
+                  ? {
+                      ...msg,
+                      text: naturalLanguageText,
+                      invoiceData: parsedInvoiceData ?? undefined,
+                    }
+                  : msg
               );
-              const { amount, duration, pages } = calculateTotals(initialItems);
-              setInvoiceDetails({
-                parsedJson: parsedInvoiceData,
-                items: initialItems,
-                currentTotal: amount,
-                currentTotalDuration: duration,
-                currentTotalPages: pages,
-              });
-              setMessages((prevMessages: Message[]) => {
-                return prevMessages.map((msg) =>
-                  msg.id === aiMessageId
-                    ? {
-                        ...msg,
-                        text: naturalLanguageText,
-                        invoiceData: parsedInvoiceData ?? undefined,
-                      }
-                    : msg
-                );
-              });
-            } else {
-              setInvoiceDetails(null);
-              setMessages((prevMessages: Message[]) => {
-                return prevMessages.map((msg) =>
-                  msg.id === aiMessageId
-                    ? {
-                        ...msg,
-                        text: naturalLanguageText,
-                        invoiceData: undefined,
-                      }
-                    : msg
-                );
-              });
-            }
-          } catch (parseError) {
-            console.error(
-              '❌ Error parsing invoice JSON from AI response:',
-              parseError
-            );
-            if (jsonString) {
-              console.error('Invalid JSON String was:', jsonString);
-            }
+            });
+          } else {
             setInvoiceDetails(null);
             setMessages((prevMessages: Message[]) => {
               return prevMessages.map((msg) =>
                 msg.id === aiMessageId
-                  ? { ...msg, text: accumulatedText, invoiceData: undefined } // 에러시에도 accumulatedText
+                  ? {
+                      ...msg,
+                      text: naturalLanguageText,
+                      invoiceData: undefined,
+                    }
                   : msg
               );
             });
           }
+        } catch (parseError) {
+          console.error(
+            '❌ Error parsing invoice JSON from AI response:',
+            parseError
+          );
+          if (jsonString) {
+            console.error('Invalid JSON String was:', jsonString);
+          }
+          setInvoiceDetails(null);
+          setMessages((prevMessages: Message[]) => {
+            return prevMessages.map((msg) =>
+              msg.id === aiMessageId
+                ? { ...msg, text: accumulatedText, invoiceData: undefined } // 에러시에도 accumulatedText
+                : msg
+            );
+          });
+        }
       } else {
         devLog(
           '스크립트 태그에서 견적서 JSON 데이터를 찾지 못했습니다. AI 응답을 자연어로만 처리합니다.'
@@ -1237,9 +1237,10 @@ export default function AiPageContent() {
           );
         });
       }
-  
+
       // --- AI 응답을 백엔드 API로 전송 ---
-      if (isLoggedIn && accumulatedText.trim()) { // ⭐ aiResponseText 대신 accumulatedText 사용 ⭐
+      if (isLoggedIn && accumulatedText.trim()) {
+        // ⭐ aiResponseText 대신 accumulatedText 사용 ⭐
         if (
           sessionIndexForApiCall === null ||
           sessionIndexForApiCall === undefined
@@ -1281,25 +1282,30 @@ export default function AiPageContent() {
       console.error("❌ Error in handleGeminiSubmit's main try block:", err);
       setMessages((prevMessages: Message[]) => {
         // 오류 발생 시에도 마지막 AI 메시지를 찾아서 업데이트
-        const lastAiMessage = prevMessages.findLast(m => m.id === aiMessageId && m.sender === 'ai');
+        const lastAiMessage = prevMessages.findLast(
+          (m) => m.id === aiMessageId && m.sender === 'ai'
+        );
         if (lastAiMessage) {
-            return prevMessages.map((msg) =>
-                msg.id === aiMessageId
-                    ? {
-                        ...msg,
-                        text: `${accumulatedText}\n오류: ${errorMessage}`, // 누적된 텍스트 + 오류
-                        invoiceData: undefined,
-                    }
-                    : msg
-            );
+          return prevMessages.map((msg) =>
+            msg.id === aiMessageId
+              ? {
+                  ...msg,
+                  text: `${accumulatedText}\n오류: ${errorMessage}`, // 누적된 텍스트 + 오류
+                  invoiceData: undefined,
+                }
+              : msg
+          );
         }
         // 만약 AI 메시지가 아직 추가되지 않았다면, 새롭게 오류 메시지 추가
-        return [...prevMessages, {
+        return [
+          ...prevMessages,
+          {
             id: aiMessageId,
             sender: 'ai',
             text: `오류: ${errorMessage}`,
             invoiceData: undefined,
-        }];
+          },
+        ];
       });
       setInvoiceDetails(null);
     } finally {
@@ -1307,7 +1313,6 @@ export default function AiPageContent() {
     }
   };
 
-  
   const [isMobile, setIsMobile] = useState(false);
   const [isNarrowScreen, setIsNarrowScreen] = useState(false);
 

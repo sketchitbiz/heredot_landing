@@ -1,5 +1,3 @@
-// src/components/Ai/AiNavigationBar.tsx
-
 'use client'; // 클라이언트 컴포넌트임을 명시
 
 import { useState, useEffect, useRef } from 'react';
@@ -21,7 +19,7 @@ import { aiChatDictionary } from '@/lib/i18n/aiChat';
 import { EstimateRequestModal } from './EstimateRequestModal';
 import { toast } from 'react-toastify';
 import { useRouter } from 'next/navigation'; // useRouter 임포트
-import { useSendInquireMessage } from '@/hooks/inquire/useSendInquireMessage'; // 🚨 useSendInquireMessage 훅 임포트
+import useSendInquireMessage from '../../hooks/Inquire/useSendInquireMessage';
 
 // AiLayout에서 전달받는 NavigationItemData 및 NavigationGroup 인터페이스 재사용
 interface NavigationItemData {

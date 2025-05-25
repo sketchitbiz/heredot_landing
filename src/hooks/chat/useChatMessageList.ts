@@ -1,5 +1,6 @@
 import { useState } from "react";
 import apiClient from "@/lib/apiClient";
+import { devLog } from '@/lib/utils/devLogger';
 
 interface ChatMessageContent {
   [key: string]: any; // Assuming content can be any JSON structure
@@ -57,7 +58,7 @@ const useChatMessageList = () => {
         apiResponseObject.data
       ) {
         setMessages(apiResponseObject.data);
-        console.log("useChatMessageList: 채팅 메시지 목록 수신 성공:", apiResponseObject.data);
+        devLog("useChatMessageList: 채팅 메시지 목록 수신 성공:", apiResponseObject.data);
         return apiResponseObject.data;
       } else {
         const errorMessage = apiResponseObject?.message || "Failed to fetch chat messages: Unexpected response structure or status.";

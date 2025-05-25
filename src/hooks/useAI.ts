@@ -13,25 +13,21 @@ import { app } from '@/lib/firebase/firebase.config'; // 임포트 경로 확인
 
 export default function useAI() {
   const [modelIdentifier, setModelIdentifier] = useState(
-    'gemini-2.0-flash'
+    'gemini-2.5-flash-preview-05-20'
   );
 
   //gemini-2.0-flash
   //gemini-2.5-flash-preview-05-20
-  // vertexAILocation 관련 상태 및 함수 제거
-  // const [vertexAILocation, setVertexAILocation] = useState('asia-northeast3');
-
   const model = useRef<GenerativeModel | null>(null);
   const chat = useRef<ChatSession | null>(null);
   const initialized = useRef(false);
   const user = useAuthStore((state) => state.user);
-  // const [currentThinkingBudget, setCurrentThinkingBudget] = useState<
-  //   number | undefined
-  // >(500);
+  const [currentThinkingBudget, setCurrentThinkingBudget] = useState<
+    number | undefined
+  >(0);
 
   useEffect(() => {
     const initializeAI = async () => {
-      // devLog(`[useAI] Starting AI initialization with model: ${modelIdentifier}, location: ${vertexAILocation}...`); // location 관련 로그 제거
       devLog(
         `[useAI] Starting AI initialization with model: ${modelIdentifier}...`
       );
@@ -316,12 +312,12 @@ ${localizationInstruction}`;
         const generationConfig: {
           thinkingConfig?: { thinking_budget: number };
         } = {};
-        // if (currentThinkingBudget !== undefined) {
-        //   generationConfig.thinkingConfig = {
-        //     thinking_budget: currentThinkingBudget,
-        //   };
-        // }
-        // devLog(`[useAI] Applying thinkingBudget: ${currentThinkingBudget}`);
+        if (currentThinkingBudget !== undefined) {
+          generationConfig.thinkingConfig = {
+            thinking_budget: currentThinkingBudget,
+          };
+        }
+        devLog(`[useAI] Applying thinkingBudget: ${currentThinkingBudget}`);
 
         const generativeModelInstance = getGenerativeModel(vertexAI, {
           model: modelIdentifier,
@@ -334,8 +330,9 @@ ${localizationInstruction}`;
         chat.current = generativeModelInstance.startChat();
         devLog('[useAI] Chat session started successfully.');
 
-        // devLog(`[useAI] AI Model (${modelIdentifier}) and Chat initialized successfully. ThinkingBudget: ${currentThinkingBudget}, Location: ${vertexAILocation}`); // location 관련 로그 제거
-        // devLog(`[useAI] AI Model (${modelIdentifier}) and Chat initialized successfully. ThinkingBudget: ${currentThinkingBudget}`);
+        devLog(
+          `[useAI] AI Model (${modelIdentifier}) and Chat initialized successfully. ThinkingBudget: ${currentThinkingBudget}`
+        );
         initialized.current = true;
       } catch (error) {
         console.error(
@@ -358,7 +355,7 @@ ${localizationInstruction}`;
         console.error('[useAI] AI initialization FAILED with error:', e);
         initialized.current = false;
       });
-  }, [user, modelIdentifier]); // 의존성 배열에서 vertexAILocation 제거
+  }, [user, modelIdentifier]); 
 
   useEffect(() => {
     devLog('[useAI] Current initialization status:', initialized.current);
@@ -377,21 +374,11 @@ ${localizationInstruction}`;
     }
   };
 
-  // setAIChatLocation 함수 제거
-  // const setAIChatLocation = (newLocation: string) => {
-  //   if (vertexAILocation !== newLocation) {
-  //     devLog(`[useAI] Changing Vertex AI location to: ${newLocation}`);
-  //     setVertexAILocation(newLocation);
-  //   }
-  // };
-
   return {
     model,
     chat,
     modelName: modelIdentifier,
-    // aiLocation: vertexAILocation, // 반환 값에서도 제거
     isInitialized: initialized,
     setCurrentModelIdentifier,
-    // setAIChatLocation, // 반환 값에서도 제거
   };
 }

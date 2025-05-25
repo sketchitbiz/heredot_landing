@@ -25,7 +25,7 @@ interface UseSendInquireMessageResult {
 
 const INQUIRE_MESSAGE_ENDPOINT = '/ai/inquire/send-message';
 
-export const useSendInquireMessage = (): UseSendInquireMessageResult => {
+const useSendInquireMessage = (): UseSendInquireMessageResult => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -71,3 +71,5 @@ export const useSendInquireMessage = (): UseSendInquireMessageResult => {
 
   return { sendInquireMessage, isLoading, error };
 };
+
+export default useSendInquireMessage; 

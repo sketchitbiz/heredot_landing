@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import apiClient from '@/lib/apiClient';
+import { devLog } from '@/lib/utils/devLogger';
 
 export interface ChatSession { // 다른 컴포넌트에서 재사용되므로 export 유지
   index: number;
@@ -54,17 +55,18 @@ const useChatSessionList = () => {
           apiResponseObject.statusCode === 200 &&
           apiResponseObject.data // apiResponseObject.data가 존재하는지 확인
         ) {
-          console.log(
+          devLog(
             'useChatSessionList: API 응답 데이터 수신:',
             apiResponseObject.data
           );
           setSessions(apiResponseObject.data); // apiResponseObject.data를 sessions 상태에 업데이트
-          console.log('useChatSessionList: sessions 상태 업데이트 완료');
+          devLog('useChatSessionList: sessions 상태 업데이트 완료');
           return apiResponseObject.data; // ChatSession 배열 반환
         } else {
           const errorMessage = apiResponseObject?.message || '채팅 세션 목록을 가져오는데 실패했습니다: 유효하지 않은 응답 구조.';
           console.error('useChatSessionList: API 응답이 유효하지 않습니다.', apiResponseObject);
-          throw new Error(errorMessage);
+          setError(new Error(errorMessage)); // 에러 상태는 업데이트하되, throw는 하지 않습니다.
+          return null; // 오류 발생 시 null 반환
         }
       } catch (err) {
         console.error('useChatSessionList: 오류 발생', err);
@@ -84,7 +86,7 @@ const useChatSessionList = () => {
   );
 
   useEffect(() => {
-    console.log('useChatSessionList: sessions 상태 변경됨:', sessions);
+    devLog('useChatSessionList: sessions 상태 변경됨:', sessions);
   }, [sessions]);
 
   return { fetchChatSessions, sessions, isLoading, error, setSessions };
