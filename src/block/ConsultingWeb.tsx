@@ -1,5 +1,5 @@
 'use client';
-
+ 
 import { useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 import gsap from 'gsap';
@@ -10,7 +10,7 @@ import { downloadLinks } from '@/lib/i18n/downloadLinks';
 import CustomBlockLayout from '@/customComponents/CustomBlockLayout';
 import { Breakpoints } from '@/constants/layoutConstants';
 import { userStamp } from '@/lib/api/user/api';
-
+ 
 interface ConsultingProps {
   title: string;
   descriptions: string[];
@@ -19,9 +19,9 @@ interface ConsultingProps {
   gridContents: string[][];
   onEnterSection?: () => void; // ✅ 추가
 }
-
+ 
 gsap.registerPlugin(ScrollTrigger);
-
+ 
 const logButtonClick = async (content: string, memo: string) => {
   try {
     await userStamp({
@@ -32,28 +32,28 @@ const logButtonClick = async (content: string, memo: string) => {
   } catch (e) {
   }
 };
-
-
+ 
+ 
 const TitleContainer = styled.div`
   display: flex;
   flex-direction: column;
   margin-bottom: 24px;
 `;
-
+ 
 const DescriptionContainer = styled.div`
   display: flex;
   flex-direction: column;
   gap: 8px;
   margin-bottom: 200px;
 `;
-
+ 
 const DownloadContainer = styled.div`
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   margin-top: 16px;
 `;
-
+ 
 const TextTitle = styled.h2`
   font-size: 28px;
   font-weight: 700;
@@ -61,7 +61,7 @@ const TextTitle = styled.h2`
   margin-bottom: 24px;
   color: #000;
 `;
-
+ 
 const TextDescription = styled.p`
   font-size: 16px;
   color: #444;
@@ -69,7 +69,7 @@ const TextDescription = styled.p`
   white-space: pre-line;
   margin: 4px 0;
 `;
-
+ 
 const RightContainer = styled.div`
   flex: 1;
   display: flex;
@@ -78,13 +78,13 @@ const RightContainer = styled.div`
   overflow: visible;
   position: relative;
 `;
-
+ 
 const Wrapper = styled.div`
-  min-width: ${Breakpoints.desktop}px; 
+  min-width: ${Breakpoints.desktop}px;
   background-color: #fff;
-
+ 
 `;
-
+ 
 const StackWrapper = styled.div`
   position: relative;
   width: 780px;
@@ -93,7 +93,7 @@ const StackWrapper = styled.div`
   align-items: center;
   justify-content: center;
 `;
-
+ 
 const Box = styled.div`
   position: absolute;
   border: 2px solid #000;
@@ -106,7 +106,7 @@ const Box = styled.div`
   opacity: 0;
   visibility: hidden;
 `;
-
+ 
 const DownloadLink = styled.a`
   font-size: 14px;
   color: #000000;
@@ -117,21 +117,21 @@ const DownloadLink = styled.a`
   justify-content: flex-end;
   gap: 8px;
   text-decoration: none;
-
+ 
   animation: bounceY 1.5s ease-in-out infinite;
-
+ 
   @keyframes bounceY {
     0%, 100% { transform: translateY(0px); }
     50% { transform: translateY(-10px); }
   }
 `;
-
+ 
 const Grid = styled.div`
   display: grid;
   grid-template-columns: 130px 220px 260px 130px;
   width: 100%;
 `;
-
+ 
 const Cell = styled.div<{ $visible: boolean }>`
   font-size: 14px;
   color: #000;
@@ -142,7 +142,7 @@ const Cell = styled.div<{ $visible: boolean }>`
   transition: opacity 0.4s ease;
   line-height: 1.4;
 `;
-
+ 
 const GridHeader = styled.div`
   position: absolute;
   top: 0;
@@ -171,14 +171,14 @@ const highlightKeywordsList = [
   '준법 RISK 최소화',
   'Minimization of compliance risk'
 ];
-
+ 
 function highlightKeywords(text: string): React.ReactNode {
   // <br /> 유지하고 React 요소로 변환
   const pattern = new RegExp(
     `(${highlightKeywordsList.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`,
     'g'
   );
-
+ 
   // <br />를 기준으로 줄바꿈 처리하며 각 줄 내에서 강조
   return text.split(/<br\s*\/?>/i).flatMap((line, lineIdx, arr) => {
     const parts = line.split(pattern).map((chunk, idx) => {
@@ -195,11 +195,11 @@ function highlightKeywords(text: string): React.ReactNode {
         </span>
       );
     });
-
+ 
     return lineIdx < arr.length - 1 ? [...parts, <br key={`br-${lineIdx}`} />] : parts;
   });
 }
-
+ 
 const GridHeaderCell = styled.div<{ $visible: boolean }>`
   font-size: 13px;
   font-weight: 600;
@@ -211,7 +211,7 @@ const GridHeaderCell = styled.div<{ $visible: boolean }>`
   visibility: ${({ $visible }) => ($visible ? 'visible' : 'hidden')};
   transition: opacity 0.4s ease;
 `;
-
+ 
 const ConsultingWeb: React.FC<ConsultingProps> = ({
   title,
   descriptions,
@@ -225,12 +225,12 @@ const ConsultingWeb: React.FC<ConsultingProps> = ({
   const stackRef = useRef<HTMLDivElement>(null);
   const horizontalRefs = useRef<HTMLDivElement[]>([]);
   const verticalRefs = useRef<HTMLDivElement[]>([]);
-
+ 
   const [visibleMap, setVisibleMap] = useState<number[][]>(
     Array(3).fill([0, 0, 0, 0])
   );
   const [headerVisible, setHeaderVisible] = useState([0, 0, 0, 0]);
-
+ 
   const size = 150;
   const verticalWidth = 220;
   const gap = 20;
@@ -239,7 +239,7 @@ const ConsultingWeb: React.FC<ConsultingProps> = ({
   const centerTop = 780 / 2 - size / 2;
   const centerLeft = 780 / 2;
     const [isMobile, setIsMobile] = useState(false);
-
+ 
       useEffect(() => {
         const checkMobile = () => {
           setIsMobile(window.innerWidth < Breakpoints.mobile);
@@ -248,19 +248,19 @@ const ConsultingWeb: React.FC<ConsultingProps> = ({
         window.addEventListener('resize', checkMobile);
         return () => window.removeEventListener('resize', checkMobile);
       }, []);
-
+ 
       const handleDownloadClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
         e.preventDefault();
         const link = downloadLinks.functionalSpecification[lang];
-        logButtonClick('다운로드', '기능명세');
+        logButtonClick('Consulting', '기능명세');
         window.open(link, '_blank');
       };
-
+ 
   useEffect(() => {
     if (isMobile ||!wrapperRef.current) return;
-
+ 
     const initialMap = Array(3).fill([0, 0, 0, 0]);
-
+ 
     const tl = gsap.timeline({
       scrollTrigger: {
         id: 'consulting',
@@ -289,7 +289,7 @@ const ConsultingWeb: React.FC<ConsultingProps> = ({
         
       },
     });
-
+ 
     tl.to(
       [...horizontalRefs.current, ...verticalRefs.current],
       {
@@ -304,17 +304,17 @@ const ConsultingWeb: React.FC<ConsultingProps> = ({
       },
       0
     );
-
+ 
     horizontalRefs.current.forEach((el, i) => {
       const top = start + i * (size + gap);
       tl.to(el, { top, left: 0, duration: 0.3, ease: 'power2.out' }, i * 0.1);
     });
-
+ 
     verticalRefs.current.forEach((el, i) => {
       const left = verticalStart + i * (verticalWidth + gap);
       tl.to(el, { top: 0, left, duration: 0.3, ease: 'power2.out' }, i * 0.1);
     });
-
+ 
     horizontalRefs.current.forEach((el, i) => {
       const expandStart = 0.6 + i * 0.2;
       tl.to(el, {
@@ -324,7 +324,7 @@ const ConsultingWeb: React.FC<ConsultingProps> = ({
         duration: 0.6,
         ease: 'power3.out',
       }, expandStart);
-
+ 
       tl.call(() => {
         setVisibleMap((prev) => {
           const next = [...prev];
@@ -339,7 +339,7 @@ const ConsultingWeb: React.FC<ConsultingProps> = ({
         });
       }, [], expandStart + 0.05);
     });
-
+ 
     verticalRefs.current.forEach((el, i) => {
       const vExpandStart = 1.5 + i * 0.4;
       tl.to(el, {
@@ -349,7 +349,7 @@ const ConsultingWeb: React.FC<ConsultingProps> = ({
         duration: 0.6,
         ease: 'power3.out',
       }, vExpandStart);
-
+ 
       tl.call(() => {
         setVisibleMap((prev) =>
           prev.map((row) => {
@@ -365,7 +365,7 @@ const ConsultingWeb: React.FC<ConsultingProps> = ({
         });
       }, [], vExpandStart + 0.05);
     });
-
+ 
     tl.call(() => {
       setVisibleMap((prev) =>
         prev.map((row) => {
@@ -380,13 +380,13 @@ const ConsultingWeb: React.FC<ConsultingProps> = ({
         return next;
       });
     }, [], '+=0.01');
-
+ 
     return () => {
       tl.scrollTrigger?.kill();
       tl.kill();
     };
   }, []);;
-
+ 
   const horizontalBoxes = gridContents.map((row, i) => (
     <Box
       key={`h-${i}`}
@@ -413,7 +413,7 @@ const ConsultingWeb: React.FC<ConsultingProps> = ({
       </Grid>
     </Box>
   ));
-
+ 
   const verticalBoxes = [0, 1].map((i) => (
     <Box
       key={`v-${i}`}
@@ -432,7 +432,7 @@ const ConsultingWeb: React.FC<ConsultingProps> = ({
       }}
     />
   ));
-
+ 
   return (
     <Wrapper>
     <div ref={wrapperRef}>
@@ -448,13 +448,13 @@ const ConsultingWeb: React.FC<ConsultingProps> = ({
               ))}
             </TextTitle>
           </TitleContainer>
-
+ 
           <DescriptionContainer>
             {descriptions.map((desc, idx) => (
               <TextDescription key={idx}>{desc}</TextDescription>
             ))}
           </DescriptionContainer>
-
+ 
           <DownloadContainer>
             <DownloadLink href="#" onClick={handleDownloadClick}>
               {downloadText}
@@ -462,7 +462,7 @@ const ConsultingWeb: React.FC<ConsultingProps> = ({
             </DownloadLink>
           </DownloadContainer>
         </CustomBlockLayout.Left>
-
+ 
         <CustomBlockLayout.Right>
           <StackWrapper ref={stackRef}>
             <GridHeader>
@@ -479,8 +479,8 @@ const ConsultingWeb: React.FC<ConsultingProps> = ({
       </CustomBlockLayout>
     </div>
     </Wrapper>
-
+ 
   );
 };
-
+ 
 export default ConsultingWeb;
