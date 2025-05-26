@@ -338,6 +338,9 @@ export default function AiPageContent() {
   const isLoggedIn = authStore((state: AuthState) => state.isLoggedIn);
   const openLoginModal = authStore((state: AuthState) => state.openLoginModal);
   const user = authStore((state: AuthState) => state.user);
+  const isAdditionalInfoModalOpen = useAuthStore(
+    (state) => state.isAdditionalInfoModalOpen
+  );
 
   const [isFirebaseChecking, setIsFirebaseChecking] = useState(true);
 
@@ -347,6 +350,22 @@ export default function AiPageContent() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   let isModelInitializing = false;
+
+  useEffect(() => {
+    // 로그인 상태이고, 사용자 정보가 로드되었지만, 이름 또는 전화번호가 없고,
+    // 그리고 추가 정보 모달이 아직 열려있지 않을 때 모달을 강제로 엽니다.
+    if (
+      isLoggedIn &&
+      user &&
+      (!user.name || !user.name.trim() || !user.cellphone) &&
+      !isAdditionalInfoModalOpen
+    ) {
+      console.log(
+        '[AiPageContent] User has no name or cellphone, forcing AdditionalInfoModal.'
+      );
+      openAdditionalInfoModal();
+    }
+  }, [isLoggedIn, user, openAdditionalInfoModal, isAdditionalInfoModalOpen]); // 의존성 배열에 필요한 모든 것을 포함
 
   useEffect(() => {
     try {

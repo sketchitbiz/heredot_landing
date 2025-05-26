@@ -4,7 +4,7 @@ import DownloadIcon from '@mui/icons-material/Download';
 import { downloadLinks } from '@/lib/i18n/downloadLinks';
 import { useLang } from '@/contexts/LangContext';
 import { userStamp } from '@/lib/api/user/api';
-
+ 
 interface ConsultingProps {
   title: string;
   descriptions: string[];
@@ -13,8 +13,8 @@ interface ConsultingProps {
   gridContents: string[][];
   onEnterSection?: () => void; // ✅ 추가
 }
-
-
+ 
+ 
 const logButtonClick = async (content: string, memo: string) => {
   try {
     await userStamp({
@@ -25,7 +25,7 @@ const logButtonClick = async (content: string, memo: string) => {
   } catch (e) {
   }
 };
-
+ 
 const highlightKeywordsList = [
   'USB',
   '구글 OTP',
@@ -44,21 +44,21 @@ const highlightKeywordsList = [
   '준법 RISK 최소화',
   'Minimization of compliance risk'
 ];
-
+ 
 function highlightKeywords(text: string): React.ReactNode {
   // 1. <br /> 태그 제거
   const plainText = text.replace(/<br\s*\/?>/gi, '');
-
+ 
   // 2. 강조 키워드 매칭 패턴
   const pattern = new RegExp(
     `(${highlightKeywordsList.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`,
     'g'
   );
-
+ 
   // 3. 분할 및 스타일 적용
   return plainText.split(pattern).map((chunk, idx) => {
     const isHighlight = highlightKeywordsList.includes(chunk);
-
+ 
     return (
       <span
         key={idx}
@@ -72,7 +72,7 @@ function highlightKeywords(text: string): React.ReactNode {
     );
   });
 }
-
+ 
 const MobileDownloadButton = styled.a`
   display: inline-flex;
   align-items: center;
@@ -88,19 +88,19 @@ const MobileDownloadButton = styled.a`
   gap: 6px;
   margin-top: 0px;
 `;
-
+ 
 const Container = styled.div`
   padding: 24px 16px;
   margin-bottom: 20px;
 `;
-
+ 
 const Title = styled.h2`
   font-size: 25px;
   font-weight: 700;
   margin-bottom: 16px;
   color: #000;
 `;
-
+ 
 const Description = styled.p`
   font-size: 14px;
   color: #878787;
@@ -108,11 +108,11 @@ const Description = styled.p`
   margin-bottom: 8px;
   white-space: pre-line;
 `;
-
+ 
 const BottomContainer = styled.div`
   margin-bottom: 50px;
 `;
-
+ 
 const Card = styled.div`
   background: #fff;
   border-radius: 12px;
@@ -120,14 +120,14 @@ const Card = styled.div`
   padding: 20px;
   margin-bottom: 24px;
 `;
-
+ 
 const CardTitle = styled.h3`
   font-size: 20px;
   font-weight: 700;
   text-align: center;
   margin-bottom: 16px;
 `;
-
+ 
 const ItemRow = styled.div<{ $isLast?: boolean }>`
   display: flex;
   flex-direction: column;
@@ -136,27 +136,27 @@ const ItemRow = styled.div<{ $isLast?: boolean }>`
   border-radius: 5px;
   padding: 12px;
 `;
-
+ 
 const Label = styled.div`
   font-size: 14px;
   font-weight: 700;
   color: #4F555A;
   margin-bottom: 4px;
 `;
-
+ 
 const Content = styled.div`
   font-size: 14px;
   color: #111;
   line-height: 1.6;
 `;
-
+ 
 const LineConnector = styled.div<{ $hasArrow?: boolean }>`
   width: 1px;
   height: ${({ $hasArrow }) => ($hasArrow ? '36px' : '28px')};
   background-color: #C7CDD3;
   margin: 0 auto;
   position: relative;
-
+ 
   ${({ $hasArrow }) =>
     $hasArrow &&
     `
@@ -173,8 +173,8 @@ const LineConnector = styled.div<{ $hasArrow?: boolean }>`
     }
   `}
 `;
-
-
+ 
+ 
 const ConsultingMobile: React.FC<ConsultingProps> = ({
   title,
   descriptions,
@@ -183,10 +183,10 @@ const ConsultingMobile: React.FC<ConsultingProps> = ({
   downloadText,
   onEnterSection,
 }) => {
-
+ 
     const { lang } = useLang();
     const containerRef = useRef<HTMLDivElement>(null);
-
+ 
     useEffect(() => {
       const el = containerRef.current;
       if (!el || !onEnterSection) return;
@@ -205,14 +205,14 @@ const ConsultingMobile: React.FC<ConsultingProps> = ({
       observer.observe(el);
       return () => observer.unobserve(el);
     }, [onEnterSection]);
-
+ 
     const handleDownloadClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
       e.preventDefault();
       const link = downloadLinks.functionalSpecification[lang];
-      logButtonClick('다운로드', '기능명세');
+      logButtonClick('Consulting', '기능명세');
       window.open(link, '_blank');
     };
-
+ 
   return (
     <Container ref={containerRef}>
       <Title>
@@ -223,24 +223,24 @@ const ConsultingMobile: React.FC<ConsultingProps> = ({
           </span>
         ))}
       </Title>
-
+ 
       <BottomContainer>
         {descriptions.map((desc, idx) => (
           <Description key={idx}>{desc}</Description>
         ))}
       </BottomContainer>
-
+ 
       {gridContents.map((row, i) => (
         <Card key={i}>
           <CardTitle>{highlightKeywords(row[0])}</CardTitle>
-
+ 
           {[1, 2, 3].map((j) => (
             <React.Fragment key={j}>
               <ItemRow $isLast={j === 3}>
                 <Label>{gridHeaders[j]}</Label>
                 <Content>{highlightKeywords(row[j])}</Content>
               </ItemRow>
-
+ 
               {j === 1 && <LineConnector />}
               {j === 2 && <LineConnector $hasArrow />}
             </React.Fragment>
@@ -255,5 +255,5 @@ const ConsultingMobile: React.FC<ConsultingProps> = ({
     </Container>
   );
 };
-
+ 
 export default ConsultingMobile;

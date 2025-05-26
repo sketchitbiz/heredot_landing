@@ -75,16 +75,13 @@ const Slide = styled.div<{ $isActive: boolean }>`
 `;
 
 const Wrapper = styled.div`
-  min-width: ${Breakpoints.desktop}px; 
+  min-width: ${Breakpoints.desktop}px;
   background-color: #fff;
 
   @media (max-width: ${Breakpoints.mobile}px) {
     min-width: 100%;
   }
-
 `;
-
-
 
 const TabTitle = styled.h3`
   font-size: 25px;
@@ -161,8 +158,13 @@ const DownloadLink = styled.a`
   animation: bounceY 1.5s ease-in-out infinite;
 
   @keyframes bounceY {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-10px); }
+    0%,
+    100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
   }
 `;
 
@@ -186,8 +188,14 @@ const AnimatedDescription = styled.div`
   animation: fade 0.5s ease-in-out;
 
   @keyframes fade {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 `;
 
@@ -209,10 +217,8 @@ const logButtonClick = async (content: string, memo: string) => {
       content,
       memo,
     });
-  } catch (e) {
-  }
+  } catch (e) {}
 };
-
 
 const Partner: React.FC<PartnerProps> = ({
   title1,
@@ -250,7 +256,13 @@ const Partner: React.FC<PartnerProps> = ({
   }, [activeTab]);
 
   useEffect(() => {
-    if (isMobile || !leftRef.current || !rightRef.current || !sectionRef.current) return;
+    if (
+      isMobile ||
+      !leftRef.current ||
+      !rightRef.current ||
+      !sectionRef.current
+    )
+      return;
 
     gsap.registerPlugin(ScrollTrigger);
     const slideHeight = window.innerHeight;
@@ -301,8 +313,14 @@ const Partner: React.FC<PartnerProps> = ({
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          const index = slideRefs.current.findIndex((el) => el === entry.target);
-          if (entry.isIntersecting && index !== -1 && index !== lastLoggedIndex.current) {
+          const index = slideRefs.current.findIndex(
+            (el) => el === entry.target
+          );
+          if (
+            entry.isIntersecting &&
+            index !== -1 &&
+            index !== lastLoggedIndex.current
+          ) {
             lastLoggedIndex.current = index;
             onEnterSection(index, tabs[index]);
           }
@@ -327,7 +345,8 @@ const Partner: React.FC<PartnerProps> = ({
 
     ignoreScroll.current = true;
     setActiveTab(index);
-    const scrollY = trigger.start + (trigger.end - trigger.start) * (index / tabs.length);
+    const scrollY =
+      trigger.start + (trigger.end - trigger.start) * (index / tabs.length);
     window.scrollTo({ top: scrollY, behavior: 'smooth' });
     logButtonClick('Partner', `탭: ${tabs[index]}`);
     setTimeout(() => (ignoreScroll.current = false), 1000);
@@ -335,11 +354,16 @@ const Partner: React.FC<PartnerProps> = ({
 
   const getDownloadLink = (index: number) => {
     switch (index) {
-      case 0: return downloadLinks.antiDroneProposal[lang];
-      case 1: return downloadLinks.luxuryReverseAuctionProposal[lang];
-      case 2: return downloadLinks.tradeProposal[lang];
-      case 3: return downloadLinks.tableOrderProposal[lang];
-      default: return '#';
+      case 0:
+        return downloadLinks.antiDroneProposal[lang];
+      case 1:
+        return downloadLinks.luxuryReverseAuctionProposal[lang];
+      case 2:
+        return downloadLinks.tradeProposal[lang];
+      case 3:
+        return downloadLinks.tableOrderProposal[lang];
+      default:
+        return '#';
     }
   };
 
@@ -355,7 +379,11 @@ const Partner: React.FC<PartnerProps> = ({
             <CustomBlockLayout.Right ref={rightRef}>
               <Tabs>
                 {tabs.map((tab, index) => (
-                  <Tab key={index} $active={activeTab === index} onClick={() => handleTabClick(index)}>
+                  <Tab
+                    key={index}
+                    $active={activeTab === index}
+                    onClick={() => handleTabClick(index)}
+                  >
                     {tab}
                   </Tab>
                 ))}
@@ -364,14 +392,23 @@ const Partner: React.FC<PartnerProps> = ({
                 <FlexRow>
                   <LeftColumn>
                     <TabTitle>{currentSlide.subtitle}</TabTitle>
-                    <TabDescription dangerouslySetInnerHTML={{ __html: currentSlide.description }} />
+                    <TabDescription
+                      dangerouslySetInnerHTML={{
+                        __html: currentSlide.description,
+                      }}
+                    />
                   </LeftColumn>
                   <RightColumn>
                     <DownloadLink
                       href={getDownloadLink(activeTab)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      onClick={() => logButtonClick('Partner', `다운로드: ${tabs[activeTab]}`)}
+                      onClick={() =>
+                        logButtonClick(
+                          'Partner',
+                          `${tabs[activeTab]} 제안서 다운로드`
+                        )
+                      }
                     >
                       {downloadText}
                       <DownloadIcon style={{ fontSize: '16px' }} />
@@ -386,7 +423,9 @@ const Partner: React.FC<PartnerProps> = ({
       }
       mobileView={
         <MobileContainer>
-          <Title style={{ whiteSpace: 'pre-line' }}>{`${title1}\n${title2}`}</Title>
+          <Title
+            style={{ whiteSpace: 'pre-line' }}
+          >{`${title1}\n${title2}`}</Title>
           <Subtitle>{subtitle}</Subtitle>
           {slides.map((slide, index) => (
             <SlideWrapper
@@ -396,12 +435,16 @@ const Partner: React.FC<PartnerProps> = ({
               }}
             >
               <TabTitle>{tabs[index]}</TabTitle>
-              <TabDescription>{slide.description.replace(/<br\s*\/?>/gi, '')}</TabDescription>
+              <TabDescription>
+                {slide.description.replace(/<br\s*\/?>/gi, '')}
+              </TabDescription>
               <MobileDownloadButton
                 href={getDownloadLink(index)}
                 target="_blank"
                 rel="noopener noreferrer"
-                onClick={() => logButtonClick('Partner', `다운로드: ${tabs[index]}`)}
+                onClick={() =>
+                  logButtonClick('Partner', `${tabs[index]} 제안서 다운로드`)
+                }
               >
                 {downloadText}
                 <DownloadIcon style={{ fontSize: '16px' }} />

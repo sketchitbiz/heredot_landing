@@ -1,3 +1,5 @@
+// src/app/ai/AdditionalInfoModal.tsx
+
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -8,13 +10,15 @@ import CloseIcon from '@mui/icons-material/Close';
 import useAuthStore from '@/store/authStore';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
-import { ToastContainer } from 'react-toastify';
+import { ToastContainer, toast } from 'react-toastify'; // toast import 추가
 import 'react-toastify/dist/ReactToastify.css';
 import { countryCodes } from './countryCodesData';
 import useUserJoin from '@/hooks/useUserJoin';
 import TermsAgreement from '@/app/ai/components/TermsAgreement';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { useRouter } from 'next/navigation';
 
+// ... (약관 내용 및 다른 styled-components 정의는 그대로 유지) ...
 // 약관 내용 정의
 const termsContentText = `
 1. 목적<br />본 약관은 AI 견적서(이하 \"회사\")가 제공하는 서비스 이용과 관련하여 회사와 이용자의 권리·의무 및 책임사항, 기타 필요한 사항을 규정함을 목적으로 합니다.<br /><br />
@@ -247,7 +251,6 @@ const StyledCloseButton = styled.button`
   }
 `;
 
-// 이름, 이메일 입력 필드 스타일
 const TextInput = styled.input`
   width: 100%;
   padding: 12px 16px;
@@ -268,7 +271,6 @@ const TextInput = styled.input`
   }
 `;
 
-// 에러 메시지 스타일
 const ErrorMessage = styled.p`
   color: #e53935;
   font-size: 14px;
@@ -276,7 +278,6 @@ const ErrorMessage = styled.p`
   margin-bottom: 16px;
 `;
 
-// 커스텀 토스트 컨테이너 스타일
 const StyledToastContainer = styled(ToastContainer)`
   .Toastify__toast {
     background-color: #323232;
@@ -347,11 +348,17 @@ const BackButton = styled.button`
   }
 `;
 
+
 export const AdditionalInfoModal = () => {
-  const { isAdditionalInfoModalOpen, closeAdditionalInfoModal, user } =
-    useAuthStore();
+  const {
+    isAdditionalInfoModalOpen,
+    closeAdditionalInfoModal,
+    user,
+    logout,
+  } = useAuthStore();
   const { joinUser, sendVerification, verifyCode, isSubmitting } =
     useUserJoin();
+  const router = useRouter();
 
   const [phoneNumber, setPhoneNumber] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
@@ -382,19 +389,25 @@ export const AdditionalInfoModal = () => {
     email.trim() !== '';
 
   useEffect(() => {
-    if (user) {
-      if (user.name) setName(user.name);
-      if (user.email) setEmail(user.email);
+    if (isAdditionalInfoModalOpen && user) { // 모달이 열려있을 때만 user 값으로 상태 초기화
+      setName(user.name || '');
+      setEmail(user.email || ''); // API 응답에 email이 있다면 사용, 없으면 빈 문자열
       if (user.cellphone) {
         setPhoneNumber(user.cellphone);
-        setIsVerified(true);
+        setIsVerified(true); // 이미 전화번호가 있다면 인증된 것으로 간주
+      } else {
+        setPhoneNumber(''); // 전화번호가 없으면 초기화
+        setIsVerified(false);
       }
       if (user.countryCode) {
         const country = countryCodes.find((c) => c.code === user.countryCode);
         if (country) setSelectedCountry(country);
+        else setSelectedCountry(countryCodes[0]); // 못찾으면 기본값
+      } else {
+        setSelectedCountry(countryCodes[0]); // 국가 코드 없으면 기본값
       }
     }
-  }, [user]);
+  }, [isAdditionalInfoModalOpen, user]); // user와 isAdditionalInfoModalOpen 둘 다 의존성
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -410,6 +423,21 @@ export const AdditionalInfoModal = () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+
+  const handleCloseModalAndCheckLogout = () => {
+    if (user && (!user.name || !user.name.trim() || !user.cellphone)) {
+      console.log(
+        '[AdditionalInfoModal] Closing modal without required info, logging out.'
+      );
+      toast.info('필수 정보가 입력되지 않아 로그아웃됩니다.', { autoClose: 2000 });
+      logout(router);
+      // logout 액션이 isAdditionalInfoModalOpen 상태도 false로 변경해야 함
+      // 만약 그렇지 않다면 여기서 closeAdditionalInfoModal() 호출이 필요할 수 있음
+      // 하지만 일반적으로 logout 시 관련 모달 상태는 모두 초기화됨
+    } else {
+      closeAdditionalInfoModal();
+    }
+  };
 
   const validateName = () => {
     if (!name.trim()) {
@@ -476,26 +504,53 @@ export const AdditionalInfoModal = () => {
   };
 
   const handleComplete = async () => {
-    if (!isFormValid) return;
-    if (!validateName() || !validateEmail()) return;
+    let currentName = name;
+    let currentEmail = email;
+
+    // user 객체에서 가져온 값이 있다면 (특히 소셜 로그인 직후) 그걸 우선 사용
+    if (user && user.name && !name.trim()) currentName = user.name;
+    if (user && user.email && !email.trim()) currentEmail = user.email;
+
+
+    if (!currentName.trim()) {
+      validateName(); // 에러 메시지 표시용
+      return;
+    }
+    if (!currentEmail.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(currentEmail)) {
+      validateEmail(); // 에러 메시지 표시용
+      return;
+    }
+    if (!isVerified) {
+        toast.warn('휴대전화 인증을 완료해주세요.');
+        return;
+    }
+    if (!privacyAgreed || !termsAgreed) {
+        toast.warn('모든 약관에 동의해주세요.');
+        return;
+    }
+
 
     const result = await joinUser({
-      name,
-      email,
+      name: currentName,
+      email: currentEmail,
       cellphone: phoneNumber,
       countryCode: selectedCountry.code,
     });
 
     if (result) {
+      toast.success('회원 정보가 성공적으로 업데이트되었습니다!', { autoClose: 1500 });
       closeAdditionalInfoModal();
-      setTimeout(() => {
-        window.location.href = '/ai';
-      }, 1000);
+      // 페이지 새로고침이나 특정 페이지로의 리디렉션은 여기서 제거하거나,
+      // 필요하다면 authStore의 user 상태가 업데이트된 후 실행되도록 조정합니다.
+      // window.location.href = '/ai'; // 바로 리디렉션하면 toast가 안 보일 수 있음
+      // 대신, 사용자 정보가 성공적으로 업데이트되었음을 알리고 모달만 닫습니다.
+      // /ai 페이지의 useEffect가 업데이트된 user 정보를 감지하고 다음 단계를 진행할 수 있도록 합니다.
     }
   };
 
   useEffect(() => {
     if (!isAdditionalInfoModalOpen) {
+      // 모달이 닫힐 때 모든 로컬 상태를 초기화합니다.
       setPhoneNumber('');
       setVerificationCode('');
       setVerificationSent(false);
@@ -503,12 +558,16 @@ export const AdditionalInfoModal = () => {
       setPrivacyAgreed(false);
       setTermsAgreed(false);
       setIsCountryDropdownOpen(false);
+      // 이름과 이메일은 user 상태에서 다시 가져오므로, 여기서는 명시적으로 초기화하지 않거나,
+      // 또는 user 상태와 동기화하는 로직을 유지합니다 (현재 user 의존성 useEffect).
+      // 일단은 다른 필드들처럼 초기화합니다.
       setName('');
       setEmail('');
       setNameError('');
       setEmailError('');
       setPhoneError('');
       setViewingTermsType(null);
+      setSelectedCountry(countryCodes[0]); // 국가 코드도 기본값으로
     }
   }, [isAdditionalInfoModalOpen]);
 
@@ -545,7 +604,7 @@ export const AdditionalInfoModal = () => {
             </TermsViewContainer>
           ) : (
             <>
-              <StyledCloseButton onClick={closeAdditionalInfoModal}>
+              <StyledCloseButton onClick={handleCloseModalAndCheckLogout}> {/* 수정된 핸들러 연결 */}
                 <CloseIcon />
               </StyledCloseButton>
               <ModalTitle>회원 정보 입력</ModalTitle>
@@ -611,19 +670,19 @@ export const AdditionalInfoModal = () => {
                     }
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
-                    disabled={isVerified || verificationSent}
+                    disabled={isVerified || verificationSent} // 인증 완료 또는 인증번호 전송 후 비활성화
                     onBlur={validatePhone}
                   />
                   <VerifyButton
                     onClick={handleSendVerification}
-                    disabled={!phoneNumber || isSubmitting || isVerified}
+                    disabled={!phoneNumber.trim() || isVerified || verificationSent || isSubmitting } // 이미 인증/전송/제출 중이면 비활성화
                   >
                     {isVerified
                       ? '인증 완료'
                       : verificationSent
                       ? isSubmitting
                         ? '전송 중...'
-                        : '재전송'
+                        : '재전송' // 재전송 버튼 텍스트
                       : isSubmitting
                       ? '전송 중...'
                       : '인증번호 받기'}
@@ -641,7 +700,7 @@ export const AdditionalInfoModal = () => {
                     />
                     <VerifyButton
                       onClick={handleVerifyCode}
-                      disabled={!verificationCode || isSubmitting}
+                      disabled={!verificationCode.trim() || isSubmitting} // 코드 미입력 또는 제출 중 비활성화
                       style={{ width: '100%', marginBottom: '24px' }}
                     >
                       {isSubmitting ? '인증 중...' : '인증하기'}
@@ -667,7 +726,7 @@ export const AdditionalInfoModal = () => {
           )}
         </ModalContent>
       </ModalOverlay>
-      <StyledToastContainer />
+      <StyledToastContainer limit={3} /> {/* 토스트 메시지 중복 방지 옵션 추가 */}
     </>
   );
 };
