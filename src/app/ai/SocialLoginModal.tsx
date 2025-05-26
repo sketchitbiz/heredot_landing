@@ -1,6 +1,6 @@
 'use client';
 
-import styled, { css } from 'styled-components';
+import styled from 'styled-components';
 import { AppColors } from '@/styles/colors';
 import { AppTextStyles } from '@/styles/textStyles';
 import CloseIcon from '@mui/icons-material/Close';
@@ -11,9 +11,9 @@ import { useGoogleLogin } from '@react-oauth/google';
 import apiClient from '@/lib/apiClient';
 import { useLang } from '@/contexts/LangContext';
 import { aiChatDictionary } from '@/lib/i18n/aiChat';
-import { ChatDictionary } from './components/StepData'; // ChatDictionary 경로 확인
-import { useRouter } from 'next/navigation'; // useRouter 임포트
-import { toast } from 'react-toastify'; // toast 메시지를 위해 추가
+import { ChatDictionary } from './components/StepData';
+import { useRouter } from 'next/navigation';
+import { toast } from 'react-toastify';
 
 const ModalOverlay = styled.div<{ isOpen: boolean }>`
   position: fixed;
@@ -81,10 +81,10 @@ const MainSloganText = styled.h3`
   font-weight: bold;
   color: ${AppColors.onSurface};
   margin-bottom: 40px;
+  white-space: pre-line;
   line-height: 1.3;
 `;
 
-// 🚨 GoogleLoginButton 스타일 복구
 const GoogleLoginButton = styled.button`
   background-color: white;
   color: #3c4043;
@@ -119,7 +119,6 @@ const GoogleLoginButton = styled.button`
   }
 `;
 
-
 const StyledCloseButton = styled.button`
   position: absolute;
   top: 15px;
@@ -149,8 +148,12 @@ export const SocialLoginModal: React.FC<SocialLoginModalProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
 
-  // 🚨 `sendInitialChatMessageAndSetupSession` 제거
-  const { login, openAdditionalInfoModal } = useAuthStore();
+  const store = useAuthStore();
+  const login = store.login;
+  const openAdditionalInfoModal = store.openAdditionalInfoModal;
+  const loginModalContext =
+    'loginModalContext' in store ? store.loginModalContext : null;
+
   const router = useRouter();
 
   const { lang } = useLang();
@@ -159,18 +162,17 @@ export const SocialLoginModal: React.FC<SocialLoginModalProps> = ({
   const LOGIN_ENDPOINT = '/user/login';
 
   const handleLoginSuccess = async (userData: UserData) => {
-    await login(userData); // login 액션이 Promise를 반환하므로 await
+    await login(userData);
 
-    if (!userData.name || userData.name.trim() === '') {
+    if (!userData.name || userData.name.trim() === '' || !userData.cellphone) {
       openAdditionalInfoModal();
-      onClose(); // 모달 닫기
+      onClose();
       return;
     }
 
-    // 🚨 로그인 성공 및 추가 정보 확인 후, 파라미터 없이 /ai로 이동
-    onClose(); // 모달 닫기
+    onClose();
     router.push('/ai');
-    toast.success('로그인되었습니다!'); // 사용자에게 로그인 성공 알림
+    toast.success('로그인되었습니다!');
   };
 
   const handleGoogleLogin = useGoogleLogin({
@@ -188,6 +190,8 @@ export const SocialLoginModal: React.FC<SocialLoginModalProps> = ({
         const response = await apiClient.post(LOGIN_ENDPOINT, {
           providerId: userInfo.sub,
           profileUrl: userInfo.picture,
+          email: userInfo.email,
+          name: userInfo.name,
         });
         if (
           response.data &&
@@ -281,7 +285,7 @@ export const SocialLoginModal: React.FC<SocialLoginModalProps> = ({
     return () => {
       window.removeEventListener('message', handleMessage);
     };
-  }, [login, openAdditionalInfoModal, router]); // 의존성 배열 업데이트 (sendInitialChatMessageAndSetupSession 제거)
+  }, [login, openAdditionalInfoModal, router]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -293,6 +297,13 @@ export const SocialLoginModal: React.FC<SocialLoginModalProps> = ({
   if (!isOpen) {
     return null;
   }
+
+  const mainSlogan =
+    loginModalContext === 'pdfDownload'
+      ? lang === 'ko'
+        ? '로그인을 하시면 바로\nPDF 견적서를 다운받으실 수 있어요!'
+        : 'Log in to download your PDF estimate right away!'
+      : t.socialLogin.mainSlogan;
 
   return (
     <ModalOverlay
@@ -309,7 +320,7 @@ export const SocialLoginModal: React.FC<SocialLoginModalProps> = ({
         <RightPanel>
           <PageSubtitle>{t.socialLogin.pageSubtitle}</PageSubtitle>
           <GradientTitleText>{t.socialLogin.gradientTitle}</GradientTitleText>
-          <MainSloganText>{t.socialLogin.mainSlogan}</MainSloganText>
+          <MainSloganText>{mainSlogan}</MainSloganText>
 
           <GoogleLoginButton
             onClick={() => handleGoogleLogin()}

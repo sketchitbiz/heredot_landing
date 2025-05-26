@@ -4,18 +4,21 @@ module.exports = {
   generateRobotsTxt: true,
   robotsTxtOptions: {
     policies: [
-      { userAgent: '*', allow: '/' },
-      { userAgent: '*', disallow: '/cms/' },
-      { userAgent: '*', disallow: '/ai/' },
+      {
+        userAgent: '*',
+        allow: '/',
+        disallow: ['/cms/', '/ai/'],
+      },
     ],
-    additionalSitemaps: [
-      'https://heredotcorp.com/sitemap.xml', // sitemap.xml의 전체 주소
-    ],
+    // additionalSitemaps는 next-sitemap이 기본적으로 sitemap.xml을 생성하므로 중복될 수 있어 제거합니다.
+    // 만약 별도의 sitemap.xml (예: 서버에서 동적으로 생성하는 경우)이 있다면 여기에 추가합니다.
   },
   exclude: [
-    '/cms',
-    '/ai',
+    '/cms/*',
+    '/ai/*',
     '/404',
+    '/cms', // 혹시 /cms 자체 페이지가 있다면 그것도 제외
+    '/ai', // 혹시 /ai 자체 페이지가 있다면 그것도 제외
     // '/server-sitemap.xml', // 서버에서 동적으로 생성하는 사이트맵이 있다면 추가
   ],
   // Next.js App Router를 사용하고 있다면, outDir 옵션은 기본적으로 public 폴더를 대상으로 하지 않을 수 있습니다.

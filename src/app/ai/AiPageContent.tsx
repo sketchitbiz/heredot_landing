@@ -337,6 +337,7 @@ export default function AiPageContent() {
   );
   const isLoggedIn = authStore((state: AuthState) => state.isLoggedIn);
   const openLoginModal = authStore((state: AuthState) => state.openLoginModal);
+  const user = authStore((state: AuthState) => state.user);
 
   const [isFirebaseChecking, setIsFirebaseChecking] = useState(true);
 
@@ -653,6 +654,10 @@ export default function AiPageContent() {
       }
     } else if (action === 'download_pdf') {
       devLog('PDF 다운로드 요청');
+      if (!user) {
+        openLoginModal('pdfDownload');
+        return;
+      }
       if (invoiceDetails && invoiceDetails.parsedJson) {
         const userCountry = authStore.getState().user?.countryCode || 'KR';
         await generateInvoicePDF(invoiceDetails, lang, userCountry, t);
@@ -1091,7 +1096,7 @@ export default function AiPageContent() {
 
       // AI 응답이 시작되었음을 나타내는 로딩 상태 해제 (텍스트가 나올 것이므로)
       // setLoading(false); // 이 위치에서 해제하면 'AI is typing...'과 같은 효과가 안 나올 수 있음.
-      // 아래 `setMessages`에서 텍스트가 추가되면 `loading` 상태를 조정하는게 좋음.
+      // 아래 `setMessages`에서 텍스트가 추가될 때마다 `loading` 상태를 조정하는게 좋음.
 
       devLog('[AI 스트림 루프 진입 - 실시간 출력 시작]');
       for await (const item of streamResult.stream) {

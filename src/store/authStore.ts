@@ -29,13 +29,14 @@ export interface AuthState {
   user: UserData | null;
   isLoggedIn: boolean;
   isLoginModalOpen: boolean;
+  loginModalContext: string | null; //  контекст для модального окна входа
   isAdditionalInfoModalOpen: boolean;
   currentSessionIndex: number | null; // 현재 활성화된 채팅 세션 인덱스
 
   // 액션들
   login: (userData: UserData) => Promise<void>; // Promise 반환하도록 변경
   logout: (router: any) => void; // 로그아웃 시 라우터 주입받아 이동
-  openLoginModal: () => void;
+  openLoginModal: (context?: string | unknown) => void; // openLoginModal теперь принимает контекст
   closeLoginModal: () => void;
   openAdditionalInfoModal: () => void;
   closeAdditionalInfoModal: () => void;
@@ -50,24 +51,17 @@ const useAuthStore = create<AuthState>()(
       user: null,
       isLoggedIn: false,
       isLoginModalOpen: false,
+      loginModalContext: null, // начальное состояние для контекста
       isAdditionalInfoModalOpen: false,
       currentSessionIndex: null, // 초기 상태
 
       // 로그인 액션: 사용자 데이터를 받아 상태를 업데이트하고 Promise를 반환합니다.
       login: (userData) =>
         new Promise<void>((resolve) => {
-          set(
-            { user: userData, isLoggedIn: true, isLoginModalOpen: false },
-            () => {
-              console.log(
-                '[AuthStore] Login state updated, resolving promise.'
-              );
-              // 로그인 시점에 기존 세션 인덱스를 유지하거나,
-              // 필요하다면 이곳에서 `setCurrentSessionIndex(null)`을 호출하여 초기화할 수도 있습니다.
-              // 현재는 persist에 currentSessionIndex가 포함되어 있으므로 기존 값을 유지합니다.
-              resolve();
-            }
-          );
+          set({ user: userData, isLoggedIn: true, isLoginModalOpen: false }); // isLoginModalOpen도 false로 설정
+          // set 호출 후 실행될 로직
+          console.log('[AuthStore] Login state updated, resolving promise.');
+          resolve();
         }),
 
       // 로그아웃 액션: 상태 초기화, SWR 캐시 갱신, 라우터 이동
@@ -77,6 +71,7 @@ const useAuthStore = create<AuthState>()(
           isLoggedIn: false,
           isAdditionalInfoModalOpen: false,
           currentSessionIndex: null, // 🚨 로그아웃 시 현재 세션 인덱스를 명시적으로 초기화
+          loginModalContext: null, // При выходе из системы также сбрасываем контекст
         });
         // 채팅 세션 목록 SWR 캐시를 강제로 갱신하여 로그아웃된 사용자에게는 빈 목록이 보이도록 합니다.
         swrMutate(CHAT_SESSIONS_API_KEY, undefined, { revalidate: true });
@@ -90,8 +85,32 @@ const useAuthStore = create<AuthState>()(
       },
 
       // 로그인 모달 열기/닫기
-      openLoginModal: () => set({ isLoginModalOpen: true }),
-      closeLoginModal: () => set({ isLoginModalOpen: false }),
+      openLoginModal: (context?: string | unknown) => {
+        let modalContext: string | null = null;
+        if (typeof context === 'string') {
+          modalContext = context;
+        } else if (context !== undefined && context !== null) {
+          // 문자열이 아닌 예상치 못한 context가 들어온 경우 로깅 (개발/디버깅 목적)
+          console.warn(
+            '[AuthStore] openLoginModal received non-string context:',
+            context
+          );
+          // 이 경우 modalContext는 null로 유지됩니다.
+        }
+        console.log(
+          '[AuthStore] openLoginModal called. Effective context:',
+          modalContext
+        );
+        set({
+          isLoginModalOpen: true,
+          loginModalContext: modalContext,
+        });
+      },
+      closeLoginModal: () =>
+        set({
+          isLoginModalOpen: false,
+          loginModalContext: null, // Сбрасываем контекст при закрытии модального окна
+        }),
 
       // 추가 정보 모달 열기/닫기
       openAdditionalInfoModal: () => set({ isAdditionalInfoModalOpen: true }),
@@ -128,6 +147,7 @@ const useAuthStore = create<AuthState>()(
         user: state.user,
         isLoggedIn: state.isLoggedIn,
         currentSessionIndex: state.currentSessionIndex, // ✅ currentSessionIndex를 localStorage에 유지
+        loginModalContext: state.loginModalContext, // Сохраняем контекст в localStorage
       }),
     }
   )
