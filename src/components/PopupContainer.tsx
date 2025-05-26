@@ -40,7 +40,9 @@ export const PopupContainer: React.FC<PopupContainerProps> = ({
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
-  const [viewportHeight, setViewportHeight] = useState<number>(typeof window !== 'undefined' ? window.innerHeight : 800);
+  const [viewportHeight, setViewportHeight] = useState<number>(
+    typeof window !== 'undefined' ? window.innerHeight : 800
+  );
 
   const childArray = React.Children.toArray(children);
 
@@ -65,7 +67,10 @@ export const PopupContainer: React.FC<PopupContainerProps> = ({
   const swipeHandlers = useSwipeable(
     isMobile
       ? {
-          onSwipedLeft: () => setCurrentIndex((prev) => Math.min(prev + 1, childArray.length - 1)),
+          onSwipedLeft: () =>
+            setCurrentIndex((prev) =>
+              Math.min(prev + 1, childArray.length - 1)
+            ),
           onSwipedRight: () => setCurrentIndex((prev) => Math.max(prev - 1, 0)),
           preventScrollOnSwipe: true,
           trackTouch: true,
@@ -150,14 +155,17 @@ export const PopupContainer: React.FC<PopupContainerProps> = ({
     </Overlay>
   );
 
-  return isMobile ? <PopupPortal>{popupJSX}</PopupPortal> : popupJSX;
+  return <PopupPortal>{popupJSX}</PopupPortal>;
 };
 
 // ==========================
 // Styled Components
 // ==========================
 
-const Overlay = styled.div<{ $isFullScreen?: boolean; $viewportHeight: number }>`
+const Overlay = styled.div<{
+  $isFullScreen?: boolean;
+  $viewportHeight: number;
+}>`
   position: fixed;
   top: 0;
   left: 0;
@@ -170,7 +178,10 @@ const Overlay = styled.div<{ $isFullScreen?: boolean; $viewportHeight: number }>
   justify-content: center;
 `;
 
-const NavZone = styled.div<{ $isMobile?: boolean; $position?: 'left' | 'right' }>`
+const NavZone = styled.div<{
+  $isMobile?: boolean;
+  $position?: 'left' | 'right';
+}>`
   width: 200px;
   min-width: 200px;
   display: flex;
@@ -240,7 +251,10 @@ const Popup = styled.div<{
     `}
 `;
 
-const CloseButton = styled.button<{ $isFullScreen?: boolean; $appBarHeight?: number }>`
+const CloseButton = styled.button<{
+  $isFullScreen?: boolean;
+  $appBarHeight?: number;
+}>`
   position: absolute;
   top: ${({ $isFullScreen, $appBarHeight }) =>
     $isFullScreen ? `${($appBarHeight || 56) + 8}px` : '12px'};
