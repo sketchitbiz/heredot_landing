@@ -252,7 +252,7 @@ const ConsultingWeb: React.FC<ConsultingProps> = ({
       const handleDownloadClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
         e.preventDefault();
         const link = downloadLinks.functionalSpecification[lang];
-        logButtonClick('Consulting', '기능명세');
+        logButtonClick('Consulting', '기능명세 다운로드');
         window.open(link, '_blank');
       };
  

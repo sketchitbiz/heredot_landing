@@ -27,6 +27,8 @@
   "exclude": [
     "node_modules",
     ".next",
+    ".lh",
+    "vscode",
     "storybook",
     "coverage",
     "storybook-static"

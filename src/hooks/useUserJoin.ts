@@ -12,7 +12,7 @@ interface UserJoinParams {
 
 export const useUserJoin = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { user, login, logout } = useAuthStore();
+  const { user, login } = useAuthStore();
 
   // 토스트 메시지 표시 함수
   const showToast = (message: string) => {
@@ -90,13 +90,17 @@ export const useUserJoin = () => {
         showErrorToast(
           response.data[0]?.message || '정보 저장에 실패했습니다.'
         );
-        logout(); // 실패 시 로그아웃 처리
+        console.warn(
+          'useUserJoin: joinUser 실패. 로그아웃 처리는 호출부에서 필요합니다.'
+        );
         return false;
       }
     } catch (error) {
       console.error('정보 저장 오류:', error);
       showErrorToast('정보 저장 중 오류가 발생했습니다.');
-      logout(); // 오류 발생 시 로그아웃 처리
+      console.warn(
+        'useUserJoin: joinUser 오류. 로그아웃 처리는 호출부에서 필요합니다.'
+      );
       return false;
     } finally {
       setIsSubmitting(false);
@@ -119,7 +123,6 @@ export const useUserJoin = () => {
       });
 
       if (response.data && response.data[0]?.statusCode === 200) {
-        showToast('인증번호가 발송되었습니다.');
         return true;
       } else {
         const errorMessage =

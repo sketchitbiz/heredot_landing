@@ -348,14 +348,9 @@ const BackButton = styled.button`
   }
 `;
 
-
 export const AdditionalInfoModal = () => {
-  const {
-    isAdditionalInfoModalOpen,
-    closeAdditionalInfoModal,
-    user,
-    logout,
-  } = useAuthStore();
+  const { isAdditionalInfoModalOpen, closeAdditionalInfoModal, user, logout } =
+    useAuthStore();
   const { joinUser, sendVerification, verifyCode, isSubmitting } =
     useUserJoin();
   const router = useRouter();
@@ -389,7 +384,8 @@ export const AdditionalInfoModal = () => {
     email.trim() !== '';
 
   useEffect(() => {
-    if (isAdditionalInfoModalOpen && user) { // 모달이 열려있을 때만 user 값으로 상태 초기화
+    if (isAdditionalInfoModalOpen && user) {
+      // 모달이 열려있을 때만 user 값으로 상태 초기화
       setName(user.name || '');
       setEmail(user.email || ''); // API 응답에 email이 있다면 사용, 없으면 빈 문자열
       if (user.cellphone) {
@@ -429,7 +425,9 @@ export const AdditionalInfoModal = () => {
       console.log(
         '[AdditionalInfoModal] Closing modal without required info, logging out.'
       );
-      toast.info('필수 정보가 입력되지 않아 로그아웃됩니다.', { autoClose: 2000 });
+      toast.info('필수 정보가 입력되지 않아 로그아웃됩니다.', {
+        autoClose: 2000,
+      });
       logout(router);
       // logout 액션이 isAdditionalInfoModalOpen 상태도 false로 변경해야 함
       // 만약 그렇지 않다면 여기서 closeAdditionalInfoModal() 호출이 필요할 수 있음
@@ -511,24 +509,25 @@ export const AdditionalInfoModal = () => {
     if (user && user.name && !name.trim()) currentName = user.name;
     if (user && user.email && !email.trim()) currentEmail = user.email;
 
-
     if (!currentName.trim()) {
       validateName(); // 에러 메시지 표시용
       return;
     }
-    if (!currentEmail.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(currentEmail)) {
+    if (
+      !currentEmail.trim() ||
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(currentEmail)
+    ) {
       validateEmail(); // 에러 메시지 표시용
       return;
     }
     if (!isVerified) {
-        toast.warn('휴대전화 인증을 완료해주세요.');
-        return;
+      toast.warn('휴대전화 인증을 완료해주세요.');
+      return;
     }
     if (!privacyAgreed || !termsAgreed) {
-        toast.warn('모든 약관에 동의해주세요.');
-        return;
+      toast.warn('모든 약관에 동의해주세요.');
+      return;
     }
-
 
     const result = await joinUser({
       name: currentName,
@@ -538,7 +537,9 @@ export const AdditionalInfoModal = () => {
     });
 
     if (result) {
-      toast.success('회원 정보가 성공적으로 업데이트되었습니다!', { autoClose: 1500 });
+      toast.success('회원 정보가 성공적으로 업데이트되었습니다!', {
+        autoClose: 1500,
+      });
       closeAdditionalInfoModal();
       // 페이지 새로고침이나 특정 페이지로의 리디렉션은 여기서 제거하거나,
       // 필요하다면 authStore의 user 상태가 업데이트된 후 실행되도록 조정합니다.
@@ -604,7 +605,9 @@ export const AdditionalInfoModal = () => {
             </TermsViewContainer>
           ) : (
             <>
-              <StyledCloseButton onClick={handleCloseModalAndCheckLogout}> {/* 수정된 핸들러 연결 */}
+              <StyledCloseButton onClick={handleCloseModalAndCheckLogout}>
+                {' '}
+                {/* 수정된 핸들러 연결 */}
                 <CloseIcon />
               </StyledCloseButton>
               <ModalTitle>회원 정보 입력</ModalTitle>
@@ -622,7 +625,7 @@ export const AdditionalInfoModal = () => {
                 <Label>회사 이메일</Label>
                 <TextInput
                   type="email"
-                  placeholder="이메일을 입력하세요"
+                  placeholder="업무용 이메일을 입력하세요"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   onBlur={validateEmail}
@@ -675,7 +678,12 @@ export const AdditionalInfoModal = () => {
                   />
                   <VerifyButton
                     onClick={handleSendVerification}
-                    disabled={!phoneNumber.trim() || isVerified || verificationSent || isSubmitting } // 이미 인증/전송/제출 중이면 비활성화
+                    disabled={
+                      !phoneNumber.trim() ||
+                      isVerified ||
+                      verificationSent ||
+                      isSubmitting
+                    } // 이미 인증/전송/제출 중이면 비활성화
                   >
                     {isVerified
                       ? '인증 완료'
@@ -726,7 +734,8 @@ export const AdditionalInfoModal = () => {
           )}
         </ModalContent>
       </ModalOverlay>
-      <StyledToastContainer limit={3} /> {/* 토스트 메시지 중복 방지 옵션 추가 */}
+      <StyledToastContainer limit={3} />{' '}
+      {/* 토스트 메시지 중복 방지 옵션 추가 */}
     </>
   );
 };

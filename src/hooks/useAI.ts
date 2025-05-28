@@ -31,6 +31,7 @@ export default function useAI() {
       devLog(
         `[useAI] Starting AI initialization with model: ${modelIdentifier}...`
       );
+      devLog('[useAI] Current user state for initialization:', user);
       initialized.current = false;
       try {
         if (!app) {
@@ -50,14 +51,14 @@ export default function useAI() {
         devLog(`[useAI] API Host: ${apiHost}`);
 
         // --- 지침 및 가격 데이터 로딩 로직 시작 ---
-        devLog(`[useAI] Fetching instructions from: /ai/instructions/get-list`);
+        console.log(`[useAI] Fetching instructions from: /ai/instructions/get-list`);
         let instructionsResponse;
         try {
           instructionsResponse = await apiClient.post(
             '/ai/instructions/get-list',
             {}
           );
-          devLog(
+          console.log(
             '[useAI] Instructions API response received. Status:',
             instructionsResponse.status
           );
@@ -177,6 +178,7 @@ export default function useAI() {
         );
 
         const userPhoneCode = user?.countryCode;
+        devLog('[useAI] User phone code from user object:', userPhoneCode);
         let mappedIsoCode = 'KR';
         let targetLanguage = 'ko';
         let targetCountryName = 'South Korea';
@@ -290,17 +292,23 @@ JSON 생성 시 주의사항:
 </USER_COUNTRY_INFO>
 `;
 
+        devLog(
+          '[useAI] Generated localizationInstruction:',
+          localizationInstruction
+        );
+
         const updatedSystemInstruction = `${allInstructionsContent}<DATA>
 ${unitPriceDataString}
 </DATA>
 
 ${localizationInstruction}`;
-        // --- 지침 및 가격 데이터 로딩 로직 끝 ---
-
         devLog(
-          '[useAI] Initializing AI with combined System Instruction. Length:',
+          '[useAI] Final updatedSystemInstruction length:',
           updatedSystemInstruction.length
         );
+        // devLog('[useAI] Final updatedSystemInstruction content:', updatedSystemInstruction); // 내용이 너무 길면 주석 처리
+
+        devLog('[useAI] About to initialize VertexAI and GenerativeModel.');
 
         // Vertex AI 호출 시 location을 명시적으로 제거하고, Firebase 앱 인스턴스만 전달
         const vertexAI = getVertexAI(app); // location 옵션 제거
@@ -343,7 +351,9 @@ ${localizationInstruction}`;
       }
     };
 
-    devLog('[useAI] Starting AI initialization process...');
+    devLog(
+      '[useAI] Starting AI initialization process... Effect triggered by user or modelIdentifier change.'
+    );
     initializeAI()
       .then(() => {
         devLog(
@@ -355,7 +365,7 @@ ${localizationInstruction}`;
         console.error('[useAI] AI initialization FAILED with error:', e);
         initialized.current = false;
       });
-  }, [user, modelIdentifier]); 
+  }, [user, modelIdentifier]);
 
   useEffect(() => {
     devLog('[useAI] Current initialization status:', initialized.current);

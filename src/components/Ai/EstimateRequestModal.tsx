@@ -14,6 +14,9 @@ interface EstimateRequestModalProps {
   onClose: () => void;
   onConfirm: () => void;
   title: string; // Dynamic title part, e.g., "[#프로젝트명]"
+  content?: string; // content prop 추가
+  confirmButtonText?: string; // 확인 버튼 텍스트 prop 추가 (옵션)
+  cancelButtonText?: string; // 취소 버튼 텍스트 prop 추가 (옵션)
 }
 
 const ModalOverlay = styled.div<{ isOpen: boolean }>`
@@ -114,6 +117,9 @@ export const EstimateRequestModal: React.FC<EstimateRequestModalProps> = ({
   onClose,
   onConfirm,
   title,
+  content,
+  confirmButtonText,
+  cancelButtonText,
 }) => {
   const { lang } = useLang();
   const t = aiChatDictionary[lang] as ChatDictionary;
@@ -135,7 +141,8 @@ export const EstimateRequestModal: React.FC<EstimateRequestModalProps> = ({
         </StyledCloseButton>
         <ModalTitle>{title}</ModalTitle>
         <ModalDescription>
-          {t.estimateModal?.description ||
+          {content ||
+            t.estimateModal?.description ||
             '요청 완료후 영업일 기준 3일 이내에 연락드리겠습니다.'}
         </ModalDescription>
         <ButtonContainer>
@@ -144,14 +151,13 @@ export const EstimateRequestModal: React.FC<EstimateRequestModalProps> = ({
             onClick={handleConfirm}
             isRounded={false}
           >
-            {t.estimateModal?.confirmButton || '예'}
+            {confirmButtonText || t.estimateModal?.confirmButton || '예'}
           </StyledButton>
           <StyledButton className="cancel" onClick={onClose} isRounded={false}>
-            {t.estimateModal?.cancelButton || '아니오'}
+            {cancelButtonText || t.estimateModal?.cancelButton || '아니오'}
           </StyledButton>
         </ButtonContainer>
       </ModalContent>
     </ModalOverlay>
   );
 };
-

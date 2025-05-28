@@ -368,6 +368,15 @@ export default function AiPageContent() {
   }, [isLoggedIn, user, openAdditionalInfoModal, isAdditionalInfoModalOpen]); // 의존성 배열에 필요한 모든 것을 포함
 
   useEffect(() => {
+    userStamp({
+      category: '경로',
+      content: 'AI',
+      memo: 'AI',
+      firstYn: 'N',
+    });
+  }, []);
+
+  useEffect(() => {
     try {
       const loginDataStr = localStorage.getItem('loginData');
       if (loginDataStr) {

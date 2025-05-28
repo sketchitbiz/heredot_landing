@@ -60,7 +60,15 @@ export async function uploadFile(
       }
     },
     (error) => {
-      console.error(error);
+      // Firebase Storage 에러 객체는 code와 message 속성을 가질 수 있습니다.
+      // 에러 객체 전체를 로깅하여 어떤 정보가 들어있는지 확인합니다.
+      console.error('Upload failed:', error);
+      // 특정 에러 코드에 따른 분기 처리도 가능합니다.
+      // if (error.code === 'storage/unauthorized') {
+      //   devLog("User doesn't have permission to access the object");
+      // } else if (error.code === 'storage/canceled') {
+      //   devLog('User canceled the upload');
+      // } // ... etc.
     },
     () => {
       devLog('Upload complete');

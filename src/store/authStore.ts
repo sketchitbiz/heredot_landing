@@ -4,6 +4,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { toast } from 'react-toastify';
 import { mutate as swrMutate } from 'swr';
+import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 // ChatSession 인터페이스는 useChatSessionList 훅에서 가져오는 것이 더 적합하므로 여기서는 제거합니다.
 // import { ChatSession } from '@/hooks/chat/useChatSessionList';
 
@@ -32,10 +33,11 @@ export interface AuthState {
   loginModalContext: string | null; //  контекст для модального окна входа
   isAdditionalInfoModalOpen: boolean;
   currentSessionIndex: number | null; // 현재 활성화된 채팅 세션 인덱스
+  isEditProfileModalOpen: boolean; // EditProfileModal 상태 추가
 
   // 액션들
   login: (userData: UserData) => Promise<void>; // Promise 반환하도록 변경
-  logout: (router: any) => void; // 로그아웃 시 라우터 주입받아 이동
+  logout: (router: AppRouterInstance) => void; // 로그아웃 시 라우터 주입받아 이동
   openLoginModal: (context?: string | unknown) => void; // openLoginModal теперь принимает контекст
   closeLoginModal: () => void;
   openAdditionalInfoModal: () => void;
@@ -43,17 +45,21 @@ export interface AuthState {
   setIsLoggedIn: (isLoggedIn: boolean) => void;
   setCurrentSessionIndex: (index: number | null) => void;
   resetCurrentSession: () => void; // 명시적으로 현재 세션 초기화
+  openEditProfileModal: () => void; // EditProfileModal 열기 액션 추가
+  closeEditProfileModal: () => void; // EditProfileModal 닫기 액션 추가
+  updateUser: (updatedData: Partial<UserData>) => void; // 사용자 정보 업데이트 액션 추가
 }
 
 const useAuthStore = create<AuthState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       user: null,
       isLoggedIn: false,
       isLoginModalOpen: false,
       loginModalContext: null, // начальное состояние для контекста
       isAdditionalInfoModalOpen: false,
       currentSessionIndex: null, // 초기 상태
+      isEditProfileModalOpen: false, // EditProfileModal 초기 상태 추가
 
       // 로그인 액션: 사용자 데이터를 받아 상태를 업데이트하고 Promise를 반환합니다.
       login: (userData) =>
@@ -137,6 +143,16 @@ const useAuthStore = create<AuthState>()(
         set({ currentSessionIndex: null });
         console.log('[AuthStore] currentSessionIndex reset to null.');
       },
+
+      // EditProfileModal 액션 구현
+      openEditProfileModal: () => set({ isEditProfileModalOpen: true }),
+      closeEditProfileModal: () => set({ isEditProfileModalOpen: false }),
+
+      // 사용자 정보 업데이트 액션 구현
+      updateUser: (updatedData) =>
+        set((state) => ({
+          user: state.user ? { ...state.user, ...updatedData } : null,
+        })),
     }),
     {
       name: 'auth-storage', // localStorage에 저장될 이름

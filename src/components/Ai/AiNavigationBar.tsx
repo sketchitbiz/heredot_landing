@@ -20,6 +20,7 @@ import { EstimateRequestModal } from './EstimateRequestModal';
 import { toast } from 'react-toastify';
 import { useRouter } from 'next/navigation'; // useRouter 임포트
 import useSendInquireMessage from '../../hooks/Inquire/useSendInquireMessage';
+import type { ChatDictionary } from '@/app/ai/components/StepData'; // ChatDictionary 타입 경로 확인
 
 // AiLayout에서 전달받는 NavigationItemData 및 NavigationGroup 인터페이스 재사용
 interface NavigationItemData {
@@ -169,14 +170,16 @@ const Username = styled.span`
 
 const ProfileActions = styled.div`
   display: flex;
-  align-items: center;
+
+  // align-items: center;
+  align-items: space-between;
   gap: 8px;
 `;
 
 const ProfileIconButton = styled(ButtonElement)`
-  width: 30px;
+  // width: 30px;
   height: 30px;
-  min-width: 30px;
+  // min-width: 30px;
   padding: 0;
   border-radius: 4px;
 `;
@@ -303,12 +306,15 @@ const AiNavigationBar = ({
 }: AiNavigationBarProps) => {
   const router = useRouter(); // router 훅 사용
   const { lang } = useLang();
-  const t = aiChatDictionary[lang];
+  const t = aiChatDictionary[lang] as any; // TODO: ChatDictionary 타입에 common, buttons.sending 등 추가 필요
 
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
   const openLoginModal = useAuthStore((state) => state.openLoginModal);
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout); // logout 액션 가져오기
+  const openEditProfileModal = useAuthStore(
+    (state) => state.openEditProfileModal
+  ); // 추가
 
   const [expandedSections, setExpandedSections] = useState<
     Record<string, boolean>
@@ -332,12 +338,12 @@ const AiNavigationBar = ({
     // 섹션 확장 상태 초기화: 로그인 상태에 따라 모든 섹션을 확장하거나 '오늘'만 확장
     const initialExpandedState: Record<string, boolean> = {};
     if (!isLoggedIn) {
-      navigationItems.forEach((group) => {
+      (navigationItems || []).forEach((group) => {
         initialExpandedState[group.title] = true;
       });
     } else {
       // 로그인 시 기본적으로 '오늘' 섹션만 열고 다른 섹션은 닫힌 상태로 시작
-      navigationItems.forEach((group) => {
+      (navigationItems || []).forEach((group) => {
         initialExpandedState[group.title] =
           group.title === (t.navigation?.period?.today || '오늘');
       });
@@ -360,28 +366,26 @@ const AiNavigationBar = ({
 
   // 🚨 견적 요청 API 호출 로직 추가
   const handleConfirmEstimate = async () => {
-    // user?.name이 없으면 '익명 사용자'로 설정 또는 로그인 유도
-    const userName = user?.name || t.commonUser;
+    const userName = user?.name || t.commonUser || '사용자';
 
-    // 모달에서 사용할 payload 구성 (name은 사용자 이름, title은 선택된 견적 항목 이름)
     const payload = {
       name: userName,
-      title: currentEstimateTitle, // handleOpenEstimateModal에서 설정한 itemName
+      title: currentEstimateTitle,
     };
 
     const success = await sendInquireMessage(payload);
 
     if (success) {
-      toast.info(t.common?.inquireSuccess || '문의 요청이 완료되었습니다.');
+      toast.info(
+        t.common?.inquireSuccess || '문의 요청이 완료되었습니다.' // common이 optional이거나 없을 수 있음
+      );
       setIsEstimateModalOpen(false);
     } else {
-      // 에러 메시지가 있다면 표시, 없다면 일반적인 오류 메시지
       toast.error(
         inquireError ||
-          t.common?.inquireFail ||
+          t.common?.inquireFail || // common이 optional이거나 없을 수 있음
           '문의 요청 중 오류가 발생했습니다.'
       );
-      // setIsEstimateModalOpen(false); // 오류 시 모달을 닫을지 말지는 UX에 따라 결정
     }
   };
 
@@ -395,6 +399,13 @@ const AiNavigationBar = ({
   const handleSessionItemClick = (sessionIndex: number) => {
     if (onSessionClick) {
       onSessionClick(sessionIndex);
+    }
+  };
+
+  // ProfileInfo 클릭 시 EditProfileModal 열기
+  const handleProfileInfoClick = () => {
+    if (isLoggedIn) {
+      openEditProfileModal();
     }
   };
 
@@ -430,31 +441,40 @@ const AiNavigationBar = ({
   const renderSidebarContent = () => {
     return (
       <>
-        <ProfileSection>
-          {isLoggedIn ? (
+        <ProfileSection
+          onClick={isLoggedIn ? handleProfileInfoClick : openLoginModal}
+          style={{ cursor: 'pointer' }}
+        >
+          {isLoggedIn && user ? (
             <ProfileDataContainer
               message="success"
               successChild={
                 <>
                   <ProfileInfo>
                     <Flex>
-                      {user?.profileUrl ? (
+                      {user.profileUrl ? (
                         <UserAvatar
                           src={user.profileUrl}
-                          alt={user.name || t.commonUser}
+                          alt={user.name || t.commonUser || '사용자'}
                         />
                       ) : (
                         <Avatar />
                       )}
                       <Username>
-                        {user?.name ? `${user.name}님` : t.commonUser}
+                        {user.name
+                          ? `${user.name}님`
+                          : t.commonUser || '사용자'}
                       </Username>
                     </Flex>
                     <ProfileActions>
                       <ProfileIconButton
                         variant="text"
                         size="small"
-                        onClick={handleCreateNewEstimateClick}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCreateNewEstimateClick();
+                        }}
+                        aria-label="New Estimate"
                       >
                         <Edit
                           sx={{
@@ -463,13 +483,13 @@ const AiNavigationBar = ({
                           }}
                         />
                       </ProfileIconButton>
-                      <ProfileIconButton variant="text" size="small">
-                        <Search
-                          sx={{
-                            color: AppColors.iconPrimary,
-                            fontSize: '1.5rem',
-                          }}
-                        />
+                      <ProfileIconButton
+                        variant="text"
+                        size="small"
+                        onClick={(e) => e.stopPropagation()}
+                        aria-label="Search Estimates"
+                      >
+                        <></>
                       </ProfileIconButton>
                     </ProfileActions>
                   </ProfileInfo>
@@ -480,22 +500,32 @@ const AiNavigationBar = ({
             <ProfileInfo>
               <Flex>
                 <Avatar />
-                <Username>{t.commonUser}</Username>
+                <Username>{t.commonUser || '사용자'}</Username>
               </Flex>
               <ProfileActions>
                 <ProfileIconButton
                   variant="text"
                   size="small"
-                  onClick={handleCreateNewEstimateClick}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openLoginModal();
+                  }}
+                  aria-label="New Estimate"
                 >
                   <Edit
                     sx={{ color: AppColors.iconPrimary, fontSize: '1.5rem' }}
                   />
                 </ProfileIconButton>
-                <ProfileIconButton variant="text" size="small">
-                  <Search
-                    sx={{ color: AppColors.iconPrimary, fontSize: '1.5rem' }}
-                  />
+                <ProfileIconButton
+                  variant="text"
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openLoginModal();
+                  }}
+                  aria-label="Search Estimates"
+                >
+                  <></>
                 </ProfileIconButton>
               </ProfileActions>
             </ProfileInfo>
@@ -504,21 +534,21 @@ const AiNavigationBar = ({
 
         <NavigationContent>
           {/* API에서 받아온 navigationItems를 렌더링 */}
-          {navigationItems.map((group) => (
+          {(navigationItems || []).map((group) => (
             <NavigationSection key={group.title}>
               <SectionHeader onClick={() => toggleSection(group.title)}>
                 <SectionTitle>{group.title}</SectionTitle>
                 <SectionContent>
-                  {t.navigation.estimate || '여기닷에게'}
+                  {t.navigation?.estimate || '여기닷에게'}
                 </SectionContent>
               </SectionHeader>
               {expandedSections[group.title] && (
                 <ItemList>
-                  {group.items.map((item) => (
+                  {(group.items || []).map((item) => (
                     <NavigationItem
                       key={item.id}
                       onClick={() =>
-                        item.sessionIndex &&
+                        item.sessionIndex !== undefined &&
                         handleSessionItemClick(item.sessionIndex)
                       }
                     >
@@ -527,14 +557,14 @@ const AiNavigationBar = ({
                         size="small"
                         isRounded
                         onClick={(e) => {
-                          e.stopPropagation(); // 부모 클릭 이벤트 방지
-                          handleOpenEstimateModal(item.name); // 🚨 item.name을 전달
+                          e.stopPropagation();
+                          handleOpenEstimateModal(item.name);
                         }}
-                        disabled={isSendingInquire} // 🚨 API 호출 중 버튼 비활성화
+                        disabled={isSendingInquire}
                       >
                         {isSendingInquire
-                          ? t.buttons.sending
-                          : t.buttons.estimate || '견적요청'}
+                          ? t.buttons?.sending || '전송중...' // buttons.sending이 optional이거나 없을 수 있음
+                          : t.buttons?.estimate || '견적요청'}
                       </NavigationStatusButton>
                     </NavigationItem>
                   ))}
@@ -559,16 +589,19 @@ const AiNavigationBar = ({
                   fontSize: '18px',
                 }}
               />
-              {t.buttons.logout}
+              {t.buttons?.logout || '로그아웃'}
             </NavigationStatusButton>
           ) : null}
         </LogoutButtonContainer>
 
         {!isLoggedIn && (
           <BlurredOverlay>
-            <LoginPromptText>{t.navigation.login.benefits}</LoginPromptText>
+            <LoginPromptText>
+              {t.navigation?.login?.benefits ||
+                '로그인하고 더 많은 기능을 사용해보세요.'}
+            </LoginPromptText>
             <CenteredLoginButton onClick={openLoginModal} isRounded={false}>
-              {t.buttons.login}
+              {t.buttons?.login || '로그인'}
             </CenteredLoginButton>
           </BlurredOverlay>
         )}
@@ -586,7 +619,10 @@ const AiNavigationBar = ({
         onTouchEnd={handleTouchEnd}
       >
         {isMobile && (
-          <SidebarToggleButton onClick={toggleSidebar}>
+          <SidebarToggleButton
+            onClick={toggleSidebar}
+            aria-label={isSidebarOpen ? 'Close sidebar' : 'Open sidebar'}
+          >
             {isSidebarOpen ? <ChevronLeft /> : <ChevronRight />}
           </SidebarToggleButton>
         )}

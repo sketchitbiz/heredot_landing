@@ -12,12 +12,12 @@ import { useLang } from '@/contexts/LangContext';
 import DropdownInput from '@/components/DropdownInput';
 import { userStamp } from '@/lib/api/user/api';
 import { aiChatDictionary } from '@/lib/i18n/aiChat';
-import { useRouter, useSearchParams } from 'next/navigation'; // useSearchParams 추가
+import { useRouter } from 'next/navigation';
 import useChatSessionList, {
   ChatSession,
 } from '@/hooks/chat/useChatSessionList';
-import { devLog } from '@/lib/utils/devLogger';
-
+import { EditProfileModal } from '@/app/ai/EditProfileModal';
+import { AppColors } from '@/styles/colors';
 
 // PageLoader를 클라이언트 사이드에서만 렌더링하도록 dynamic import
 const ClientOnlyPageLoader = dynamic(() => import('@/components/PageLoader'), {
@@ -79,8 +79,6 @@ interface NavigationGroup {
 
 export default function AiLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const searchParams = useSearchParams(); // searchParams 가져오기
-  const sessionIdFromUrl = searchParams.get('sessionId'); // URL에서 sessionId 파라미터 읽기
 
   const [isLoading, setIsLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
@@ -88,18 +86,15 @@ export default function AiLayout({ children }: { children: React.ReactNode }) {
 
   const user = useAuthStore((state) => state.user);
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
-  const currentSessionIndex = useAuthStore(
-    (state) => state.currentSessionIndex
-  ); // currentSessionIndex 가져오기
   const setCurrentSessionIndex = useAuthStore(
     (state) => state.setCurrentSessionIndex
   );
-  const resetCurrentSession = useAuthStore(
-    (state) => state.resetCurrentSession
-  ); // 🚨 resetCurrentSession 액션 가져오기
+  const openEditProfileModal = useAuthStore(
+    (state) => state.openEditProfileModal
+  );
 
   const { lang } = useLang();
-  const t = aiChatDictionary[lang];
+  const t = aiChatDictionary[lang as 'ko' | 'en'];
 
   const {
     fetchChatSessions,
@@ -107,19 +102,17 @@ export default function AiLayout({ children }: { children: React.ReactNode }) {
     isLoading: isSessionsLoading,
   } = useChatSessionList();
 
-  // 세션 데이터를 가공하여 NavigationGroup 형태로 변환
   const transformSessionsToNavigationGroups = useCallback(
-    (sessions: ChatSession[], currentLang: string): NavigationGroup[] => {
+    (currentSessions: ChatSession[]): NavigationGroup[] => {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-
       const oneWeekAgo = new Date(today);
       oneWeekAgo.setDate(today.getDate() - 7);
 
       const todayItems: NavigationItemData[] = [];
       const lastWeekItems: NavigationItemData[] = [];
 
-      sessions.forEach((session) => {
+      (currentSessions || []).forEach((session) => {
         const [datePart, timePart] = session.createdTime.split(' ');
         const [year, month, day] = datePart.split('-').map(Number);
         const [hours, minutes, seconds] = timePart.split(':').map(Number);
@@ -132,10 +125,9 @@ export default function AiLayout({ children }: { children: React.ReactNode }) {
           seconds
         );
 
-        // 🚨 서버에서 title이 null로 올 경우 클라이언트에서 기본값 부여
         const sessionTitle =
           session.title ||
-          aiChatDictionary[currentLang]?.navigation?.newChatTitle ||
+          aiChatDictionary[lang as 'ko' | 'en']?.navigation?.newChatTitle ||
           '새로운 채팅';
         const status: '진행' | '완료' | '추가중' = session.lastMessage
           ? '완료'
@@ -157,47 +149,44 @@ export default function AiLayout({ children }: { children: React.ReactNode }) {
 
       const groups: NavigationGroup[] = [];
       const todayTitle =
-        aiChatDictionary[currentLang]?.navigation?.period?.today || '오늘';
+        aiChatDictionary[lang as 'ko' | 'en']?.navigation?.period?.today ||
+        '오늘';
       const lastWeekTitle =
-        aiChatDictionary[currentLang]?.navigation?.period?.lastWeek ||
+        aiChatDictionary[lang as 'ko' | 'en']?.navigation?.period?.lastWeek ||
         '일주일 전';
 
       if (todayItems.length > 0) {
         groups.push({ title: todayTitle, items: todayItems });
       }
-      if (lastWeekItems.length > 0) {
-        groups.push({ title: lastWeekTitle, items: lastWeekItems });
-      }
+      // 변경, 수정, 주의 리스트 호출 시 이거 가능함
+      // if (lastWeekItems.length > 0) {
+      //   groups.push({ title: lastWeekTitle, items: lastWeekItems });
+      // }
 
-      // 🚨 로그인 상태이고, 현재 표시할 세션이 없을 경우 '새로운 채팅' 플레이스홀더 추가
-      // (기존에는 authStore에서 createOrNavigateNewChatSession을 호출했으나, 이제는 ChatInput에서 첫 메시지 시 생성)
-      if (isLoggedIn && sessions.length === 0) {
+      if (isLoggedIn && (!currentSessions || currentSessions.length === 0)) {
         groups.push({
           title: todayTitle,
           items: [
             {
               id: 'new-session-placeholder',
               name:
-                aiChatDictionary[currentLang]?.navigation?.newChatTitle ||
-                '새로운 채팅',
-              status: '진행', // 새 채팅은 '진행' 상태로 표시
+                aiChatDictionary[lang as 'ko' | 'en']?.navigation
+                  ?.newChatTitle || '새로운 채팅',
+              status: '진행',
             },
           ],
         });
       }
-
       return groups;
     },
     [lang, isLoggedIn]
   );
 
-  // 컴포넌트 마운트 시 초기 세션 목록 불러오기 및 리사이즈 이벤트 처리
   useEffect(() => {
     setIsLoading(true);
-
     const loadSessions = async () => {
-      if (isLoggedIn) {
-        await fetchChatSessions();
+      if (isLoggedIn && user?.uuid) {
+        await fetchChatSessions({ offset: 0 });
       }
       setIsLoading(false);
     };
@@ -216,83 +205,43 @@ export default function AiLayout({ children }: { children: React.ReactNode }) {
     return () => {
       window.removeEventListener('resize', checkMobile);
     };
-  }, [isLoggedIn, fetchChatSessions]);
+  }, [isLoggedIn, fetchChatSessions, user?.uuid]);
 
-  // `sessions` 또는 `lang`이 변경될 때마다 navigationItems 업데이트
   const [currentNavigationItems, setCurrentNavigationItems] = useState<
     NavigationGroup[]
   >([]);
   useEffect(() => {
-    devLog(
-      'AiLayout - useEffect (sessions/lang): sessions 상태:',
-      sessions,
-      'lang:',
-      lang
-    );
-    if (sessions) {
-      const transformed = transformSessionsToNavigationGroups(sessions, lang);
-      devLog(
-        'AiLayout - useEffect (sessions/lang): 변환된 navigationItems:',
-        transformed
-      );
-      setCurrentNavigationItems(transformed);
-    } else {
-      // 세션이 아직 로딩되지 않았거나 없는 경우 (빈 배열인 경우 포함)
-      const newChatTitle =
-        aiChatDictionary[lang]?.navigation?.newChatTitle || '새로운 채팅';
-      const todayTitle =
-        aiChatDictionary[lang]?.navigation?.period?.today || '오늘';
-      const defaultItems: NavigationGroup[] = isLoggedIn
-        ? [
-            {
-              title: todayTitle,
-              items: [
-                {
-                  id: 'new-session-placeholder',
-                  name: newChatTitle,
-                  status: '진행',
-                },
-              ],
-            },
-          ]
-        : [];
-      devLog(
-        'AiLayout - useEffect (sessions/lang): 세션이 없어서 기본값 설정:',
-        defaultItems
-      );
-      setCurrentNavigationItems(defaultItems);
-    }
-  }, [sessions, lang, transformSessionsToNavigationGroups, isLoggedIn]);
+    const transformed = transformSessionsToNavigationGroups(sessions);
+    setCurrentNavigationItems(transformed);
+  }, [sessions, transformSessionsToNavigationGroups]);
 
   const toggleSidebar = useCallback(() => {
     setIsSidebarOpen((prev) => !prev);
   }, []);
 
-  // 🚨 새 채팅 시작 버튼 클릭 핸들러 (authStore의 액션을 직접 사용하지 않음)
   const handleNewChatClick = useCallback(() => {
-    router.push('/ai'); // 파라미터 없이 /ai 경로로 이동
-    // 이 이동이 발생하면 useEffect의 URL 파라미터 감지 로직에 의해
-    // currentSessionIndex가 null로 초기화될 것입니다.
-    if (isMobile) toggleSidebar(); // 모바일에서 새 채팅 클릭 시 사이드바 닫기
+    router.push('/ai');
+    if (isMobile) toggleSidebar();
   }, [router, isMobile, toggleSidebar]);
 
-  // 전체 로딩 상태는 API 로딩 상태와 PageLoader 로딩 상태를 합쳐서 관리
   const overallLoading = isLoading || isSessionsLoading;
 
   return (
     <>
-      {/* 모바일용 전체 화면 헤더 */}
       {isMobile && (
         <FixedHeader>
           <LeftSection>
-            <MenuButton onClick={toggleSidebar}>
+            <MenuButton onClick={toggleSidebar} aria-label="Toggle sidebar">
               <Menu />
             </MenuButton>
-            <EditButton onClick={handleNewChatClick}>
+            <EditButton onClick={handleNewChatClick} aria-label="New chat">
               <Edit />
             </EditButton>
           </LeftSection>
-          <HeaderTitle>
+          <HeaderTitle
+            onClick={isLoggedIn ? openEditProfileModal : undefined}
+            style={{ cursor: isLoggedIn ? 'pointer' : 'default' }}
+          >
             {isLoggedIn && user?.name ? (
               <>
                 <UserAvatar
@@ -303,10 +252,8 @@ export default function AiLayout({ children }: { children: React.ReactNode }) {
                   ? `${user.name}님의 견적서`
                   : `${user.name}'s Quote`}
               </>
-            ) : lang === 'ko' ? (
-              'AI 견적서'
             ) : (
-              'AI Quote'
+              t.pageTitle
             )}
           </HeaderTitle>
           <RightSection>
@@ -323,21 +270,22 @@ export default function AiLayout({ children }: { children: React.ReactNode }) {
           isMobile={isMobile}
           isSidebarOpen={isSidebarOpen}
           toggleSidebar={toggleSidebar}
-          onAddNewEstimateRequest={handleNewChatClick} // 🚨 새 견적 요청 버튼 핸들러 전달
+          onAddNewEstimateRequest={handleNewChatClick}
           onSessionClick={(sessionIndex) => {
-            setCurrentSessionIndex(sessionIndex); // Zustand에 현재 세션 인덱스 저장
-            router.push(`/ai?sessionId=${sessionIndex}`); // router.push 사용
-            if (isMobile) toggleSidebar(); // 모바일에서 세션 클릭 시 사이드바 닫기
+            setCurrentSessionIndex(sessionIndex);
+            router.push(`/ai?sessionId=${sessionIndex}`);
+            if (isMobile) toggleSidebar();
           }}
         />
 
         <MainContent $isMobile={isMobile}>{children}</MainContent>
       </LayoutContainer>
+      <EditProfileModal />
     </>
   );
 }
 
-// --- Styled Components (변동 없음) ---
+// --- Styled Components (거의 동일, HeaderTitle 내 Avatar 관련 스타일은 UserAvatar로 통합될 수 있음) ---
 
 const FixedHeader = styled.header`
   position: fixed;
@@ -400,14 +348,8 @@ const HeaderTitle = styled.div`
   font-size: 18px;
   text-align: center;
   white-space: nowrap;
-`;
-
-const Avatar = styled.div`
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  background-color: white;
-  margin-right: 10px;
+  flex-grow: 1;
+  min-width: 0;
 `;
 
 const UserAvatar = styled.img`
@@ -426,7 +368,7 @@ const LayoutContainer = styled.div<{ $isMobile: boolean }>`
 
 const MainContent = styled.main<{ $isMobile: boolean }>`
   flex: 1;
-  background-color: white;
+  background-color: ${AppColors.background};
   height: ${(props) => (props.$isMobile ? 'calc(100vh - 60px)' : '100vh')};
   overflow-y: auto;
 `;
