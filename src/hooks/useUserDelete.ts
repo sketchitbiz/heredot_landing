@@ -4,16 +4,15 @@ import useAuthStore from '@/store/authStore';
 import { toast } from 'react-toastify';
 import { useRouter } from 'next/navigation';
 
+interface ApiResponseError {
+  customMessage?: string;
+  message?: string;
+}
+
 interface ApiResponse {
   statusCode: number;
   message: string;
-  error?:
-    | {
-        customMessage?: string;
-        message?: string;
-      }
-    | string
-    | null;
+  error?: ApiResponseError | string | null;
 }
 
 type ApiUserDeleteResponse = ApiResponse[];
@@ -47,23 +46,63 @@ export const useUserDelete = () => {
         logout(router);
         return true;
       } else {
-        const errorMessage =
-          responseData?.error?.customMessage ||
-          responseData?.error?.toString() ||
-          responseData?.message ||
-          '회원탈퇴 처리 중 오류가 발생했습니다.';
+        let errorMessage = '회원탈퇴 처리 중 오류가 발생했습니다.';
+        if (responseData?.error && typeof responseData.error === 'object') {
+          errorMessage =
+            responseData.error.customMessage ||
+            responseData.error.message ||
+            errorMessage;
+        } else if (typeof responseData?.error === 'string') {
+          errorMessage = responseData.error;
+        } else if (responseData?.message) {
+          errorMessage = responseData.message;
+        }
         toast.error(errorMessage);
         setError(errorMessage);
         return false;
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error('Delete user account error:', err);
-      const errorMessage =
-        err.response?.data?.[0]?.error?.customMessage ||
-        err.response?.data?.[0]?.message ||
-        err.response?.data?.message ||
-        err.message ||
-        '회원탈퇴 처리 중 심각한 오류가 발생했습니다.';
+      let errorMessage = '회원탈퇴 처리 중 심각한 오류가 발생했습니다.';
+      if (
+        err &&
+        typeof err === 'object' &&
+        'response' in err &&
+        err.response &&
+        typeof err.response === 'object'
+      ) {
+        const errResponse = err.response as {
+          data?:
+            | ApiResponse[]
+            | { message?: string; error?: ApiResponseError | string };
+        };
+        const errorData = Array.isArray(errResponse.data)
+          ? errResponse.data[0]
+          : errResponse.data;
+
+        if (errorData && typeof errorData === 'object') {
+          if (errorData.error && typeof errorData.error === 'object') {
+            errorMessage =
+              (errorData.error as ApiResponseError).customMessage ||
+              (errorData.error as ApiResponseError).message ||
+              errorMessage;
+          } else if (typeof errorData.error === 'string') {
+            errorMessage = errorData.error;
+          } else if (
+            errorData.message &&
+            typeof errorData.message === 'string'
+          ) {
+            errorMessage = errorData.message;
+          }
+        }
+      } else if (
+        err &&
+        typeof err === 'object' &&
+        'message' in err &&
+        typeof err.message === 'string'
+      ) {
+        errorMessage = err.message;
+      }
       toast.error(errorMessage);
       setError(errorMessage);
       return false;

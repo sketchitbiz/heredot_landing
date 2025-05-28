@@ -205,7 +205,17 @@ export const SocialLoginModal: React.FC<SocialLoginModalProps> = ({
             Array.isArray(result.data) &&
             result.data.length > 0
           ) {
-            const rawUserData: UserData = result.data[0];
+            const rawUserData: UserData & { accessToken?: string } =
+              result.data[0];
+
+            if (rawUserData.accessToken) {
+              localStorage.setItem('accessToken', rawUserData.accessToken);
+            } else {
+              console.warn(
+                'Access token not found in login response from SocialLoginModal'
+              );
+            }
+
             const userData: UserData = {
               ...rawUserData,
               createdTime: new Date(rawUserData.createdTime).toISOString(),
@@ -254,7 +264,17 @@ export const SocialLoginModal: React.FC<SocialLoginModalProps> = ({
             Array.isArray(result.data) &&
             result.data.length > 0
           ) {
-            const rawUserData: UserData = result.data[0];
+            const rawUserData: UserData & { accessToken?: string } =
+              result.data[0];
+
+            if (rawUserData.accessToken) {
+              localStorage.setItem('accessToken', rawUserData.accessToken);
+            } else {
+              console.warn(
+                'Access token not found in popup login response from SocialLoginModal'
+              );
+            }
+
             const userData: UserData = {
               ...rawUserData,
               createdTime: new Date(rawUserData.createdTime).toISOString(),

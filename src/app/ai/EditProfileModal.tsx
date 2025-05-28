@@ -9,7 +9,7 @@ import useAuthStore from '@/store/authStore';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { countryCodes } from '@/app/ai/countryCodesData'; // 경로 확인 필요
 import useUserJoin from '@/hooks/useUserJoin'; // 이 훅이 사용자 정보 '수정'도 다루는지 확인 필요
@@ -57,7 +57,7 @@ const ModalViewsContainer = styled.div<{ $viewMode: 'info' | 'phoneAuth' }>`
 
 const View = styled.div`
   width: 50%;
-  max-height: 480px;
+  max-height: 490px;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
@@ -325,19 +325,6 @@ const ErrorMessage = styled.p`
   margin-bottom: 16px;
 `;
 
-const StyledToastContainer = styled(ToastContainer)`
-  .Toastify__toast {
-    background-color: #323232;
-    color: white;
-  }
-  .Toastify__toast-body {
-    font-family: 'Pretendard', sans-serif;
-  }
-  .Toastify__progress-bar {
-    background-color: ${AppColors.secondary};
-  }
-`;
-
 const BackButton = styled.button`
   background: none;
   border: none;
@@ -565,7 +552,6 @@ export const EditProfileModal = () => {
 
     const success = await updateUserProfile(payload);
     if (success) {
-      toast.success('회원 정보가 업데이트되었습니다.');
       closeEditProfileModal();
     }
   };
@@ -592,7 +578,6 @@ export const EditProfileModal = () => {
 
     const success = await updateUserProfile(payload);
     if (success) {
-      toast.success('회원 정보가 업데이트되었습니다.');
       closeEditProfileModal();
     }
   };
@@ -820,7 +805,6 @@ export const EditProfileModal = () => {
           </ModalViewsContainer>
         </ModalContentWrapper>
       </ModalOverlay>
-      <StyledToastContainer limit={3} />
 
       {/* 회원탈퇴 확인 모달 */}
       <EstimateRequestModal

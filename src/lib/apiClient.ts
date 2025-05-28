@@ -11,15 +11,13 @@ const apiClient = axios.create({
 // 요청 인터셉터 (인증 토큰 추가)
 apiClient.interceptors.request.use(
   (config) => {
-    // Zustand 스토어에서 직접 액세스 토큰 가져오기
-    // `getState()`를 사용하여 훅 외부에서 스토어의 현재 상태에 접근합니다.
-    const token = useAuthStore.getState().user?.accessToken;
+    // localStorage에서 액세스 토큰 가져오기
+    const token = localStorage.getItem('accessToken');
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
-      // console.log("Authorization token added:", token); // 디버깅용
     } else {
-      // console.warn("No access token found in auth store."); // 디버깅용
+      // console.warn("No access token found in localStorage."); // 디버깅용
     }
     return config;
   },
@@ -34,15 +32,27 @@ apiClient.interceptors.response.use(
     return response;
   },
   (error) => {
-    // 예: 401 Unauthorized 에러 시 로그인 페이지로 리다이렉트
     if (error.response && error.response.status === 401) {
       console.error(
-        '401 Unauthorized: Token might be expired or invalid. Attempting logout and redirect.'
+        '401 Unauthorized: Token might be expired or invalid. Attempting basic logout.'
       );
-      // Zustand 스토어의 로그아웃 액션을 호출하여 상태를 정리
-      useAuthStore.getState().logout();
-      // 로그인 페이지로 리다이렉트 (Next.js Link/router.push를 사용하는 것이 더 좋지만, window.location.href도 동작)
-      window.location.href = '/login';
+      // Zustand 스토어의 로그아웃 액션을 호출 (라우터 인스턴스 없이 기본 상태 초기화만 가정)
+      // authStore의 logout 함수가 router 매개변수 없이 호출될 수 있도록 수정되었거나,
+      // router가 필수라면 아래와 같이 호출할 수 없습니다.
+      // 이 부분은 authStore.ts의 logout 구현에 따라 달라집니다.
+      // useAuthStore.getState().logout(); // 린터 오류 발생 지점, authStore의 logout 시그니처 확인 필요
+
+      // 우선 localStorage에서 토큰을 제거하고 스토어의 isLoggedIn 상태를 false로 변경 시도
+      localStorage.removeItem('accessToken');
+      useAuthStore.getState().setIsLoggedIn(false); // 로그인 상태 false로 직접 변경
+      useAuthStore.getState().setUser(null); // 사용자 정보 null로 직접 변경 (user 초기 상태값에 따라)
+      // 필요시 다른 스토어 상태도 초기화
+
+      // 로그인 페이지로 리다이렉트
+      if (typeof window !== 'undefined') {
+        // 브라우저 환경에서만 실행
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }
