@@ -81,10 +81,10 @@ const StyledVideo = styled.video`
   border-radius: 20px;
 
   @media (max-width: ${Breakpoints.mobile}px) {
-    top: 16%;
+    top: 12%;
     left: 8%;
     width: 85%;
-    height: 87%;
+    height: 84%;
   }
 `;
 
@@ -236,6 +236,13 @@ export const AIBlock: React.FC<AIBlockProps> = ({
           </LeftImageBlock>
 
           <RightTextBlock>
+
+
+
+
+            <DescriptionText>{buttonHeader}</DescriptionText>
+            <DescriptionText>{buttonDescription}</DescriptionText>
+            <div style={{ height: isMobile ? '40px' : '80px' }} /> {/* 간격 추가 */}
             <CommonButton
               text={buttonText}
               isSkeletonText={true}
@@ -246,8 +253,6 @@ export const AIBlock: React.FC<AIBlockProps> = ({
               height={isMobile ? '50px' : '70px'}
               onClick={handleClick}
             />
-            <DescriptionText>{buttonHeader}</DescriptionText>
-            <DescriptionText>{buttonDescription}</DescriptionText>
           </RightTextBlock>
         </Container>
       </SectionWrapper>
