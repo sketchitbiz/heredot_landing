@@ -117,6 +117,7 @@ const RightTextBlock = styled.div`
   flex-direction: column;
   justify-content: center;
   align-items: flex-end;
+  /* background-color: red; */
 
   @media (max-width: ${Breakpoints.mobile}px) {
     align-items: center;
@@ -163,7 +164,7 @@ const DescriptionText = styled.p`
   }
 
   &:not(:last-child) {
-    margin-top: 16px; /* ✅ 필요시 간격 조절 */
+    /* margin-top: 16px;  */
     margin-bottom: 16px; /* ✅ 필요시 간격 조절 */
   }
 `;
