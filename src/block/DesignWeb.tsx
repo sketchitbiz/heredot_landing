@@ -127,6 +127,7 @@ const DownloadLink = styled.a`
   position: absolute;
   font-size: 14px;
   color: #fff;
+  background: ${AppColors.background};
   cursor: pointer;
   display: flex;
   align-items: center;
