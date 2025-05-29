@@ -3,7 +3,6 @@
 import styled from 'styled-components';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { gsap } from 'gsap';
-import Image from 'next/image';
 import { CustomNavigator } from '@/customComponents/CustomNavigator';
 import { SectionHeader } from '@/components/Landing/SectionHeader';
 import { AppColors } from '@/styles/colors';

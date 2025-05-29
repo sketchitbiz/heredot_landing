@@ -248,9 +248,7 @@ export default function AiLayout({ children }: { children: React.ReactNode }) {
                   src={user?.profileUrl || '/default-avatar.png'}
                   alt={user.name || '사용자'}
                 />
-                {lang === 'ko'
-                  ? `${user.name}님의 견적서`
-                  : `${user.name}'s Quote`}
+                {lang === 'ko' ? `AI 견적서` : `AI Estimate`}
               </>
             ) : (
               t.pageTitle

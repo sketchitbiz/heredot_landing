@@ -12,6 +12,7 @@ export interface UserUpdatePayload {
 }
 
 interface ApiResponseError {
+  customMessage?: string;
   message?: string;
 }
 
@@ -93,9 +94,7 @@ export const useUserUpdate = () => {
       const responseData = response.data?.[0];
 
       if (responseData && responseData.statusCode === 200) {
-        toast.success(
-          responseData.message || '회원정보가 성공적으로 업데이트되었습니다.'
-        );
+        toast.success('회원정보가 업데이트되었습니다.');
 
         const updatedFields: Partial<typeof currentUser> = {};
         if (payload.name !== undefined) updatedFields.name = payload.name;
@@ -111,23 +110,66 @@ export const useUserUpdate = () => {
 
         return true;
       } else {
-        const errorMessage =
-          responseData?.error?.customMessage ||
-          responseData?.message ||
-          responseData?.error?.toString() ||
-          '회원정보 업데이트에 실패했습니다.';
+        let errorMessage = '회원정보 업데이트에 실패했습니다.';
+        if (responseData?.error && typeof responseData.error === 'object') {
+          // 객체인 경우 customMessage 또는 message 사용
+          errorMessage =
+            responseData.error.customMessage ||
+            responseData.error.message ||
+            errorMessage;
+        } else if (typeof responseData?.error === 'string') {
+          // 문자열인 경우 그대로 사용
+          errorMessage = responseData.error;
+        } else if (responseData?.message) {
+          // error 필드가 없거나 객체가 아니지만 message 필드가 있는 경우
+          errorMessage = responseData.message;
+        }
         toast.error(errorMessage);
         setError(errorMessage);
         return false;
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error('Update user profile error:', err);
-      const errorMessage =
-        err.response?.data?.[0]?.error?.customMessage ||
-        err.response?.data?.[0]?.message ||
-        err.response?.data?.message ||
-        err.message ||
-        '회원정보 업데이트 중 오류가 발생했습니다.';
+      let errorMessage = '회원정보 업데이트 중 오류가 발생했습니다.';
+      if (
+        err &&
+        typeof err === 'object' &&
+        'response' in err &&
+        err.response &&
+        typeof err.response === 'object'
+      ) {
+        const errResponse = err.response as {
+          data?:
+            | ApiResponse[]
+            | { message?: string; error?: ApiResponseError | string };
+        }; // 타입 단언 구체화
+        const errorData = Array.isArray(errResponse.data)
+          ? errResponse.data[0]
+          : errResponse.data;
+
+        if (errorData && typeof errorData === 'object') {
+          if (errorData.error && typeof errorData.error === 'object') {
+            errorMessage =
+              (errorData.error as ApiResponseError).customMessage ||
+              (errorData.error as ApiResponseError).message ||
+              errorMessage;
+          } else if (typeof errorData.error === 'string') {
+            errorMessage = errorData.error;
+          } else if (
+            errorData.message &&
+            typeof errorData.message === 'string'
+          ) {
+            errorMessage = errorData.message;
+          }
+        }
+      } else if (
+        err &&
+        typeof err === 'object' &&
+        'message' in err &&
+        typeof err.message === 'string'
+      ) {
+        errorMessage = err.message;
+      }
       toast.error(errorMessage);
       setError(errorMessage);
       return false;

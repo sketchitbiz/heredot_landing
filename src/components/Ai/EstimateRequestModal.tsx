@@ -10,7 +10,7 @@ import { aiChatDictionary } from '@/lib/i18n/aiChat';
 import type { ChatDictionary } from '@/app/ai/components/StepData';
 
 interface EstimateRequestModalProps {
-  isOpen: boolean;
+  $isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
   title: string; // Dynamic title part, e.g., "[#프로젝트명]"
@@ -19,14 +19,14 @@ interface EstimateRequestModalProps {
   cancelButtonText?: string; // 취소 버튼 텍스트 prop 추가 (옵션)
 }
 
-const ModalOverlay = styled.div<{ isOpen: boolean }>`
+const ModalOverlay = styled.div<{ $isOpen: boolean }>`
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
   background-color: rgba(0, 0, 0, 0.6); // 어둡게 조정
-  display: ${(props) => (props.isOpen ? 'flex' : 'none')};
+  display: ${(props) => (props.$isOpen ? 'flex' : 'none')};
   align-items: center;
   justify-content: center;
   z-index: 1000;
@@ -113,7 +113,7 @@ const StyledButton = styled(ButtonElement)`
 `;
 
 export const EstimateRequestModal: React.FC<EstimateRequestModalProps> = ({
-  isOpen,
+  $isOpen,
   onClose,
   onConfirm,
   title,
@@ -124,7 +124,7 @@ export const EstimateRequestModal: React.FC<EstimateRequestModalProps> = ({
   const { lang } = useLang();
   const t = aiChatDictionary[lang] as ChatDictionary;
 
-  if (!isOpen) {
+  if (!$isOpen) {
     return null;
   }
 
@@ -134,7 +134,7 @@ export const EstimateRequestModal: React.FC<EstimateRequestModalProps> = ({
   };
 
   return (
-    <ModalOverlay isOpen={isOpen} onClick={onClose}>
+    <ModalOverlay $isOpen={$isOpen} onClick={onClose}>
       <ModalContent onClick={(e) => e.stopPropagation()}>
         <StyledCloseButton onClick={onClose}>
           <CloseIcon />

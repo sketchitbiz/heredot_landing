@@ -48,7 +48,7 @@ const StyledPath = styled.path`
   stroke-linejoin: round;
   fill: none;
   filter: drop-shadow(0 0 12px rgba(160, 91, 255, 0.8))
-          drop-shadow(0 0 24px rgba(160, 91, 255, 0.8));
+    drop-shadow(0 0 24px rgba(160, 91, 255, 0.8));
 `;
 
 const MarkerGroup = styled.g`
@@ -138,16 +138,23 @@ const SecondMapBlock: React.FC<SecondMapBlockProps> = ({ label }) => {
     return () => window.removeEventListener('resize', update);
   }, []);
 
-  const iconScale = useTransform(scrollY, [startScroll, endScroll], [1, maxScale]);
-  const iconY = useTransform(scrollY, [startScroll, endScroll], [0, isMobile ? 2000 : 3000]);
+  const iconScale = useTransform(
+    scrollY,
+    [startScroll, endScroll],
+    [1, maxScale]
+  );
+  const iconY = useTransform(
+    scrollY,
+    [startScroll, endScroll],
+    [0, isMobile ? 2000 : 3000]
+  );
 
-useEffect(() => {
-  const unsubscribe = iconScale.on('change', (value) => {
-    setIsShadowVisible(value <= 1.05);
-  });
-  return () => unsubscribe();
-}, [iconScale]);
-
+  useEffect(() => {
+    const unsubscribe = iconScale.on('change', (value) => {
+      setIsShadowVisible(value <= 1.05);
+    });
+    return () => unsubscribe();
+  }, [iconScale]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -158,12 +165,10 @@ useEffect(() => {
       const value = (scrollTop - start) / (end - start);
       setScrollRatio(Math.max(0, Math.min(value, 1)));
     };
-  
+
     handleScroll();
     return scrollY.on('change', handleScroll); // ✅ Fixed
   }, [scrollY, sectionTop, sectionHeight]);
-  ;
-
   useLayoutEffect(() => {
     const path = pathRef.current;
     const group = markerGroupRef.current;
@@ -171,7 +176,9 @@ useEffect(() => {
 
     const length = path.getTotalLength();
     const point = path.getPointAtLength(scrollRatio * length);
-    const tangent = path.getPointAtLength(Math.min(length, scrollRatio * length + 1));
+    const tangent = path.getPointAtLength(
+      Math.min(length, scrollRatio * length + 1)
+    );
     const dx = tangent.x - point.x;
     const dy = tangent.y - point.y;
     const angle = Math.atan2(dy, dx) * (180 / Math.PI);
@@ -179,7 +186,10 @@ useEffect(() => {
     path.style.strokeDasharray = `${length}`;
     path.style.strokeDashoffset = `${(1 - scrollRatio) * length}`;
 
-    group.setAttribute('transform', `translate(${point.x}, ${point.y}) rotate(${angle})`);
+    group.setAttribute(
+      'transform',
+      `translate(${point.x}, ${point.y}) rotate(${angle})`
+    );
   }, [scrollRatio]);
 
   return (
@@ -203,7 +213,13 @@ useEffect(() => {
             <StyledPath ref={pathRef} d={originalPath} />
             <MarkerGroup ref={markerGroupRef}>
               <circle cx="0" cy="0" r="60" fill="#8455c1" fillOpacity="0.25" />
-              <image href="/assets/Polygon.svg" width="60" height="60" x="-30" y="-30" />
+              <img
+                src="/assets/Polygon.svg"
+                width="60"
+                height="60"
+                x="-30"
+                y="-30"
+              />
             </MarkerGroup>
           </g>
         </svg>
