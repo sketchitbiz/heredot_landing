@@ -18,6 +18,8 @@ export type AdminLoginParams = {
     smsYn: string;
   };
 
+  export type UnitPriceGetListParams = Record<string, never>;
+
   export type AdminUpdateParams = {
     targetAdminId: string; // 로그인 ID
     name?: string;

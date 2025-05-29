@@ -325,6 +325,7 @@ export default function AiPageContent() {
     null
   );
 
+  
   const isLoginModalOpen = authStore(
     (state: AuthState) => state.isLoginModalOpen
   );

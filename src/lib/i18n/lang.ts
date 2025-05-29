@@ -94,7 +94,7 @@ export const dictionary = {
             '시중에 나와 있는 테이블 오더 제품과의 경쟁에서 살아 남기 위한<br /> 고객사만의 기능과 사업전략을 이해하고 프로젝트 킥오프 제안',
         },
       ],
-      downloadText: '사업제안서 다운로드',
+      downloadText: '사업제안서 미리보기',
     },
     consulting: {
       title: `여기닷은 "기능명세"를\n 최적화 용도로 활용합니다`,
@@ -103,7 +103,7 @@ export const dictionary = {
         '2. IT서비스 최적 설계 지원',
         '3. 일정관리 (WBS)로 활용해요',
       ],
-      downloadText: '기능명세 다운로드',
+      downloadText: '기능명세 미리보기',
       gridHeaders: ['항목', '고객요구사항', '여기닷 제안', '효과'],
       gridContents: [
         [
@@ -230,7 +230,7 @@ export const dictionary = {
       ],
       tabNumbers: ['01', '02', '03', '04', '05'],
       title: '여기닷은 모든 프로젝트에\n 디자인 전략을 제안합니다',
-      downloadText: '디자인 제안서 다운로드',
+      downloadText: '디자인 제안서 미리보기',
       slides: [
         { title: '시장/레퍼런스 조사', image: '/assets/design/design_1.webp' },
         { title: '트렌드 파악', image: '/assets/design/design_2.webp' },

@@ -30,6 +30,7 @@ import { AIBlock } from '@/block/AIBlock';
 import EventBlock from '@/block/EventBlock';
 import { devLog } from '@/lib/utils/devLogger';
 import Container3DStackScroll from '@/block/Container3D';
+import { zIndex } from 'html2canvas/dist/types/css/property-descriptors/z-index';
 
 const sectionMap: Record<
   string,
@@ -507,6 +508,7 @@ export default function HomePage() {
       id: 'members',
       showFloatingBox: true,
       $backgroundColor: AppColors.background,
+      zIndex  : 1001,
       content: (
         <MembersTabSection
           title={t.membersSection.title}

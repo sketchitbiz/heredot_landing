@@ -1,12 +1,74 @@
 'use client';
 
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import { Breakpoints } from '@/constants/layoutConstants';
 import ResponsiveView from '@/layout/ResponsiveView';
 import React, { useEffect, useRef, useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useLang } from '@/contexts/LangContext';
 import { dictionary } from '@/lib/i18n/lang';
+
+
+const slideUp = keyframes`
+  0% {
+    transform: translateY(100%) translateX(var(--scroll-x, 0));
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0) translateX(var(--scroll-x, 0));
+    opacity: 1;
+  }
+`;
+
+const slideDown = keyframes`
+  0% {
+    transform: translateY(-100%) translateX(var(--scroll-x, 0));
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0) translateX(var(--scroll-x, 0));
+    opacity: 1;
+  }
+`;
+
+// 텍스트 그라데이션 스켈레톤 애니메이션
+const textGradient = keyframes`
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+`;
+
+const bgGradient = keyframes`
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+`;
+
+// 텍스트 스켈레톤 스타일
+const SkeletonText = styled.span`
+  background: linear-gradient(90deg, #5708fb, #be83ea, #5708fb);
+  background-size: 300% 100%;
+  animation: ${textGradient} 3s ease-in-out infinite;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  font-weight: 700;
+`;
+
+const IconWrapper = styled.div`
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #5708fb, #be83ea, #5708fb);
+  background-size: 300% 100%;
+  animation: ${bgGradient} 3s ease-in-out infinite;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+
 
 // ✅ ResponsiveDescription: isMobile props를 받아 조건 처리
 const ResponsiveDescription: React.FC<{ text: string; isMobile: boolean }> = ({
@@ -80,21 +142,25 @@ const ContentWrapper = styled.div<{ $isOverLayout?: boolean }>`
 `;
 
 const FloatingToggleButton = styled.div<{ $scrollX: number }>`
+  --scroll-x: ${({ $scrollX }) => `-${$scrollX}px`};
   position: fixed;
   bottom: 100px;
   left: 0;
   width: 100%;
   min-width: ${Breakpoints.desktop}px;
-  transform: translateX(${({ $scrollX }) => -$scrollX}px);
+  transform: translateX(var(--scroll-x));
   display: flex;
   justify-content: center;
   z-index: 1001;
   pointer-events: none;
+  opacity: 0;
+  animation: ${slideDown} 0.4s ease-out forwards;
 
   @media (max-width: ${Breakpoints.mobile}px) {
     min-width: 100%;
   }
 `;
+
 
 const FloatingToggleButtonInner = styled.div`
   width: 100%;
@@ -129,12 +195,13 @@ const BottomFloatingBox = styled.div<{
   $isCollapsed: boolean;
   $scrollX: number;
 }>`
+  --scroll-x: ${({ $scrollX }) => `-${$scrollX}px`};
   position: fixed;
   bottom: 0;
   left: 0;
   width: 100%;
   min-width: ${Breakpoints.desktop}px;
-  transform: translateX(${({ $scrollX }) => -$scrollX}px);
+  transform: translateX(var(--scroll-x));
   background: ${({ $isCollapsed }) =>
     $isCollapsed
       ? 'transparent'
@@ -145,14 +212,16 @@ const BottomFloatingBox = styled.div<{
   align-items: center;
   padding: 0 32px;
   overflow: hidden;
-  transition: height 0.3s ease, opacity 0.3s ease;
   height: 120px;
+  opacity: 0;
+  animation: ${slideUp} 0.4s ease-out forwards;
 
   @media (max-width: ${Breakpoints.mobile}px) {
     padding: 0 16px;
     min-width: 0;
   }
 `;
+
 
 const BoxInnerWrapper = styled.div<{ $isCollapsed: boolean }>`
   width: 100%;
@@ -203,6 +272,7 @@ const RightRow = styled.div`
   font-size: 18px;
   font-weight: 700;
   color: #fff;
+  cursor: pointer;  
 
   img {
     width: 50px;
@@ -322,14 +392,18 @@ const LandingBaseWrapper: React.FC<LandingBaseWrapperProps> = ({
                 <ResponsiveDescription text={t.description} isMobile={isMobile} />
               </LeftColumn>
               <RightRow
-                onClick={() =>
-                  window.open('/ai', '_blank', 'noopener,noreferrer')
-                }
-                style={{ marginLeft: isCollapsed ? 'auto' : undefined }}
-              >
-                {!isCollapsed && <span>{t.aiButton}</span>}
-                <img src="/floating.svg" alt="AI Icon" />
-              </RightRow>
+  onClick={() =>
+    window.open('/ai', '_blank', 'noopener,noreferrer')
+  }
+  style={{ marginLeft: isCollapsed ? 'auto' : undefined }}
+>
+  {!isCollapsed && <SkeletonText>{t.aiButton}</SkeletonText>}
+  <IconWrapper>
+  <img src="/floating2.svg" alt="AI Icon" style={{ width: 40, height: 40 }} />
+  </IconWrapper>
+</RightRow>
+
+
             </BoxInnerWrapper>
           </BottomFloatingBox>
         </>

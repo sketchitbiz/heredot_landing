@@ -66,6 +66,7 @@ const PhoneFrameWrapper = styled.div`
     width: 100%;
     max-width: 650px;
     height: 720px;
+    overflow: hidden;
   }
 `;
 
@@ -237,10 +238,12 @@ export const AIBlock: React.FC<AIBlockProps> = ({
           <RightTextBlock>
             <CommonButton
               text={buttonText}
-              width={isMobile ? '200px' : '300px'}
+              isSkeletonText={true}
+              width={isMobile ? '240px' : '360px'}
               fontSize={isMobile ? '16px' : '30px'}
-              backgroundColor={AppColors.background}
+              backgroundColor={AppColors.surface}
               borderRadius="75px"
+              height={isMobile ? '50px' : '70px'}
               onClick={handleClick}
             />
             <DescriptionText>{buttonHeader}</DescriptionText>

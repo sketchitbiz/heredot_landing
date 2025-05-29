@@ -535,21 +535,24 @@ const AdminMngPage: React.FC = () => {
             labelColor="white"
           />
 
-          <TextField
-            radius="0"
-            multiline
-            minLines={4}
-            maxLines={10}
-            height="200px"
-            value={description}
-            label="비고"
-            $labelPosition="horizontal"
-            labelColor="white"
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="비고를 입력하세요"
-          />
-        </FormContainer>
-      </CmsPopup>
+    <TextField
+      radius="0"
+      multiline
+      minLines={4}
+      maxLines={10}
+      height="200px"
+      value={description}
+      label="비고"
+      $labelPosition="horizontal"
+      labelColor="white"
+      onChange={(e) => setDescription(e.target.value)}
+      placeholder="비고를 입력하세요"
+    />
+  </FormContainer>
+</CmsPopup>
+
+
+
     </>
   );
 };

@@ -1,9 +1,78 @@
 import React, { useEffect, useRef } from 'react';
-import styled from 'styled-components';
+import styled, {keyframes} from 'styled-components';
 import DownloadIcon from '@mui/icons-material/Download';
 import { downloadLinks } from '@/lib/i18n/downloadLinks';
 import { useLang } from '@/contexts/LangContext';
 import { userStamp } from '@/lib/api/user/api';
+import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
+
+const typewriter = keyframes`
+  from { width: 0; }
+  to { width: 100%; }
+`;
+
+
+const arrowSlide = keyframes`
+  0% { transform: translateX(-30%); opacity: 0; }
+  30% { opacity: 1; }
+  100% { transform: translateX(100%); opacity: 0; }
+`;
+
+const moveArrow = keyframes`
+  0% { transform: translateX(0); opacity: 0.3; }
+  50% { transform: translateX(6px); opacity: 1; }
+  100% { transform: translateX(0); opacity: 0.3; }
+`;
+
+const gradientBorder = keyframes`
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+`;
+
+const DownloadLink = styled.a`
+  position: relative;
+  font-size: 14px;
+  color: #000000;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background-color: white;
+  overflow: hidden;
+  z-index: 1;
+  text-decoration: none;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    padding: 2px;
+    border-radius: 8px;
+    background: linear-gradient(90deg, #5708fb, #be83ea, #5708fb);
+    background-size: 300% 300%;
+    animation: ${gradientBorder} 2s ease infinite;
+    z-index: -1;
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    -webkit-mask-composite: destination-out;
+  }
+
+  .icon {
+    animation: ${arrowSlide} 2s ease-in-out infinite;
+  }
+
+  .text {
+    display: inline-block;
+    white-space: nowrap;
+    overflow: hidden;
+    animation: ${typewriter} 2s steps(20, end) infinite;
+  }
+`;
+
 
 interface ConsultingProps {
   title: string;
@@ -73,20 +142,10 @@ function highlightKeywords(text: string): React.ReactNode {
   });
 }
 
-const MobileDownloadButton = styled.a`
-  display: inline-flex;
-  align-items: center;
+const MobileDownloadButton = styled(DownloadLink)`
   width: 100%;
-  justify-content: center;
-  padding: 10px 16px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #000;
-  border: 1px solid #ccc;
   border-radius: 6px;
-  text-decoration: none;
-  gap: 6px;
-  margin-top: 0px;
+  padding: 10px 16px;
 `;
 
 const Container = styled.div`
@@ -205,12 +264,12 @@ const ConsultingMobile: React.FC<ConsultingProps> = ({
     return () => observer.unobserve(el);
   }, [onEnterSection]);
 
-  const handleDownloadClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    e.preventDefault();
-    const link = downloadLinks.functionalSpecification[lang];
-    logButtonClick('Consulting', '기능명세 다운로드');
-    window.open(link, '_blank');
-  };
+    const handleDownloadClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+      e.preventDefault();
+      const link = downloadLinks.functionalSpecification[lang];
+      logButtonClick('Consulting', '기능명세 다운로드');
+      window.open(link, '_blank');
+    };
 
   return (
     <Container ref={containerRef}>
@@ -246,10 +305,11 @@ const ConsultingMobile: React.FC<ConsultingProps> = ({
           ))}
         </Card>
       ))}
-      <MobileDownloadButton href="#" onClick={handleDownloadClick}>
-        {downloadText}
-        <DownloadIcon style={{ fontSize: '16px' }} />
-      </MobileDownloadButton>
+ <MobileDownloadButton href="#" onClick={handleDownloadClick}>
+  <span className="text">{downloadText}</span>
+  <ArrowForwardIosIcon className="icon" style={{ fontSize: '16px' }} />
+</MobileDownloadButton>
+
     </Container>
   );
 };

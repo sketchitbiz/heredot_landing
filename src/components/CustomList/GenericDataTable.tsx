@@ -161,6 +161,7 @@ const Table = styled.table<{ $themeMode: ThemeMode }>`
   font-size: 14px;
   text-align: center;
   table-layout: auto;
+  table-layout: auto;
   background-color: ${({ $themeMode }) =>
     $themeMode === "light" ? THEME_COLORS.light.tableBackground : THEME_COLORS.dark.tableBackground};
 `;

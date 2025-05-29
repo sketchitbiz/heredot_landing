@@ -358,7 +358,7 @@ const UserMngPage: React.FC = () => {
             label="* 아이디"
             autoComplete="off"
             $labelPosition="horizontal"
-            labelColor="black"
+            labelColor="white"
             onChange={(e) => setUserId(e.target.value)}
             placeholder="영문자와 숫자를 포함한 6~20자"
             errorMessage={idError ?? undefined}
@@ -370,7 +370,7 @@ const UserMngPage: React.FC = () => {
             label="* 비밀번호"
             autoComplete="new-password"
             $labelPosition="horizontal"
-            labelColor="black"
+            labelColor="white"
             onChange={(e) => setPassword(e.target.value)}
             placeholder="영문 + 숫자 + 특수문자 1개 포함 8자리 이상"
             isPasswordField={true}
@@ -381,7 +381,7 @@ const UserMngPage: React.FC = () => {
             value={name}
             label="* 이름"
             $labelPosition="horizontal"
-            labelColor="black"
+            labelColor="white"
             onChange={(e) => setName(e.target.value)}
             placeholder="이름을 입력하세요"
             errorMessage={nameError ?? undefined}
@@ -391,7 +391,7 @@ const UserMngPage: React.FC = () => {
             value={email}
             label="* 이메일"
             $labelPosition="horizontal"
-            labelColor="black"
+            labelColor="white"
             onChange={(e) => setEmail(e.target.value)}
             placeholder="이메일 형식으로 입력하세요"
             errorMessage={emailError ?? undefined}
@@ -401,7 +401,7 @@ const UserMngPage: React.FC = () => {
             value={cellphone}
             label="* 연락처"
             $labelPosition="horizontal"
-            labelColor="black"
+            labelColor="white"
             onChange={(e) => {
               const input = e.target.value;
               // 숫자만 허용
@@ -418,7 +418,7 @@ const UserMngPage: React.FC = () => {
             value={emailYn}
             onChange={setEmailYn}
             $labelPosition="horizontal"
-            labelColor="black"
+            labelColor="white"
           />
 
           <SwitchInput
@@ -426,7 +426,7 @@ const UserMngPage: React.FC = () => {
             value={smsYn}
             onChange={setSmsYn}
             $labelPosition="horizontal"
-            labelColor="black"
+            labelColor="white"
           />
 
           <TextField
@@ -438,7 +438,7 @@ const UserMngPage: React.FC = () => {
             value={description}
             label="비고"
             $labelPosition="horizontal"
-            labelColor="black"
+            labelColor="white"
             onChange={(e) => setDescription(e.target.value)}
             placeholder="비고를 입력하세요"
           />

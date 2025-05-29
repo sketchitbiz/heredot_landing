@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import DownloadIcon from '@mui/icons-material/Download';
@@ -10,7 +10,20 @@ import { downloadLinks } from '@/lib/i18n/downloadLinks';
 import { Breakpoints } from '@/constants/layoutConstants';
 import { AppColors } from "@/styles/colors";
 import { userStamp } from '@/lib/api/user/api';
+import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 
+
+const arrowSlide = keyframes`
+  0% { transform: translateX(-30%); opacity: 0; }
+  30% { opacity: 1; }
+  100% { transform: translateX(100%); opacity: 0; }
+`;
+
+const gradientBorder = keyframes`
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+`;
 
 interface DesignProps {
   title: string;
@@ -104,25 +117,57 @@ const TabImage = styled.img<{ $hovered: boolean }>`
   transform: ${({ $hovered }) => ($hovered ? 'translateX(-21%) scale(1.42)' : 'none')};
 `;
 
+const typewriter = keyframes`
+  from { width: 0; }
+  to { width: 100%; }
+`;
+
+
 const DownloadLink = styled.a`
-  position: absolute; /* 부모(Container)를 기준으로 배치 */
+  position: absolute;
   font-size: 14px;
-  color: #ffffff;
+  color: #fff;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 8px;
+  gap: 6px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  /* background-color: white; */
+  overflow: hidden;
+  z-index: 1;
   text-decoration: none;
-  top: 25%; /* 화면에서의 위치 조정 */
-  right: 3%; /* 오른쪽에서의 위치 조정 */
-  animation: bounceY 1.5s ease-in-out infinite;
+  top: 22%;
+  right: 3%;
 
-  @keyframes bounceY {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-10px); }
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    padding: 2px;
+    border-radius: 8px;
+    background: linear-gradient(90deg, #5708fb, #be83ea, #5708fb);
+    background-size: 300% 300%;
+    animation: ${gradientBorder} 2s ease infinite;
+    z-index: -1;
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    -webkit-mask-composite: destination-out;
+  }
+
+  .icon {
+    animation: ${arrowSlide} 2s ease-in-out infinite;
+  }
+
+  .text {
+    display: inline-block;
+    white-space: nowrap;
+    overflow: hidden;
+    animation: ${typewriter} 2s steps(20, end) infinite;
   }
 `;
+
 
 const PageWrapper = styled.div`
   width: 100%;
@@ -273,21 +318,22 @@ const DesignWeb: React.FC<DesignProps> = ({
               }}
             />
 
-            <DownloadLink
-              href={getDownloadLink()}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() =>
-                userStamp({
-                  category: "버튼",
-                  content: "Design",
-                  memo: "디자인 제안서 다운로드",
-                })
-              }
-            >
-              {downloadText}
-              <DownloadIcon style={{ fontSize: "16px" }} />
-            </DownloadLink>
+<DownloadLink
+  href={getDownloadLink()}
+  target="_blank"
+  rel="noopener noreferrer"
+  onClick={() =>
+    userStamp({
+      category: '버튼',
+      content: 'Design',
+      memo: '디자인 제안서 다운로드',
+    })
+  }
+>
+  <span className="text">{downloadText}</span>
+  <ArrowForwardIosIcon className="icon" style={{ fontSize: '16px' }} />
+</DownloadLink>
+
 
             <TabImage
               src={slides[activeTab].image}
