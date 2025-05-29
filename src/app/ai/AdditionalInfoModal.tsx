@@ -386,8 +386,8 @@ export const AdditionalInfoModal = () => {
   useEffect(() => {
     if (isAdditionalInfoModalOpen && user) {
       // 모달이 열려있을 때만 user 값으로 상태 초기화
-      setName(user.name || '');
-      setEmail(user.email || ''); // API 응답에 email이 있다면 사용, 없으면 빈 문자열
+      setName(user.name||''); // 항상 빈 문자열로 시작
+      setEmail(''); // 항상 빈 문자열로 시작
       if (user.cellphone) {
         setPhoneNumber(user.cellphone);
         setIsVerified(true); // 이미 전화번호가 있다면 인증된 것으로 간주
@@ -537,9 +537,6 @@ export const AdditionalInfoModal = () => {
     });
 
     if (result) {
-      toast.success('회원 정보가 성공적으로 업데이트되었습니다!', {
-        autoClose: 1500,
-      });
       closeAdditionalInfoModal();
       // 페이지 새로고침이나 특정 페이지로의 리디렉션은 여기서 제거하거나,
       // 필요하다면 authStore의 user 상태가 업데이트된 후 실행되도록 조정합니다.

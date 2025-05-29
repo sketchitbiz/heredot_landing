@@ -6,10 +6,10 @@ import { ProfileDataContainer } from '@/components/ProfileDataContainer';
 import ButtonElement from '@/elements/ButtonElement';
 import {
   Edit,
-  Search,
   ChevronRight,
   ChevronLeft,
   Logout,
+  BrokenImageOutlined,
 } from '@mui/icons-material';
 import { AppColors } from '../../styles/colors';
 import { AppTextStyles } from '@/styles/textStyles';
@@ -20,7 +20,6 @@ import { EstimateRequestModal } from './EstimateRequestModal';
 import { toast } from 'react-toastify';
 import { useRouter } from 'next/navigation'; // useRouter 임포트
 import useSendInquireMessage from '../../hooks/Inquire/useSendInquireMessage';
-import type { ChatDictionary } from '@/app/ai/components/StepData'; // ChatDictionary 타입 경로 확인
 
 // AiLayout에서 전달받는 NavigationItemData 및 NavigationGroup 인터페이스 재사용
 interface NavigationItemData {
@@ -458,7 +457,15 @@ const AiNavigationBar = ({
                           alt={user.name || t.commonUser || '사용자'}
                         />
                       ) : (
-                        <Avatar />
+                        <BrokenImageOutlined
+                          sx={{
+                            width: '2.5rem',
+                            height: '2.5rem',
+                            borderRadius: '50%',
+                            color: AppColors.onSurfaceVariant,
+                            marginRight: '0.75rem',
+                          }}
+                        />
                       )}
                       <Username>
                         {user.name

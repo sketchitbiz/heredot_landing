@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
-import Image from 'next/image';
 import { Breakpoints } from '@/constants/layoutConstants';
 import { AppColors } from '@/styles/colors';
 import { CustomNavigator } from '@/customComponents/CustomNavigator';
@@ -141,7 +140,7 @@ export default function EventBlock({
                 onClick={() => handleImageClick(href)}
                 style={{ display: 'block', width: '100%', height: '100%', cursor: 'pointer' }}
               >
-                <Image
+                <img
                   src={getImageSrc(slide.image)}
                   alt=""
                   width={1200}

@@ -1,7 +1,6 @@
 'use client';
 
 import styled from 'styled-components';
-import Image from 'next/image';
 import { CustomNavigator } from '@/customComponents/CustomNavigator';
 import { Breakpoints } from '@/constants/layoutConstants';
 
@@ -31,15 +30,14 @@ const withLineBreaks = (text: string) =>
 
 // ✅ 배경 포함 섹션 전체 영역
 const SectionWrapper = styled.div`
-
   padding: 0 20px;
   box-sizing: border-box;
 
   min-width: ${Breakpoints.desktop}px; /* 기본값: 데스크탑 너비 강제 유지 */
 
-@media (max-width: ${Breakpoints.mobile}px) {
-  min-width: auto; /* 모바일 이하에서 min-width 제거 */
-}
+  @media (max-width: ${Breakpoints.mobile}px) {
+    min-width: auto; /* 모바일 이하에서 min-width 제거 */
+  }
 `;
 
 // ✅ 내부 컨텐츠 최대 너비 컨테이너
@@ -73,8 +71,7 @@ const Heading = styled.h3`
   @media (max-width: ${Breakpoints.mobile}px) {
     font-size: 20px; // 모바일에서 폰트 크기 조정
     line-height: 1.4; // 모바일에서 줄 간격 조정
-    }
-
+  }
 `;
 
 const SubText = styled.p`
@@ -87,7 +84,7 @@ const SubText = styled.p`
   @media (max-width: ${Breakpoints.mobile}px) {
     font-size: 14px; // 모바일에서 폰트 크기 조정
     line-height: 1.4; // 모바일에서 줄 간격 조정
-    }
+  }
 `;
 
 const StyledButton = styled.button`
@@ -101,7 +98,7 @@ const StyledButton = styled.button`
   @media (max-width: ${Breakpoints.mobile}px) {
     font-size: 12px; // 모바일에서 폰트 크기 조정
     line-height: 1.4; // 모바일에서 줄 간격 조정
-    }
+  }
 `;
 
 const RightImage = styled.div`
@@ -159,7 +156,7 @@ export const CommunityBlock: React.FC<CommunityBlockProps> = ({
           </LeftTextBlock>
 
           <RightImage>
-            <Image
+            <img
               src={imageUrl}
               alt="커뮤니티 이미지"
               width={610}

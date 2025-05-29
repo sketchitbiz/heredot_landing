@@ -129,7 +129,7 @@ const DesignMobile: React.FC<DesignMobileBlockProps> = ({
   useEffect(() => {
     const visibleMap = new Map<number, boolean>();
     const lastScrollY = { current: window.scrollY };
-  
+
     observer.current = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -138,32 +138,30 @@ const DesignMobile: React.FC<DesignMobileBlockProps> = ({
           const scrollY = window.scrollY;
           const isScrollingDown = scrollY > lastScrollY.current;
           lastScrollY.current = scrollY;
-  
+
           const wasVisible = visibleMap.get(index) || false;
-  
+
           // 조건: 아래로 스크롤 & 새롭게 진입
           if (isVisible && !wasVisible && isScrollingDown) {
             visibleMap.set(index, true);
             onEnterSection?.(index, tabs[index]);
           }
-  
+
           // 업데이트: 영역 이탈 시 false로
           if (!isVisible && wasVisible) {
             visibleMap.set(index, false);
           }
         });
       },
-      { threshold: Array.from({ length: 11 }, (_, i) => i * 0.1)  }
+      { threshold: Array.from({ length: 11 }, (_, i) => i * 0.1) }
     );
-  
+
     observerRefs.current.forEach((el) => {
       if (el) observer.current?.observe(el);
     });
-  
+
     return () => observer.current?.disconnect();
   }, [onEnterSection, tabs]);
-  ;
-
   const getDownloadLink = () => {
     return downloadLinks.designProposal[lang];
   };
@@ -178,44 +176,43 @@ const DesignMobile: React.FC<DesignMobileBlockProps> = ({
         <Title>{title}</Title>
       </TitleWrapper>
       {slides.map((slide, i) => (
-  <React.Fragment key={i}>
-    <Row>
-      <Tabs>
-        <Tab>
-          {tabs[i]} <TabNumber>{tabNumbers[i]}</TabNumber>
-        </Tab>
-      </Tabs>
-    </Row>
-    <div
-      ref={(el) => {
-        observerRefs.current[i] = el;
-      }}
-      data-index={i}
-    >
-      <Image
-        id={`design-slide-${i}`}
-        src={convertImagePath(slide.image)}
-        alt={slide.title}
-      />
-    </div>
-  </React.Fragment>
-))}
+        <React.Fragment key={i}>
+          <Row>
+            <Tabs>
+              <Tab>
+                {tabs[i]} <TabNumber>{tabNumbers[i]}</TabNumber>
+              </Tab>
+            </Tabs>
+          </Row>
+          <div
+            ref={(el) => {
+              observerRefs.current[i] = el;
+            }}
+            data-index={i}
+          >
+            <Image
+              id={`design-slide-${i}`}
+              src={convertImagePath(slide.image)}
+              alt={slide.title}
+            />
+          </div>
+        </React.Fragment>
+      ))}
 
-<MobileDownloadButton
-  href={getDownloadLink()}
-  target="_blank"
-  rel="noopener noreferrer"
-  onClick={() => {
-    userStamp({
-      category: "버튼",
-      content: "Design",
-      memo: "디자인 제안서 다운로드",
-    });
-  }}
->
-  {downloadText} <DownloadIcon style={{ fontSize: '16px' }} />
-</MobileDownloadButton>
-
+      <MobileDownloadButton
+        href={getDownloadLink()}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={() => {
+          userStamp({
+            category: '버튼',
+            content: 'Design',
+            memo: '디자인 제안서 다운로드',
+          });
+        }}
+      >
+        {downloadText} <DownloadIcon style={{ fontSize: '16px' }} />
+      </MobileDownloadButton>
     </Wrapper>
   );
 };

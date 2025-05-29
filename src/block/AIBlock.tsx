@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import styled from 'styled-components';
-import Image from 'next/image';
 import { CustomNavigator } from '@/customComponents/CustomNavigator';
 import { Breakpoints } from '@/constants/layoutConstants';
 import { AppColors } from '@/styles/colors';
@@ -84,11 +83,7 @@ const StyledVideo = styled.video`
     top: 16%;
     left: 8%;
     width: 85%;
-<<<<<<< HEAD
-    height: 86%;
-=======
     height: 87%;
->>>>>>> f9bb75bf4c3ce83b59f777aab6e951cb23a6880c
   }
 `;
 
@@ -222,7 +217,7 @@ export const AIBlock: React.FC<AIBlockProps> = ({
         <Container>
           <LeftImageBlock>
             <PhoneFrameWrapper>
-              <Image
+              <img
                 src="/assets/phone_frame.svg"
                 alt="AI 견적 이미지"
                 width={540}

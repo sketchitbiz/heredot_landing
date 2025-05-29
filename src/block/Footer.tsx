@@ -1,7 +1,6 @@
 'use client';
 
 import styled from 'styled-components';
-import Image from 'next/image';
 import Link from 'next/link';
 import { useLang } from '@/contexts/LangContext';
 import { dictionary } from '@/lib/i18n/lang';
@@ -130,7 +129,7 @@ export const Footer: React.FC = () => {
     <FooterContainer>
       <FooterContent>
         <LogoImageWrapper>
-          <Image
+          <img
             src="/landing/Logo.png"
             alt="Heredot Logo"
             width={isMobile ? 75 : 150}

@@ -6,7 +6,6 @@ import { TextField } from '@/components/TextField';
 import { loginAdminService } from '@/lib/services/loginAdminService';
 import { useAdminAuth } from '@/contexts/AdminAuthContext';
 import CommonButton from '@/components/CommonButton';
-import Image from 'next/image';
 import { toast, ToastContainer } from 'react-toastify';
 
 export default function LoginPage() {
@@ -34,7 +33,9 @@ export default function LoginPage() {
     }
 
     if (!passwordRegex.test(password)) {
-      setPwdError('비밀번호는 영문자, 숫자, 특수문자를 포함한 8자 이상이어야 합니다.');
+      setPwdError(
+        '비밀번호는 영문자, 숫자, 특수문자를 포함한 8자 이상이어야 합니다.'
+      );
       hasError = true;
     }
 
@@ -88,8 +89,8 @@ export default function LoginPage() {
           }}
         >
           {/* 로고 이미지 */}
-          <Image src="/Logo_AIGO.svg" alt="CMS Logo" width={80} height={80} />
-  
+          <img src="/Logo_AIGO.svg" alt="CMS Logo" width={80} height={80} />
+
           {/* 설명 텍스트 */}
           <div
             style={{
@@ -102,7 +103,7 @@ export default function LoginPage() {
             AI 견적서 관리자용
           </div>
         </div>
-  
+
         {/* SIGN IN 텍스트 */}
         <div
           style={{
@@ -115,7 +116,7 @@ export default function LoginPage() {
         >
           SIGN IN
         </div>
-  
+
         {/* 아이디 입력 */}
         <TextField
           value={userId}
@@ -125,7 +126,7 @@ export default function LoginPage() {
           showSuffixIcon={false}
           errorMessage={idError || undefined}
         />
-  
+
         {/* 비밀번호 입력 */}
         <TextField
           value={password}
@@ -136,17 +137,17 @@ export default function LoginPage() {
           showSuffixIcon={true}
           errorMessage={pwdError || undefined}
         />
-  
+
         {/* 버튼과 여백 */}
         <div style={{ height: '8px' }} />
         <CommonButton
           borderRadius="0px"
           borderColor="transparent"
           text="로그인"
-          fontSize='18px'
+          fontSize="18px"
           onClick={handleLogin}
         />
-  
+
         {/* 하단 안내 문구 */}
         <div
           style={{
@@ -159,7 +160,7 @@ export default function LoginPage() {
         >
           시스템 계정이 없다면, 관리자에게 문의 바랍니다.
         </div>
-  
+
         {/* 토스트 메시지 */}
         <ToastContainer
           position="top-center"

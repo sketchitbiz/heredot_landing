@@ -48,15 +48,6 @@ const useLogin = () => {
         // 기타 필요한 정보들...
       };
 
-      // deleteYn 체크 추가
-      if (userForStore.deleteYn === 'Y') {
-        toast.error('탈퇴한 계정입니다. 관리자에게 문의하세요.');
-        localStorage.removeItem('accessToken');
-        setError(new Error('탈퇴한 계정입니다.'));
-        setIsLoggedIn(false);
-        closeLoginModal(); // 모달은 닫아줌
-        return false; // 로그인 절차 중단
-      }
 
       login(userForStore as any); // user 정보 저장 (TODO: User 타입 일치시키고 as any 제거)
       setIsLoggedIn(true);

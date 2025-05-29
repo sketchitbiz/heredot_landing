@@ -40,8 +40,7 @@ export const useUserDelete = () => {
       const responseData = response.data?.[0];
 
       if (responseData && responseData.statusCode === 200) {
-        toast.success(
-          responseData.message || '회원탈퇴가 성공적으로 처리되었습니다.'
+        toast.success('회원탈퇴가 성공적으로 처리되었습니다.'
         );
         logout(router);
         return true;
