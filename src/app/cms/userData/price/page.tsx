@@ -21,7 +21,6 @@ import { adminCreate,adminUpdate } from '@/lib/api/admin';
 import Switch from '@/components/Switch';
 import { SwitchInput } from '@/components/SwitchInput';
 import { devLog } from '@/lib/utils/devLogger';
-import PasswordPopup from './PasswordPopup';
 
 const SwitchRow = styled.div`
   display: flex;
@@ -555,11 +554,6 @@ const AdminMngPage: React.FC = () => {
   </FormContainer>
 </CmsPopup>
 
-<PasswordPopup
-  adminId={userId}
-  isOpen={isPwdChangeOpen}
-  onClose={() => setIsPwdChangeOpen(false)}
-/>
 
 
     </>

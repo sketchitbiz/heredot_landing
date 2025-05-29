@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import DownloadIcon from '@mui/icons-material/Download';
+import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import { useLang } from '@/contexts/LangContext';
 import { downloadLinks } from '@/lib/i18n/downloadLinks';
 import { AppColors } from '@/styles/colors';
@@ -29,6 +29,86 @@ interface PartnerProps {
   onEnterSection?: (index: number, tab: string) => void;
 }
 
+const arrowSlide = keyframes`
+  0% { transform: translateX(-30%); opacity: 0; }
+  30% { opacity: 1; }
+  100% { transform: translateX(100%); opacity: 0; }
+`;
+
+const moveArrow = keyframes`
+  0% { transform: translateX(0); opacity: 0.3; }
+  50% { transform: translateX(6px); opacity: 1; }
+  100% { transform: translateX(0); opacity: 0.3; }
+`;
+
+const gradientBorder = keyframes`
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+`;
+
+const typewriter = keyframes`
+  from { width: 0; }
+  to { width: 100%; }
+`;
+
+const Wrapper = styled.div`
+  min-width: ${Breakpoints.desktop}px;
+  background-color: #fff;
+
+  @media (max-width: ${Breakpoints.mobile}px) {
+    min-width: 100%;
+  }
+`;
+const DownloadLink = styled.a`
+  position: relative;
+  font-size: 14px;
+  color: #000000;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background-color: white;
+  overflow: hidden;
+  z-index: 1;
+  text-decoration: none;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    padding: 2px;
+    border-radius: 8px;
+    background: linear-gradient(90deg, #5708fb, #be83ea, #5708fb);
+    background-size: 300% 300%;
+    animation: ${gradientBorder} 2s ease infinite;
+    z-index: -1;
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    -webkit-mask-composite: destination-out;
+  }
+
+  .icon {
+    animation: ${arrowSlide} 2s ease-in-out infinite;
+  }
+
+  .text {
+    display: inline-block;
+    white-space: nowrap;
+    overflow: hidden;
+    animation: ${typewriter} 2s steps(20, end) infinite;
+  }
+`;
+
+const MobileDownloadButton = styled(DownloadLink)`
+  width: 100%;
+  border-radius: 6px;
+  padding: 10px 16px;
+`;
+
 const Title = styled.h2`
   ${AppTextStyles.headline2};
   color: ${AppColors.onSurface};
@@ -46,14 +126,13 @@ const Subtitle = styled.p`
   color: #666;
   line-height: 1.6;
   white-space: pre-line;
-  margin-bottom: 100px; /* ✅ 모바일 간격 */
+  margin-bottom: 100px;
 
   @media (max-width: ${Breakpoints.mobile}px) {
     font-size: 14px;
     white-space: normal;
   }
 `;
-
 const Tabs = styled.div`
   display: flex;
   gap: 24px;
@@ -73,18 +152,6 @@ const Tab = styled.div<{ $active: boolean }>`
 const Slide = styled.div<{ $isActive: boolean }>`
   display: ${({ $isActive }) => ($isActive ? 'block' : 'none')};
 `;
-
-const Wrapper = styled.div`
-  min-width: ${Breakpoints.desktop}px; 
-  background-color: #fff;
-
-  @media (max-width: ${Breakpoints.mobile}px) {
-    min-width: 100%;
-  }
-
-`;
-
-
 
 const TabTitle = styled.h3`
   font-size: 25px;
@@ -109,6 +176,7 @@ const TabTitle = styled.h3`
     font-size: 18px;
   }
 `;
+
 const TabDescription = styled.p`
   font-size: 16px;
   color: #666;
@@ -149,39 +217,6 @@ const RightColumn = styled.div`
   padding-bottom: 20px;
 `;
 
-const DownloadLink = styled.a`
-  font-size: 14px;
-  color: #000000;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
-  text-decoration: none;
-  animation: bounceY 1.5s ease-in-out infinite;
-
-  @keyframes bounceY {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-10px); }
-  }
-`;
-
-const MobileDownloadButton = styled.a`
-  display: inline-flex;
-  align-items: center;
-  width: 100%;
-  justify-content: center;
-  padding: 10px 16px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #000;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  text-decoration: none;
-  gap: 6px;
-  margin-top: 0px;
-`;
-
 const AnimatedDescription = styled.div`
   animation: fade 0.5s ease-in-out;
 
@@ -210,9 +245,9 @@ const logButtonClick = async (content: string, memo: string) => {
       memo,
     });
   } catch (e) {
+    // 실패 시 무시
   }
 };
-
 
 const Partner: React.FC<PartnerProps> = ({
   title1,
@@ -248,7 +283,6 @@ const Partner: React.FC<PartnerProps> = ({
   useEffect(() => {
     activeTabRef.current = activeTab;
   }, [activeTab]);
-
   useEffect(() => {
     if (isMobile || !leftRef.current || !rightRef.current || !sectionRef.current) return;
 
@@ -348,46 +382,49 @@ const Partner: React.FC<PartnerProps> = ({
       desktopView={
         <Wrapper>
           <CustomBlockLayout ref={sectionRef}>
-            <CustomBlockLayout.Left ref={leftRef}>
-              <Title>{`${title1}\n${title2}`}</Title>
-              <Subtitle>{subtitle}</Subtitle>
-            </CustomBlockLayout.Left>
-            <CustomBlockLayout.Right ref={rightRef}>
-              <Tabs>
-                {tabs.map((tab, index) => (
-                  <Tab key={index} $active={activeTab === index} onClick={() => handleTabClick(index)}>
-                    {tab}
-                  </Tab>
-                ))}
-              </Tabs>
-              <AnimatedDescription key={activeTab}>
-                <FlexRow>
-                  <LeftColumn>
-                    <TabTitle>{currentSlide.subtitle}</TabTitle>
-                    <TabDescription dangerouslySetInnerHTML={{ __html: currentSlide.description }} />
-                  </LeftColumn>
-                  <RightColumn>
-                    <DownloadLink
+  <CustomBlockLayout.Left ref={leftRef}>
+    <Title>{`${title1}\n${title2}`}</Title>
+    <Subtitle>{subtitle}</Subtitle>
+  </CustomBlockLayout.Left>
+
+  <CustomBlockLayout.Right ref={rightRef}>
+    <Tabs>
+      {tabs.map((tab, index) => (
+        <Tab key={index} $active={activeTab === index} onClick={() => handleTabClick(index)}>
+          {tab}
+        </Tab>
+      ))}
+    </Tabs>
+
+    <AnimatedDescription key={activeTab}>
+      <FlexRow>
+        <LeftColumn>
+          <TabTitle>{currentSlide.subtitle}</TabTitle>
+          <TabDescription dangerouslySetInnerHTML={{ __html: currentSlide.description }} />
+        </LeftColumn>
+        <RightColumn>
+        <DownloadLink
                       href={getDownloadLink(activeTab)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      onClick={() => logButtonClick('Partner', `다운로드: ${tabs[activeTab]}`)}
+                      onClick={() => logButtonClick('Partner', `${tabs[activeTab]} 제안서 다운로드`)}
                     >
-                      {downloadText}
-                      <DownloadIcon style={{ fontSize: '16px' }} />
+                      <span className="text">{downloadText}</span>
+                      <ArrowForwardIosIcon className="icon" style={{ fontSize: '16px' }} />
                     </DownloadLink>
-                  </RightColumn>
-                </FlexRow>
-                <TabImage src={currentSlide.image} alt={currentSlide.title} />
-              </AnimatedDescription>
-            </CustomBlockLayout.Right>
-          </CustomBlockLayout>
+        </RightColumn>
+      </FlexRow>
+      <TabImage src={currentSlide.image} alt={currentSlide.title} />
+    </AnimatedDescription>
+  </CustomBlockLayout.Right>
+</CustomBlockLayout>
+
         </Wrapper>
       }
       mobileView={
         <MobileContainer>
-          <Title style={{ whiteSpace: 'pre-line' }}>{`${title1}\n${title2}`}</Title>
-          <Subtitle>{subtitle}</Subtitle>
+          <h2 style={{ whiteSpace: 'pre-line' }}>{`${title1}\n${title2}`}</h2>
+          <p>{subtitle}</p>
           {slides.map((slide, index) => (
             <SlideWrapper
               key={index}
@@ -401,10 +438,10 @@ const Partner: React.FC<PartnerProps> = ({
                 href={getDownloadLink(index)}
                 target="_blank"
                 rel="noopener noreferrer"
-                onClick={() => logButtonClick('Partner', `다운로드: ${tabs[index]}`)}
+                onClick={() => logButtonClick('Partner', `${tabs[index]} 제안서 다운로드`)}
               >
-                {downloadText}
-                <DownloadIcon style={{ fontSize: '16px' }} />
+                <span className="text">{downloadText}</span>
+                <ArrowForwardIosIcon className="icon" style={{ fontSize: '16px' }} />
               </MobileDownloadButton>
               <TabImage src={slide.image} alt={slide.title} />
             </SlideWrapper>

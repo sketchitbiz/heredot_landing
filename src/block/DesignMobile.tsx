@@ -6,6 +6,7 @@ import DownloadIcon from '@mui/icons-material/Download';
 import { useLang } from '@/contexts/LangContext';
 import { downloadLinks } from '@/lib/i18n/downloadLinks';
 import { userStamp } from '@/lib/api/user/api';
+import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 
 interface DesignMobileBlockProps {
   title: string;
@@ -21,16 +22,35 @@ const bounce = keyframes`
   50% { transform: translateY(-10px); }
 `;
 
+const arrowSlide = keyframes`
+  0% { transform: translateX(-30%); opacity: 0; }
+  30% { opacity: 1; }
+  100% { transform: translateX(100%); opacity: 0; }
+`;
+
+const gradientBorder = keyframes`
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+`;
+
+const typewriter = keyframes`
+  from { width: 0; }
+  to { width: 100%; }
+`;
+
 const Wrapper = styled.section`
+  position: relative;
   width: 100%;
   padding: 24px;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   background-color: #000;
-  position: relative;
-  margin-bottom: 20px;
 `;
+
+
+
 
 const TitleWrapper = styled.div`
   position: sticky;
@@ -56,23 +76,71 @@ const Row = styled.div`
   width: 100%;
   margin-bottom: 16px;
 `;
-
-const MobileDownloadButton = styled.a`
-  display: inline-flex;
-  position: sticky;
-  align-items: center;
-  width: 100%;
-  justify-content: center;
-  padding: 10px 16px;
+const DownloadLink = styled.a`
+  position: fixed;
   font-size: 14px;
-  font-weight: 600;
   color: #fff;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  text-decoration: none;
+  cursor: pointer;
+  display: flex;
+  align-items: end;
+  justify-content: flex-end;
   gap: 6px;
-  margin-top: 0px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  overflow: hidden;
+  z-index: 1;
+  text-decoration: none;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    padding: 2px;
+    border-radius: 8px;
+    background: linear-gradient(90deg, #5708fb, #be83ea, #5708fb);
+    background-size: 300% 300%;
+    animation: ${gradientBorder} 2s ease infinite;
+    z-index: -1;
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    -webkit-mask-composite: destination-out;
+  }
+
+  .icon {
+    animation: ${arrowSlide} 2s ease-in-out infinite;
+  }
+
+  .text {
+    display: inline-block;
+    white-space: nowrap;
+    overflow: hidden;
+    animation: ${typewriter} 2s steps(20, end) infinite;
+  }
 `;
+
+const MobileDownloadButton = styled(DownloadLink)`
+  width: 100%;
+  border-radius: 6px;
+  padding: 10px 16px;
+`;
+
+const FixedDownloadButton = styled(MobileDownloadButton)`
+  position: fixed;
+  height: 50px; // 버튼 높이
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 48px); // 좌우 패딩 24px씩 고려
+  /* max-width: 600px; */
+  z-index: 999;
+`;
+
+const AbsoluteBottomButton = styled(MobileDownloadButton)`
+  position: relative;
+  width: calc(100%); // 좌우 패딩 고려
+  z-index: 10;
+`;
+
+
 
 const Tabs = styled.div`
   display: flex;
@@ -94,16 +162,6 @@ const TabNumber = styled.span`
   opacity: 0.7;
 `;
 
-const DownloadLink = styled.a`
-  font-size: 14px;
-  color: #ffffff;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  text-decoration: none;
-  animation: ${bounce} 1.5s ease-in-out infinite;
-`;
 
 const Image = styled.img`
   width: 100%;
@@ -200,8 +258,7 @@ const DesignMobile: React.FC<DesignMobileBlockProps> = ({
     </div>
   </React.Fragment>
 ))}
-
-<MobileDownloadButton
+<AbsoluteBottomButton
   href={getDownloadLink()}
   target="_blank"
   rel="noopener noreferrer"
@@ -213,8 +270,10 @@ const DesignMobile: React.FC<DesignMobileBlockProps> = ({
     });
   }}
 >
-  {downloadText} <DownloadIcon style={{ fontSize: '16px' }} />
-</MobileDownloadButton>
+  <span className="text">{downloadText}</span>
+  <ArrowForwardIosIcon className="icon" style={{ fontSize: '16px' }} />
+</AbsoluteBottomButton>
+
 
     </Wrapper>
   );

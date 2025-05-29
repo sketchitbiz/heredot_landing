@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import styled from 'styled-components';
+import styled, { keyframes }  from 'styled-components';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import DownloadIcon from '@mui/icons-material/Download';
@@ -10,6 +10,7 @@ import { downloadLinks } from '@/lib/i18n/downloadLinks';
 import CustomBlockLayout from '@/customComponents/CustomBlockLayout';
 import { Breakpoints } from '@/constants/layoutConstants';
 import { userStamp } from '@/lib/api/user/api';
+import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 
 interface ConsultingProps {
   title: string;
@@ -79,6 +80,22 @@ const RightContainer = styled.div`
   position: relative;
 `;
 
+const arrowSlide = keyframes`
+  0% { transform: translateX(-30%); opacity: 0; }
+  30% { opacity: 1; }
+  100% { transform: translateX(100%); opacity: 0; }
+`;
+const typewriter = keyframes`
+  from { width: 0; }
+  to { width: 100%; }
+`;
+
+const gradientBorder = keyframes`
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+`;
+
 const Wrapper = styled.div`
   min-width: ${Breakpoints.desktop}px; 
   background-color: #fff;
@@ -108,21 +125,45 @@ const Box = styled.div`
 `;
 
 const DownloadLink = styled.a`
+  position: relative;
   font-size: 14px;
   color: #000000;
-  margin-top: 8px;
   cursor: pointer;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background-color: white;
+  overflow: hidden;
+  z-index: 1;
   text-decoration: none;
 
-  animation: bounceY 1.5s ease-in-out infinite;
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    padding: 2px;
+    border-radius: 8px;
+    background: linear-gradient(90deg, #5708fb, #be83ea, #5708fb);
+    background-size: 300% 300%;
+    animation: ${gradientBorder} 2s ease infinite;
+    z-index: -1;
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    -webkit-mask-composite: destination-out;
+  }
 
-  @keyframes bounceY {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-10px); }
+  .icon {
+    animation: ${arrowSlide} 2s ease-in-out infinite;
+  }
+
+  .text {
+    display: inline-block;
+    white-space: nowrap;
+    overflow: hidden;
+    animation: ${typewriter} 2s steps(20, end) infinite;
   }
 `;
 
@@ -252,7 +293,7 @@ const ConsultingWeb: React.FC<ConsultingProps> = ({
       const handleDownloadClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
         e.preventDefault();
         const link = downloadLinks.functionalSpecification[lang];
-        logButtonClick('다운로드', '기능명세');
+        logButtonClick('Consulting', '기능명세 다운로드');
         window.open(link, '_blank');
       };
 
@@ -455,12 +496,12 @@ const ConsultingWeb: React.FC<ConsultingProps> = ({
             ))}
           </DescriptionContainer>
 
-          <DownloadContainer>
+          {/* <DownloadContainer> */}
             <DownloadLink href="#" onClick={handleDownloadClick}>
-              {downloadText}
-              <DownloadIcon style={{ fontSize: '16px' }} />
+            <span className="text">{downloadText}</span>
+            <ArrowForwardIosIcon className="icon" style={{ fontSize: '16px' }} />
             </DownloadLink>
-          </DownloadContainer>
+          {/* </DownloadContainer> */}
         </CustomBlockLayout.Left>
 
         <CustomBlockLayout.Right>

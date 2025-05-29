@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 6,
+            "activePatchIndex": 7,
             "patches": [
                 {
                     "date": 1747735056852,
@@ -32,6 +32,10 @@
                 {
                     "date": 1747898897317,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -27,8 +27,14 @@\n     emailYn?: 'Y' | 'N';\n     smsYn?: 'Y' | 'N';\n   };\n \n+  export type AdminPasswordUpdateParams = {\n+    targetAdminId: string; // 로그인 ID\n+    password: string;\n+  };\n+\n+\n   export type TermGetListParams = {\n     index: number;\n     termsType: string;\n     content: string;\n"
+                },
+                {
+                    "date": 1748418619669,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -17,8 +17,10 @@\n     emailYn: string;\n     smsYn: string;\n   };\n \n+  export type UnitPriceGetListParams = Record<string, never>;\n+\n   export type AdminUpdateParams = {\n     targetAdminId: string; // 로그인 ID\n     name?: string;\n     cellphone?: string;\n"
                 }
             ],
             "date": 1747735056852,

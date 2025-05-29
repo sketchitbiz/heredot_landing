@@ -150,7 +150,8 @@ export const PopupContainer: React.FC<PopupContainerProps> = ({
     </Overlay>
   );
 
-  return isMobile ? <PopupPortal>{popupJSX}</PopupPortal> : popupJSX;
+return <PopupPortal>{popupJSX}</PopupPortal>;
+
 };
 
 // ==========================

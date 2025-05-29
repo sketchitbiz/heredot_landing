@@ -8,6 +8,9 @@ import { Breakpoints } from '@/constants/layoutConstants';
 import { AppColors } from '@/styles/colors';
 import CommonButton from '@/components/CommonButton';
 import { userStamp } from '@/lib/api/user/api';
+import Gap from '@/components/Gap';
+import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
+
 
 interface AIBlockProps {
   topLabel: string;
@@ -67,6 +70,7 @@ const PhoneFrameWrapper = styled.div`
     width: 100%;
     max-width: 650px;
     height: 720px;
+    overflow: hidden;
   }
 `;
 
@@ -182,6 +186,28 @@ export const AIBlock: React.FC<AIBlockProps> = ({
   onBottomArrowClick,
 }) => {
   const [isMobile, setIsMobile] = useState(false);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+const [buttonTransform, setButtonTransform] = useState({ x: 0, y: 0 });
+
+const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+  const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
+  const offsetX = ((e.clientX - left) / width - 0.5) * 2; // -1 ~ 1
+  const offsetY = ((e.clientY - top) / height - 0.5) * 2;
+  setMousePos({ x: offsetX, y: offsetY });
+};
+
+useEffect(() => {
+  const frame = requestAnimationFrame(() => {
+    const damping = 20; // 이동 강도
+    setButtonTransform({
+      x: mousePos.x * damping,
+      y: mousePos.y * damping,
+    });
+  });
+
+  return () => cancelAnimationFrame(frame);
+}, [mousePos]);
+
 
   useEffect(() => {
     const checkMobile = () => {
@@ -236,16 +262,22 @@ export const AIBlock: React.FC<AIBlockProps> = ({
           </LeftImageBlock>
 
           <RightTextBlock>
-            <CommonButton
-              text={buttonText}
-              width={isMobile ? '200px' : '300px'}
-              fontSize={isMobile ? '16px' : '30px'}
-              backgroundColor={AppColors.background}
-              borderRadius="75px"
-              onClick={handleClick}
-            />
+       
             <DescriptionText>{buttonHeader}</DescriptionText>
             <DescriptionText>{buttonDescription}</DescriptionText>
+            <div style={{ height: isMobile ? '40px' : '80px' }} /> {/* 간격 추가 */}
+            <CommonButton
+              text={buttonText}
+              isSkeletonText={true}
+              width={isMobile ? '240px' : '360px'}
+              fontSize={isMobile ? '16px' : '30px'}
+              backgroundColor={AppColors.surface}
+              borderRadius="75px"
+              height={isMobile ? '50px' : '70px'}
+              onClick={handleClick}
+               $iconPosition='right'
+              icon={<ArrowForwardIosIcon style={{ fontSize: '16px', color: AppColors.primary }} />} 
+            />
           </RightTextBlock>
         </Container>
       </SectionWrapper>

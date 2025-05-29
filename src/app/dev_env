@@ -1,0 +1,8 @@
+ApiHost_Option = Dev
+
+Dev = http://121.157.229.40:8501
+
+
+Pro = https://biz.xn--2e0bw7u.com
+
+localhost = http://localhost
