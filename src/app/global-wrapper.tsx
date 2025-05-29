@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { DeviceProvider } from '@/contexts/DeviceContext';
 import { LangProvider } from '@/contexts/LangContext';
@@ -32,18 +32,20 @@ export function GlobalWrapper({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <GoogleOAuthProvider
-      clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ''}
-    >
-      <PageLoaderProvider>
-        <LangProvider>
-          <DeviceProvider>
-            <GlobalStyle />
-            {children}
-          </DeviceProvider>
-        </LangProvider>
-      </PageLoaderProvider>
-    </GoogleOAuthProvider>
+    <Suspense fallback={null}>
+      <GoogleOAuthProvider
+        clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ''}
+      >
+        <PageLoaderProvider>
+          <LangProvider>
+            <DeviceProvider>
+              <GlobalStyle />
+              {children}
+            </DeviceProvider>
+          </LangProvider>
+        </PageLoaderProvider>
+      </GoogleOAuthProvider>
+    </Suspense>
   );
 }
 

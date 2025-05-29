@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef,useEffect } from 'react';
+import React, { useRef, useEffect } from 'react';
 import styled from 'styled-components';
 import { AppColors } from '@/styles/colors';
 import { customScrollbar } from '@/styles/commonStyles';
@@ -138,6 +138,7 @@ interface ChatContentProps {
   handleDragOver: (e: React.DragEvent<HTMLElement>) => void;
   handleDragLeave: (e: React.DragEvent<HTMLElement>) => void;
   lang: 'ko' | 'en';
+  onAddMessage: (message: Message) => void;
 }
 
 // Helper function to validate and cast gridColumns
@@ -168,6 +169,7 @@ const ChatContent: React.FC<ChatContentProps> = ({
   handleDragOver,
   handleDragLeave,
   lang,
+  onAddMessage,
 }) => {
   const chatEndRef = useRef<HTMLDivElement>(null);
   const t = aiChatDictionary[lang];
@@ -188,9 +190,12 @@ const ChatContent: React.FC<ChatContentProps> = ({
       <ChatMessagesContainer>
         {isFreeFormMode && (
           <FlexContainer $isNarrowScreen={isNarrowScreen}>
-            <FreeFormGuide isNarrowScreen={isNarrowScreen} lang={lang} 
-  handleGeminiSubmit={
-    handleGeminiSubmit} />
+            <FreeFormGuide
+              isNarrowScreen={isNarrowScreen}
+              lang={lang}
+              handleGeminiSubmit={handleGeminiSubmit}
+              onAddMessage={onAddMessage} 
+            />
           </FlexContainer>
         )}
 

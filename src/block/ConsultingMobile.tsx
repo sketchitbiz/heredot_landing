@@ -83,7 +83,6 @@ interface ConsultingProps {
   onEnterSection?: () => void; // ✅ 추가
 }
 
-
 const logButtonClick = async (content: string, memo: string) => {
   try {
     await userStamp({
@@ -91,8 +90,7 @@ const logButtonClick = async (content: string, memo: string) => {
       content,
       memo,
     });
-  } catch (e) {
-  }
+  } catch (e) {}
 };
 
 const highlightKeywordsList = [
@@ -111,7 +109,7 @@ const highlightKeywordsList = [
   '법적기준 개발 가이드',
   'Legal standards for compliant development',
   '준법 RISK 최소화',
-  'Minimization of compliance risk'
+  'Minimization of compliance risk',
 ];
 
 function highlightKeywords(text: string): React.ReactNode {
@@ -120,7 +118,9 @@ function highlightKeywords(text: string): React.ReactNode {
 
   // 2. 강조 키워드 매칭 패턴
   const pattern = new RegExp(
-    `(${highlightKeywordsList.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`,
+    `(${highlightKeywordsList
+      .map((k) => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+      .join('|')})`,
     'g'
   );
 
@@ -190,8 +190,9 @@ const CardTitle = styled.h3`
 const ItemRow = styled.div<{ $isLast?: boolean }>`
   display: flex;
   flex-direction: column;
-  background-color: ${({ $isLast }) => ($isLast ? 'rgba(227, 240, 255, 0.8)' : '#FAFAFA')};
-  border: 1px solid #EFEFEF;
+  background-color: ${({ $isLast }) =>
+    $isLast ? 'rgba(227, 240, 255, 0.8)' : '#FAFAFA'};
+  border: 1px solid #efefef;
   border-radius: 5px;
   padding: 12px;
 `;
@@ -199,7 +200,7 @@ const ItemRow = styled.div<{ $isLast?: boolean }>`
 const Label = styled.div`
   font-size: 14px;
   font-weight: 700;
-  color: #4F555A;
+  color: #4f555a;
   margin-bottom: 4px;
 `;
 
@@ -212,7 +213,7 @@ const Content = styled.div`
 const LineConnector = styled.div<{ $hasArrow?: boolean }>`
   width: 1px;
   height: ${({ $hasArrow }) => ($hasArrow ? '36px' : '28px')};
-  background-color: #C7CDD3;
+  background-color: #c7cdd3;
   margin: 0 auto;
   position: relative;
 
@@ -233,7 +234,6 @@ const LineConnector = styled.div<{ $hasArrow?: boolean }>`
   `}
 `;
 
-
 const ConsultingMobile: React.FC<ConsultingProps> = ({
   title,
   descriptions,
@@ -242,28 +242,27 @@ const ConsultingMobile: React.FC<ConsultingProps> = ({
   downloadText,
   onEnterSection,
 }) => {
+  const { lang } = useLang();
+  const containerRef = useRef<HTMLDivElement>(null);
 
-    const { lang } = useLang();
-    const containerRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el || !onEnterSection) return;
 
-    useEffect(() => {
-      const el = containerRef.current;
-      if (!el || !onEnterSection) return;
-  
-      const observer = new IntersectionObserver(
-        ([entry]) => {
-          if (entry.isIntersecting) {
-            onEnterSection();
-          }
-        },
-        {
-          threshold: 0.3, // 30% 이상 보이면 감지
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          onEnterSection();
         }
-      );
-  
-      observer.observe(el);
-      return () => observer.unobserve(el);
-    }, [onEnterSection]);
+      },
+      {
+        threshold: 0.3, // 30% 이상 보이면 감지
+      }
+    );
+
+    observer.observe(el);
+    return () => observer.unobserve(el);
+  }, [onEnterSection]);
 
     const handleDownloadClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
       e.preventDefault();
@@ -305,7 +304,6 @@ const ConsultingMobile: React.FC<ConsultingProps> = ({
             </React.Fragment>
           ))}
         </Card>
-        
       ))}
  <MobileDownloadButton href="#" onClick={handleDownloadClick}>
   <span className="text">{downloadText}</span>
