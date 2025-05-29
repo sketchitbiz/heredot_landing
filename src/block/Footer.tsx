@@ -129,13 +129,13 @@ export const Footer: React.FC = () => {
     <FooterContainer>
       <FooterContent>
         <LogoImageWrapper>
-          <img
-            src="/landing/Logo.png"
-            alt="Heredot Logo"
-            width={isMobile ? 75 : 150}
-            height={isMobile ? 30 : 60}
-            priority
-          />
+        <img
+  src="/landing/Logo.png"
+  alt="Heredot Logo"
+  width={isMobile ? 75 : 150}
+  height={isMobile ? 30 : 60}
+/>
+
         </LogoImageWrapper>
         <Separator />
         <InfoSectionWrapper>
