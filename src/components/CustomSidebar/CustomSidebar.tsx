@@ -4,6 +4,7 @@ import React from 'react';
 import styled, { css } from 'styled-components';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 
 export interface MenuItemConfig {
   icon: React.ReactElement;
@@ -43,7 +44,7 @@ const CustomSidebar: React.FC<CustomSidebarProps> = ({
   const handleMenuClick = (path: string, hasSubMenu: boolean) => {
     if (hasSubMenu) {
       setExpandedMenu(expandedMenu === path ? null : path);
-      router.push(path); // ⬅ 이동 추가: 리다이렉트 트리거
+      router.push(path);
     }
   };
 
@@ -82,17 +83,27 @@ const CustomSidebar: React.FC<CustomSidebarProps> = ({
                   $active={shouldBeActive}
                   onClick={() => handleMenuClick(item.path, true)}
                 >
-                  <Center>
-                    <IconWrapper $isCollapsed={isCollapsed}>
-                      {item.icon}
-                    </IconWrapper>
-                    {!isCollapsed && item.title}
-                  </Center>
+                  <Center $isCollapsed={isCollapsed}>
+  <IconWrapper $isCollapsed={isCollapsed}>
+    {item.icon}
+  </IconWrapper>
+
+  {!isCollapsed && (
+    <RightContent>
+      <span>{item.title}</span>
+      <ArrowWrapper>
+        {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+      </ArrowWrapper>
+    </RightContent>
+  )}
+</Center>
+
+
                 </MenuItem>
               ) : (
                 <Link href={item.path} passHref legacyBehavior>
                   <MenuItem as="a" $isCollapsed={isCollapsed} $active={active}>
-                    <Center>
+                    <Center $isCollapsed={isCollapsed}>
                       <IconWrapper $isCollapsed={isCollapsed}>
                         {item.icon}
                       </IconWrapper>
@@ -169,6 +180,19 @@ const ToggleButton = styled.button<{ $isCollapsed: boolean }>`
   }
 `;
 
+const RightContent = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex: 1;
+  gap: 8px;
+  padding-right: 20px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+`;
+
+
 const ToggleIconImg = styled.img<{ $rotate?: boolean }>`
   display: block;
   transform: ${({ $rotate }) => ($rotate ? 'rotate(180deg)' : 'rotate(0deg)')};
@@ -220,31 +244,27 @@ const MenuItem = styled.li<{ $active?: boolean; $isCollapsed: boolean }>`
     background-color: #3a3f4e;
     color: white;
   }
-
-  ${({ $active, $isCollapsed }) =>
-    $active &&
-    !$isCollapsed &&
-    css`
-      &::after {
-        content: '';
-        position: absolute;
-        right: 20px;
-        top: 50%;
-        transform: translateY(-50%);
-        width: 8px;
-        height: 8px;
-        background-color: #4eff63;
-        border-radius: 50%;
-      }
-    `}
 `;
 
-const Center = styled.div`
+const Center = styled.div<{ $isCollapsed: boolean }>`
   display: flex;
   align-items: center;
-  white-space: nowrap;
+  width: 100%;
   overflow: hidden;
-  text-overflow: ellipsis;
+  ${({ $isCollapsed }) =>
+    $isCollapsed
+      ? css`
+          justify-content: center;
+        `
+      : css`
+          justify-content: flex-start;
+        `}
+`;
+
+const ArrowWrapper = styled.span`
+  margin-left: 8px;
+  display: flex;
+  align-items: center;
 `;
 
 const IconWrapper = styled.span<{ $isCollapsed?: boolean }>`
@@ -292,7 +312,6 @@ const SubMenuList = styled.ul`
   list-style: none;
   padding: 0;
   margin: 0;
-  /* padding-left: 20px; */
 `;
 
 const SubMenuItem = styled.li<{ $active?: boolean }>`

@@ -22,6 +22,7 @@ export async function loginAdminService({
   try {
     const response = await adminLogin({ userId: id, password });
     const message = response?.[0]?.message ?? 'unknown';
+    devWarn('로그인 응답:', response);
     const status = getLoginStatus(message);
 
     handleLoginStatus({

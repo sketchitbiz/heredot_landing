@@ -1,65 +1,33 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect } from "react";
-import styled from "styled-components";
-import { AdminAuthProvider, useAdminAuth } from "@/contexts/AdminAuthContext";
-import { usePathname, useRouter } from "next/navigation";
-
-import CustomSidebar, { MenuItemConfig } from "@/components/CustomSidebar/CustomSidebar";
-import CustomSidebarHeader from "@/components/CustomSidebar/CustomSidebarHeader";
-
-// 아이콘 임포트
-import DashboardIcon from '@mui/icons-material/Dashboard';
-import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
-import PeopleIcon from '@mui/icons-material/People';
-import DatasetIcon from '@mui/icons-material/Dataset';
-import SettingsIcon from '@mui/icons-material/Settings';
-import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
-import DescriptionIcon from '@mui/icons-material/Description';
-import LogoutIcon from '@mui/icons-material/Logout';
-import AssessmentIcon from '@mui/icons-material/Assessment';
-import TextFieldsIcon from '@mui/icons-material/TextFields';
-import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
-import ChatIcon from '@mui/icons-material/Chat';
-import BusinessIcon from '@mui/icons-material/Business';
-import TuneIcon from '@mui/icons-material/Tune';
-import DownloadIcon from '@mui/icons-material/Download';
-import ContactSupportIcon from '@mui/icons-material/ContactSupport';
-import StorageIcon from '@mui/icons-material/Storage';
-
-
-
-
-import { THEME_COLORS } from "@/styles/theme_colors";
+import React, { useState, useEffect, useMemo } from 'react';
+import styled from 'styled-components';
+import { usePathname, useRouter } from 'next/navigation';
+import { AdminAuthProvider, useAdminAuth } from '@/contexts/AdminAuthContext';
+import { useDevice } from '@/contexts/DeviceContext';
+import ResponsiveSidebar from '@/components/CustomSidebar/ResponsiveSidebar';
+import CustomSidebarHeader from '@/components/CustomSidebar/CustomSidebarHeader';
+import { THEME_COLORS } from '@/styles/theme_colors';
 import { toast, ToastContainer } from 'react-toastify';
-
-
-
-// 메인 콘텐츠 영역 스타일
-const MainContent = styled.div<{ $isSidebarCollapsed: boolean }>`
-  margin-left: ${({ $isSidebarCollapsed }) => ($isSidebarCollapsed ? "80px" : "250px")};
-  /* padding: 20px 40px; */
-  transition: margin-left 0.3s ease;
-  height: 100vh;
-  overflow-x: auto; // ✅ 가로 스크롤
-  overflow-y: auto;
-  min-width: 1200px; // ✅ 최소 크기
-  box-sizing: border-box;
-`;
-
-
-
-const OuterLayoutContainer = styled.div<{ $themeMode: "light" | "dark" }>`
-  width: 100vw;
-  min-width: 1200px;
-  height: 100vh;
-  overflow-x: auto; // 좌우 스크롤 가능
-  background-color: ${({ $themeMode }) =>
-    $themeMode === "light"
-      ? THEME_COLORS.light.background
-      : THEME_COLORS.dark.background};
-`;
-
+import {
+  Dashboard as DashboardIcon,
+  AdminPanelSettings as AdminPanelSettingsIcon,
+  People as PeopleIcon,
+  Dataset as DatasetIcon,
+  Settings as SettingsIcon,
+  Description as DescriptionIcon,
+  Logout as LogoutIcon,
+  Assessment as AssessmentIcon,
+  TextFields as TextFieldsIcon,
+  QuestionAnswer as QuestionAnswerIcon,
+  Chat as ChatIcon,
+  Business as BusinessIcon,
+  Tune as TuneIcon,
+  Download as DownloadIcon,
+  ContactSupport as ContactSupportIcon,
+  Storage as StorageIcon,
+} from '@mui/icons-material';
+import type { MenuItemConfig } from '@/components/CustomSidebar/CustomSidebar';
 
 export default function CmsLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -70,103 +38,137 @@ export default function CmsLayout({ children }: { children: React.ReactNode }) {
 }
 
 function ProtectedCmsLayout({ children }: { children: React.ReactNode }) {
-  const { isLoggedIn, ready } = useAdminAuth();
+  const { isLoggedIn, ready, logout } = useAdminAuth();
   const pathname = usePathname();
   const router = useRouter();
-  const isLoginPage = pathname === "/cms/login";
-  const { logout } = useAdminAuth();
-
+  const device = useDevice();
+  const isLoginPage = pathname === '/cms/login';
 
   useEffect(() => {
     if (ready && !isLoggedIn && !isLoginPage) {
-      router.replace("/cms/login");
+      router.replace('/cms/login');
     }
   }, [ready, isLoggedIn, isLoginPage]);
 
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+
   const toggleSidebar = () => setIsCollapsed((prev) => !prev);
 
   const handleLogout = () => {
-    logout();               // 상태 및 로컬스토리지 정리
-    router.replace('/cms/login'); // 로그인 페이지로 리디렉션
-    toast.success('로그아웃 되었습니다'); 
+    logout();
+    router.replace('/cms/login');
+    toast.success('로그아웃 되었습니다');
   };
 
+  const effectiveSidebarExpanded = useMemo(
+    () => (device === 'mobile' ? isMobileSidebarOpen : !isCollapsed),
+    [device, isMobileSidebarOpen, isCollapsed]
+  );
+
   const menuItems: MenuItemConfig[] = [
-    { icon: <DashboardIcon />, title: "대시보드", path: "/cms" },
-    { icon: <AdminPanelSettingsIcon />, title: "관리자회원관리", path: "/cms/adminMng" },
-    { icon: <PeopleIcon />, title: "고객관리", path: "/cms/userMng" },
+    { icon: <DashboardIcon />, title: '대시보드', path: '/cms' },
+    { icon: <AdminPanelSettingsIcon />, title: '관리자회원관리', path: '/cms/adminMng' },
+    { icon: <PeopleIcon />, title: '고객관리', path: '/cms/userMng' },
     {
       icon: <DatasetIcon />,
-      title: "AI 데이터 관리",
-      path: "/cms/aiData",
+      title: 'AI 데이터 관리',
+      path: '/cms/aiData',
       subMenu: [
-        { icon: <AssessmentIcon />, title: "기초조사 관리", path: "/cms/aiData/survey" },
-        { icon: <TextFieldsIcon />, title: "AI 프롬프트 관리", path: "/cms/aiData/prompt" },
-        { icon: <QuestionAnswerIcon />, title: "AI 동문서답 관리", path: "/cms/aiData/wrongAnswer" },
-        { icon: <ChatIcon />, title: "AI 대화이력 관리", path: "/cms/aiData/conversationHistory" },
+        { icon: <AssessmentIcon />, title: '기초조사 관리', path: '/cms/aiData/survey' },
+        { icon: <TextFieldsIcon />, title: 'AI 프롬프트 관리', path: '/cms/aiData/prompt' },
+        { icon: <QuestionAnswerIcon />, title: 'AI 동문서답 관리', path: '/cms/aiData/wrongAnswer' },
+        { icon: <ChatIcon />, title: 'AI 대화이력 관리', path: '/cms/aiData/conversationHistory' },
       ],
     },
     {
       icon: <SettingsIcon />,
-      title: "AI 설정",
-      path: "/cms/aiSetting",
+      title: 'AI 설정',
+      path: '/cms/aiSetting',
       subMenu: [
-        { icon: <BusinessIcon />, title: "회사정보 관리", path: "/cms/aiSetting/companyInfo" },
-        { icon: <TuneIcon />, title: "AI 설정관리", path: "/cms/aiSetting/mng" },
+        { icon: <BusinessIcon />, title: '회사정보 관리', path: '/cms/aiSetting/companyInfo' },
+        { icon: <TuneIcon />, title: 'AI 설정관리', path: '/cms/aiSetting/mng' },
       ],
     },
     {
       icon: <StorageIcon />,
-      title: "고객 데이터 관리",
-      path: "/cms/userData",
+      title: '고객 데이터 관리',
+      path: '/cms/userData',
       subMenu: [
-        { icon: <DownloadIcon />, title: "견적 다운로드 현황", path: "/cms/userData/proposal" },
-        { icon: <ContactSupportIcon />, title: "견적 문의 관리", path: "/cms/userData/inquiry" },
+        { icon: <DownloadIcon />, title: '견적 다운로드 현황', path: '/cms/userData/proposal' },
+        { icon: <ContactSupportIcon />, title: '견적 문의 관리', path: '/cms/userData/inquiry' },
       ],
     },
-    { icon: <DescriptionIcon />, title: "이용 약관 관리", path: "/cms/terms" },
+    { icon: <DescriptionIcon />, title: '이용 약관 관리', path: '/cms/terms' },
   ];
-  
 
-  // 로그인 준비 전이거나, 로그인 안 된 상태인데 로그인 페이지가 아닌 경우 → 아무 것도 렌더링하지 않음
   if (!ready || (!isLoggedIn && !isLoginPage)) return null;
-
-
-  // 로그인 페이지는 레이아웃 없이 children만 반환
   if (isLoginPage) return <>{children}</>;
 
   return (
     <OuterLayoutContainer $themeMode="light">
-      <ToastContainer
-        position="top-center"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={true}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-      />
-      <CustomSidebar
+      <ToastContainer position="top-center" autoClose={3000} />
+      <ResponsiveSidebar
         isCollapsed={isCollapsed}
         toggleSidebar={toggleSidebar}
         menuItems={menuItems}
         footerIcon={<LogoutIcon />}
         onFooterClick={handleLogout}
+        onMobileSidebarOpenChange={setIsMobileSidebarOpen}
       >
         <CustomSidebarHeader
           isCollapsed={isCollapsed}
-          name="테스트 사용자"
           iconSrc="/favicon.ico"
-          showTime={false} // 시간 표시
+          showTime={false}
         />
-      </CustomSidebar>
-  
-      <MainContent $isSidebarCollapsed={isCollapsed}>{children}</MainContent>
+      </ResponsiveSidebar>
+      <MainContent
+  $device={device}
+  $isSidebarExpanded={effectiveSidebarExpanded}
+>
+  {children}
+</MainContent>
     </OuterLayoutContainer>
-    
   );
-  
 }
+
+// --- Styled Components ---
+
+const OuterLayoutContainer = styled.div<{ $themeMode: 'light' | 'dark' }>`
+  width: 100vw;
+  min-width: 1200px;
+  height: 100vh;
+  overflow-x: auto;
+  background-color: ${({ $themeMode }) =>
+    $themeMode === 'light'
+      ? THEME_COLORS.light.background
+      : THEME_COLORS.dark.background};
+`;
+
+const MainContent = styled.div<{
+  $device: 'mobile' | 'tablet' | 'desktop';
+  $isSidebarExpanded: boolean;
+}>`
+  transition: all 0.3s ease;
+  height: 100vh;
+  overflow-x: auto;
+  overflow-y: auto;
+  min-width: 1200px;
+  box-sizing: border-box;
+
+  ${({ $device, $isSidebarExpanded }) => {
+    if ($device === 'mobile') {
+      return `
+        margin-top: 56px;
+        margin-left: ${$isSidebarExpanded ? '250px' : '0'};
+      `;
+    } else {
+      return `
+        margin-top: 0;
+        margin-left: ${$isSidebarExpanded ? '250px' : '80px'};
+      `;
+    }
+  }}
+`;
+
+
