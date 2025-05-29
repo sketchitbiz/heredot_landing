@@ -325,7 +325,6 @@ export default function AiPageContent() {
     null
   );
 
-  
   const isLoginModalOpen = authStore(
     (state: AuthState) => state.isLoginModalOpen
   );
@@ -1454,7 +1453,7 @@ export default function AiPageContent() {
         <AiProgressBar steps={progressSteps} currentStep={currentStep} />
       )}
 
-      <SocialLoginModal isOpen={isLoginModalOpen} onClose={closeLoginModal} />
+      <SocialLoginModal $isOpen={isLoginModalOpen} onClose={closeLoginModal} />
       <AdditionalInfoModal />
     </Container>
   );

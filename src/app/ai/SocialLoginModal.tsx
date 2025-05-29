@@ -15,14 +15,14 @@ import { ChatDictionary } from './components/StepData';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 
-const ModalOverlay = styled.div<{ isOpen: boolean }>`
+const ModalOverlay = styled.div<{ $isOpen: boolean }>`
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
   background-color: rgba(0, 0, 0, 0.5);
-  display: ${(props) => (props.isOpen ? 'flex' : 'none')};
+  display: ${(props) => (props.$isOpen ? 'flex' : 'none')};
   align-items: center;
   justify-content: center;
   z-index: 1000;
@@ -137,12 +137,12 @@ const StyledCloseButton = styled.button`
   }
 `;
 interface SocialLoginModalProps {
-  isOpen: boolean;
+  $isOpen: boolean;
   onClose: () => void;
 }
 
 export const SocialLoginModal: React.FC<SocialLoginModalProps> = ({
-  isOpen,
+  $isOpen,
   onClose,
 }) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -308,13 +308,13 @@ export const SocialLoginModal: React.FC<SocialLoginModalProps> = ({
   }, [login, openAdditionalInfoModal, router]);
 
   useEffect(() => {
-    if (!isOpen) {
+    if (!$isOpen) {
       setIsLoading(false);
       setLoginError(null);
     }
-  }, [isOpen]);
+  }, [$isOpen]);
 
-  if (!isOpen) {
+  if (!$isOpen) {
     return null;
   }
 
@@ -327,7 +327,7 @@ export const SocialLoginModal: React.FC<SocialLoginModalProps> = ({
 
   return (
     <ModalOverlay
-      isOpen={isOpen}
+    $isOpen={$isOpen}
       onClick={() => {
         if (isLoading) return;
         onClose();

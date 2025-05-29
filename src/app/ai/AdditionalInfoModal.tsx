@@ -39,14 +39,14 @@ const privacyContentText = `
 ※ 이용자는 위의 개인정보 수집 및 이용에 대해 동의를 거부할 권리가 있습니다.<br />단, 동의를 거부할 경우 서비스 이용이 제한될 수 있습니다.
 `;
 
-const ModalOverlay = styled.div<{ isOpen: boolean }>`
+const ModalOverlay = styled.div<{ $isOpen: boolean }>`
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
   background-color: rgba(0, 0, 0, 0.5);
-  display: ${(props) => (props.isOpen ? 'flex' : 'none')};
+  display: ${(props) => (props.$isOpen ? 'flex' : 'none')};
   align-items: center;
   justify-content: center;
   z-index: 1000;
@@ -114,7 +114,7 @@ const SelectButton = styled.button`
   }
 `;
 
-const DropdownContainer = styled.div<{ isOpen: boolean }>`
+const DropdownContainer = styled.div<{ $isOpen: boolean }>`
   position: absolute;
   top: 100%;
   left: 0;
@@ -126,7 +126,7 @@ const DropdownContainer = styled.div<{ isOpen: boolean }>`
   border-radius: 4px;
   margin-top: 4px;
   z-index: 10;
-  display: ${(props) => (props.isOpen ? 'block' : 'none')};
+  display: ${(props) => (props.$isOpen ? 'block' : 'none')};
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 
   /* 스크롤바 스타일 */
@@ -575,7 +575,7 @@ export const AdditionalInfoModal = () => {
 
   return (
     <>
-      <ModalOverlay isOpen={isAdditionalInfoModalOpen}>
+      <ModalOverlay $isOpen={isAdditionalInfoModalOpen}>
         <ModalContent
           onClick={(e) => e.stopPropagation()}
           $viewingTerms={!!viewingTermsType}
@@ -644,7 +644,7 @@ export const AdditionalInfoModal = () => {
                       <KeyboardArrowDownIcon />
                     )}
                   </SelectButton>
-                  <DropdownContainer isOpen={isCountryDropdownOpen}>
+                  <DropdownContainer $isOpen={isCountryDropdownOpen}>
                     {countryCodes.map((country) => (
                       <CountryOption
                         key={country.code}

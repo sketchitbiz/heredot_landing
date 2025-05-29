@@ -637,7 +637,7 @@ const AiNavigationBar = ({
         {isSidebarOpen && renderSidebarContent()}
       </Sidebar>
       <EstimateRequestModal
-        isOpen={isEstimateModalOpen}
+        $isOpen={isEstimateModalOpen}
         onClose={() => setIsEstimateModalOpen(false)}
         onConfirm={handleConfirmEstimate}
         title={currentEstimateTitle} // 모달에 제목 전달

@@ -18,14 +18,14 @@ import useUserDelete from '@/hooks/useUserDelete'; // useUserDelete 훅 import
 import { EstimateRequestModal } from '@/components/Ai/EstimateRequestModal'; // EstimateRequestModal import
 // import { useRouter } from 'next/navigation'; // 현재 사용 안함
 
-const ModalOverlay = styled.div<{ isOpen: boolean }>`
+const ModalOverlay = styled.div<{ $isOpen: boolean }>`
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
   background-color: rgba(0, 0, 0, 0.5);
-  display: ${(props) => (props.isOpen ? 'flex' : 'none')};
+  display: ${(props) => (props.$isOpen ? 'flex' : 'none')};
   align-items: center;
   justify-content: center;
   z-index: 1000;
@@ -140,7 +140,7 @@ const SelectButton = styled.button`
   }
 `;
 
-const DropdownContainer = styled.div<{ isOpen: boolean }>`
+const DropdownContainer = styled.div<{ $isOpen: boolean }>`
   position: absolute;
   top: 100%;
   left: 0;
@@ -152,7 +152,7 @@ const DropdownContainer = styled.div<{ isOpen: boolean }>`
   border-radius: 4px;
   margin-top: 4px;
   z-index: 10;
-  display: ${(props) => (props.isOpen ? 'block' : 'none')};
+  display: ${(props) => (props.$isOpen ? 'block' : 'none')};
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 
   &::-webkit-scrollbar {
@@ -605,7 +605,7 @@ export const EditProfileModal = () => {
 
   return (
     <>
-      <ModalOverlay isOpen={isEditProfileModalOpen} onClick={handleCloseModal}>
+      <ModalOverlay $isOpen={isEditProfileModalOpen} onClick={handleCloseModal}>
         <ModalContentWrapper onClick={(e) => e.stopPropagation()}>
           <StyledCloseButton onClick={handleCloseModal}>
             <CloseIcon />
@@ -650,7 +650,7 @@ export const EditProfileModal = () => {
                         <KeyboardArrowDownIcon />
                       )}
                     </SelectButton>
-                    <DropdownContainer isOpen={isCountryDropdownOpen}>
+                    <DropdownContainer $isOpen={isCountryDropdownOpen}>
                       {countryCodes.map((country) => (
                         <CountryOption
                           key={country.code}
@@ -717,7 +717,7 @@ export const EditProfileModal = () => {
                         <KeyboardArrowDownIcon />
                       )}
                     </SelectButton>
-                    <DropdownContainer isOpen={isAuthCountryDropdownOpen}>
+                    <DropdownContainer $isOpen={isAuthCountryDropdownOpen}>
                       {countryCodes.map((country) => (
                         <CountryOption
                           key={country.code}
@@ -808,7 +808,7 @@ export const EditProfileModal = () => {
 
       {/* 회원탈퇴 확인 모달 */}
       <EstimateRequestModal
-        isOpen={isWithdrawConfirmModalOpen}
+        $isOpen={isWithdrawConfirmModalOpen}
         onClose={closeWithdrawConfirmModal}
         onConfirm={handleWithdraw} // 실제 탈퇴 로직 연결
         title="회원탈퇴 확인"
