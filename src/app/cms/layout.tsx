@@ -28,6 +28,7 @@ import {
   Storage as StorageIcon,
 } from '@mui/icons-material';
 import type { MenuItemConfig } from '@/components/CustomSidebar/CustomSidebar';
+import ScrollAwareWrapper from '@/layout/ScrollAwareWrapper';
 
 export default function CmsLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -106,6 +107,7 @@ function ProtectedCmsLayout({ children }: { children: React.ReactNode }) {
   if (isLoginPage) return <>{children}</>;
 
   return (
+    <ScrollAwareWrapper>
     <OuterLayoutContainer $themeMode="light">
       <ToastContainer position="top-center" autoClose={3000} />
       <ResponsiveSidebar
@@ -129,16 +131,18 @@ function ProtectedCmsLayout({ children }: { children: React.ReactNode }) {
   {children}
 </MainContent>
     </OuterLayoutContainer>
+    </ScrollAwareWrapper>
   );
 }
 
 // --- Styled Components ---
 
 const OuterLayoutContainer = styled.div<{ $themeMode: 'light' | 'dark' }>`
-  width: 100vw;
-  min-width: 1200px;
-  height: 100vh;
-  overflow-x: auto;
+  /* width: 100vw; */
+  min-width: 1450px;
+  min-height: 100vh;
+  /* height: auto; */
+  /* overflow-x: auto; */
   background-color: ${({ $themeMode }) =>
     $themeMode === 'light'
       ? THEME_COLORS.light.background
@@ -150,9 +154,9 @@ const MainContent = styled.div<{
   $isSidebarExpanded: boolean;
 }>`
   transition: all 0.3s ease;
-  height: 100vh;
-  overflow-x: auto;
-  overflow-y: auto;
+  /* height: 100vh; */
+  /* overflow-x: auto;
+  overflow-y: auto; */
   min-width: 1200px;
   box-sizing: border-box;
 

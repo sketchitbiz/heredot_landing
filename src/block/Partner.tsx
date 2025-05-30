@@ -70,7 +70,7 @@ const DownloadLink = styled.a`
   justify-content: center;
   gap: 6px;
   padding: 10px 14px;
-  border-radius: 8px;
+  border-radius: 8px ;
   background-color: white;
   overflow: hidden;
   z-index: 1;
@@ -80,9 +80,9 @@ const DownloadLink = styled.a`
     content: '';
     position: absolute;
     inset: 0;
-    padding: 2px;
+    padding: 1px;
     border-radius: 8px;
-    background: linear-gradient(90deg, #5708fb, #be83ea, #5708fb);
+    background: linear-gradient(90deg, #666, #666, #666);
     background-size: 300% 300%;
     animation: ${gradientBorder} 2s ease infinite;
     z-index: -1;
@@ -106,6 +106,7 @@ const DownloadLink = styled.a`
 const MobileDownloadButton = styled(DownloadLink)`
   width: 100%;
   border-radius: 6px;
+
   padding: 10px 16px;
 `;
 

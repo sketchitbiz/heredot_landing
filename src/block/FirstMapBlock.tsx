@@ -208,13 +208,14 @@ useEffect(() => {
             <StyledPath ref={pathRef} d={originalPath} />
             <MarkerGroup ref={markerGroupRef}>
               <circle cx="0" cy="0" r="60" fill="#8455c1" fillOpacity="0.25" />
-              <img
-                href="/assets/Polygon.svg"
-                width="60"
-                height="60"
-                x="-30"
-                y="-30"
-              />
+              <image
+  href="/assets/Polygon.svg"
+  width="60"
+  height="60"
+  x="-30"
+  y="-30"
+/>
+
             </MarkerGroup>
           </g>
         </svg>

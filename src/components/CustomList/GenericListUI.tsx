@@ -495,6 +495,7 @@ export default GenericListUI;
 const Container = styled.div<{ $themeMode: ThemeMode }>`
   min-width: 1200px;
   width: 100%;
+  height: 100%;
   box-sizing: border-box;
   padding: 30px 30px 30px 30px; // 오른쪽 패딩 포함
   background-color: ${({ $themeMode }) =>

@@ -24,7 +24,7 @@ const Overlay = styled.div<{ $scrollX: number }>`
   left: 0;
   z-index: 9999;
   width: 100%;
-  min-width: 1200px;
+  min-width: 1450px;
   height: 100%;
   background: rgba(0, 0, 0, 0.4);
   overflow-x: auto;
