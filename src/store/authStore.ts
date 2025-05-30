@@ -79,6 +79,15 @@ const useAuthStore = create<AuthState>()(
           currentSessionIndex: null, // 🚨 로그아웃 시 현재 세션 인덱스를 명시적으로 초기화
           loginModalContext: null, // При выходе из системы также сбрасываем контекст
         });
+
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('auth-storage');
+        localStorage.removeItem('updateQuoteTitleFor');
+        Object.keys(localStorage).forEach((key) => {
+          if (key.startsWith('firstUserMessageFor_')) {
+            localStorage.removeItem(key);
+          }
+        });
         // 채팅 세션 목록 SWR 캐시를 강제로 갱신하여 로그아웃된 사용자에게는 빈 목록이 보이도록 합니다.
         swrMutate(CHAT_SESSIONS_API_KEY, undefined, { revalidate: true });
         // 로그아웃 후 /ai 경로로 이동하여 초기 채팅 화면을 보여줍니다.

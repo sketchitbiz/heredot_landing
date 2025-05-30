@@ -43,9 +43,15 @@ apiClient.interceptors.response.use(
       // useAuthStore.getState().logout(); // 린터 오류 발생 지점, authStore의 logout 시그니처 확인 필요
 
       // 우선 localStorage에서 토큰을 제거하고 스토어의 isLoggedIn 상태를 false로 변경 시도
-      localStorage.removeItem('accessToken');
       useAuthStore.getState().setIsLoggedIn(false); // 로그인 상태 false로 직접 변경
-      useAuthStore.getState().setUser(null); // 사용자 정보 null로 직접 변경 (user 초기 상태값에 따라)
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('auth-storage');
+      localStorage.removeItem('updateQuoteTitleFor');
+      Object.keys(localStorage).forEach((key) => {
+        if (key.startsWith('firstUserMessageFor_')) {
+          localStorage.removeItem(key);
+        }
+      });
       // 필요시 다른 스토어 상태도 초기화
 
       // 로그인 페이지로 리다이렉트
