@@ -350,7 +350,15 @@ const UserMngPage: React.FC = () => {
         
       />
 
-      <CmsPopup title="사용자등록" isOpen={isPopupOpen} onClose={closePopup}>
+      <CmsPopup title="사용자등록" isOpen={isPopupOpen} onClose={closePopup}
+      bottomFloating ={
+
+        <PopupFooter>
+        <CancelButton onClick={closePopup}>닫기</CancelButton>
+        <SaveButton onClick={handleSave}>저장</SaveButton>
+      </PopupFooter>
+      }
+      >
         <FormContainer>
           <TextField
             radius="0"
@@ -443,10 +451,6 @@ const UserMngPage: React.FC = () => {
             placeholder="비고를 입력하세요"
           />
 
-          <PopupFooter>
-            <CancelButton onClick={closePopup}>닫기</CancelButton>
-            <SaveButton onClick={handleSave}>저장</SaveButton>
-          </PopupFooter>
         </FormContainer>
       </CmsPopup>
     </>

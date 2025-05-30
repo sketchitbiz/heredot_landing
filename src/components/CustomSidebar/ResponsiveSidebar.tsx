@@ -5,6 +5,7 @@ import styled from 'styled-components';
 import ResponsiveView from '@/layout/ResponsiveView';
 import CustomSidebar, { MenuItemConfig } from './CustomSidebar';
 import { MenuIcon } from 'lucide-react';
+import { AppColors } from '@/styles/colors';
 
 interface ResponsiveSidebarProps {
   isCollapsed: boolean;
@@ -79,21 +80,25 @@ export default ResponsiveSidebar;
 
 const MobileToggleButton = styled.button`
   position: fixed;
-  top: 16px;
-  left: 16px;
+  top: 0;
+  left: 0;
+  width: 100%; /* ✅ 화면 너비 100% */
+  height: 56px; /* ✅ 원하는 높이 */
   z-index: 1101;
-  background: transparent;
+  background-color: #2c2e3c;
   border: none;
-  color: #000000;
-  padding: 8px;
+  color: white;
+  padding: 0 16px;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start; /* 아이콘은 왼쪽 정렬 */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 
   &:hover {
     opacity: 0.8;
   }
 `;
+
 
 const SidebarOverlay = styled.div`
   position: fixed;

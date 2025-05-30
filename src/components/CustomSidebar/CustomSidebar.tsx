@@ -84,19 +84,22 @@ const CustomSidebar: React.FC<CustomSidebarProps> = ({
                   onClick={() => handleMenuClick(item.path, true)}
                 >
                   <Center $isCollapsed={isCollapsed}>
-  <IconWrapper $isCollapsed={isCollapsed}>
-    {item.icon}
-  </IconWrapper>
+                    <IconWrapper $isCollapsed={isCollapsed}>
+                      {item.icon}
+                    </IconWrapper>
 
-  {!isCollapsed && (
-    <RightContent>
-      <span>{item.title}</span>
-      <ArrowWrapper>
-        {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-      </ArrowWrapper>
-    </RightContent>
-  )}
-</Center>
+                    {!isCollapsed && (
+                      <RightContent>
+                        <span>{item.title}</span>
+                        {hasSubMenu && (
+                          <ArrowWrapper>
+                            {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                          </ArrowWrapper>
+                        )}
+                      </RightContent>
+                    )}
+
+                  </Center>
 
 
                 </MenuItem>
@@ -107,10 +110,16 @@ const CustomSidebar: React.FC<CustomSidebarProps> = ({
                       <IconWrapper $isCollapsed={isCollapsed}>
                         {item.icon}
                       </IconWrapper>
-                      {!isCollapsed && item.title}
+                      {!isCollapsed && (
+                        <RightContent>
+                          <span>{item.title}</span>
+                          {/* 서브메뉴 없으면 ArrowWrapper 렌더 안함 */}
+                        </RightContent>
+                      )}
                     </Center>
                   </MenuItem>
                 </Link>
+
               )}
 
               {expanded && item.subMenu && (
