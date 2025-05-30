@@ -163,20 +163,20 @@ export default function AiLayout({ children }: { children: React.ReactNode }) {
       //   groups.push({ title: lastWeekTitle, items: lastWeekItems });
       // }
 
-      if (isLoggedIn && (!currentSessions || currentSessions.length === 0)) {
-        groups.push({
-          title: todayTitle,
-          items: [
-            {
-              id: 'new-session-placeholder',
-              name:
-                aiChatDictionary[lang as 'ko' | 'en']?.navigation
-                  ?.newChatTitle || '새로운 채팅',
-              status: '진행',
-            },
-          ],
-        });
-      }
+      // if (isLoggedIn && (!currentSessions || currentSessions.length === 0)) {
+      //   groups.push({
+      //     title: todayTitle,
+      //     items: [
+      //       {
+      //         id: 'new-session-placeholder',
+      //         name:
+      //           aiChatDictionary[lang as 'ko' | 'en']?.navigation
+      //             ?.newChatTitle || '새로운 채팅',
+      //         status: '진행',
+      //       },
+      //     ],
+      //   });
+      // }
       return groups;
     },
     [lang, isLoggedIn]
@@ -264,7 +264,7 @@ export default function AiLayout({ children }: { children: React.ReactNode }) {
         <ClientOnlyPageLoader isOpen={overallLoading} />
 
         <AiNavigationBar
-          navigationItems={currentNavigationItems}
+          // navigationItems={currentNavigationItems}
           isMobile={isMobile}
           isSidebarOpen={isSidebarOpen}
           toggleSidebar={toggleSidebar}

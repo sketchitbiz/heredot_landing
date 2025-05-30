@@ -35,7 +35,7 @@ interface NavigationGroup {
 }
 
 interface AiNavigationBarProps {
-  navigationItems: NavigationGroup[]; // AiLayout에서 가공된 데이터 받음
+  navigationItems?: NavigationGroup[]; // AiLayout에서 가공된 데이터 받음
   isMobile?: boolean;
   isSidebarOpen?: boolean;
   toggleSidebar?: () => void;
@@ -437,6 +437,19 @@ const AiNavigationBar = ({
     touchEndX.current = null;
   };
 
+  const naviItems = [
+    {
+      title: "오늘",
+      items: [
+        {
+          id: "item-1",
+          name: "새로운 채팅",
+          sessionIndex: 0,
+        },
+      ],
+    },
+  ];
+
   const renderSidebarContent = () => {
     return (
       <>
@@ -541,7 +554,7 @@ const AiNavigationBar = ({
 
         <NavigationContent>
           {/* API에서 받아온 navigationItems를 렌더링 */}
-          {(navigationItems || []).map((group) => (
+          {(navigationItems || naviItems).map((group) => (
             <NavigationSection key={group.title}>
               <SectionHeader onClick={() => toggleSection(group.title)}>
                 <SectionTitle>{group.title}</SectionTitle>
@@ -549,7 +562,7 @@ const AiNavigationBar = ({
                   {t.navigation?.estimate || '여기닷에게'}
                 </SectionContent>
               </SectionHeader>
-              {expandedSections[group.title] && (
+              {true && (
                 <ItemList>
                   {(group.items || []).map((item) => (
                     <NavigationItem

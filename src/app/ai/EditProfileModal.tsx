@@ -49,7 +49,7 @@ const ModalViewsContainer = styled.div<{ $viewMode: 'info' | 'phoneAuth' }>`
   display: flex;
   width: 200%;
   height: 100%;
-  gap: 40px;
+  gap: 70px;
   transition: transform 0.5s ease-in-out;
   transform: ${(props) =>
     props.$viewMode === 'info' ? 'translateX(0%)' : 'translateX(-52%)'};
@@ -71,7 +71,7 @@ const ScrollableContent = styled.div`
   /* margin-right: -10px; */
 
   &.info-view-scroll {
-    padding: 0 20px 0 20px; // 첫 번째 뷰 내부 컨텐츠 좌우 패딩 (기존 wrapper 패딩 40px의 절반 느낌)
+    padding: 0 10px 0 20px; // 첫 번째 뷰 내부 컨텐츠 좌우 패딩 (기존 wrapper 패딩 40px의 절반 느낌)
   }
   &.auth-view-scroll {
     padding: 0 20px 0 20px; // 두 번째 뷰 내부 컨텐츠 좌우 패딩
