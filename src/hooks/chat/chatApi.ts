@@ -10,6 +10,7 @@ interface CreateChatMessagePayload {
   sessionIndex?: number; // Optional: if provided, message is added to this session
   title?: string; // Optional: if provided without sessionIndex, a new session is created
   content: ChatMessageContent;
+  uuid?: string;
 }
 
 export interface CreatedSessionDetails {

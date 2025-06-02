@@ -962,7 +962,7 @@ export default function AiPageContent() {
 
       // --- 사용자 메시지를 백엔드 API로 전송 ---
       // 🚨🚨🚨 로그인 상태일 때만 createChatMessage 호출 🚨🚨🚨
-      if (isLoggedIn) {
+      if (true) {
         const userApiPayload: ChatMessagePayload = {
           role: 'USER',
           // currentSessionIndexFromStore가 null이면 새 세션 생성 (useCreateChatMessage 내부 로직)
@@ -1022,11 +1022,6 @@ export default function AiPageContent() {
         if (!isFirstApiUserMessageSent) {
           setIsFirstApiUserMessageSent(true);
         }
-      } else if (!isLoggedIn) {
-        devLog(
-          '[AiPageContent] Skipping user message API call for non-logged-in user.'
-        );
-        // 비로그인 시 세션 인덱스 로직은 건너뜁니다.
       }
 
       // --- 네비게이션 제목 업데이트 로직 추가 시작 ---
@@ -1272,7 +1267,7 @@ export default function AiPageContent() {
       }
 
       // --- AI 응답을 백엔드 API로 전송 ---
-      if (isLoggedIn && accumulatedText.trim()) {
+      if (accumulatedText.trim()) {
         // ⭐ aiResponseText 대신 accumulatedText 사용 ⭐
         if (
           sessionIndexForApiCall === null ||

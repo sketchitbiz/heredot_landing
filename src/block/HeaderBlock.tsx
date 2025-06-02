@@ -26,7 +26,6 @@ const HeaderBlockWrapper = styled.div`
   }
 `;
 
-
 const meteorDrip = keyframes`
   0% { transform: translateY(0px); opacity: 0; }
   100% { transform: translateY(80px); opacity: 0.9; }
@@ -35,7 +34,7 @@ const meteorDrip = keyframes`
 const Meteor = styled.div`
   position: absolute;
   top: 80%;
-  left: calc(50%); 
+  left: calc(50%);
   transform: translateX(-50%);
   width: 3px;
   height: 80px;
@@ -55,20 +54,19 @@ const LeftContent = styled.div`
   align-items: flex-start;
   z-index: 2;
   gap: 10px;
-  left: 20px; 
+  left: 20px;
   position: absolute; /* 위치를 조정하기 위해 추가 */
   top: 200px; /* 기본값: top에서 200px 떨어짐 */
 
   @media (max-width: ${Breakpoints.mobile}px) {
     top: 200px; /* 모바일에서도 동일한 top 값 */
-  
   }
 `;
 
 const Title = styled.div`
   ${AppTextStyles.display2};
   color: ${AppColors.onBackground};
-  margin-bottom: 20px;
+  margin-bottom: 10px;
 
   @media (max-width: ${Breakpoints.mobile}px) {
     font-size: 28px; /* 모바일에서 폰트 크기 변경 */
@@ -108,18 +106,17 @@ const Radar = styled.div`
   }
 
   @media (max-width: ${Breakpoints.mobile}px) {
-    width: 330px;  /* 552px / 3 */
+    width: 330px; /* 552px / 3 */
     height: 330px;
     left: calc(50% - 165px);
 
     &::before {
-      width: 100px;  /* 119px / 3 */
+      width: 100px; /* 119px / 3 */
       height: 100px;
       filter: blur(15px);
     }
   }
 `;
-
 
 interface HeaderBlockProps {
   title: string;
@@ -128,7 +125,12 @@ interface HeaderBlockProps {
   downloadLink: string;
 }
 
-const HeaderBlock: React.FC<HeaderBlockProps> = ({ title, subtitle, downloadLabel, downloadLink }) => {
+const HeaderBlock: React.FC<HeaderBlockProps> = ({
+  title,
+  subtitle,
+  downloadLabel,
+  downloadLink,
+}) => {
   return (
     <HeaderBlockWrapper>
       <Radar />
@@ -152,7 +154,7 @@ const HeaderBlock: React.FC<HeaderBlockProps> = ({ title, subtitle, downloadLabe
           <CommonButton
             text={downloadLabel}
             backgroundColor={AppColors.background}
-            borderRadius='75px'
+            borderRadius="75px"
             icon={<FiDownload />}
             $iconPosition="left"
           />

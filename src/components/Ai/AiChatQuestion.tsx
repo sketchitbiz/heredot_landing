@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react';
 import { useLang } from '@/contexts/LangContext'; // 다국어 지원을 위한 훅 임포트
 import { aiChatDictionary } from '@/lib/i18n/aiChat'; // 다국어 사전 임포트
 import { useDevice } from '@/contexts/DeviceContext'; // DeviceContext 훅 임포트
+import { PageCountTable } from './PageCountTable'; // PageCountTable 컴포넌트 임포트
 
 // 옵션 인터페이스
 export interface QuestionOption {
@@ -51,7 +52,7 @@ const AIContent = styled.div`
 
 const Subtitle = styled.p`
   color: #9ca3af; // 필요시 AppColors 사용
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   white-space: pre-wrap; // 줄바꿈 적용
 `;
 
@@ -224,6 +225,13 @@ export const AiChatQuestion: React.FC<AiChatQuestionProps> = ({
   const deviceType = useDevice(); // DeviceContext 사용
   const isMobile = deviceType === 'mobile'; // isMobile 변수 설정
 
+  // "페이지 수 선택" 단계인지 확인 (subtitle 내용을 기반으로)
+  const isPageCountStep =
+    subtitle ===
+    (lang === 'ko'
+      ? '개발 분량을 선택해주세요.'
+      : 'Please select the development volume.');
+
   // initialSelection이 변경되면 상태 업데이트
   useEffect(() => {
     setSelectedIds(initialSelection);
@@ -253,6 +261,10 @@ export const AiChatQuestion: React.FC<AiChatQuestionProps> = ({
     <AIContent>
       {/* <Title>{title}</Title> */}
       <Subtitle>{subtitle}</Subtitle>
+
+      {/* "페이지 수 선택" 단계일 때만 표 표시 */}
+      {isPageCountStep && <PageCountTable isMobile={isMobile} />}
+
       <SelectionTitle>{selectionTitle}</SelectionTitle>
 
       {/* WEB/APP 섹션 */}

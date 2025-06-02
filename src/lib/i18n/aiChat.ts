@@ -86,7 +86,7 @@ export const aiChatDictionary = {
     // AiChatQuestion 컴포넌트 관련 번역
     chatQuestion: {
       platformSelect: '플랫폼 선택 (중복 가능)',
-      pageSelect: '페이지 수 선택 (단일 선택)',
+      pageSelect: '페이지 수 선택',
       categorySelect: '카테고리 선택 (단일 선택)',
       info: {
         accuracy: '• AI 견적서는 90%의 정확도를 가지고 있습니다.',
@@ -233,7 +233,7 @@ export const aiChatDictionary = {
     // AiChatQuestion 컴포넌트 관련 번역
     chatQuestion: {
       platformSelect: 'Platform Selection (Multiple)',
-      pageSelect: 'Page Count Selection (Single)',
+      pageSelect: 'Page Count Selection',
       categorySelect: 'Category Selection (Single)',
       info: {
         accuracy: '• AI estimates have 90% accuracy.',

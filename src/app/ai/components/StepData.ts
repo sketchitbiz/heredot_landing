@@ -31,9 +31,9 @@ export const getStepData = (t: ChatDictionary) => [
     options: [
       { id: 'pc', label: 'PC Web' },
       { id: 'mobile', label: 'Mobile Web' },
-      { id: 'AOS', label: 'AOS' },
-      { id: 'IOS', label: 'IOS' },
-      { id: 'Windows', label: 'Windows' },
+      { id: 'AOS', label: 'AOS (Android)' },
+      { id: 'IOS', label: 'IOS (iPhone)' },
+      { id: 'Windows', label: 'Windows (PC)' },
     ],
     gridColumns: 5,
     selectionMode: 'multiple' as const,

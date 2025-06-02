@@ -24,6 +24,7 @@ interface CreateChatMessagePayload {
   sessionIndex?: number;
   title?: string;
   content: ChatMessageContent;
+  uuid?: string;
 }
 
 interface CreateChatMessageResult {
@@ -54,12 +55,18 @@ const useCreateChatMessage = () => {
     setCreatedMessage(null);
     setCreatedSession(null);
 
+    const logId = localStorage.getItem('logId');
+
     const finalPayload: CreateChatMessagePayload = {
       ...payload,
       ...(currentSessionIndex !== null && {
         sessionIndex: currentSessionIndex,
       }),
     };
+
+    if (logId) {
+      finalPayload.uuid = logId;
+    }
 
     if (currentSessionIndex === null && !finalPayload.title) {
       finalPayload.title = '새로운 채팅';
