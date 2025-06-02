@@ -961,8 +961,9 @@ export default function AiPageContent() {
       let sessionIndexForApiCall: number | null = currentSessionIndexFromStore;
 
       // --- 사용자 메시지를 백엔드 API로 전송 ---
+      if(isFirstApiUserMessageSent){
       // 🚨🚨🚨 로그인 상태일 때만 createChatMessage 호출 🚨🚨🚨
-      if (true) {
+    
         const userApiPayload: ChatMessagePayload = {
           role: 'USER',
           // currentSessionIndexFromStore가 null이면 새 세션 생성 (useCreateChatMessage 내부 로직)
@@ -986,6 +987,8 @@ export default function AiPageContent() {
           '[AiPageContent] Sending user message to custom API:',
           userApiPayload
         );
+        
+        
         const apiResponse = await createChatMessage(userApiPayload);
 
         // API 응답으로 새로운 세션 인덱스를 받았으면 업데이트

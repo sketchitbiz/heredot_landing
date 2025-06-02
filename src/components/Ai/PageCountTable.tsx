@@ -89,8 +89,8 @@ export const PageCountTable: React.FC<PageCountTableProps> = ({ isMobile }) => {
       <StyledTable>
         <TableHead>
           <TableRow>
-            <TableHeaderCell width="25%">페이지 수</TableHeaderCell>
-            <TableHeaderCell width="75%">
+            <TableHeaderCell width="30%">페이지 수</TableHeaderCell>
+            <TableHeaderCell width="70%">
               설명 문구 (관리자 Page 수 포함)
             </TableHeaderCell>
           </TableRow>
