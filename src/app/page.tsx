@@ -29,8 +29,9 @@ import { userStamp } from '@/lib/api/user/api';
 import { AIBlock } from '@/block/AIBlock';
 import EventBlock from '@/block/EventBlock';
 import { devLog } from '@/lib/utils/devLogger';
-import Container3DStackScroll from '@/block/Container3D';
-import { zIndex } from 'html2canvas/dist/types/css/property-descriptors/z-index';
+import { AdBottomModal } from '@/components/AdBottomMadal';
+import { AdContent } from '@/contents/AdContent';
+import { OverlayPopup } from '@/components/OverlayPopup';
 
 const sectionMap: Record<
   string,
@@ -82,6 +83,12 @@ export default function HomePage() {
   const [currentSection, setCurrentSection] = useState(t.nav[0]);
   const [isAutoScrolling, setIsAutoScrolling] = useState(false);
   const isAutoScrollingRef = useRef(false);
+
+  const [isShowAdModal, setIsShowAdModal] = useState(false);
+
+  useEffect(() => {
+    setIsShowAdModal(true);
+  }, []);
 
   const startAutoScroll = () => {
     devLog('[AutoScroll] 시작');
@@ -607,5 +614,19 @@ export default function HomePage() {
     },
   ];
 
-  return <LandingBaseWrapper sections={sections} appBar={appBar} />;
+
+  return (
+    <>
+      {/* 광고 모달 삽입 */}
+<OverlayPopup
+  isOpen={isShowAdModal}
+  onClose={() => setIsShowAdModal(false)}
+>
+  <AdContent buttonText={t.aiBlock.buttonTitle} />
+</OverlayPopup>
+
+
+      <LandingBaseWrapper sections={sections} appBar={appBar} />
+    </>
+  );
 }

@@ -7,6 +7,11 @@ export const dictionary = {
       title: '사업가들에게 제안하는 여기닷 솔루션',
       description: '대표님의 사업을 지원하기 위한 최적 솔루션 소개해요',
     },
+       adModal: {
+      line1: '견적서 3분이면 끝!',
+      line2: '여기닷의 견적 AI에게\n 부담없이 물어보세요.',
+      buttonText: 'AI 견적 받기',
+    },
 
     aiBlock: {
       title: '이제는 제대로 시작해야할 때',
@@ -584,6 +589,11 @@ export const dictionary = {
       kakaoInfo: 'Kakao',
       kakaoLink: 'https://open.kakao.com/o/smVyiMig',
       kakaoButton: 'Join Chat',
+    },
+        adModal: {
+line1: 'Done in 3 minutes!',
+line2: 'Ask Heredot’s Quote AI\nwithout any pressure.',
+      buttonText: 'Get AI Estimate',
     },
     footer: {
       companyName: 'Company Name: Heredot Corp.',
