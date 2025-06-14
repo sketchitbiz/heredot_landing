@@ -33,6 +33,7 @@ import { AdBottomModal } from '@/components/AdBottomMadal';
 import { AdContent } from '@/contents/AdContent';
 import { OverlayPopup } from '@/components/OverlayPopup';
 import { ContactContent } from '@/contents/ContactContent';
+import { Breakpoints } from '@/constants/layoutConstants';
 
 
 const sectionMap: Record<
@@ -90,6 +91,17 @@ export default function HomePage() {
 
   const [isShowContactModal, setIsShowContactModal] = useState(false);
 
+  const [isMobile, setIsMobile] = useState(false);
+
+useEffect(() => {
+  const checkMobile = () => {
+    setIsMobile(window.innerWidth < Breakpoints.mobile);
+  };
+  checkMobile();
+  window.addEventListener('resize', checkMobile);
+  return () => window.removeEventListener('resize', checkMobile);
+}, []);
+
   useEffect(() => {
     setIsShowAdModal(true);
   }, []);
@@ -125,6 +137,45 @@ export default function HomePage() {
     estimate: 'ai',
     promotion: 'event',
   };
+
+  const baseNavLinks = [
+  {
+    label: t.nav[0],
+    targetId: 'portfolio',
+    content: 'appbar',
+    memo: 'portfolio',
+  },
+  {
+    label: t.nav[1],
+    targetId: 'members',
+    content: 'appbar',
+    memo: 'members',
+  },
+  {
+    label: t.nav[2],
+    targetId: 'event',
+    content: 'appbar',
+    memo: 'event',
+  },
+  {
+    label: t.nav[3],
+    targetId: 'AI Estimate',
+    content: 'appbar',
+    memo: 'AI Estimate',
+  },
+];
+
+const navLinks = isMobile
+  ? [
+      ...baseNavLinks,
+      {
+        label: t.nav[4], // 문의하기
+        targetId: 'contact',
+        content: 'appbar',
+        memo: 'contact',
+      },
+    ]
+  : baseNavLinks;
 
   useEffect(() => {
     const path =
@@ -310,33 +361,7 @@ export default function HomePage() {
       logoHeight="64px"
       isShowLanguageSwitcher={true}
       contactText={t.nav[4]}
-      navLinks={[
-  
-        {
-          label: t.nav[0],
-          targetId: 'portfolio',
-          content: 'appbar',
-          memo: 'portfolio',
-        },
-        {
-          label: t.nav[1],
-          targetId: 'members',
-          content: 'appbar',
-          memo: 'members',
-        },
-        {
-          label: t.nav[2],
-          targetId: 'event',
-          content: 'appbar',
-          memo: 'event',
-        },
-        {
-          label: t.nav[3],
-          targetId: 'AI Estimate',
-          content: 'appbar',
-          memo: 'AI Estimate',
-        },
-      ]}
+        navLinks={navLinks} 
       onNavigate={scrollToTargetId}
       onLogoClick={() => scrollToTargetId('partner', 'appbar', 'partner')}
     />

@@ -16,8 +16,8 @@ interface LandingAppBarProps {
   logoHeight?: string;
   navLinks: { label: string; targetId: string; content: string; memo: string }[];
   onNavigate: (targetId: string, content: string, memo: string) => void;
-  onContact: ()=>void;
-  onLogoClick?: () => void; 
+  onContact: () => void;
+  onLogoClick?: () => void;
   appBarHeight?: string;
   appBarPadding?: string;
   hoverColor?: string;
@@ -128,14 +128,17 @@ const MobileAppBar = ({
   isShowLanguageSwitcher,
   onNavigate,
   onContact,
-
   onLogoClick,
   contactText,
 }: LandingAppBarProps) => {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const handleScrollTo = (targetId: string, content: string, memo: string) => {
-    onNavigate(targetId, content, memo);
+    if (targetId === 'contact') {
+      onContact();
+    } else {
+      onNavigate(targetId, content, memo);
+    }
     setMenuOpen(false);
   };
 
@@ -143,9 +146,8 @@ const MobileAppBar = ({
     <>
       <MobileAppBarWrapper>
         <ContentWrapper>
-          <Logo src={logoSrc} alt="Logo" width="84px" height="32px"  onClick={onLogoClick}/>
+          <Logo src={logoSrc} alt="Logo" width="84px" height="32px" onClick={onLogoClick} />
           <RightSection>
-            <ContactLink onClick={() => onContact()}>{contactText}</ContactLink>
             {isShowLanguageSwitcher && <LanguageSwitcher />}
             <MobileMenuButton onClick={() => setMenuOpen(true)}>
               <MenuIcon />
@@ -184,11 +186,10 @@ const DesktopAppBar = ({
     onNavigate(targetId, content, memo);
   };
 
-
   return (
     <AppBar height={appBarHeight} padding={appBarPadding}>
       <ContentWrapper>
-        <Logo src={logoSrc} alt="Logo" width={logoWidth} height={logoHeight}  onClick={onLogoClick}/>
+        <Logo src={logoSrc} alt="Logo" width={logoWidth} height={logoHeight} onClick={onLogoClick} />
         <RightSection>
           <NavLinks>
             {navLinks.map((link, index) => (
