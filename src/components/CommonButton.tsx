@@ -4,7 +4,6 @@ import React from 'react';
 import styled, { keyframes } from 'styled-components';
 import { AppColors } from '@/styles/colors';
 import { AppTextStyles } from '@/styles/textStyles';
-import { Breakpoints } from '@/constants/layoutConstants';
 import { useDevice } from '@/contexts/DeviceContext';
 import type { DeviceType } from '@/types/device';
 import { ButtonStyles } from '@/constants/componentConstants';
@@ -35,6 +34,7 @@ interface CommonButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement
 
   // 스타일 오버라이드
   width?: string;
+  maxWidth?: string;
   height?: string;
   borderRadius?: string;
   padding?: string;
@@ -47,7 +47,6 @@ interface CommonButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement
 }
 
 const SkeletonIcon = styled.span`
-  /* background: linear-gradient(90deg, #5708fb, #be83ea, #5708fb); */
   background-size: 300% 100%;
   animation: ${textGradient} 3s ease-in-out infinite;
   background-clip: text;
@@ -110,22 +109,24 @@ const CommonButton: React.FC<CommonButtonProps> = ({
   icon,
   $iconPosition = 'left',
   width,
+  maxWidth,
   height,
   borderRadius,
   padding,
   fontSize,
   backgroundColor = AppColors.primary,
   borderColor = AppColors.border,
-  isSkeletonText = false, // ✅ 기본값 false
+  isSkeletonText = false,
   ...buttonProps
 }) => {
   const device = useDevice();
+  const resolvedMaxWidth = maxWidth || ButtonStyles.containerMaxWidth[device];
 
   return (
     <StyledButton
       {...buttonProps}
       $width={width}
-      $maxWidth={ButtonStyles.containerMaxWidth[device]}
+      $maxWidth={resolvedMaxWidth}
       $height={height || ButtonStyles.height[device]}
       $borderRadius={borderRadius || ButtonStyles.radius[device]}
       $padding={padding || ButtonStyles.padding[device]}
@@ -133,7 +134,7 @@ const CommonButton: React.FC<CommonButtonProps> = ({
       $backgroundColor={backgroundColor}
       $borderColor={borderColor}
     >
-         {icon && $iconPosition === 'left' && (
+      {icon && $iconPosition === 'left' && (
         <IconWrapper $position="left">
           {isSkeletonText ? <SkeletonIcon>{icon}</SkeletonIcon> : icon}
         </IconWrapper>

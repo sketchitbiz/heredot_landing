@@ -5,6 +5,7 @@ import styled, { keyframes } from "styled-components";
 import { AppColors } from "@/styles/colors";
 import { Breakpoints } from "@/constants/layoutConstants";
 
+// 페이드 인 효과
 const fadeIn = keyframes`
   from {
     opacity: 0;
@@ -13,17 +14,8 @@ const fadeIn = keyframes`
     opacity: 1;
   }
 `;
-const ModalHeader = styled.div<{ $isMobile: boolean }>`
-  position: relative;
-  /* background-color:red; */
-  height: ${({ $isMobile }) => ($isMobile ? '40px' : '60px')};
-`;
 
-interface ModalOverlayProps {
-  $isMobile: boolean;
-}
-
-const ModalOverlay = styled.div<ModalOverlayProps>`
+const ModalOverlay = styled.div<{ $isMobile: boolean }>`
   position: fixed;
   top: 0;
   left: 0;
@@ -31,28 +23,24 @@ const ModalOverlay = styled.div<ModalOverlayProps>`
   ${({ $isMobile }) => !$isMobile && `min-width: 1200px;`}
   height: 100vh;
   background-color: rgba(0, 0, 0, 0.4);
-  /* backdrop-filter: blur(8px); */
   z-index: 9999;
   display: flex;
   align-items: center;
   justify-content: center;
   animation: ${fadeIn} 0.3s ease-out;
-    padding: ${({ $isMobile }) => ($isMobile ? '20px' : '0')};
+  padding: ${({ $isMobile }) => ($isMobile ? '20px' : '0')};
 `;
 
-interface ModalContentProps {
-  $isMobile: boolean;
-}
-
-const ModalContent = styled.div<ModalContentProps>`
+const ModalContent = styled.div<{ $isMobile: boolean }>`
   width: ${({ $isMobile }) => ($isMobile ? '100%' : '900px')};
-  background-color: ${AppColors.background || "#fff"};
-  border-radius: 16px;
-  border: 1px solid ${AppColors.border || "#ccc"};
   position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid ${AppColors.border || "#ccc"};
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 `;
 
+// Close 버튼만 겹쳐서 표시
 const CloseButton = styled.button<{ $isMobile: boolean }>`
   position: absolute;
   top: ${({ $isMobile }) => ($isMobile ? '6px' : '8px')};
@@ -68,6 +56,7 @@ const CloseButton = styled.button<{ $isMobile: boolean }>`
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 1;
 `;
 
 interface OverlayPopupProps {
@@ -91,21 +80,19 @@ export const OverlayPopup: React.FC<OverlayPopupProps> = ({ isOpen, onClose, chi
   if (!isOpen) return null;
 
   const handleCloseClick = (e: React.MouseEvent) => {
-    e.stopPropagation(); // prevent bubbling
+    e.stopPropagation(); // 팝업 외부 닫힘 방지
     onClose();
   };
 
   return (
-    <ModalOverlay $isMobile={isMobile}>
+    <ModalOverlay $isMobile={isMobile} onClick={onClose}>
       <ModalContent
         $isMobile={isMobile}
-        onClick={(e) => e.stopPropagation()} // prevent ModalContent click from closing the popup
+        onClick={(e) => e.stopPropagation()} // 내부 클릭 시 닫힘 방지
       >
-        <ModalHeader $isMobile={isMobile}>
-          <CloseButton $isMobile={isMobile} onClick={handleCloseClick}>
-            ✕
-          </CloseButton>
-        </ModalHeader>
+        <CloseButton $isMobile={isMobile} onClick={handleCloseClick}>
+          ✕
+        </CloseButton>
         {children}
       </ModalContent>
     </ModalOverlay>

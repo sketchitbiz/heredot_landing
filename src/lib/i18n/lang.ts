@@ -22,7 +22,7 @@ export const dictionary = {
       buttonDescription: 'AI 견적서로 간편하게',
     },
     arrival: '도착',
-    nav: ['핵심강점', '포트폴리오', '팀원소개', '기획전','AI 견적서' ],
+    nav: ['포트폴리오', '팀원소개', '기획전','AI 견적서' ,'문의하기'],
     customNavigator: {
       community: '창업커뮤니티',
       portpolio: '포트폴리오',
@@ -266,11 +266,20 @@ export const dictionary = {
       description: '직접 견적 받으시나요?\n더 빠른 길을 추천해드릴게요!',
       aiButton: 'AI 견적 받기',
     },
-
+contactPopup: {
+  title1: '당신의 여정',
+  title2: '여기닷이 끝까지 함께합니다',
+  namePlaceholder: '성함을 입력해주세요.',
+  phonePlaceholder: '휴대폰 번호를 적어주세요.',
+  budgetPlaceholder: '예산 규모를 기입해주세요',
+  contentPlaceholder:
+    '개발하고 싶은 서비스, 궁금한 기능, 구현에 대한 고민 등 자유롭게 적어주세요\nex) MVP 견적, 기능정의서 요청, 기존 서비스 개선 컨설팅 등',
+  submitButton: '문의하기',
+},
     contactSection: {
-      emailTitle: '이메일 문의',
-      emailInfo: 'heredot83@heredotcorp.com',
-      emailButton: '메일 보내기',
+      emailTitle: '프로젝트 문의',
+      emailInfo: '영업일 1일내 (24시간) 연락',
+      emailButton: '접수하기',
       phoneTitle: '전화 문의',
       phoneInfo: '031-8039-7981',
       phoneButton: '전화 연결',
@@ -281,7 +290,7 @@ export const dictionary = {
     },
     footer: {
       companyName: '상호명 : 주식회사 여기닷',
-      ceo: '대표자명 : 강태원',
+      ceo: '대표자명 : 강태원 heredot83@heredotcorp.com',
       businessNumber: '사업자등록번호 : 289-86-03278',
       address: '사업장주소 : 경기 성남시 수정구 대왕판교로 815 777호',
       customerService: '고객센터 : 031-8039-7981',
@@ -317,7 +326,7 @@ export const dictionary = {
     },
     departure: 'Departure',
     arrival: 'Arrival',
-    nav: ['Key Value', 'Portfolio', 'Team', 'Promotion','AI Estimate'],
+    nav: ['Portfolio', 'Team', 'Solution','AI Estimate' ,'Contact'],
     customNavigator: {
       community: 'Startup Community',
       member: 'Team',
@@ -551,7 +560,16 @@ export const dictionary = {
       description:
         'Limited offers available on a first-come, first-served basis.',
     },
-
+contactPopup: {
+  title1: 'We’re here to start your journey',
+  title2: 'with Heredot.',
+  namePlaceholder: 'Enter your name.',
+  phonePlaceholder: 'Enter your phone number.',
+  budgetPlaceholder: 'Enter your estimated budget',
+  contentPlaceholder:
+    'Feel free to describe your project, desired features, or concerns.\ne.g. MVP quote, request for functional specs, improving existing services, etc.',
+  submitButton: 'Submit',
+},
     design: {
       tabs: [
         'Reference Research',
@@ -579,13 +597,13 @@ export const dictionary = {
       description: `We design each screen from the smallest units,\nensuring a consistent structure across design and development.\nThis approach not only boosts quality, but also makes future code handovers and maintenance seamless.`,
     },
     contactSection: {
-      emailTitle: 'Email Inquiry',
-      emailInfo: 'heredot83@heredotcorp.com',
-      emailButton: 'Send Email',
+  emailTitle: 'Project Inquiry',
+emailInfo: 'Reply within 1 business day',
+  emailButton: 'Submit',
       phoneTitle: 'Phone Inquiry',
-      phoneInfo: '031-8039-7981',
+      phoneInfo: '+82 31-8039-7981',
       phoneButton: 'Call Now',
-      kakaoTitle: 'KakaoTalk Chat Support',
+      kakaoTitle: 'KakaoTalk Chat',
       kakaoInfo: 'Kakao',
       kakaoLink: 'https://open.kakao.com/o/smVyiMig',
       kakaoButton: 'Join Chat',
@@ -597,7 +615,7 @@ line2: 'Ask Heredot’s Quote AI\nwithout any pressure.',
     },
     footer: {
       companyName: 'Company Name: Heredot Corp.',
-      ceo: 'CEO: Taewon Kang',
+      ceo: 'CEO: Taewon Kang heredot83@heredotcorp.com',
       businessNumber: 'Business Registration Number: 289-86-03278',
       address:
         'Address: 777, 815 Daewangpangyo-ro, Sujeong-gu, Seongnam-si, Gyeonggi-do, South Korea',

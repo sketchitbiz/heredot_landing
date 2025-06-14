@@ -1,5 +1,5 @@
 import { devLog } from '@/lib/utils/devLogger';
-import { UserStampCreateParams } from './api.types';
+import { UserStampCreateParams, UserInquiryCreateParams } from './api.types';
 import { callApi } from './callApi';
 import useAuthStore from '@/store/authStore';
 import { v4 as uuidv4 } from 'uuid';
@@ -52,3 +52,27 @@ export async function termGetList() {
     isCallPageLoader: true,
   });
 }
+
+export async function userInquiry(params: UserInquiryCreateParams) {
+  const uuid = getLogId() || uuidv4(); // UUID 생성
+
+  // if (process.env.NODE_ENV === 'development') {
+  //   devLog('[DEV] userInquiry called with:', { ...params, uuid });
+  //   return {
+  //     success: true,
+  //     message: 'Dev mode: inquiry simulated.',
+  //     data: { ...params, uuid },
+  //   };
+  // }
+
+  return callApi({
+    title: '문의하기',
+    url: `${BASE_URL}/inquiry/create`,
+    body: {
+      uuid,
+      ...params,
+    },
+    isCallPageLoader: false,
+  });
+}
+

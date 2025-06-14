@@ -6,4 +6,11 @@ export type UserStampCreateParams  = {
     firstYn?: string;
   };
 
+  export type UserInquiryCreateParams = {
+    name: string;
+    cellphone: string;
+    budget: string;
+    content: string;
+  };
+
   

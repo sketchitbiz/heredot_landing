@@ -21,6 +21,7 @@ interface ContractProps {
   description: string;
   onTopArrowClick?: () => void;
   onBottomArrowClick?: () => void;
+  onProjectInquiryClick?: () => void;
 }
 
 const SectionContainer = styled.div`
@@ -149,6 +150,7 @@ export const ContactSection: React.FC<ContractProps> = ({
   description,
   onTopArrowClick,
   onBottomArrowClick,
+  onProjectInquiryClick,
 }) => {
   const { lang } = useLang();
   const t = dictionary[lang].contactSection;
@@ -173,7 +175,7 @@ export const ContactSection: React.FC<ContractProps> = ({
           <ContactItem
            onClick={() => {
             logButtonClick('이메일 문의');
-            window.location.href = `mailto:${t.emailInfo}`;
+              onProjectInquiryClick?.();
           }}
           >
             <ContactTitle>{t.emailTitle}</ContactTitle>

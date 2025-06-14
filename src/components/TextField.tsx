@@ -8,7 +8,6 @@ import { useDevice } from '@/contexts/DeviceContext';
 import type { DeviceType } from '@/types/device';
 import { StyledInput, StyledTextarea } from '@/elements/InputElement';
 import { InputStyles, LabelStyles } from '@/constants/componentConstants';
-import { read } from 'fs';
 
 const Label = styled.label<{ $labelPosition: 'vertical' | 'horizontal' }>`
   margin-left: 8px;
@@ -80,10 +79,15 @@ interface TextFieldProps {
   labelColor?: string;
   $labelPosition?: 'vertical' | 'horizontal';
 
+  $inputBackgroundColor?: string;
+  $placeholderColor?: string;
+  $textColor?: string;
+  $borderColor?: string;
+
   autoComplete?: string;
 }
 
-export const TextField = ({
+export const TextField: React.FC<TextFieldProps> = ({
   value,
   onChange,
   placeholder,
@@ -104,13 +108,21 @@ export const TextField = ({
   label,
   labelColor,
   $labelPosition = 'vertical',
+
+  $inputBackgroundColor,
+  $placeholderColor,
+  $textColor,
+  $borderColor,
+
   autoComplete,
-}: TextFieldProps) => {
+}) => {
   const device = useDevice();
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-  const handleToggleVisibility = () => setIsPasswordVisible((prev) => !prev);
-
   const resolvedInputType = isPasswordField && !isPasswordVisible ? 'password' : 'text';
+
+  const handleToggleVisibility = () => {
+    setIsPasswordVisible((prev) => !prev);
+  };
 
   const commonProps = {
     value,
@@ -125,11 +137,11 @@ export const TextField = ({
     $hasSuffix: !!(showSuffixIcon && isPasswordField),
     $device: device,
     autoComplete,
+    $inputBackgroundColor,
+    $placeholderColor,
+    $textColor,
+    $borderColor,
   };
-
-  const textareaMaxHeight = maxLines && fontSize
-    ? `calc(${fontSize} * ${maxLines} * 1.5)` // 1.5 line-height
-    : undefined;
 
   return (
     <Container $device={device} $labelPosition={$labelPosition}>

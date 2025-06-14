@@ -32,6 +32,8 @@ import { devLog } from '@/lib/utils/devLogger';
 import { AdBottomModal } from '@/components/AdBottomMadal';
 import { AdContent } from '@/contents/AdContent';
 import { OverlayPopup } from '@/components/OverlayPopup';
+import { ContactContent } from '@/contents/ContactContent';
+
 
 const sectionMap: Record<
   string,
@@ -86,6 +88,8 @@ export default function HomePage() {
 
   const [isShowAdModal, setIsShowAdModal] = useState(false);
 
+  const [isShowContactModal, setIsShowContactModal] = useState(false);
+
   useEffect(() => {
     setIsShowAdModal(true);
   }, []);
@@ -101,6 +105,11 @@ export default function HomePage() {
     setIsAutoScrolling(false);
     isAutoScrollingRef.current = false;
   };
+
+  const handleContactClick = () => {
+  void logButtonClick('Contact', '문의하기버튼'); // ✅ 로그 먼저
+  setIsShowContactModal(true); // ✅ 팝업 열기
+};
 
   const aliasMap: Record<string, string> = {
     about: 'header',
@@ -295,43 +304,41 @@ export default function HomePage() {
   }, [t]);
   const appBar = (
     <LandingAppBar
+      onContact={handleContactClick}
       logoSrc="/assets/logo.svg"
       logoWidth="169px"
       logoHeight="64px"
       isShowLanguageSwitcher={true}
+      contactText={t.nav[4]}
       navLinks={[
+  
         {
           label: t.nav[0],
-          targetId: 'partner',
-          content: 'appbar',
-          memo: 'partner',
-        },
-        {
-          label: t.nav[1],
           targetId: 'portfolio',
           content: 'appbar',
           memo: 'portfolio',
         },
         {
-          label: t.nav[2],
+          label: t.nav[1],
           targetId: 'members',
           content: 'appbar',
           memo: 'members',
         },
         {
-          label: t.nav[3],
+          label: t.nav[2],
           targetId: 'event',
           content: 'appbar',
           memo: 'event',
         },
         {
-          label: t.nav[4],
+          label: t.nav[3],
           targetId: 'AI Estimate',
           content: 'appbar',
           memo: 'AI Estimate',
         },
       ]}
       onNavigate={scrollToTargetId}
+      onLogoClick={() => scrollToTargetId('partner', 'appbar', 'partner')}
     />
   );
 
@@ -604,6 +611,7 @@ export default function HomePage() {
           title={t.contract.title}
           description={t.contract.description}
           onTopArrowClick={() => scrollToTargetId('ai', 'contact', 'ai')}
+          onProjectInquiryClick={handleContactClick}
         />
       ),
     },
@@ -624,6 +632,15 @@ export default function HomePage() {
 >
   <AdContent buttonText={t.aiBlock.buttonTitle} />
 </OverlayPopup>
+
+<OverlayPopup
+  isOpen={isShowContactModal}
+  onClose={() => setIsShowContactModal(false)}
+>
+<ContactContent onClose={() => setIsShowContactModal(false)} />
+</OverlayPopup>
+
+
 
 
       <LandingBaseWrapper sections={sections} appBar={appBar} />

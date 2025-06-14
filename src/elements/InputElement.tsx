@@ -15,6 +15,12 @@ export interface BaseInputElementProps {
   $device: DeviceType;
   background?: string;
   autoComplete?: string;
+
+  // 커스터마이징 가능한 스타일 props (모두 $ prefix)
+  $inputBackgroundColor?: string;
+  $textColor?: string;
+  $placeholderColor?: string;
+  $borderColor?: string;
 }
 
 // Textarea 전용 props
@@ -28,14 +34,16 @@ interface TextareaElementProps extends BaseInputElementProps {
 
 /** 단일 라인 input 필드 */
 export const StyledInput = styled.input<BaseInputElementProps>`
-  background: ${({ background }) => background || AppColors.surface};
-  color: ${AppColors.onSurface};
+  background: ${({ $inputBackgroundColor, background }) =>
+    $inputBackgroundColor || background || AppColors.surface};
+  color: ${({ $textColor }) => $textColor || AppColors.onSurface};
+
   padding: ${({ padding, $device }) => padding || InputStyles.padding[$device]};
   padding-right: ${({ paddingRight, $hasSuffix, $device }) =>
     paddingRight ||
     ($hasSuffix ? InputStyles.paddingRightWithSuffix[$device] : InputStyles.padding[$device])};
 
-  border: 1px solid ${AppColors.borderLight};
+  border: 1px solid ${({ $borderColor }) => $borderColor || AppColors.borderLight};
   border-radius: ${({ radius, $device }) => radius || InputStyles.radius[$device]};
   font-size: ${({ fontSize }) => fontSize || AppTextStyles.body1.fontSize};
   width: 100%;
@@ -43,12 +51,12 @@ export const StyledInput = styled.input<BaseInputElementProps>`
   box-sizing: border-box;
 
   &:focus {
-    border-color: ${AppColors.onSurface};
+    border-color: ${({ $borderColor }) => $borderColor || AppColors.onSurface};
     outline: none;
   }
 
   &::placeholder {
-    color: ${AppColors.iconDisabled};
+    color: ${({ $placeholderColor }) => $placeholderColor || AppColors.iconDisabled};
   }
 
   ${({ readOnly }) =>
@@ -62,15 +70,16 @@ export const StyledInput = styled.input<BaseInputElementProps>`
 
 /** 멀티라인 textarea 필드 (자동 높이 조절) */
 const RawTextarea = styled.textarea<BaseInputElementProps>`
-  background: ${({ background }) => background || AppColors.surface};
-  color: ${AppColors.onSurface};
+  background: ${({ $inputBackgroundColor, background }) =>
+    $inputBackgroundColor || background || AppColors.surface};
+  color: ${({ $textColor }) => $textColor || AppColors.onSurface};
 
   padding: ${({ padding, $device }) => padding || InputStyles.padding[$device]};
   padding-right: ${({ paddingRight, $hasSuffix, $device }) =>
     paddingRight ||
     ($hasSuffix ? InputStyles.paddingRightWithSuffix[$device] : InputStyles.padding[$device])};
 
-  border: 1px solid ${AppColors.borderLight};
+  border: 1px solid ${({ $borderColor }) => $borderColor || AppColors.borderLight};
   border-radius: ${({ radius, $device }) => radius || InputStyles.radius[$device]};
   font-size: ${({ fontSize }) => fontSize || AppTextStyles.body1.fontSize};
   width: 100%;
@@ -84,13 +93,21 @@ const RawTextarea = styled.textarea<BaseInputElementProps>`
   word-break: break-word;
 
   &:focus {
-    border-color: ${AppColors.onSurface};
+    border-color: ${({ $borderColor }) => $borderColor || AppColors.onSurface};
     outline: none;
   }
 
   &::placeholder {
-    color: ${AppColors.iconDisabled};
+    color: ${({ $placeholderColor }) => $placeholderColor || AppColors.iconDisabled};
   }
+
+  ${({ readOnly }) =>
+    readOnly &&
+    `
+    background-color: #f5f5f5;
+    color: #666;
+    cursor: default;
+  `}
 `;
 
 /** 자동 높이 조절 기능 포함된 Textarea 컴포넌트 */

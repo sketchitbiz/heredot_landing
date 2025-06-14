@@ -41,12 +41,10 @@ export const AdContent: React.FC<AdContentProps> = ({ buttonText }) => {
     fontSize: isMobile ? '16px' : '24px',
     margin: '0 0 8px 0',
     fontWeight: 400,
-
-
   };
 
   return (
-    <div 
+    <div
       style={{
         width: '100%',
         height: '100%',
@@ -54,6 +52,8 @@ export const AdContent: React.FC<AdContentProps> = ({ buttonText }) => {
         justifyContent: 'center',
         cursor: 'pointer',
         position: 'relative',
+        backgroundColor: AppColors.background, // ✅ 배경색 적용
+        borderRadius: '16px', // Optional: 시각적 일관성
       }}
       onClick={handleClick}
     >
@@ -76,21 +76,21 @@ export const AdContent: React.FC<AdContentProps> = ({ buttonText }) => {
             flexDirection: 'column',
             justifyContent: 'center',
             alignItems: 'center',
-            padding: '20px 40px',
+            padding: '80px 40px 20px', // ✅ 위 여유 공간 추가
             textAlign: 'center',
           }}
         >
           <h2 style={line1Style}>{t.adModal.line1}</h2>
-      <h2 style={line2Style}>
-  {isMobile
-    ? t.adModal.line2.split('\n').map((line, idx) => (
-        <React.Fragment key={idx}>
-          {line}
-          {idx !== t.adModal.line2.split('\n').length - 1 && <br />}
-        </React.Fragment>
-      ))
-    : t.adModal.line2.replace(/\n/g, ' ')}
-</h2>
+          <h2 style={line2Style}>
+            {isMobile
+              ? t.adModal.line2.split('\n').map((line, idx) => (
+                  <React.Fragment key={idx}>
+                    {line}
+                    {idx !== t.adModal.line2.split('\n').length - 1 && <br />}
+                  </React.Fragment>
+                ))
+              : t.adModal.line2.replace(/\n/g, ' ')}
+          </h2>
 
           <div style={{ marginTop: '20px' }}>
             <CommonButton
@@ -105,24 +105,22 @@ export const AdContent: React.FC<AdContentProps> = ({ buttonText }) => {
           </div>
         </div>
 
-        {/* Second: Image content */}
-        
-{!isMobile && (
-  <div
-    className="second"
-    style={{
-      flex: 1,
-      backgroundImage: `url('/ad.avif')`,
-      backgroundSize: 'contain',
-      backgroundPosition: 'center',
-      backgroundRepeat: 'no-repeat',
-      minHeight: '400px',
-      borderBottomLeftRadius: '16px',
-      borderBottomRightRadius: '16px',
-    }}
-  />
-)}
-
+        {/* Second: Image content (PC 전용) */}
+        {!isMobile && (
+          <div
+            className="second"
+            style={{
+              flex: 1,
+              backgroundImage: `url('/ad.avif')`,
+              backgroundSize: 'contain',
+              backgroundPosition: 'center',
+              backgroundRepeat: 'no-repeat',
+              minHeight: '400px',
+              borderBottomLeftRadius: '16px',
+              borderBottomRightRadius: '16px',
+            }}
+          />
+        )}
       </div>
     </div>
   );
