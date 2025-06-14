@@ -445,7 +445,7 @@ export default function AiPageContent() {
       // 여기서는 추가적인 초기화 없이, 첫 API 메시지 플래그만 초기화합니다.
       // 만약 `selections` 없이 `sessionId`만 바뀌었을 때도 채팅이 초기화되어야 한다면,
       // 그 로직을 여기에 추가하거나 별도의 `if` 블록으로 다룰 수 있습니다.
-      setIsFirstApiUserMessageSent(false);
+      // setIsFirstApiUserMessageSent(false);
       setCurrentSessionIndex(newSessionIndex); // sessionId는 동기화만
       devLog('[AiPageContent] No "selections" param present. Basic init.');
     } else {
@@ -961,14 +961,13 @@ export default function AiPageContent() {
       let sessionIndexForApiCall: number | null = currentSessionIndexFromStore;
 
       // --- 사용자 메시지를 백엔드 API로 전송 ---
-      // 🚨🚨🚨 로그인 상태일 때만 createChatMessage 호출 🚨🚨🚨
-      if (true) {
-        const userApiPayload: ChatMessagePayload = {
+      if (isFirstApiUserMessageSent) {
+        // 🚨🚨🚨 로그인 상태일 때만 createChatMessage 호출 🚨🚨🚨
+
+        const userApiPayload: Omit<ChatMessagePayload, 'sessionIndex'> & {
+          sessionIndex?: number;
+        } = {
           role: 'USER',
-          // currentSessionIndexFromStore가 null이면 새 세션 생성 (useCreateChatMessage 내부 로직)
-          ...(sessionIndexForApiCall !== null && {
-            sessionIndex: sessionIndexForApiCall,
-          }),
           content: {
             message: submissionPrompt,
             files: currentFiles.map((f) => ({
@@ -977,15 +976,19 @@ export default function AiPageContent() {
               mimeType: f.mimeType,
             })),
           },
-          // 첫 사용자 메시지일 경우에만 title 설정.
-          // useCreateChatMessage에서 sessionIndex가 undefined일 때 title을 사용하여 새 세션을 생성합니다.
-          title: isFirstApiUserMessageSent ? undefined : '새로운 채팅',
+          // sessionIndex가 null이 아닐 때만 포함
+          ...(sessionIndexForApiCall !== null && {
+            sessionIndex: sessionIndexForApiCall,
+          }),
+          // 첫 사용자 메시지일 경우에만 title 설정
+          title: '새로운 채팅',
         };
 
         devLog(
           '[AiPageContent] Sending user message to custom API:',
           userApiPayload
         );
+
         const apiResponse = await createChatMessage(userApiPayload);
 
         // API 응답으로 새로운 세션 인덱스를 받았으면 업데이트
@@ -1019,10 +1022,8 @@ export default function AiPageContent() {
           );
           return;
         }
-        if (!isFirstApiUserMessageSent) {
-          setIsFirstApiUserMessageSent(true);
-        }
       }
+      setIsFirstApiUserMessageSent(true);
 
       // --- 네비게이션 제목 업데이트 로직 추가 시작 ---
       // 로그인 상태이고, 유효한 세션 인덱스가 있으며, 첫 사용자 메시지 (시스템/액션 프롬프트 아님)일 경우
@@ -1279,13 +1280,16 @@ export default function AiPageContent() {
           setLoading(false);
         }
         try {
-          const aiApiPayload: ChatMessagePayload = {
+          const aiApiPayload: Omit<ChatMessagePayload, 'sessionIndex'> & { sessionIndex?: number } = {
             role: 'AI',
-            sessionIndex: sessionIndexForApiCall,
             content: {
               message: naturalLanguageText || accumulatedText, // ⭐ accumulatedText 사용 ⭐
               ...(parsedInvoiceData && { invoiceData: parsedInvoiceData }),
             },
+            // sessionIndex가 null이 아닐 때만 포함
+            ...(sessionIndexForApiCall !== null && {
+              sessionIndex: sessionIndexForApiCall,
+            }),
           };
           devLog(
             '[AiPageContent] Sending AI response to custom API:',
