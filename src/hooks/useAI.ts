@@ -13,8 +13,12 @@ import { app } from '@/lib/firebase/firebase.config'; // 임포트 경로 확인
 
 export default function useAI() {
   const [modelIdentifier, setModelIdentifier] = useState(
-    'gemini-2.5-flash-preview-05-20'
+    'gemini-2.5-flash'
+    // 'gemini-2.5-flash-lite-preview-06-17'
   );
+
+  const NON_STREAMING_MODELS = ['gemini-2.5-flash-lite-preview-06-17'];
+  const isStreamingSupported = !NON_STREAMING_MODELS.includes(modelIdentifier);
 
   //gemini-2.0-flash
   //gemini-2.5-flash-preview-05-20
@@ -25,6 +29,67 @@ export default function useAI() {
   const [currentThinkingBudget, setCurrentThinkingBudget] = useState<
     number | undefined
   >(0);
+
+  const estimateTokenCostKRW = (
+    inputTokens: number,
+    outputTokens: number,
+    modelName: string,
+    exchangeRate = 1356 // 1 USD = 1356 KRW
+  ): {
+    input: { usd: number; krw: number };
+    output: { usd: number; krw: number };
+    total: { usd: number; krw: number };
+  } => {
+    let inputPricePerMillion = 0;
+    let outputPricePerMillion = 0;
+    const TOKEN_THRESHOLD = 200000; // 20만 토큰 기준
+
+    switch (modelName) {
+      case 'gemini-2.5-pro':
+        // 입력: 20만 토큰 미만 $1.25, 초과 $2.50
+        inputPricePerMillion = inputTokens < TOKEN_THRESHOLD ? 1.25 : 2.5;
+        // 출력: 20만 토큰 미만 $10.00, 초과 $15.00
+        outputPricePerMillion = outputTokens < TOKEN_THRESHOLD ? 10.0 : 15.0;
+        break;
+      case 'gemini-2.5-flash':
+        // 입력: $0.30 (텍스트)
+        inputPricePerMillion = 0.3;
+        // 출력: $2.50
+        outputPricePerMillion = 2.5;
+        break;
+      case 'gemini-2.5-flash-lite-preview-06-17':
+        // 입력: $0.10
+        inputPricePerMillion = 0.1;
+        // 출력: $0.40
+        outputPricePerMillion = 0.4;
+        break;
+      default:
+        // 기본값으로 Flash 모델 가격 사용
+        inputPricePerMillion = 0.3;
+        outputPricePerMillion = 2.5;
+        break;
+    }
+
+    // 토큰 수를 백만 단위로 변환하여 계산
+    const inputUsd = (inputTokens / 1_000_000) * inputPricePerMillion;
+    const outputUsd = (outputTokens / 1_000_000) * outputPricePerMillion;
+    const totalUsd = inputUsd + outputUsd;
+
+    return {
+      input: {
+        usd: inputUsd,
+        krw: Math.round(inputUsd * exchangeRate),
+      },
+      output: {
+        usd: outputUsd,
+        krw: Math.round(outputUsd * exchangeRate),
+      },
+      total: {
+        usd: totalUsd,
+        krw: Math.round(totalUsd * exchangeRate),
+      },
+    };
+  };
 
   useEffect(() => {
     const initializeAI = async () => {
@@ -51,7 +116,9 @@ export default function useAI() {
         devLog(`[useAI] API Host: ${apiHost}`);
 
         // --- 지침 및 가격 데이터 로딩 로직 시작 ---
-        console.log(`[useAI] Fetching instructions from: /ai/instructions/get-list`);
+        console.log(
+          `[useAI] Fetching instructions from: /ai/instructions/get-list`
+        );
         let instructionsResponse;
         try {
           instructionsResponse = await apiClient.post(
@@ -377,6 +444,31 @@ ${localizationInstruction}`;
     };
   }, []);
 
+  const sendMessageWithCostLogging = async (input: string) => {
+    if (!chat.current) {
+      console.warn('[useAI] Chat not initialized');
+      return;
+    }
+
+    const result = await chat.current.sendMessage(input);
+
+    if (result?.usageMetadata?.candidatesTokenCount) {
+      const outputTokens = result.usageMetadata.candidatesTokenCount[0] || 0;
+      const { usd, krw } = estimateTokenCostKRW(
+        0,
+        outputTokens,
+        modelIdentifier
+      );
+      devLog(
+        `[useAI] 출력 토큰 수: ${outputTokens} tokens → 예상 비용: $${usd.toFixed(
+          4
+        )} ≒ ₩${krw.toLocaleString()}`
+      );
+    }
+
+    return result;
+  };
+
   const setCurrentModelIdentifier = (newModelIdentifier: string) => {
     if (modelIdentifier !== newModelIdentifier) {
       devLog(`[useAI] Changing model identifier to: ${newModelIdentifier}`);
@@ -390,5 +482,8 @@ ${localizationInstruction}`;
     modelName: modelIdentifier,
     isInitialized: initialized,
     setCurrentModelIdentifier,
+    sendMessageWithCostLogging,
+    estimateTokenCostKRW,
+    isStreamingSupported,
   };
 }

@@ -302,7 +302,14 @@ export default function AiPageContent() {
   t.lang = lang;
 
   const stepData = getStepData(t);
-  const { chat, setCurrentModelIdentifier, modelName, isInitialized } = useAI();
+  const {
+    chat,
+    modelIdentifier,
+    isInitialized,
+    sendMessageWithCostLogging,
+    estimateTokenCostKRW,
+    isStreamingSupported,
+  } = useAI();
 
   const {
     currentStep,
@@ -1114,199 +1121,203 @@ export default function AiPageContent() {
           );
         }
       }
-      const streamResult = await chat.current.sendMessageStream(parts);
-      let accumulatedText = ''; // 누적된 텍스트
-      let accumulatedThought = ''; // 누적된 추론 요약 (만약 SDK가 지원한다면)
 
-      // AI 응답이 시작되었음을 나타내는 로딩 상태 해제 (텍스트가 나올 것이므로)
-      // setLoading(false); // 이 위치에서 해제하면 'AI is typing...'과 같은 효과가 안 나올 수 있음.
-      // 아래 `setMessages`에서 텍스트가 추가될 때마다 `loading` 상태를 조정하는게 좋음.
+      // 헬퍼 함수: 최종 응답 텍스트를 처리합니다.
+      const processFinalResponse = async (
+        responseText: string,
+        finalInvoiceDetails: InvoiceDataType | null
+      ) => {
+        const naturalLanguageText = responseText;
 
-      devLog('[AI 스트림 루프 진입 - 실시간 출력 시작]');
-      for await (const item of streamResult.stream) {
-        const chunkText = item.candidates?.[0]?.content?.parts?.[0]?.text;
-
-        // ⭐ 텍스트 청크가 있을 때마다 UI를 업데이트 ⭐
-        if (chunkText) {
-          accumulatedText += chunkText;
-          setMessages((prevMessages: Message[]) =>
-            prevMessages.map((msg) =>
-              msg.id === aiMessageId
-                ? { ...msg, text: accumulatedText } // 텍스트를 점진적으로 업데이트
-                : msg
-            )
-          );
-          // 메시지가 추가될 때마다 스크롤을 맨 아래로 이동
-          chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-        }
-
-        // ⭐ 추론 요약(Thought Summaries) 처리 (SDK가 지원하는 경우) ⭐
-        // 이 부분은 SDK의 실제 응답 구조를 디버깅하여 확인해야 합니다.
-        // 현재 Firebase Vertex AI SDK의 `StreamGenerateContentResponse`의 `item` (Chunk) 객체는
-        // `candidates[0].content.parts[0].text` 외에 `thought` 같은 속성을 직접 노출하지 않을 수 있습니다.
-        // 만약 Google Cloud Vertex AI API의 `v1alpha` 버전에서만 `thinking_config`가 지원된다면,
-        // 현재 `firebase/vertexai` SDK로는 직접 접근이 어려울 수 있습니다.
-        // 하지만 만약을 위해 구조는 남겨둡니다.
-        if (item.candidates && item.candidates.length > 0) {
-          for (const candidate of item.candidates) {
-            if (candidate.content && candidate.content.parts) {
-              for (const part of candidate.content.parts) {
-                if (
-                  'thought' in part &&
-                  typeof (part as any).thought === 'string' &&
-                  (part as any).thought.length > 0
-                ) {
-                  accumulatedThought += (part as any).thought; // 생각 내용 자체를 누적
-                  // 이 `accumulatedThought`를 별도의 UI 요소(예: "AI가 생각 중입니다..." 아래에 작은 텍스트)로 표시
-                  // 또는 개발자 콘솔에만 로깅.
-                  devLog(
-                    '[AiPageContent] AI Thought Stream:',
-                    (part as any).thought
-                  );
-                }
-              }
-            }
-          }
-        }
-      }
-      devLog('[AI 스트림 루프 종료 - 실시간 출력 완료]');
-      // 최종 응답 텍스트는 `accumulatedText`에 모두 들어있으므로, 더 이상 `setMessages`를 반복 호출할 필요 없음.
-
-      // JSON 추출 및 `setInvoiceDetails` 로직
-      const jsonScriptRegex =
-        /<script type="application\/json" id="invoiceData">([\s\S]*?)<\/script>/;
-      const jsonMatch = accumulatedText.match(jsonScriptRegex); // ⭐ aiResponseText 대신 accumulatedText 사용 ⭐
-      devLog('JSON 추출 시도 결과 (jsonMatch):', jsonMatch);
-      let parsedInvoiceData: InvoiceDataType | null = null;
-      let naturalLanguageText = accumulatedText; // ⭐ aiResponseText 대신 accumulatedText 사용 ⭐
-
-      if (jsonMatch && jsonMatch[1]) {
-        // ... (기존 JSON 파싱 로직 유지) ...
-        const jsonString = jsonMatch[1];
-        devLog('추출된 JSON 문자열 (jsonString):', jsonString);
-        try {
-          parsedInvoiceData = JSON.parse(jsonString) as InvoiceDataType;
-          devLog(
-            '파싱된 견적서 JSON 객체 (parsedInvoiceData):',
-            parsedInvoiceData
-          );
-          naturalLanguageText = accumulatedText // 여기도 accumulatedText
-            .replace(jsonScriptRegex, '')
-            .trim();
-          devLog(
-            'JSON 제거 후 자연어 텍스트 (naturalLanguageText):',
-            naturalLanguageText
-          );
-
-          if (parsedInvoiceData && parsedInvoiceData.invoiceGroup) {
-            const initialItems = parsedInvoiceData.invoiceGroup.flatMap(
+        if (finalInvoiceDetails) {
+          if (finalInvoiceDetails.invoiceGroup) {
+            const initialItems = finalInvoiceDetails.invoiceGroup.flatMap(
               (group) =>
                 group.items.map((item) => ({ ...item, isDeleted: false }))
             );
             const { amount, duration, pages } = calculateTotals(initialItems);
             setInvoiceDetails({
-              parsedJson: parsedInvoiceData,
+              parsedJson: finalInvoiceDetails,
               items: initialItems,
               currentTotal: amount,
               currentTotalDuration: duration,
               currentTotalPages: pages,
             });
-            setMessages((prevMessages: Message[]) => {
-              return prevMessages.map((msg) =>
-                msg.id === aiMessageId
-                  ? {
-                      ...msg,
-                      text: naturalLanguageText,
-                      invoiceData: parsedInvoiceData ?? undefined,
-                    }
-                  : msg
-              );
-            });
-          } else {
-            setInvoiceDetails(null);
-            setMessages((prevMessages: Message[]) => {
-              return prevMessages.map((msg) =>
-                msg.id === aiMessageId
-                  ? {
-                      ...msg,
-                      text: naturalLanguageText,
-                      invoiceData: undefined,
-                    }
-                  : msg
-              );
-            });
           }
+        } else {
+          setInvoiceDetails(null);
+        }
+
+        setMessages((prevMessages: Message[]) => {
+          return prevMessages.map((msg) =>
+            msg.id === aiMessageId
+              ? {
+                  ...msg,
+                  text: naturalLanguageText,
+                  invoiceData: finalInvoiceDetails ?? undefined,
+                }
+              : msg
+          );
+        });
+
+        // --- AI 응답을 백엔드 API로 전송 ---
+        if (responseText.trim()) {
+          if (
+            sessionIndexForApiCall === null ||
+            sessionIndexForApiCall === undefined
+          ) {
+            console.error(
+              '[AiPageContent] No valid session index found for sending AI response to API.'
+            );
+            return; // API 호출 중단
+          }
+          try {
+            const aiApiPayload: Omit<ChatMessagePayload, 'sessionIndex'> & {
+              sessionIndex?: number;
+            } = {
+              role: 'AI',
+              content: {
+                message: naturalLanguageText,
+                ...(finalInvoiceDetails && {
+                  invoiceData: finalInvoiceDetails,
+                }),
+              },
+              ...(sessionIndexForApiCall !== null && {
+                sessionIndex: sessionIndexForApiCall,
+              }),
+            };
+            devLog(
+              '[AiPageContent] Sending AI response to custom API:',
+              aiApiPayload
+            );
+            await createChatMessage(aiApiPayload);
+          } catch (apiCallError) {
+            console.error(
+              'Failed to send AI response to custom API:',
+              apiCallError
+            );
+          }
+        }
+      };
+
+      let accumulatedText = '';
+      let parsedInvoiceData: InvoiceDataType | null = null;
+
+      if (isStreamingSupported) {
+        devLog('[AI] 스트리밍 모드로 API 호출:', modelIdentifier);
+        const streamResult = await chat.current.sendMessageStream(parts);
+
+        let usageMetadataFromStream: any;
+        devLog('[AI 스트림 루프 진입 - 실시간 출력 시작]');
+        for await (const item of streamResult.stream) {
+          if (item.usageMetadata) {
+            devLog(
+              '[AI 스트림] 스트림 아이템에서 usageMetadata 발견:',
+              item.usageMetadata
+            );
+            usageMetadataFromStream = item.usageMetadata;
+          }
+          const chunkText = item.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (chunkText) {
+            accumulatedText += chunkText;
+            setMessages((prevMessages: Message[]) =>
+              prevMessages.map((msg) =>
+                msg.id === aiMessageId ? { ...msg, text: accumulatedText } : msg
+              )
+            );
+            chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+          }
+        }
+        devLog('[AI 스트림 루프 종료 - 실시간 출력 완료]');
+
+        const finalResponse = await streamResult.response;
+        const finalUsageMetadata =
+          usageMetadataFromStream || finalResponse.usageMetadata;
+
+        if (finalUsageMetadata) {
+          const promptTokens = finalUsageMetadata.promptTokenCount || 0;
+          const outputTokens = finalUsageMetadata.candidatesTokenCount || 0;
+          const totalTokens = finalUsageMetadata.totalTokenCount || 0;
+
+          if (totalTokens > 0) {
+            const costs = estimateTokenCostKRW(
+              promptTokens,
+              outputTokens,
+              modelIdentifier
+            );
+            devLog(
+              `[handleGeminiSubmit] 토큰 사용량 및 비용 분석:\n` +
+                `- 입력 토큰: ${promptTokens.toLocaleString()} tokens → $${costs.input.usd.toFixed(
+                  4
+                )} ≒ ₩${costs.input.krw.toLocaleString()}\n` +
+                `- 출력 토큰: ${outputTokens.toLocaleString()} tokens → $${costs.output.usd.toFixed(
+                  4
+                )} ≒ ₩${costs.output.krw.toLocaleString()}\n` +
+                `- 총 비용: $${costs.total.usd.toFixed(
+                  4
+                )} ≒ ₩${costs.total.krw.toLocaleString()}`
+            );
+          }
+        } else {
+          devLog(
+            '[useAI] 스트림과 최종 응답 모두에서 usageMetadata를 찾을 수 없음',
+            finalResponse
+          );
+        }
+      } else {
+        devLog('[AI] 비-스트리밍 모드로 API 호출:', modelIdentifier);
+        const result = await chat.current.sendMessage(parts);
+        const response = result.response;
+
+        if (response.usageMetadata) {
+          const promptTokens = response.usageMetadata.promptTokenCount || 0;
+          const outputTokens = response.usageMetadata.candidatesTokenCount || 0;
+          const totalTokens = response.usageMetadata.totalTokenCount || 0;
+
+          if (totalTokens > 0) {
+            const costs = estimateTokenCostKRW(
+              promptTokens,
+              outputTokens,
+              modelIdentifier
+            );
+            devLog(
+              `[handleGeminiSubmit] 토큰 사용량 및 비용 분석:\n` +
+                `- 입력 토큰: ${promptTokens.toLocaleString()} tokens → $${costs.input.usd.toFixed(
+                  4
+                )} ≒ ₩${costs.input.krw.toLocaleString()}\n` +
+                `- 출력 토큰: ${outputTokens.toLocaleString()} tokens → $${costs.output.usd.toFixed(
+                  4
+                )} ≒ ₩${costs.output.krw.toLocaleString()}\n` +
+                `- 총 비용: $${costs.total.usd.toFixed(
+                  4
+                )} ≒ ₩${costs.total.krw.toLocaleString()}`
+            );
+          }
+        }
+        accumulatedText = response.text();
+      }
+
+      // 최종 텍스트에서 JSON 파싱
+      const jsonScriptRegex =
+        /<script type="application\/json" id="invoiceData">([\s\S]*?)<\/script>/;
+      const jsonMatch = accumulatedText.match(jsonScriptRegex);
+      if (jsonMatch && jsonMatch[1]) {
+        try {
+          parsedInvoiceData = JSON.parse(jsonMatch[1]) as InvoiceDataType;
+          accumulatedText = accumulatedText.replace(jsonScriptRegex, '').trim();
         } catch (parseError) {
           console.error(
             '❌ Error parsing invoice JSON from AI response:',
             parseError
           );
-          if (jsonString) {
-            console.error('Invalid JSON String was:', jsonString);
+          if (jsonMatch[1]) {
+            console.error('Invalid JSON String was:', jsonMatch[1]);
           }
-          setInvoiceDetails(null);
-          setMessages((prevMessages: Message[]) => {
-            return prevMessages.map((msg) =>
-              msg.id === aiMessageId
-                ? { ...msg, text: accumulatedText, invoiceData: undefined } // 에러시에도 accumulatedText
-                : msg
-            );
-          });
+          parsedInvoiceData = null; // 파싱 실패 시 null로 초기화
         }
-      } else {
-        devLog(
-          '스크립트 태그에서 견적서 JSON 데이터를 찾지 못했습니다. AI 응답을 자연어로만 처리합니다.'
-        );
-        setInvoiceDetails(null);
-        setMessages((prevMessages: Message[]) => {
-          return prevMessages.map((msg) =>
-            msg.id === aiMessageId
-              ? { ...msg, text: naturalLanguageText, invoiceData: undefined } // 여기도 accumulatedText
-              : msg
-          );
-        });
       }
 
-      // --- AI 응답을 백엔드 API로 전송 ---
-      if (accumulatedText.trim()) {
-        // ⭐ aiResponseText 대신 accumulatedText 사용 ⭐
-        if (
-          sessionIndexForApiCall === null ||
-          sessionIndexForApiCall === undefined
-        ) {
-          console.error(
-            '[AiPageContent] No valid session index found for sending AI response to API. (loggedIn but no session after initial message)'
-          );
-          setLoading(false);
-        }
-        try {
-          const aiApiPayload: Omit<ChatMessagePayload, 'sessionIndex'> & { sessionIndex?: number } = {
-            role: 'AI',
-            content: {
-              message: naturalLanguageText || accumulatedText, // ⭐ accumulatedText 사용 ⭐
-              ...(parsedInvoiceData && { invoiceData: parsedInvoiceData }),
-            },
-            // sessionIndex가 null이 아닐 때만 포함
-            ...(sessionIndexForApiCall !== null && {
-              sessionIndex: sessionIndexForApiCall,
-            }),
-          };
-          devLog(
-            '[AiPageContent] Sending AI response to custom API:',
-            aiApiPayload
-          );
-          await createChatMessage(aiApiPayload);
-        } catch (apiCallError) {
-          console.error(
-            'Failed to send AI response to custom API:',
-            apiCallError
-          );
-        }
-      } else if (!isLoggedIn) {
-        devLog(
-          '[AiPageContent] Skipping AI response API call for non-logged-in user.'
-        );
-      }
+      await processFinalResponse(accumulatedText, parsedInvoiceData);
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.';
