@@ -1,9 +1,6 @@
 'use client';
 
-import useAuthStore from '@/store/authStore';
-
 import React, { useEffect, useRef, useState } from 'react';
-import { usePathname } from 'next/navigation';
 import { useLang } from '@/contexts/LangContext';
 import { dictionary } from '@/lib/i18n/lang';
 import { downloadLinks } from '@/lib/i18n/downloadLinks';
@@ -24,16 +21,16 @@ import { AppColors } from '@/styles/colors';
 import AppBlock from '@/block/AppBlock';
 import DesignBlock from '@/block/Design';
 import Consulting from '@/block/Consulting';
-import { v4 as uuidv4 } from 'uuid';
 import { userStamp } from '@/lib/api/user/api';
 import { AIBlock } from '@/block/AIBlock';
 import EventBlock from '@/block/EventBlock';
 import { devLog } from '@/lib/utils/devLogger';
-import { AdBottomModal } from '@/components/AdBottomMadal';
 import { AdContent } from '@/contents/AdContent';
 import { OverlayPopup } from '@/components/OverlayPopup';
 import { ContactContent } from '@/contents/ContactContent';
 import { Breakpoints } from '@/constants/layoutConstants';
+import AiGoWidget from '@/app/AiGoWidget';
+import ToastProvider from '@/components/Aigo/ToastProvider'
 
 
 const sectionMap: Record<
@@ -54,37 +51,50 @@ const sectionMap: Record<
   contact: { content: 'Contact', memo: '연락' },
 };
 
+const aliasMap: Record<string, string> = {
+  about: 'header',
+  portfolio: 'portfolio',
+  partner: 'partner',
+  appblock: 'appblock',
+  members: 'members',
+  review: 'video',
+  design: 'design',
+  contact: 'contact',
+  community: 'community',
+  market: 'market',
+  estimate: 'ai',
+  promotion: 'event',
+};
+
 const logSectionView = async (
   content: string,
   memo: string,
   firstYn?: boolean
 ) => {
   try {
-    const res = await userStamp({
+    await userStamp({
       category: '스크롤',
       content,
       memo,
       ...(firstYn ? { firstYn: 'Y' } : {}),
     });
-  } catch (e) {}
+  } catch {}
 };
 
 const logButtonClick = async (content: string, memo: string) => {
   try {
-    const res = await userStamp({
+    await userStamp({
       category: '버튼',
       content,
       memo,
     });
-  } catch (e) {}
+  } catch {}
 };
 
 export default function HomePage() {
   const { lang } = useLang();
   const t = dictionary[lang];
-  const pathname = usePathname();
-  const [currentSection, setCurrentSection] = useState(t.nav[0]);
-  const [isAutoScrolling, setIsAutoScrolling] = useState(false);
+  const [, setIsAutoScrolling] = useState(false);
   const isAutoScrollingRef = useRef(false);
 
   const [isShowAdModal, setIsShowAdModal] = useState(false);
@@ -123,20 +133,7 @@ useEffect(() => {
   setIsShowContactModal(true); // ✅ 팝업 열기
 };
 
-  const aliasMap: Record<string, string> = {
-    about: 'header',
-    portfolio: 'portfolio',
-    partner: 'partner',
-    appblock: 'appblock',
-    members: 'members',
-    review: 'video',
-    design: 'design',
-    contact: 'contact',
-    community: 'community',
-    market: 'market',
-    estimate: 'ai',
-    promotion: 'event',
-  };
+  
 
   const baseNavLinks = [
   {
@@ -277,8 +274,6 @@ const navLinks = isMobile
       (entries) => {
         const entry = entries[0];
         if (entry.isIntersecting && !isAutoScrollingRef.current) {
-          setCurrentSection('Header');
-
           if (!firstHeaderLogged.current) {
             firstHeaderLogged.current = true;
             logSectionView('Header', 'header', true); // 👈 firstYn: true 전달
@@ -326,7 +321,6 @@ const navLinks = isMobile
 
             const section = sectionMap[id];
             if (section) {
-              setCurrentSection(section.content);
               if (isScrollingDown && section.log !== false) {
                 devLog(`[Observer] 스탬프 전송: ${section.content}`);
                 logSectionView(section.content, section.memo);
@@ -408,7 +402,6 @@ const navLinks = isMobile
           slides={t.partner.slides}
           downloadText={t.partner.downloadText}
           onEnterSection={(index, tab) => {
-            setCurrentSection('Partner');
             if (isAutoScrollingRef.current) return;
             const newUrl = '/partner'; // 또는 원하는 aliasMap key
             if (window.location.pathname !== newUrl) {
@@ -439,7 +432,6 @@ const navLinks = isMobile
           gridHeaders={t.consulting.gridHeaders}
           gridContents={t.consulting.gridContents}
           onEnterSection={() => {
-            setCurrentSection('Consulting');
             if (isAutoScrollingRef.current) return;
 
             const newUrl = '/consulting';
@@ -466,7 +458,6 @@ const navLinks = isMobile
             slides={t.design.slides}
             downloadText={t.design.downloadText}
             onEnterSection={(index, tab) => {
-              setCurrentSection('Design');
               if (isAutoScrollingRef.current) return;
               const newUrl = '/design';
               if (window.location.pathname !== newUrl) {
@@ -650,7 +641,6 @@ const navLinks = isMobile
 
   return (
     <>
-      {/* 광고 모달 삽입 */}
 <OverlayPopup
   isOpen={isShowAdModal}
   onClose={() => setIsShowAdModal(false)}
@@ -667,8 +657,8 @@ const navLinks = isMobile
 
 
 
-
       <LandingBaseWrapper sections={sections} appBar={appBar} />
+      <AiGoWidget />
     </>
   );
 }

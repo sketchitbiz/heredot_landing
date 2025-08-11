@@ -1,0 +1,1492 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PC 웹 솔루션 견적 상세</title>
+    <style>
+      /* 기본 스타일 */
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f4f4f4;
+        color: #333;
+        line-height: 1.6;
+        padding-bottom: 80px; /* 고정 하단 바 높이만큼 여백 추가 */
+      }
+      .container {
+        max-width: 600px; /* 모바일 화면에 적합한 최대 너비 */
+        margin: 0 auto;
+        padding: 15px;
+        background-color: #fff;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        overflow: hidden; /* 내부 요소의 모서리 처리 */
+      }
+
+      /* --- 개선된 헤더 요약 부분 스타일 --- */
+      .header-summary {
+        background-color: #fff;
+        color: #333;
+        padding: 25px 20px;
+        border-radius: 12px;
+        text-align: center;
+        margin-bottom: 15px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        position: relative;
+        border: 1px solid #e9ecef;
+      }
+
+      .header-summary::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, rgba(0, 123, 255, 0.05) 0%, rgba(0, 123, 255, 0) 70%);
+        z-index: 1;
+        border-radius: 12px;
+      }
+
+      .header-summary > * {
+        position: relative;
+        z-index: 2;
+      }
+
+      .header-summary .project-title-label {
+        font-size: 0.9em;
+        color: #666;
+        margin-bottom: 5px;
+        letter-spacing: 0.5px;
+      }
+
+      .header-summary .project-name {
+        font-size: 1.8em;
+        font-weight: 700;
+        margin-bottom: 25px;
+        color: #007bff;
+      }
+
+      .header-summary .summary-details {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 15px 10px;
+        border: 1px solid #e9ecef;
+      }
+
+      .header-summary .total-price-section,
+      .header-summary .vat-info,
+      .header-summary .delivery-info {
+        flex: 1;
+        text-align: center;
+        padding: 0 5px;
+      }
+
+      .header-summary .total-price-label,
+      .header-summary .vat-label,
+      .header-summary .delivery-label {
+        display: block;
+        font-size: 0.8em;
+        color: #666;
+        margin-bottom: 5px;
+      }
+
+      .header-summary .total-price {
+        font-size: 1.6em;
+        font-weight: bold;
+        color: #007bff;
+        display: block;
+      }
+
+      .header-summary .vat-amount,
+      .header-summary .delivery-duration {
+        font-size: 1.1em;
+        font-weight: 600;
+        color: #333;
+        display: block;
+      }
+
+      /* 모바일 화면 최적화 (작은 화면에서 세로로 배치) */
+      @media (max-width: 420px) {
+        .header-summary .summary-details {
+          flex-direction: column;
+          align-items: stretch;
+        }
+        .header-summary .total-price-section,
+        .header-summary .vat-info,
+        .header-summary .delivery-info {
+          padding: 10px 0;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .header-summary .delivery-info {
+          border-bottom: none;
+        }
+      }
+      /* --- 헤더 요약 부분 스타일 끝 --- */
+
+      /* --- AI 추천 기능 토글 스타일 --- */
+      .ai-recommendation-toggle {
+        background-color: #f0f0f0;
+        padding: 15px 20px;
+        border-radius: 8px;
+        margin-top: 20px;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+      }
+
+      .ai-recommendation-toggle label {
+        font-size: 1em;
+        color: #555;
+        margin-left: 10px;
+        cursor: pointer;
+      }
+
+      .ai-recommendation-toggle input {
+        position: relative;
+        width: 40px;
+        height: 20px;
+        -webkit-appearance: none;
+        background: #ccc;
+        border-radius: 15px;
+        transition: 0.4s;
+        cursor: pointer;
+      }
+
+      .ai-recommendation-toggle input:checked {
+        background: #007bff;
+      }
+
+      .ai-recommendation-toggle input::before {
+        content: "";
+        position: absolute;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        top: 1px;
+        left: 1px;
+        background: #fff;
+        transition: 0.4s;
+      }
+
+      .ai-recommendation-toggle input:checked::before {
+        transform: translateX(20px);
+      }
+      /* --- AI 추천 기능 토글 스타일 끝 --- */
+
+      /* --- 기간 선택 섹션 스타일 --- */
+      .duration-selection-section {
+        background-color: #f0f0f0;
+        padding: 20px;
+        border-radius: 12px;
+        margin-top: 15px;
+        text-align: center;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      }
+
+      .duration-selection-section .selection-title {
+        font-size: 1.2em;
+        color: #333;
+        margin-bottom: 15px;
+        font-weight: bold;
+      }
+
+      .duration-display {
+        display: flex;
+        justify-content: center;
+        align-items: flex-end; /* 텍스트 베이스라인 맞추기 */
+        margin-bottom: 20px;
+        font-size: 1.6em;
+        font-weight: bold;
+        color: #007bff; /* 강조 색상 */
+      }
+
+      .duration-display #selectedWeeks {
+        font-size: 1.8em; /* 주 단위는 더 크게 */
+        color: #007bff;
+      }
+      .duration-display .unit {
+        font-size: 0.8em; /* "주" 단위는 작게 */
+        margin-left: 5px;
+        color: #555;
+      }
+      .duration-display #selectedEndDate {
+        display: block; /* 줄바꿈 */
+        font-size: 0.9em;
+        color: #777;
+        font-weight: normal;
+        margin-left: 15px;
+      }
+
+      /* Range Slider Styling */
+      .week-slider-container {
+        width: 90%;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        padding: 0 10px; /* 슬라이더 엄지 좌우 여백 */
+      }
+
+      .week-slider-container input[type="range"] {
+        -webkit-appearance: none; /* Override default look */
+        appearance: none;
+        width: 100%;
+        height: 10px; /* Track height */
+        background: #d3d3d3; /* Default track color */
+        outline: none;
+        opacity: 0.7;
+        transition: opacity 0.2s;
+        border-radius: 5px;
+        margin: 0; /* 기본 마진 제거 */
+      }
+
+      .week-slider-container input[type="range"]:hover {
+        opacity: 1;
+      }
+
+      /* Thumb (Slider handle) */
+      .week-slider-container input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 24px; /* Thumb width */
+        height: 24px; /* Thumb height */
+        background: #007bff; /* Thumb color */
+        border-radius: 50%; /* Circular thumb */
+        cursor: pointer;
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+        margin-top: -7px; /* Center thumb vertically on track */
+        border: 2px solid #fff; /* 흰색 테두리 */
+      }
+
+      .week-slider-container input[type="range"]::-moz-range-thumb {
+        width: 24px;
+        height: 24px;
+        background: #007bff;
+        border-radius: 50%;
+        cursor: pointer;
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+        border: 2px solid #fff;
+      }
+
+      /* Track (Slider background) */
+      .week-slider-container input[type="range"]::-webkit-slider-runnable-track {
+        width: 100%;
+        height: 10px;
+        background: #d3d3d3;
+        border-radius: 5px;
+      }
+
+      .week-slider-container input[type="range"]::-moz-range-track {
+        width: 100%;
+        height: 10px;
+        background: #d3d3d3;
+        border-radius: 5px;
+      }
+
+      .slider-labels {
+        display: flex;
+        justify-content: space-between;
+        width: 90%;
+        margin: 5px auto 0 auto;
+        font-size: 0.8em;
+        color: #777;
+      }
+
+      /* --- 기간 선택 섹션 스타일 끝 --- */
+
+      /* 아코디언 섹션 */
+      .accordion-item {
+        border: 1px solid #ddd;
+        margin-bottom: 10px;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05); /* 아코디언 항목에도 그림자 */
+      }
+      .accordion-header {
+        padding: 15px;
+        background-color: #f9f9f9;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-weight: bold;
+        color: #333;
+        border-bottom: 1px solid #eee;
+        transition: background-color 0.2s ease; /* 호버/클릭 효과 */
+      }
+      .accordion-header:hover {
+        background-color: #f0f0f0;
+      }
+      .accordion-header.active {
+        border-bottom: none;
+        background-color: #e0e0e0; /* 활성화 시 색상 변경 */
+      }
+      .accordion-header .arrow-icon {
+        font-size: 1.2em;
+        transition: transform 0.3s ease;
+      }
+      .accordion-header.active .arrow-icon {
+        transform: rotate(90deg);
+      }
+
+      .accordion-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease-out, padding 0.3s ease-out; /* 패딩도 같이 트랜지션 */
+        padding: 0 15px;
+        background-color: #fff;
+      }
+      .accordion-content.open {
+        max-height: 500px; /* 충분히 큰 값으로 설정하여 내용이 다 보이게 */
+        padding: 15px;
+      }
+
+      /* 항목 리스트 */
+      .item-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+      .item-list li {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px dashed #eee;
+      }
+      .item-list li:last-child {
+        border-bottom: none;
+      }
+      .item-list .item-name {
+        flex-grow: 1;
+        font-size: 0.95em;
+        color: #444;
+      }
+      .item-list .item-price {
+        font-weight: bold;
+        color: #555;
+        font-size: 0.95em;
+        white-space: nowrap; /* 금액이 줄바꿈되지 않도록 */
+        margin-left: 10px; /* 이름과 가격 사이 간격 */
+      }
+      .sub-category-container {
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid #e9ecef;
+      }
+      .sub-category-container:first-child {
+        margin-top: 0;
+        padding-top: 0;
+        border-top: none;
+      }
+      .sub-category-header {
+        font-size: 1.1em;
+        font-weight: bold;
+        color: #007bff;
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 12px;
+        background-color: #f8f9fa;
+        border-radius: 6px;
+      }
+      .sub-category-total {
+        font-size: 0.9em;
+        color: #555;
+        font-weight: normal;
+      }
+      .item-list .item-detail-btn {
+        margin-left: 15px; /* 가격과 버튼 사이 간격 */
+        padding: 6px 10px;
+        border: 1px solid #007bff; /* 파란색 테두리 */
+        border-radius: 5px;
+        background-color: #007bff; /* 파란색 배경 */
+        color: #fff; /* 흰색 글씨 */
+        font-size: 0.8em;
+        cursor: pointer;
+        text-decoration: none;
+        transition: background-color 0.2s, border-color 0.2s;
+      }
+      .item-list .item-detail-btn:hover {
+        background-color: #0056b3;
+        border-color: #0056b3;
+      }
+      .item-list .delete-btn {
+        margin-left: 5px;
+        background: none;
+        border: none;
+        color: #dc3545;
+        cursor: pointer;
+        font-size: 1.1em;
+        padding: 0;
+      }
+
+      /* --- AI 추천 기능 항목 스타일 및 애니메이션 --- */
+      .item-list .ai-recommended {
+        background-color: #e6f7ff; /* 연한 파란색 배경 */
+        border-left: 5px solid #007bff; /* 왼쪽 강조 선 */
+        color: #0056b3; /* 진한 파란색 글씨 */
+        font-weight: bold;
+        padding-left: 10px; /* 왼쪽 선 때문에 패딩 추가 */
+        animation: fadeInAndHighlight 0.5s ease-out; /* 애니메이션 적용 */
+      }
+
+      /* AI 추천 항목의 세부 버튼 스타일 */
+      .item-list .ai-recommended .item-detail-btn {
+        background-color: #0056b3; /* 더 진한 파란색 */
+        border-color: #0056b3;
+      }
+      .item-list .ai-recommended .item-detail-btn:hover {
+        background-color: #003f80;
+        border-color: #003f80;
+      }
+
+      @keyframes fadeInAndHighlight {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+          background-color: transparent;
+          color: #444;
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+          background-color: #e6f7ff;
+          color: #0056b3;
+        }
+      }
+
+      /* 하단 고정 바 */
+      .sticky-footer {
+        position: fixed;
+        bottom: 50px; /* 하단 네비게이션 메뉴의 높이만큼 위로 */
+        left: 0;
+        width: 100%;
+        background-color: #fff;
+        color: #333;
+        padding: 12px 16px;
+        text-align: center;
+        box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .sticky-footer .ai-toggle-container {
+        width: 100%;
+        display: flex;
+        justify-content: flex-start;
+        padding: 0;
+        margin-left: 8px;
+      }
+
+      .sticky-footer .main-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        gap: 12px;
+      }
+
+      .sticky-footer .footer-total {
+        font-size: 1.1em;
+        font-weight: 600;
+        color: #222;
+        background-color: #f8f9fa;
+        padding: 8px 12px;
+        border-radius: 8px;
+        flex: 1;
+      }
+
+      /* AI 토글 스타일 개선 */
+      .ai-recommendation-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 8px;
+        padding: 4px 8px;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        border: 1px solid #e9ecef;
+        transition: all 0.3s ease;
+      }
+
+      .ai-recommendation-toggle:hover {
+        background-color: #f1f3f5;
+      }
+
+      .ai-recommendation-toggle input {
+        position: relative;
+        width: 36px;
+        height: 20px;
+        -webkit-appearance: none;
+        background: #e9ecef;
+        border-radius: 10px;
+        transition: 0.3s;
+        cursor: pointer;
+        margin: 0;
+      }
+
+      .ai-recommendation-toggle input:checked {
+        background: #007bff;
+      }
+
+      .ai-recommendation-toggle input::before {
+        content: "";
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        top: 2px;
+        left: 2px;
+        background: #fff;
+        transition: 0.3s;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .ai-recommendation-toggle input:checked::before {
+        transform: translateX(16px);
+      }
+
+      .ai-recommendation-toggle label {
+        font-size: 0.9em;
+        color: #495057;
+        font-weight: 500;
+        cursor: pointer;
+        user-select: none;
+        white-space: nowrap;
+        margin: 0;
+      }
+
+      /* 견적서 받기 버튼 스타일 개선 */
+      .download-button {
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-size: 0.9em;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+        box-shadow: 0 2px 6px rgba(0, 123, 255, 0.2);
+        min-width: 120px;
+      }
+
+      .download-button:hover {
+        background-color: #0056b3;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+      }
+
+      .download-button:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 4px rgba(0, 123, 255, 0.2);
+      }
+
+      /* 모바일 반응형 스타일 */
+      @media (max-width: 768px) {
+        .sticky-footer {
+          padding: 8px;
+        }
+
+        .sticky-footer .main-actions {
+          gap: 8px;
+        }
+
+        .sticky-footer .footer-total,
+        .download-button {
+          font-size: 0.85em;
+          padding: 8px;
+        }
+
+        .bottom-nav-item {
+          font-size: 0.7em;
+        }
+      }
+
+      /* 더 작은 모바일 화면 */
+      @media (max-width: 380px) {
+        .sticky-footer {
+          padding: 6px;
+        }
+
+        .sticky-footer .footer-total {
+          font-size: 0.8em;
+        }
+
+        .download-button {
+          font-size: 0.8em;
+          min-width: 100px;
+        }
+      }
+      /* --- 하단 고정 바 끝 --- */
+
+      /* --- 모달 스타일 시작 --- */
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 1001;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.5); /* 오버레이 색상 좀 더 진하게 */
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+        box-sizing: border-box;
+      }
+
+      .modal-content {
+        background-color: #fefefe;
+        margin: auto;
+        padding: 25px; /* 패딩 약간 증가 */
+        border: 1px solid #888;
+        border-radius: 12px; /* 모서리 더 둥글게 */
+        width: 90%;
+        max-width: 550px; /* 최대 너비 약간 증가 */
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3); /* 그림자 더 강하게 */
+        position: relative;
+        animation: fadeIn 0.3s ease-out;
+      }
+
+      .close-button {
+        color: #999;
+        float: right;
+        font-size: 30px; /* 더 크게 */
+        font-weight: bold;
+        position: absolute;
+        top: 10px;
+        right: 15px;
+      }
+
+      .close-button:hover,
+      .close-button:focus {
+        color: #333;
+        text-decoration: none;
+        cursor: pointer;
+      }
+
+      .modal-content h2 {
+        color: #007bff; /* 모달 제목 색상 */
+        font-size: 1.5em;
+        margin-bottom: 20px;
+        border-bottom: 2px solid #eee;
+        padding-bottom: 10px;
+      }
+
+      .detail-section {
+        margin-top: 20px;
+        line-height: 1.6;
+      }
+      .detail-section h3 {
+        color: #333;
+        font-size: 1.1em;
+        margin-bottom: 10px;
+      }
+      .detail-section p {
+        margin-bottom: 12px;
+        font-size: 0.95em;
+      }
+      .detail-section strong {
+        color: #555;
+      }
+      #modalItemDescription {
+        background-color: #f0f4f7; /* 배경색 변경 */
+        border: 1px solid #dcdcdc;
+        padding: 15px; /* 패딩 증가 */
+        border-radius: 8px;
+        white-space: pre-wrap;
+        font-size: 0.9em;
+        color: #444;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: scale(0.95);
+        } /* 약간 더 작게 시작 */
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+
+      @media (max-width: 480px) {
+        .modal-content {
+          width: 95%;
+          padding: 20px;
+        }
+        .close-button {
+          font-size: 26px;
+          top: 8px;
+          right: 12px;
+        }
+        .modal-content h2 {
+          font-size: 1.3em;
+        }
+        #modalItemDescription {
+          font-size: 0.85em;
+        }
+      }
+      /* --- 모달 스타일 끝 --- */
+
+      /* 하단 네비게이션 메뉴 */
+      .bottom-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 50px;
+        background-color: #fff;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        border-top: 1px solid #e9ecef;
+        z-index: 1000;
+      }
+
+      .bottom-nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        flex: 1;
+        height: 100%;
+        text-decoration: none;
+        color: #666;
+        font-size: 0.8em;
+        gap: 4px;
+      }
+
+      .bottom-nav-item.active {
+        color: #007bff;
+      }
+
+      .bottom-nav-icon {
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .bottom-nav-text {
+        font-size: 0.75em;
+        margin: 0;
+      }
+
+      /* AI 버튼 섹션 스타일 */
+      .ai-buttons-section {
+        margin-top: 20px;
+        padding: 0 15px;
+      }
+
+      .ai-button {
+        width: 100%;
+        padding: 15px;
+        margin-bottom: 10px;
+        border: 1px solid #e9ecef;
+        border-radius: 12px;
+        background-color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 1em;
+        color: #333;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-align: left;
+      }
+
+      .ai-button:last-child {
+        margin-bottom: 70px; /* 하단 네비게이션 메뉴 높이 + 여유 공간 */
+      }
+
+      .ai-button .button-content {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .ai-button .button-title {
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .ai-button .button-description {
+        font-size: 0.85em;
+        color: #666;
+      }
+
+      .ai-button .arrow-icon {
+        color: #999;
+        font-size: 1.2em;
+      }
+
+      .ai-button.consultation {
+        background-color: #f8f9fa;
+      }
+
+      .ai-button:hover {
+        background-color: #f8f9fa;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      }
+
+      .ai-button.consultation:hover {
+        background-color: #f1f3f5;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header-summary">
+        <p class="project-title-label">견적 프로젝트</p>
+        <h1 class="project-name">PC 웹 솔루션</h1>
+
+        <div class="summary-details">
+          <div class="total-price-section">
+            <span class="total-price-label">총 합계</span>
+            <span class="total-price">₩ 27,800,000</span>
+          </div>
+          <div class="vat-info">
+            <span class="vat-label">부가세 포함</span>
+            <span class="vat-amount">₩ 30,580,000</span>
+          </div>
+          <div class="delivery-info">
+            <span class="delivery-label">예상 기간</span>
+            <span class="delivery-duration">30주 (약 8개월)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="duration-selection-section">
+        <h3 class="selection-title">원하는 개발 기간을 선택하세요</h3>
+        <div class="duration-display">
+          <span id="selectedWeeks">30</span><span class="unit">주</span>
+          <span id="selectedEndDate"> (종료 예정일: 2025년 7월 15일)</span>
+        </div>
+        <div class="week-slider-container">
+          <input type="range" id="weekSlider" min="4" max="52" value="30" />
+        </div>
+        <div class="slider-labels">
+          <span>4주</span>
+          <span>52주</span>
+        </div>
+      </div>
+      <div id="accordionContainer"></div>
+
+      <!-- AI 버튼 섹션 추가 -->
+      <div class="ai-buttons-section">
+        <button class="ai-button">
+          <div class="button-content">
+            <div class="button-title"><span>📉</span>AI 예산 줄이기</div>
+            <div class="button-description">기능 간소화로 예산을 절감하고 싶다면?</div>
+          </div>
+          <span class="arrow-icon">></span>
+        </button>
+
+        <button class="ai-button">
+          <div class="button-content">
+            <div class="button-title"><span>✨</span>AI 맞춤 추천</div>
+            <div class="button-description">AI가 분석한 필수 기능을 빠르게 확인</div>
+          </div>
+          <span class="arrow-icon">></span>
+        </button>
+
+        <button class="ai-button consultation">
+          <div class="button-content">
+            <div class="button-title"><span>📞</span>견적 상담요청</div>
+            <div class="button-description">AI를 통해 받은 견적으로 최종 상담 받아보세요</div>
+          </div>
+          <span class="arrow-icon">></span>
+        </button>
+      </div>
+    </div>
+
+    <div class="sticky-footer">
+      <div class="ai-toggle-container">
+        <div class="ai-recommendation-toggle">
+          <input type="checkbox" id="aiRecommendToggle" />
+          <label for="aiRecommendToggle">AI 추천 기능 활성화</label>
+        </div>
+      </div>
+      <div class="main-actions">
+        <div class="footer-total">총 합계: ₩ 30,580,000</div>
+        <button class="download-button" id="downloadQuoteBtn">내 견적서 받기</button>
+      </div>
+    </div>
+
+    <nav class="bottom-nav">
+      <a href="#" class="bottom-nav-item active">
+        <div class="bottom-nav-icon">💬</div>
+        <span class="bottom-nav-text">견적상담</span>
+      </a>
+      <a href="#" class="bottom-nav-item">
+        <div class="bottom-nav-icon">📋</div>
+        <span class="bottom-nav-text">나의견적</span>
+      </a>
+      <a href="#" class="bottom-nav-item">
+        <div class="bottom-nav-icon">⚙️</div>
+        <span class="bottom-nav-text">설정</span>
+      </a>
+      <a href="#" class="bottom-nav-item">
+        <div class="bottom-nav-icon">🔍</div>
+        <span class="bottom-nav-text">큰화면</span>
+      </a>
+    </nav>
+
+    <div id="detailModal" class="modal">
+      <div class="modal-content">
+        <span class="close-button">&times;</span>
+        <h2>항목 세부 내용</h2>
+        <div class="detail-section">
+          <h3>항목명: <span id="modalItemName"></span></h3>
+          <p><strong>예상 금액:</strong> <span id="modalItemPrice"></span> 원</p>
+          <p><strong>세부 내용:</strong></p>
+          <p id="modalItemDescription"></p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // --- JSON 데이터 정의 ---
+        const projectCategoriesData = [
+          {
+            category_name: "✨ 기본 공통",
+            items: [
+              {
+                name: "프로젝트 기획",
+                price: "4,000,000",
+                description:
+                  "IT 프로젝트를 진행하기 위한 전반적인 설계 단계입니다. 최고의 기술력과 노하우로 최적의 솔루션을 제공합니다. 이 단계에서는 고객의 요구사항을 정확히 파악하고, 시스템 아키텍처를 설계하며, 개발 로드맵을 수립합니다. 프로젝트 성공의 핵심 기반을 다지는 중요한 과정입니다.",
+              },
+              {
+                name: "UI/UX 디자인",
+                price: "4,000,000",
+                description:
+                  "스토리보드 기반 UI/UX 디자인을 정의합니다. 사용자 경험을 최우선으로 고려한 직관적이고 미려한 디자인을 구현합니다. 사용자가 쉽게 서비스를 이용하고, 긍정적인 경험을 할 수 있도록 사용자 흐름, 화면 구성, 시각적 요소를 정교하게 설계합니다.",
+              },
+              {
+                name: "프론트엔드 개발",
+                price: "4,000,000",
+                description:
+                  "디자인된 UI/UX 화면을 개발합니다. 최신 기술 스택(React, Vue, Angular 등)을 활용하여 사용자 친화적인 인터페이스를 구축합니다. 반응형 웹 기술을 적용하여 다양한 디바이스에서 최적화된 화면을 제공하며, 빠르고 안정적인 서비스 구동을 목표로 합니다.",
+              },
+              {
+                name: "서버 인프라",
+                price: "500,000",
+                description:
+                  "고객사 서버 배치 기반 Back / Front 개발 환경을 조성합니다. 안정적이고 확장 가능한 인프라를 구축합니다. 클라우드 환경(AWS, GCP, Azure 등) 또는 온프레미스 환경에 맞춰 서버를 구성하고, 데이터베이스 연동 및 네트워크 설정을 최적화합니다.",
+              },
+            ],
+          },
+          {
+            category_name: "📱 사용자 앱 기능",
+            sub_categories: [
+              {
+                sub_category_name: "인증",
+                items: [
+                  {
+                    name: "회원가입/로그인",
+                    price: "300,000",
+                    description:
+                      "ID/PW 가입형으로 회원가입 및 이용약관 동의를 포함합니다. 보안 강화된 인증 시스템을 제공합니다. 소셜 로그인(카카오, 네이버, 구글 등) 연동 옵션도 추가 가능하며, 개인정보 보호를 위한 암호화 및 보안 정책을 준수합니다.",
+                  },
+                  {
+                    name: "ID 찾기",
+                    price: "300,000",
+                    description:
+                      "ID 찾기 (예: 뒤 2자리만 보이는 *마스킹 처리). 사용자 편의성을 높이는 기능을 제공합니다. 이메일 또는 휴대폰 본인 인증을 통한 ID 찾기 기능을 구현하여 사용자 불편을 최소화합니다.",
+                  },
+                  {
+                    name: "PW 찾기",
+                    price: "600,000",
+                    description:
+                      "본인 인증 후 PW 초기화 / 변경 지원 기능. 안전한 비밀번호 관리를 돕습니다. 비밀번호 재설정 시 강력한 암호 정책을 적용하고, 보안에 취약한 비밀번호 사용을 제한하여 사용자 계정의 안전을 강화합니다.",
+                  },
+                ],
+              },
+              {
+                sub_category_name: "마이페이지",
+                items: [
+                  {
+                    name: "마이페이지 기본 기능",
+                    price: "600,000",
+                    description: "로그아웃, 회원정보 조회 등 기본적인 마이페이지 기능을 제공합니다. 사용자가 자신의 계정을 관리하는 핵심 페이지입니다.",
+                  },
+                  {
+                    name: "회원정보 수정",
+                    price: "800,000",
+                    description: "사용자가 자신의 개인정보(이름, 연락처 등)와 프로필(사진, 소개글 등)을 수정할 수 있는 기능을 제공합니다.",
+                  },
+                  {
+                    name: "회원탈퇴 기능",
+                    price: "400,000",
+                    description: "사용자가 안전하게 서비스를 탈퇴할 수 있는 기능을 구현합니다. 탈퇴 시 데이터 처리 정책을 포함합니다.",
+                  },
+                  {
+                    name: "결제내역 확인",
+                    price: "600,000",
+                    description: "사용자의 결제 내역, 구독 정보, 카드 정보 관리 등 결제 관련 정보를 확인하고 관리하는 기능을 제공합니다.",
+                  },
+                ],
+              },
+              {
+                sub_category_name: "검색 기능",
+                items: [
+                  {
+                    name: "검색",
+                    price: "600,000",
+                    description:
+                      "아이템명/설명 검색. 빠르고 정확한 검색 결과를 제공합니다. 자동 완성, 오타 교정, 관련 검색어 추천 등 다양한 검색 기능을 포함하여 사용자 편의성을 높입니다.",
+                  },
+                  {
+                    name: "최근 검색어",
+                    price: "600,000",
+                    description:
+                      "사용자가 최근 검색한 기록을 저장 및 표출. 편리한 재검색을 돕습니다. 검색 기록 저장 개수 설정, 검색 기록 삭제 기능 등을 제공하여 사용자가 자신의 검색 이력을 효과적으로 관리할 수 있습니다.",
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            category_name: "⚙️ 관리 기능",
+            items: [
+              {
+                name: "관리자 계정",
+                price: "300,000",
+                description:
+                  "관리자 로그인 기능 제공 (관리자 회원 관리에서 계정 추가/삭제/패스워드 수정 기능 제공. '관리 매니저' 포지션 포함). 유연한 계정 관리를 지원합니다. 역할 기반 접근 제어(RBAC)를 통해 각 관리자 계정의 권한을 세분화하여 보안성을 강화합니다.",
+              },
+              {
+                name: "대시보드",
+                price: "900,000",
+                description:
+                  "그래프 없이 간편한 지표 형태 대시보드. 핵심 데이터를 한눈에 파악할 수 있도록 시각화합니다. 서비스 현황, 사용자 통계, 매출 지표 등 주요 정보를 시각적으로 제공하여 관리자가 서비스 운영 상태를 직관적으로 이해할 수 있도록 돕습니다.",
+              },
+              {
+                name: "관리자 관리",
+                price: "600,000",
+                description:
+                  "관리자 회원 생성, 수정, 삭제 및 비밀번호 변경 기능 제공. 관리자 권한 관리를 효율적으로 수행합니다. 각 관리자에게 부여된 권한을 조회하고 수정할 수 있는 기능을 제공하여 시스템 보안 및 운영 효율성을 높입니다.",
+              },
+            ],
+          },
+          {
+            category_name: "👥 회원 관리",
+            items: [
+              {
+                name: "사용자 관리",
+                price: "600,000",
+                description:
+                  "사용자 활동 리스트 (조회, 검색, 페이징, 엑셀 다운로드 기능 제공). 사용자 데이터 관리를 용이하게 합니다. 사용자 정보 조회, 활동 내역 모니터링, 필요 시 계정 제재 등 서비스 운영에 필요한 사용자 관리 기능을 제공합니다.",
+              },
+            ],
+          },
+          {
+            category_name: "📜 정책 관리",
+            items: [
+              {
+                name: "약관 관리",
+                price: "300,000",
+                description:
+                  "이용약관, 개인정보 방침, 취소 및 환불 규정 포함. 마케팅 활용 동의, 사업자 정보 등 (수정 기능 포함, 에디터 적용). 법률 준수를 위한 필수 기능입니다. 약관 버전 관리 기능을 통해 변경 이력을 추적하고, 사용자 동의 여부를 관리할 수 있습니다.",
+              },
+            ],
+          },
+          {
+            category_name: "💳 결제 관리",
+            items: [
+              {
+                name: "1차 PG 연계 - 메이저 이지페이",
+                price: "1,200,000",
+                description:
+                  "기존 PC사례 가이드에 따라 모든 결제 관련 절차를 interface 합니다. 안정적인 결제 시스템 연동을 보장합니다. 신용카드, 가상계좌, 실시간 계좌이체 등 다양한 결제 수단을 연동하며, 결제 보안을 위한 암호화 및 인증 절차를 적용합니다.",
+              },
+              {
+                name: "결제 취소(환불)/부분 취소",
+                price: "600,000",
+                description:
+                  "국내 PC사례를 통해 카드 결제 연동/가상계좌 결제/해외 결제 등을 가능하게 합니다. 취소/환불 프로세스를 지원합니다. 관리자가 결제 내역을 확인하고, 전체 또는 부분 취소/환불을 처리할 수 있는 기능을 제공하여 효율적인 고객 지원이 가능합니다.",
+              },
+              {
+                name: "결제 이력 관리",
+                price: "1,200,000",
+                description:
+                  "결제 이력 기반 관리 (조회, 검색, 페이징, 엑셀 다운로드 기능 제공). 투명한 결제 내역 관리가 가능합니다. 사용자의 결제 내역과 상태를 상세하게 조회하고, 필요에 따라 필터링 및 통계 분석 기능을 제공합니다.",
+              },
+            ],
+          },
+          {
+            category_name: "📝 콘텐츠 관리",
+            items: [
+              {
+                name: "공지 관리",
+                price: "1,200,000",
+                description:
+                  "공지 게시판 관리 (작성, 수정, 삭제 포함, 웹 에디터 적용). 사용자에게 중요한 정보를 효율적으로 전달합니다. 이미지 및 동영상 첨부, 예약 발행, 중요 공지 설정 등 다양한 기능을 통해 효과적인 정보 전달을 지원합니다.",
+              },
+            ],
+          },
+        ];
+
+        // AI 추천 항목 데이터 (각 카테고리별로 다르게 설정 가능)
+        const aiRecommendedItems = {
+          "✨ 기본 공통": {
+            name: "AI 기반 초기화 설정",
+            price: "800,000",
+            description:
+              "AI를 활용하여 프로젝트 초기 환경 설정 및 최적화를 자동으로 수행합니다. 개발 시간을 단축하고 오류를 최소화합니다.",
+          },
+          "📱 사용자 앱 기능": {
+            name: "AI 기반 개인화 추천",
+            price: "1,500,000",
+            description:
+              "사용자 행동 데이터를 분석하여 개인화된 콘텐츠 및 상품을 추천하는 AI 모듈입니다. 사용자 참여율과 전환율을 높입니다.",
+          },
+          "⚙️ 관리 기능": {
+            name: "AI 기반 이상 감지 시스템",
+            price: "1,000,000",
+            description:
+              "시스템 로그 및 데이터를 실시간으로 모니터링하여 비정상적인 활동이나 잠재적 문제를 AI가 자동으로 감지하고 알림을 보냅니다.",
+          },
+          "👥 회원 관리": {
+            name: "AI 기반 고객 세분화 분석",
+            price: "700,000",
+            description:
+              "AI를 이용하여 고객 데이터를 세분화하고, 각 세그먼트별 특성을 분석하여 맞춤형 마케팅 전략 수립을 지원합니다.",
+          },
+          "📜 정책 관리": {
+            name: "AI 기반 약관 변경 알림",
+            price: "400,000",
+            description:
+              "약관 변경 시 AI가 주요 변경 사항을 요약하고, 사용자에게 알림을 발송하는 기능을 제공합니다. 법률 준수 및 사용자 고지를 효율화합니다.",
+          },
+          "💳 결제 관리": {
+            name: "AI 기반 부정 거래 감지",
+            price: "1,800,000",
+            description:
+              "결제 패턴을 AI가 학습하여 부정 결제를 실시간으로 감지하고 차단합니다. 금융 사고를 예방하고 보안을 강화합니다.",
+          },
+          "📝 콘텐츠 관리": {
+            name: "AI 기반 콘텐츠 자동 생성",
+            price: "1,200,000",
+            description:
+              "키워드나 주제를 입력하면 AI가 관련 콘텐츠 초안을 자동으로 생성하여 제공합니다. 콘텐츠 제작 시간을 단축하고 효율성을 높입니다.",
+          },
+        };
+
+        // 금액 문자열을 숫자로 변환하는 함수
+        const parsePrice = (priceStr) => {
+          return parseInt(priceStr.replace(/,/g, ""), 10);
+        };
+
+        // 숫자를 금액 형식 문자열로 변환하는 함수
+        const formatPrice = (number) => {
+          return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        };
+
+        // 카테고리별 총액 계산 함수
+        const calculateCategoryTotal = (category) => {
+          if (category.items) {
+            return category.items.reduce((total, item) => total + parsePrice(item.price), 0);
+          }
+          if (category.sub_categories) {
+            return category.sub_categories.reduce((total, subCategory) => {
+              const subTotal = subCategory.items.reduce((sub, item) => sub + parsePrice(item.price), 0);
+              return total + subTotal;
+            }, 0);
+          }
+          return 0;
+        };
+
+        // --- 아코디언 동적 생성 스크립트 ---
+        const accordionContainer = document.getElementById("accordionContainer");
+
+        projectCategoriesData.forEach((category) => {
+          const categoryTotal = calculateCategoryTotal(category);
+
+          const accordionItem = document.createElement("div");
+          accordionItem.className = "accordion-item";
+
+          const accordionHeader = document.createElement("div");
+          accordionHeader.className = "accordion-header";
+          accordionHeader.innerHTML = `
+            <div class="header-content">
+              <span>${category.category_name}</span>
+            </div>
+            <div style="display: flex; align-items: center;">
+              <span class="category-total">₩ ${formatPrice(categoryTotal)}</span>
+              <span class="arrow-icon">></span>
+            </div>
+          `;
+          accordionItem.appendChild(accordionHeader);
+
+          const accordionContent = document.createElement("div");
+          accordionContent.className = "accordion-content";
+
+          if (category.items) {
+            const itemList = document.createElement("ul");
+            itemList.className = "item-list";
+            itemList.setAttribute("data-category-name", category.category_name);
+
+            category.items.forEach((item) => {
+              const listItem = document.createElement("li");
+              listItem.innerHTML = `
+                <span class="item-name">${item.name}</span>
+                <span class="item-price">${item.price}</span>
+                <button class="item-detail-btn" data-item-name="${item.name}" data-item-price="${item.price}" data-item-description="${item.description}">세부</button>
+              `;
+              itemList.appendChild(listItem);
+            });
+            accordionContent.appendChild(itemList);
+          } else if (category.sub_categories) {
+            category.sub_categories.forEach((subCategory) => {
+              const subCategoryContainer = document.createElement("div");
+              subCategoryContainer.className = "sub-category-container";
+
+              const subCategoryHeader = document.createElement("h4");
+              subCategoryHeader.className = "sub-category-header";
+              const subCategoryTotal = subCategory.items.reduce((total, item) => total + parsePrice(item.price), 0);
+              subCategoryHeader.innerHTML = `
+                <span>${subCategory.sub_category_name}</span>
+                <span class="sub-category-total">₩ ${formatPrice(subCategoryTotal)}</span>
+              `;
+              subCategoryContainer.appendChild(subCategoryHeader);
+
+              const itemList = document.createElement("ul");
+              itemList.className = "item-list";
+              itemList.setAttribute("data-category-name", category.category_name);
+              itemList.setAttribute("data-subcategory-name", subCategory.sub_category_name);
+
+              subCategory.items.forEach((item) => {
+                const listItem = document.createElement("li");
+                listItem.innerHTML = `
+                  <span class="item-name">${item.name}</span>
+                  <span class="item-price">${item.price}</span>
+                  <button class="item-detail-btn" data-item-name="${item.name}" data-item-price="${item.price}" data-item-description="${item.description}">세부</button>
+                `;
+                itemList.appendChild(listItem);
+              });
+              subCategoryContainer.appendChild(itemList);
+              accordionContent.appendChild(subCategoryContainer);
+            });
+          }
+
+          accordionItem.appendChild(accordionContent);
+          accordionContainer.appendChild(accordionItem);
+        });
+
+        // --- 아코디언 토글 스크립트 (동적으로 생성된 요소에도 적용) ---
+        const newAccordionHeaders = document.querySelectorAll(".accordion-header");
+
+        newAccordionHeaders.forEach((header) => {
+          header.addEventListener("click", function () {
+            const content = this.nextElementSibling;
+            const isActive = this.classList.contains("active");
+
+            document.querySelectorAll(".accordion-header").forEach((h) => {
+              h.classList.remove("active");
+              h.nextElementSibling.classList.remove("open");
+              h.nextElementSibling.style.maxHeight = "0";
+            });
+
+            if (!isActive) {
+              this.classList.add("active");
+              content.classList.add("open");
+              // content.scrollHeight 대신, 자식 요소의 총 높이를 계산하여 정확한 maxHeight 설정
+              // AI 추천 항목이 추가될 경우 높이가 달라지므로 동적으로 계산
+              content.style.maxHeight = content.scrollHeight + "px";
+            } else {
+              this.classList.remove("active");
+              content.classList.remove("open");
+              content.style.maxHeight = "0";
+            }
+          });
+        });
+
+        // --- 모달 스크립트 (동적으로 생성된 요소에도 적용) ---
+        const modal = document.getElementById("detailModal");
+        const closeButton = document.querySelector(".close-button");
+        const modalItemName = document.getElementById("modalItemName");
+        const modalItemPrice = document.getElementById("modalItemPrice");
+        const modalItemDescription = document.getElementById("modalItemDescription");
+
+        accordionContainer.addEventListener("click", function (event) {
+          if (event.target.classList.contains("item-detail-btn")) {
+            const itemName = event.target.getAttribute("data-item-name");
+            const itemPrice = event.target.getAttribute("data-item-price");
+            const itemDescription = event.target.getAttribute("data-item-description"); // 버튼의 data- 속성에서 바로 가져옴
+
+            modalItemName.textContent = itemName;
+            modalItemPrice.textContent = itemPrice;
+            modalItemDescription.textContent = itemDescription;
+
+            modal.style.display = "flex";
+            document.body.style.overflow = "hidden";
+          }
+        });
+
+        closeButton.addEventListener("click", function () {
+          modal.style.display = "none";
+          document.body.style.overflow = "";
+        });
+
+        window.addEventListener("click", function (event) {
+          if (event.target == modal) {
+            modal.style.display = "none";
+            document.body.style.overflow = "";
+          }
+        });
+
+        document.addEventListener("keydown", function (event) {
+          if (event.key === "Escape" || event.key === "Esc") {
+            if (modal.style.display === "flex") {
+              modal.style.display = "none";
+              document.body.style.overflow = "";
+            }
+          }
+        });
+
+        // --- 주(week) 슬라이더 및 기간 계산 스크립트 ---
+        const weekSlider = document.getElementById("weekSlider");
+        const selectedWeeksSpan = document.getElementById("selectedWeeks");
+        const selectedEndDateSpan = document.getElementById("selectedEndDate");
+
+        // 캘린더 시작일 (오늘 날짜)
+        const today = new Date();
+        const updateDurationDisplay = () => {
+          const weeks = parseInt(weekSlider.value, 10);
+          selectedWeeksSpan.textContent = weeks;
+
+          const endDate = new Date(today);
+          endDate.setDate(today.getDate() + weeks * 7); // 주(weeks)를 일(days)로 변환하여 더함
+
+          const year = endDate.getFullYear();
+          const month = endDate.getMonth() + 1; // getMonth()는 0부터 시작
+          const day = endDate.getDate();
+
+          // 현재 날짜를 기준으로 계산된 종료 예정일을 표시
+          selectedEndDateSpan.textContent = ` (종료 예정일: ${year}년 ${month}월 ${day}일)`;
+        };
+
+        // 슬라이더 값 변경 시 업데이트
+        weekSlider.addEventListener("input", updateDurationDisplay);
+
+        // 초기 로드 시 기간 표시 업데이트
+        updateDurationDisplay();
+
+        // --- 견적서 다운로드 버튼 스크립트 ---
+        const downloadQuoteBtn = document.getElementById("downloadQuoteBtn");
+        downloadQuoteBtn.addEventListener("click", function () {
+          // 이 부분에 실제 견적서 PDF 또는 이미지 다운로드 로직을 추가합니다.
+          // 현재는 단순한 경고창으로 대체합니다.
+          alert("견적서 다운로드 기능은 현재 준비 중입니다.");
+          // 실제 구현 시에는 window.open() 또는 fetch API를 사용하여 파일을 다운로드할 수 있습니다.
+          // 예: window.open('/api/download-quote?format=pdf', '_blank');
+        });
+
+        // --- AI 추천 기능 토글 스크립트 ---
+        const aiRecommendToggle = document.getElementById("aiRecommendToggle");
+
+        aiRecommendToggle.addEventListener("change", function () {
+          const isChecked = this.checked;
+
+          projectCategoriesData.forEach((category) => {
+            const categoryName = category.category_name;
+            const aiItemData = aiRecommendedItems[categoryName];
+
+            if (category.sub_categories) {
+              // 2뎁스 구조의 경우, 각 하위 카테고리 리스트를 찾음
+              category.sub_categories.forEach((subCategory) => {
+                const itemList = document.querySelector(
+                  `.item-list[data-category-name="${categoryName}"][data-subcategory-name="${subCategory.sub_category_name}"]`
+                );
+                if (itemList) {
+                  handleAiRecommendation(itemList, categoryName, isChecked, aiItemData);
+                }
+              });
+            } else {
+              // 1뎁스 구조의 경우
+              const itemList = document.querySelector(`.item-list[data-category-name="${categoryName}"]`);
+              if (itemList) {
+                handleAiRecommendation(itemList, categoryName, isChecked, aiItemData);
+              }
+            }
+          });
+        });
+
+        function handleAiRecommendation(itemList, categoryName, isChecked, aiItemData) {
+          const existingAiItem = itemList.querySelector(".ai-recommended");
+
+          if (isChecked) {
+            if (aiItemData && !existingAiItem) {
+              const aiListItem = document.createElement("li");
+              aiListItem.className = "ai-recommended";
+              aiListItem.innerHTML = `
+                <span class="item-name">💡 AI 추천 기능: ${aiItemData.name}</span>
+                <span class="item-price">${aiItemData.price}</span>
+                <button class="item-detail-btn" 
+                        data-item-name="AI 추천 기능: ${aiItemData.name}" 
+                        data-item-price="${aiItemData.price}" 
+                        data-item-description="${aiItemData.description}">세부</button>
+              `;
+              // '사용자 앱 기능' 카테고리의 첫 번째 하위 카테고리에만 추천 항목 추가
+              if (categoryName === "📱 사용자 앱 기능") {
+                const firstSubCategoryList = document.querySelector(
+                  '.item-list[data-category-name="📱 사용자 앱 기능"]'
+                );
+                if (itemList === firstSubCategoryList) {
+                  itemList.appendChild(aiListItem);
+                  updateAccordionHeight(itemList);
+                }
+              } else {
+                itemList.appendChild(aiListItem);
+                updateAccordionHeight(itemList);
+              }
+            }
+          } else {
+            if (existingAiItem) {
+              const parentContent = itemList.closest(".accordion-content");
+              if (parentContent && parentContent.classList.contains("open")) {
+                parentContent.style.maxHeight = parentContent.scrollHeight - existingAiItem.offsetHeight + "px";
+                setTimeout(() => {
+                  existingAiItem.remove();
+                }, 300);
+              } else {
+                existingAiItem.remove();
+              }
+            }
+          }
+        }
+
+        function updateAccordionHeight(itemList) {
+          const parentContent = itemList.closest(".accordion-content");
+          if (parentContent && parentContent.classList.contains("open")) {
+            parentContent.style.maxHeight = parentContent.scrollHeight + "px";
+          }
+        }
+      });
+    </script>
+  </body>
+</html>

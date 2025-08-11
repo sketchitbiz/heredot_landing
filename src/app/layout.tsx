@@ -1,5 +1,7 @@
 import { GlobalWrapper } from './global-wrapper';
 import StyledComponentsRegistry from '@/lib/registry';
+import {ToastProvider} from '@/components/Aigo/ToastProvider'
+
 // import "@/lib/firebase/firebase.config";
 
 /**
@@ -49,7 +51,9 @@ export default function RootLayout({
       </head>
       <body className="antialiased">
         <StyledComponentsRegistry>
+        <ToastProvider>
           <GlobalWrapper>{children}</GlobalWrapper>
+          </ToastProvider>
         </StyledComponentsRegistry>
       </body>
     </html>

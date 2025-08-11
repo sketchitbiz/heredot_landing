@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>모바일 견적 상세</title>
+    <style>
+      /* 기본 스타일 */
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f4f4f4;
+        color: #333;
+      }
+      .container {
+        max-width: 600px; /* 모바일 화면에 적합한 최대 너비 */
+        margin: 0 auto;
+        padding: 15px;
+        background-color: #fff;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+
+      /* 헤더 (총 합계 정보) */
+      .header-summary {
+        text-align: center;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #eee;
+        margin-bottom: 20px;
+      }
+      .header-summary h1 {
+        font-size: 1.2em;
+        color: #555;
+        margin-bottom: 5px;
+      }
+      .header-summary .total-price {
+        font-size: 2em;
+        font-weight: bold;
+        color: #007bff; /* 강조 색상 */
+        margin-bottom: 5px;
+      }
+      .header-summary .vat-info {
+        font-size: 0.9em;
+        color: #777;
+      }
+
+      /* 아코디언 섹션 */
+      .accordion-item {
+        border: 1px solid #ddd;
+        margin-bottom: 10px;
+        border-radius: 8px;
+        overflow: hidden; /* 자식 요소의 둥근 모서리를 위해 */
+      }
+      .accordion-header {
+        padding: 15px;
+        background-color: #f9f9f9;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-weight: bold;
+        color: #333;
+        border-bottom: 1px solid #eee; /* 열릴 때 보이는 아래 border */
+      }
+      .accordion-header.active {
+        border-bottom: none; /* 활성화 시 아래 border 제거 */
+      }
+      .accordion-header .arrow-icon {
+        font-size: 1.2em;
+        transition: transform 0.3s ease;
+      }
+      .accordion-header.active .arrow-icon {
+        transform: rotate(90deg); /* 펼쳐질 때 아이콘 회전 */
+      }
+
+      .accordion-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease-out; /* 부드러운 펼쳐짐 효과 */
+        padding: 0 15px; /* 기본 패딩 0 */
+        background-color: #fff;
+      }
+      .accordion-content.open {
+        max-height: 500px; /* 충분히 큰 값으로 설정하여 내용이 다 보이게 */
+        padding: 15px; /* 내용이 보일 때 패딩 추가 */
+      }
+
+      /* 항목 리스트 */
+      .item-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+      .item-list li {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px dashed #eee; /* 점선으로 구분 */
+      }
+      .item-list li:last-child {
+        border-bottom: none; /* 마지막 항목은 선 없음 */
+      }
+      .item-list .item-name {
+        flex-grow: 1;
+        font-size: 0.95em;
+      }
+      .item-list .item-price {
+        font-weight: bold;
+        color: #555;
+        font-size: 0.95em;
+      }
+      .item-list .item-detail-btn {
+        margin-left: 10px;
+        padding: 5px 8px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        background-color: #f0f0f0;
+        font-size: 0.8em;
+        cursor: pointer;
+        text-decoration: none; /* 링크인 경우 */
+        color: #555;
+      }
+      .item-list .delete-btn {
+        /* 삭제 버튼 (옵션) */
+        margin-left: 5px;
+        background: none;
+        border: none;
+        color: #dc3545; /* 빨간색 */
+        cursor: pointer;
+        font-size: 1.1em;
+        padding: 0;
+      }
+
+      /* 하단 고정 바 */
+      .sticky-footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background-color: #333;
+        color: #fff;
+        padding: 15px;
+        text-align: center;
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
+        z-index: 1000;
+      }
+      .sticky-footer .footer-total {
+        font-size: 1.3em;
+        font-weight: bold;
+      }
+
+      /* --- 모달 스타일 시작 --- */
+      .modal {
+        display: none; /* 기본적으로 숨김 */
+        position: fixed; /* 화면에 고정 */
+        z-index: 1001; /* 다른 요소들 위에 표시 */
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto; /* 내용이 길어지면 스크롤 가능 */
+        background-color: rgba(0, 0, 0, 0.4); /* 반투명 배경 오버레이 */
+        justify-content: center; /* 가로 중앙 정렬 */
+        align-items: center; /* 세로 중앙 정렬 */
+        padding: 20px; /* 모바일에서 내용이 너무 붙지 않도록 */
+        box-sizing: border-box; /* 패딩 포함 너비 계산 */
+      }
+
+      .modal-content {
+        background-color: #fefefe;
+        margin: auto;
+        padding: 20px;
+        border: 1px solid #888;
+        border-radius: 10px;
+        width: 90%; /* 모바일 화면에 맞춰 너비 조절 */
+        max-width: 500px; /* 최대 너비 설정 */
+        box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+        position: relative; /* 닫기 버튼 위치 지정을 위해 */
+        animation: fadeIn 0.3s ease-out; /* 부드러운 나타남 효과 */
+      }
+
+      .close-button {
+        color: #aaa;
+        float: right; /* 오른쪽 상단으로 */
+        font-size: 28px;
+        font-weight: bold;
+        position: absolute;
+        top: 10px;
+        right: 15px;
+      }
+
+      .close-button:hover,
+      .close-button:focus {
+        color: #000;
+        text-decoration: none;
+        cursor: pointer;
+      }
+
+      .detail-section {
+        margin-top: 20px;
+        line-height: 1.6;
+      }
+      .detail-section h3 {
+        color: #333;
+        font-size: 1.1em;
+        margin-bottom: 10px;
+      }
+      .detail-section p {
+        margin-bottom: 8px;
+        font-size: 0.95em;
+      }
+      .detail-section strong {
+        color: #555;
+      }
+      #modalItemDescription {
+        background-color: #f9f9f9;
+        border: 1px solid #eee;
+        padding: 10px;
+        border-radius: 5px;
+        white-space: pre-wrap; /* 줄바꿈 유지 */
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: scale(0.9);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+
+      @media (max-width: 480px) {
+        .modal-content {
+          width: 95%;
+          padding: 15px;
+        }
+        .close-button {
+          font-size: 24px;
+          top: 5px;
+          right: 10px;
+        }
+      }
+      /* --- 모달 스타일 끝 --- */
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header-summary">
+        <h1>PC 웹 솔루션 견적 상세</h1>
+        <div class="total-price">₩ 27,800,000</div>
+        <div class="vat-info">부가세 포함 ₩ 30,580,000</div>
+        <div class="expected-delivery">예상 예상 기간: 30주 (약 8개월)</div>
+      </div>
+      <div class="date-selection-section">
+        <h3 class="selection-title">원하는 기간을 직접 선택하세요</h3>
+        <div class="date-inputs">
+          <div class="date-input-group">
+            <label for="startDate">시작일</label>
+            <input type="date" id="startDate" class="date-picker" />
+          </div>
+          <span class="date-separator">~</span>
+          <div class="date-input-group">
+            <label for="endDate">종료일</label>
+            <input type="date" id="endDate" class="date-picker" />
+          </div>
+        </div>
+        <p class="selected-duration" id="calculatedDuration">선택된 기간: 0주 0일</p>
+      </div>
+      <div class="accordion-item">
+        <div class="accordion-header">
+          <span>기본 공통</span>
+          <span class="arrow-icon">></span>
+        </div>
+        <div class="accordion-content">
+          <ul class="item-list">
+            <li>
+              <span class="item-name">프로젝트 기획</span>
+              <span class="item-price">4,000,000</span>
+              <button class="item-detail-btn">세부</button>
+            </li>
+            <li>
+              <span class="item-name">UI/UX 디자인</span>
+              <span class="item-price">4,000,000</span>
+              <button class="item-detail-btn">세부</button>
+            </li>
+            <li>
+              <span class="item-name">프론트엔드 개발</span>
+              <span class="item-price">4,000,000</span>
+              <button class="item-detail-btn">세부</button>
+            </li>
+            <li>
+              <span class="item-name">서버 인프라</span>
+              <span class="item-price">500,000</span>
+              <button class="item-detail-btn">세부</button>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <div class="accordion-header">
+          <span>사용자 기능</span>
+          <span class="arrow-icon">></span>
+        </div>
+        <div class="accordion-content">
+          <ul class="item-list">
+            <li>
+              <span class="item-name">회원가입/로그인</span>
+              <span class="item-price">300,000</span>
+              <button class="item-detail-btn">세부</button>
+            </li>
+            <li>
+              <span class="item-name">ID 찾기</span>
+              <span class="item-price">300,000</span>
+              <button class="item-detail-btn">세부</button>
+            </li>
+            <li>
+              <span class="item-name">PW 찾기</span>
+              <span class="item-price">600,000</span>
+              <button class="item-detail-btn">세부</button>
+            </li>
+            <li>
+              <span class="item-name">My 페이지</span>
+              <span class="item-price">2,400,000</span>
+              <button class="item-detail-btn">세부</button>
+            </li>
+            <li>
+              <span class="item-name">검색</span>
+              <span class="item-price">600,000</span>
+              <button class="item-detail-btn">세부</button>
+            </li>
+            <li>
+              <span class="item-name">최근 검색어</span>
+              <span class="item-price">600,000</span>
+              <button class="item-detail-btn">세부</button>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div class="accordion-item">
+        <div class="accordion-header">
+          <span>관리 기능</span>
+          <span class="arrow-icon">></span>
+        </div>
+        <div class="accordion-content">
+          <ul class="item-list">
+            <li>
+              <span class="item-name">관리자 계정</span>
+              <span class="item-price">300,000</span>
+              <button class="item-detail-btn">세부</button>
+            </li>
+            <li>
+              <span class="item-name">대시보드</span>
+              <span class="item-price">900,000</span>
+              <button class="item-detail-btn">세부</button>
+            </li>
+            <li>
+              <span class="item-name">관리자 관리</span>
+              <span class="item-price">600,000</span>
+              <button class="item-detail-btn">세부</button>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <div class="accordion-header">
+          <span>회원 관리</span>
+          <span class="arrow-icon">></span>
+        </div>
+        <div class="accordion-content">
+          <ul class="item-list">
+            <li>
+              <span class="item-name">사용자 관리</span>
+              <span class="item-price">600,000</span>
+              <button class="item-detail-btn">세부</button>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <div class="accordion-header">
+          <span>정책 관리</span>
+          <span class="arrow-icon">></span>
+        </div>
+        <div class="accordion-content">
+          <ul class="item-list">
+            <li>
+              <span class="item-name">약관 관리</span>
+              <span class="item-price">300,000</span>
+              <button class="item-detail-btn">세부</button>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <div class="accordion-header">
+          <span>결제 관리</span>
+          <span class="arrow-icon">></span>
+        </div>
+        <div class="accordion-content">
+          <ul class="item-list">
+            <li>
+              <span class="item-name">1차 PG 연계 - 메이저 이지페이</span>
+              <span class="item-price">1,200,000</span>
+              <button class="item-detail-btn">세부</button>
+            </li>
+            <li>
+              <span class="item-name">결제 취소(환불)/부분 취소</span>
+              <span class="item-price">600,000</span>
+              <button class="item-detail-btn">세부</button>
+            </li>
+            <li>
+              <span class="item-name">결제 이력 관리</span>
+              <span class="item-price">1,200,000</span>
+              <button class="item-detail-btn">세부</button>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <div class="accordion-header">
+          <span>콘텐츠 관리</span>
+          <span class="arrow-icon">></span>
+        </div>
+        <div class="accordion-content">
+          <ul class="item-list">
+            <li>
+              <span class="item-name">공지 관리</span>
+              <span class="item-price">1,200,000</span>
+              <button class="item-detail-btn">세부</button>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="sticky-footer">
+      <div class="footer-total">총 합계: ₩ 30,580,000</div>
+    </div>
+
+    <div id="detailModal" class="modal">
+      <div class="modal-content">
+        <span class="close-button">&times;</span>
+        <h2>항목 세부 내용</h2>
+        <div class="detail-section">
+          <h3>항목명: <span id="modalItemName"></span></h3>
+          <p><strong>예상 금액:</strong> <span id="modalItemPrice"></span> 원</p>
+          <p><strong>세부 내용:</strong></p>
+          <p id="modalItemDescription"></p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // 아코디언 스크립트
+        const accordionHeaders = document.querySelectorAll(".accordion-header");
+
+        accordionHeaders.forEach((header) => {
+          header.addEventListener("click", function () {
+            const content = this.nextElementSibling;
+            const isActive = this.classList.contains("active");
+
+            // 모든 아코디언 닫기
+            document.querySelectorAll(".accordion-header").forEach((h) => {
+              h.classList.remove("active");
+              h.nextElementSibling.classList.remove("open");
+              h.nextElementSibling.style.maxHeight = "0"; // maxHeight 초기화
+            });
+
+            // 클릭한 아코디언 토글
+            if (!isActive) {
+              this.classList.add("active");
+              content.classList.add("open");
+              content.style.maxHeight = content.scrollHeight + "px"; // 내용 높이에 맞춰 설정
+            } else {
+              // 이미 열려있던 것을 닫을 때
+              this.classList.remove("active");
+              content.classList.remove("open");
+              content.style.maxHeight = "0";
+            }
+          });
+        });
+
+        // 모달 스크립트
+        const detailButtons = document.querySelectorAll(".item-detail-btn");
+        const modal = document.getElementById("detailModal");
+        const closeButton = document.querySelector(".close-button");
+        const modalItemName = document.getElementById("modalItemName");
+        const modalItemPrice = document.getElementById("modalItemPrice");
+        const modalItemDescription = document.getElementById("modalItemDescription");
+
+        // 예시 데이터 (실제로는 서버에서 데이터를 가져오거나 미리 정의된 객체에서 찾습니다)
+        const itemDetails = {
+          "프로젝트 기획":
+            "IT 프로젝트를 진행하기 위한 전반적인 설계 단계입니다. 최고의 기술력과 노하우로 최적의 솔루션을 제공합니다.",
+          "UI/UX 디자인":
+            "스토리보드 기반 UI/UX 디자인을 정의합니다. 사용자 경험을 최우선으로 고려한 직관적이고 미려한 디자인을 구현합니다.",
+          "프론트엔드 개발":
+            "디자인된 UI/UX 화면을 개발합니다. 최신 기술 스택을 활용하여 사용자 친화적인 인터페이스를 구축합니다.",
+          "서버 인프라":
+            "고객사 서버 배치 기반 Back / Front 개발 환경을 조성합니다. 안정적이고 확장 가능한 인프라를 구축합니다.",
+          "회원가입/로그인":
+            "ID/PW 가입형으로 회원가입 및 이용약관 동의를 포함합니다. 보안 강화된 인증 시스템을 제공합니다.",
+          "ID 찾기": "ID 찾기 (예: 뒤 2자리만 보이는 *마스킹 처리). 사용자 편의성을 높이는 기능을 제공합니다.",
+          "PW 찾기": "본인 인증 후 PW 초기화 / 변경 지원 기능. 안전한 비밀번호 관리를 돕습니다.",
+          "My 페이지":
+            "로그아웃 / 회원탈퇴 / 서비스 해지 / 이용약관 등 관리 기능, 결제 카드 서비스 사용 현황 및 관리 기능을 포함합니다. 사용자 맞춤형 정보를 제공합니다.",
+          검색: "아이템명/설명 검색. 빠르고 정확한 검색 결과를 제공합니다.",
+          "최근 검색어": "사용자가 최근 검색한 기록을 저장 및 표출. 편리한 재검색을 돕습니다.",
+          "관리자 계정":
+            "관리자 로그인 기능 제공 (관리자 회원 관리에서 계정 추가/삭제/패스워드 수정 기능 제공. '관리 매니저' 포지션 포함). 유연한 계정 관리를 지원합니다.",
+          대시보드: "그래프 없이 간편한 지표 형태 대시보드. 핵심 데이터를 한눈에 파악할 수 있도록 시각화합니다.",
+          "관리자 관리":
+            "관리자 회원 생성, 수정, 삭제 및 비밀번호 변경 기능 제공. 관리자 권한 관리를 효율적으로 수행합니다.",
+          "사용자 관리":
+            "사용자 활동 리스트 (조회, 검색, 페이징, 엑셀 다운로드 기능 제공). 사용자 데이터 관리를 용이하게 합니다.",
+          "약관 관리":
+            "이용약관, 개인정보 방침, 취소 및 환불 규정 포함. 마케팅 활용 동의, 사업자 정보 등 (수정 기능 포함, 에디터 적용). 법률 준수를 위한 필수 기능입니다.",
+          "1차 PG 연계 - 메이저 이지페이":
+            "기존 PC사례 가이드에 따라 모든 결제 관련 절차를 interface 합니다. 안정적인 결제 시스템 연동을 보장합니다.",
+          "결제 취소(환불)/부분 취소":
+            "국내 PC사례를 통해 카드 결제 연동/가상계좌 결제/해외 결제 등을 가능하게 합니다. 취소/환불 프로세스를 지원합니다.",
+          "결제 이력 관리":
+            "결제 이력 기반 관리 (조회, 검색, 페이징, 엑셀 다운로드 기능 제공). 투명한 결제 내역 관리가 가능합니다.",
+          "공지 관리":
+            "공지 게시판 관리 (작성, 수정, 삭제 포함, 웹 에디터 적용). 사용자에게 중요한 정보를 효율적으로 전달합니다.",
+        };
+
+        detailButtons.forEach((button) => {
+          button.addEventListener("click", function () {
+            const listItem = this.closest("li");
+            const itemName = listItem.querySelector(".item-name").textContent;
+            const itemPrice = listItem.querySelector(".item-price").textContent;
+
+            modalItemName.textContent = itemName;
+            modalItemPrice.textContent = itemPrice;
+            modalItemDescription.textContent = itemDetails[itemName] || "세부 내용 없음.";
+
+            modal.style.display = "flex";
+            // 모달이 열릴 때 본문 스크롤 방지
+            document.body.style.overflow = "hidden";
+          });
+        });
+
+        closeButton.addEventListener("click", function () {
+          modal.style.display = "none";
+          // 모달이 닫힐 때 본문 스크롤 허용
+          document.body.style.overflow = "";
+        });
+
+        window.addEventListener("click", function (event) {
+          if (event.target == modal) {
+            modal.style.display = "none";
+            // 모달이 닫힐 때 본문 스크롤 허용
+            document.body.style.overflow = "";
+          }
+        });
+
+        // ESC 키로 모달 닫기
+        document.addEventListener("keydown", function (event) {
+          if (event.key === "Escape" || event.key === "Esc") {
+            if (modal.style.display === "flex") {
+              modal.style.display = "none";
+              document.body.style.overflow = "";
+            }
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
