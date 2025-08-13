@@ -658,7 +658,7 @@ const navLinks = isMobile
 
 
       <LandingBaseWrapper sections={sections} appBar={appBar} />
-      <AiGoWidget />
+      {/* <AiGoWidget /> */}
     </>
   );
 }

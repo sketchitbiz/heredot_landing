@@ -1,6 +1,7 @@
 import { GlobalWrapper } from './global-wrapper';
 import StyledComponentsRegistry from '@/lib/registry';
 import {ToastProvider} from '@/components/Aigo/ToastProvider'
+import Script from 'next/script'
 
 // import "@/lib/firebase/firebase.config";
 
@@ -35,6 +36,18 @@ export default function RootLayout({
         <meta property="og:url" content="https://heredotcorp.com/" />
         <meta property="og:type" content="website" />
 
+        <Script
+  src="http://localhost:3000/widget.js"
+  data-url="http://localhost:3000/"
+  data-position="right"
+  data-color="#3391FF"
+  data-size="420x720"
+  data-height-vh="40"
+  data-height-vh-expanded="85"
+  data-label="AI"
+  data-open="0"
+  strategy="afterInteractive"
+        />
         {/* Twitter 메타 태그 */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="여기닷 AI 견적 시스템" />
