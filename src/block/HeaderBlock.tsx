@@ -1,4 +1,4 @@
-'use client';
+// HeaderBlock.tsx
 
 import React from 'react';
 import styled, { keyframes } from 'styled-components';
@@ -6,14 +6,14 @@ import { AppColors } from '@/styles/colors';
 import { AppTextStyles } from '@/styles/textStyles';
 import { FiDownload } from 'react-icons/fi';
 import Gap from '@/components/Gap';
-import CommonButton from '@/components/CommonButton'; // ✅ 추가
+import CommonButton from '@/components/CommonButton'; 
 import { Breakpoints } from '@/constants/layoutConstants';
 import { userStamp } from '@/lib/api/user/api';
 
 const HeaderBlockWrapper = styled.div`
   position: relative;
   width: 100%;
-  min-width: ${Breakpoints.desktop}px; /* 기본값: 데스크톱에서 최소 너비 설정 */
+  min-width: ${Breakpoints.desktop}px;
   height: 100vh;
   display: flex;
   align-items: center;
@@ -22,7 +22,7 @@ const HeaderBlockWrapper = styled.div`
 
   @media (max-width: ${Breakpoints.mobile}px) {
     width: 100vw;
-    min-width: unset; /* 모바일에서는 최소 너비 제거 */
+    min-width: unset;
   }
 `;
 
@@ -44,7 +44,7 @@ const Meteor = styled.div`
   animation: ${meteorDrip} 1.5s ease-in-out infinite;
 
   @media (max-width: ${Breakpoints.mobile}px) {
-    top: 70%; /* 모바일에서도 동일한 top 값 */
+    top: 70%;
   }
 `;
 
@@ -55,22 +55,34 @@ const LeftContent = styled.div`
   z-index: 2;
   gap: 10px;
   left: 20px;
-  position: absolute; /* 위치를 조정하기 위해 추가 */
-  top: 200px; /* 기본값: top에서 200px 떨어짐 */
+  position: absolute;
+  top: 200px;
 
   @media (max-width: ${Breakpoints.mobile}px) {
-    top: 200px; /* 모바일에서도 동일한 top 값 */
+    top: 200px;
   }
 `;
 
-const Title = styled.div`
+const PreTitle = styled.h1`
   ${AppTextStyles.display2};
   color: ${AppColors.onBackground};
-  margin-bottom: 10px;
+  font-size: 28px;
+  margin: 0px;
 
   @media (max-width: ${Breakpoints.mobile}px) {
-    font-size: 28px; /* 모바일에서 폰트 크기 변경 */
-    margin-bottom: 10px; /* 모바일에서 마진 변경 */
+    font-size: 24px;
+  }
+`;
+
+const Title = styled.h2`
+  ${AppTextStyles.display2};
+  color: ${AppColors.onBackground};
+
+  margin: 0px;
+
+  @media (max-width: ${Breakpoints.mobile}px) {
+    font-size: 28px;
+    margin-bottom: 10px;
   }
 `;
 
@@ -106,12 +118,12 @@ const Radar = styled.div`
   }
 
   @media (max-width: ${Breakpoints.mobile}px) {
-    width: 330px; /* 552px / 3 */
+    width: 330px;
     height: 330px;
     left: calc(50% - 165px);
 
     &::before {
-      width: 100px; /* 119px / 3 */
+      width: 100px;
       height: 100px;
       filter: blur(15px);
     }
@@ -123,6 +135,7 @@ interface HeaderBlockProps {
   subtitle: string;
   downloadLabel: string;
   downloadLink: string;
+  preTitle: string;
 }
 
 const HeaderBlock: React.FC<HeaderBlockProps> = ({
@@ -130,11 +143,13 @@ const HeaderBlock: React.FC<HeaderBlockProps> = ({
   subtitle,
   downloadLabel,
   downloadLink,
+  preTitle,
 }) => {
   return (
     <HeaderBlockWrapper>
       <Radar />
       <LeftContent>
+        <PreTitle>{preTitle}</PreTitle>
         <Title>{title}</Title>
         <Title>{subtitle}</Title>
         <a

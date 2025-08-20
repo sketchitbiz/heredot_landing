@@ -2,26 +2,27 @@
 
 import styled from "styled-components";
 import Image from "next/image";
-import { Image as ImageIcon } from "@mui/icons-material"; // No-image placeholder 아이콘
+import { Image as ImageIcon } from "@mui/icons-material";
 import { AppColors } from "@/styles/colors";
 import { AppTextStyles } from "@/styles/textStyles";
 import { Breakpoints } from '@/constants/layoutConstants';
 
 interface LandingCardProps {
-  imageUrl?: string; // 선택 사항으로 변경
+  imageUrl?: string;
   title: string;
+  subtitle?: string; // ✅ subtitle prop 추가
   altText?: string;
-  contentType?: "image" | "text"; // 콘텐츠 타입 추가
-  content?: React.ReactNode; // 텍스트 콘텐츠 추가
-  showTitle?: boolean; // 제목 표시 여부 추가
-  width?: string | number; // 너비 추가
-  height?: string | number; // 높이 추가
-  onClick?: () => void; 
+  contentType?: "image" | "text";
+  content?: React.ReactNode;
+  showTitle?: boolean;
+  width?: string | number;
+  height?: string | number;
+  onClick?: () => void;
 }
 
 const CardContainer = styled.div<Pick<LandingCardProps, "width" | "height">>`
   display: flex;
-  cursor: pointer; 
+  cursor: pointer;
   flex-direction: column;
   background-color: ${AppColors.surface};
   border-radius: 8px;
@@ -45,12 +46,12 @@ const CardWrapper = styled.div<Pick<LandingCardProps, "width" | "height">>`
 const ContentWrapper = styled.div`
   position: relative;
   width: 100%;
-  aspect-ratio: 16 / 16; // 기본 비율 (이미지 아닐 때도 공간 차지)
-  background-color: ${AppColors.backgroundDark}; // 기본 배경색
-  display: flex; // Placeholder 정렬 위해 추가
-  align-items: center; // Placeholder 정렬 위해 추가
-  justify-content: center; // Placeholder 정렬 위해 추가
-  overflow: hidden; // 텍스트 콘텐츠 넘침 방지
+  aspect-ratio: 16 / 16;
+  background-color: ${AppColors.backgroundDark};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
 `;
 
 const CardImage = styled.img`
@@ -63,7 +64,6 @@ const CardImage = styled.img`
   object-position: top;
 `;
 
-// No Image Placeholder 스타일
 const PlaceholderContainer = styled.div`
   display: flex;
   flex-direction: column;
@@ -71,41 +71,59 @@ const PlaceholderContainer = styled.div`
   justify-content: center;
   text-align: center;
   padding: 1rem;
-  color: ${AppColors.disabled}; // Placeholder 색상
-  height: 100%; // ContentWrapper 채우도록
+  color: ${AppColors.disabled};
+  height: 100%;
 
   .MuiSvgIcon-root {
-    // 아이콘 스타일
-    font-size: 3rem; // 아이콘 크기 조절
+    font-size: 3rem;
     margin-bottom: 0.5rem;
   }
 `;
 
-// 텍스트 콘텐츠 스타일
 const TextContentWrapper = styled.div`
-  padding: 1rem; // 텍스트 패딩
-  color: ${AppColors.onSurface}; // 텍스트 색상
-  height: 100%; // ContentWrapper 채우도록
-  overflow-y: auto; // 내용 길면 스크롤
+  padding: 1rem;
+  color: ${AppColors.onSurface};
+  height: 100%;
+  overflow-y: auto;
+`;
+
+// ✅ CardTitle과 Subtitle을 감싸는 wrapper 추가
+const CardTextWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 0;
+  background-color: ${AppColors.background};
 `;
 
 const CardTitle = styled.p`
-  ${AppTextStyles.body1}
+  ${AppTextStyles.body1};
   font-size: 20px;
   color: white;
-  padding: 12px 0;
-  text-align: center;
   margin: 0;
-  margin-top: 0px;
+  text-align: center;
 
   @media (max-width: ${Breakpoints.mobile}px) {
     font-size: 16px;
   }
 `;
 
+const CardSubtitle = styled.p`
+  ${AppTextStyles.body2}; // 서브 타이틀용 스타일
+  font-size: 14px;
+  color: ${AppColors.textSecondary};
+  margin: 4px 0 0; // 제목과의 간격
+  text-align: center;
+
+  @media (max-width: ${Breakpoints.mobile}px) {
+    font-size: 12px;
+  }
+`;
+
 export const LandingCard: React.FC<LandingCardProps> = ({
   imageUrl,
   title,
+  subtitle, // ✅ subtitle prop 받기
   altText = title,
   contentType = "image",
   content,
@@ -116,28 +134,32 @@ export const LandingCard: React.FC<LandingCardProps> = ({
 }) => {
   return (
     <CardWrapper width={width} height={height}>
-  <CardContainer width={width} height={height} onClick={onClick}>
-    <ContentWrapper>
-      {contentType === "image" ? (
-        imageUrl ? (
-          <CardImage
-          src={imageUrl}
-          alt={altText}
-          className="w-full h-full object-cover"
-        />
-        ) : (
-          <PlaceholderContainer>
-            <ImageIcon />
-            <p>이미지 없음</p>
-          </PlaceholderContainer>
-        )
-      ) : (
-        <TextContentWrapper>{content}</TextContentWrapper>
+      <CardContainer width={width} height={height} onClick={onClick}>
+        <ContentWrapper>
+          {contentType === "image" ? (
+            imageUrl ? (
+              <CardImage
+                src={imageUrl}
+                alt={altText}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <PlaceholderContainer>
+                <ImageIcon />
+                <p>이미지 없음</p>
+              </PlaceholderContainer>
+            )
+          ) : (
+            <TextContentWrapper>{content}</TextContentWrapper>
+          )}
+        </ContentWrapper>
+      </CardContainer>
+      {showTitle && (
+        <CardTextWrapper>
+          <CardTitle>{title}</CardTitle>
+          {subtitle && <CardSubtitle>{subtitle}</CardSubtitle>}
+        </CardTextWrapper>
       )}
-    </ContentWrapper>
-  </CardContainer>
-  {showTitle && <CardTitle>{title}</CardTitle>}
-</CardWrapper>
-
+    </CardWrapper>
   );
 };

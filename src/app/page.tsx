@@ -354,6 +354,7 @@ export default function HomePage() {
       $backgroundColor: AppColors.background,
       content: (
         <HeaderBlock
+          preTitle={t.preTitle}
           title={t.headerTitle}
           subtitle={t.headerSubtitle}
           downloadLabel={t.download}
