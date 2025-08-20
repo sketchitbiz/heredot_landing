@@ -14,7 +14,7 @@ export interface ChatSession { // 다른 컴포넌트에서 재사용되므로 e
 }
 
 interface GetChatSessionListPayload {
-  offset: number;
+  offset: number| null;
 }
 
 // 🚨🚨🚨 이 부분이 중요합니다: API 응답의 최상위가 배열인 것을 반영 🚨🚨🚨
