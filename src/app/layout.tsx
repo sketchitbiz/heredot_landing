@@ -62,7 +62,7 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.ico" />
         <title>HereDot</title>
       </head>
-      <body className="antialiased">
+      <body suppressHydrationWarning className="antialiased">
         <StyledComponentsRegistry>
         <ToastProvider>
           <GlobalWrapper>{children}</GlobalWrapper>
