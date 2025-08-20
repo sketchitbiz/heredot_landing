@@ -3,7 +3,7 @@ import { InputStyles } from '@/constants/componentConstants';
 import { AppColors } from '@/styles/colors';
 import { AppTextStyles } from '@/styles/textStyles';
 import type { DeviceType } from '@/types/device';
-import React, { useRef, useEffect } from 'react';
+import React from 'react';
 
 export interface BaseInputElementProps {
   radius?: string;
@@ -16,11 +16,17 @@ export interface BaseInputElementProps {
   background?: string;
   autoComplete?: string;
 
-  // 커스터마이징 가능한 스타일 props (모두 $ prefix)
+  // 기본 input 속성
+  type?: string; // ✅ 추가
+  inputMode?: string; // ✅ 추가
+
+  // 커스터마이징 가능한 스타일 props
   $inputBackgroundColor?: string;
   $textColor?: string;
   $placeholderColor?: string;
   $borderColor?: string;
+
+  readOnly?: boolean; // ✅ 누락되어 있으면 styled-component에서 인식 못함
 }
 
 // Textarea 전용 props
@@ -30,6 +36,7 @@ interface TextareaElementProps extends BaseInputElementProps {
   resize?: 'none' | 'vertical' | 'horizontal' | 'both';
   value: string;
   onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+  style?: React.CSSProperties;
 }
 
 /** 단일 라인 input 필드 */
@@ -114,24 +121,20 @@ const RawTextarea = styled.textarea<BaseInputElementProps>`
 export const StyledTextarea: React.FC<TextareaElementProps> = ({
   value,
   onChange,
+  style,
+  height,
   ...rest
 }) => {
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  useEffect(() => {
-    const textarea = textareaRef.current;
-    if (textarea) {
-      textarea.style.height = 'auto';
-      textarea.style.height = `${textarea.scrollHeight}px`;
-    }
-  }, [value]);
-
   return (
     <RawTextarea
-      ref={textareaRef}
       value={value}
       onChange={onChange}
-      {...rest}
+      style={{
+        ...style,
+        height: height || '200px',
+        overflow: 'auto',
+      }}
+      {...rest} // ✅ type, inputMode, 기타 속성 전달됨
     />
   );
 };

@@ -269,12 +269,23 @@ export const dictionary = {
 contactPopup: {
   title1: '당신의 여정',
   title2: '여기닷이 끝까지 함께합니다',
-  namePlaceholder: '성함을 입력해주세요.',
-  phonePlaceholder: '휴대폰 번호를 적어주세요.',
-  budgetPlaceholder: '예산 규모를 기입해주세요',
+  namePlaceholder: '성함을 입력해주세요',
+  phonePlaceholder: '휴대폰 번호를 적어주세요',
+  budgetPlaceholder: '(숫자만 입력) 예산 규모를 기입해주세요',
   contentPlaceholder:
     '개발하고 싶은 서비스, 궁금한 기능, 구현에 대한 고민 등 자유롭게 적어주세요\nex) MVP 견적, 기능정의서 요청, 기존 서비스 개선 컨설팅 등',
   submitButton: '문의하기',
+  nameRequired: '이름을 입력해주세요.',
+  phoneInvalid: '전화번호를 정확히 입력해주세요. (예: 01012345678)',
+  budgetRequired: '예산을 입력해주세요.',
+  descRequired: '문의 내용을 입력해주세요.',
+  submitSuccess: '영업일 기준 1일내 연락드리겠습니다',
+  submitFail: '제출에 실패했습니다. 다시 시도해주세요.',
+  unknownError: '오류가 발생했습니다. 관리자에게 문의해주세요.',
+   privacyNotice: '문의 접수시 개인정보 수집에 동의한것으로 간주 합니다',
+   completeTitle: '견적을 문의해주셔서 감사드립니다!',
+  completeSubtitle: '순차적으로 연락드리겠습니다.',
+  completeButton: '메인으로 돌아가기',
 },
     contactSection: {
       emailTitle: '프로젝트 문의',
@@ -391,7 +402,7 @@ contactPopup: {
     },
     reviewSection: {
       title: 'What Entrepreneurs Say About Heredot',
-      description: "Here's how CEOs remember 'Heredot'.",
+      description: "Here's how CEOs remember 'Heredot'",
     },
     membersSection: {
       title: 'Give us tasks!',
@@ -563,12 +574,23 @@ contactPopup: {
 contactPopup: {
   title1: 'We’re here to start your journey',
   title2: 'with Heredot.',
-  namePlaceholder: 'Enter your name.',
-  phonePlaceholder: 'Enter your phone number.',
+  namePlaceholder: 'Enter your name',
+  phonePlaceholder: 'Enter your phone number',
   budgetPlaceholder: 'Enter your estimated budget',
   contentPlaceholder:
     'Feel free to describe your project, desired features, or concerns.\ne.g. MVP quote, request for functional specs, improving existing services, etc.',
   submitButton: 'Submit',
+  nameRequired: 'Please enter your name',
+  phoneInvalid: 'Please enter a valid phone number (e.g. 01012345678)',
+  budgetRequired: 'Please enter your budget',
+  descRequired: 'Please enter your inquiry',
+  submitSuccess: 'We will contact you within 1 business day',
+  submitFail: 'Submission failed. Please try again',
+  unknownError: 'An error occurred. Please contact the administrator',
+    privacyNotice: 'By submitting an inquiry, you are deemed to have agreed to the collection of personal information',
+  completeTitle: 'Thank you for your inquiry',
+  completeSubtitle: 'We will contact you in order',
+  completeButton: 'Return to Home',
 },
     design: {
       tabs: [
@@ -614,7 +636,7 @@ line2: 'Ask Heredot’s Quote AI\nwithout any pressure.',
       buttonText: 'Get AI Estimate',
     },
     footer: {
-      companyName: 'Company Name: Heredot Corp.',
+      companyName: 'Company Name: Heredot Corp',
       ceo: 'CEO: Taewon Kang heredot83@heredotcorp.com',
       businessNumber: 'Business Registration Number: 289-86-03278',
       address:

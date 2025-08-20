@@ -34,6 +34,8 @@ import { AdContent } from '@/contents/AdContent';
 import { OverlayPopup } from '@/components/OverlayPopup';
 import { ContactContent } from '@/contents/ContactContent';
 import { Breakpoints } from '@/constants/layoutConstants';
+import { toast, ToastContainer } from 'react-toastify'; // 상단에 추가
+
 
 
 const sectionMap: Record<
@@ -91,16 +93,6 @@ export default function HomePage() {
 
   const [isShowContactModal, setIsShowContactModal] = useState(false);
 
-  const [isMobile, setIsMobile] = useState(false);
-
-useEffect(() => {
-  const checkMobile = () => {
-    setIsMobile(window.innerWidth < Breakpoints.mobile);
-  };
-  checkMobile();
-  window.addEventListener('resize', checkMobile);
-  return () => window.removeEventListener('resize', checkMobile);
-}, []);
 
   useEffect(() => {
     setIsShowAdModal(true);
@@ -165,17 +157,6 @@ useEffect(() => {
   },
 ];
 
-const navLinks = isMobile
-  ? [
-      ...baseNavLinks,
-      {
-        label: t.nav[4], // 문의하기
-        targetId: 'contact',
-        content: 'appbar',
-        memo: 'contact',
-      },
-    ]
-  : baseNavLinks;
 
   useEffect(() => {
     const path =
@@ -361,7 +342,7 @@ const navLinks = isMobile
       logoHeight="64px"
       isShowLanguageSwitcher={true}
       contactText={t.nav[4]}
-        navLinks={navLinks} 
+        navLinks={baseNavLinks} 
       onNavigate={scrollToTargetId}
       onLogoClick={() => scrollToTargetId('partner', 'appbar', 'partner')}
     />
@@ -662,11 +643,13 @@ const navLinks = isMobile
   isOpen={isShowContactModal}
   onClose={() => setIsShowContactModal(false)}
 >
-<ContactContent onClose={() => setIsShowContactModal(false)} />
+     <ContactContent
+          onClose={() => setIsShowContactModal(false)}
+        />
 </OverlayPopup>
 
 
-
+   <ToastContainer position="top-center" autoClose={3000} /> {/* 여기서 항상 렌더 */}
 
       <LandingBaseWrapper sections={sections} appBar={appBar} />
     </>

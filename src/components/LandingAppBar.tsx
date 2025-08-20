@@ -93,7 +93,7 @@ const NavLink = styled.button<{ hoverColor?: string }>`
 const RightSection = styled.div`
   display: flex;
   align-items: center;
-  gap: 20px;
+  /* gap: 8px; */
 `;
 
 const ContactLink = styled.button`
@@ -101,6 +101,7 @@ const ContactLink = styled.button`
   padding: 8px 18px;
   border: none;
   border-radius: 30px;
+  margin-left: 20px;
   cursor: pointer;
   background: linear-gradient(135deg, #5708fb, #be83ea, #5708fb);
   background-size: 300% 100%;
@@ -110,6 +111,12 @@ const ContactLink = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
+`;
+
+const SmallContactLink = styled(ContactLink)`
+  padding: 6px 14px;
+  font-size: 12px;
+  border-radius: 20px;
 `;
 
 const MobileMenuButton = styled.button`
@@ -148,7 +155,9 @@ const MobileAppBar = ({
         <ContentWrapper>
           <Logo src={logoSrc} alt="Logo" width="84px" height="32px" onClick={onLogoClick} />
           <RightSection>
+                   <SmallContactLink onClick={onContact}>{contactText}</SmallContactLink>
             {isShowLanguageSwitcher && <LanguageSwitcher />}
+     
             <MobileMenuButton onClick={() => setMenuOpen(true)}>
               <MenuIcon />
             </MobileMenuButton>

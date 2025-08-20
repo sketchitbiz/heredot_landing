@@ -1,14 +1,5 @@
 import { GlobalWrapper } from './global-wrapper';
 import StyledComponentsRegistry from '@/lib/registry';
-// import "@/lib/firebase/firebase.config";
-
-/**
- * RootLayout은 Next.js 애플리케이션의 루트 레이아웃을 정의합니다.
- * HTML 구조, 글로벌 폰트, 글로벌 컨텍스트 및 스타일 적용의 최상단 엔트리 포인트입니다.
- *
- * RootLayout defines the root layout of the Next.js application.
- * It includes the base HTML structure, global fonts, and wraps the app with global context and styles.
- */
 
 export default function RootLayout({
   children,
@@ -46,8 +37,42 @@ export default function RootLayout({
         {/* 파비콘 */}
         <link rel="icon" href="/favicon.ico" />
         <title>HereDot</title>
+
+        {/* Google Analytics */}
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-P5R0BM2W67"></script>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'G-P5R0BM2W67');
+            `,
+          }}
+        />
+        {/* Google Tag Manager */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+              new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+              j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+              'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+              })(window,document,'script','dataLayer','GTM-KDZWXXZW');
+            `,
+          }}
+        />
       </head>
       <body className="antialiased">
+        {/* Google Tag Manager (noscript) */}
+        <noscript>
+          <iframe
+            src="https://www.googletagmanager.com/ns.html?id=GTM-KDZWXXZW"
+            height="0"
+            width="0"
+            style={{ display: 'none', visibility: 'hidden' }}
+          ></iframe>
+        </noscript>
         <StyledComponentsRegistry>
           <GlobalWrapper>{children}</GlobalWrapper>
         </StyledComponentsRegistry>

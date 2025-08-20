@@ -15,10 +15,11 @@ const fadeIn = keyframes`
   }
 `;
 
-const ModalOverlay = styled.div<{ $isMobile: boolean }>`
+const ModalOverlay = styled.div<{ $isMobile: boolean; $scrollX: number }>`
   position: fixed;
   top: 0;
   left: 0;
+  transform: translateX(-${({ $scrollX }) => $scrollX}px);
   width: 100%;
   ${({ $isMobile }) => !$isMobile && `min-width: 1200px;`}
   height: 100vh;
@@ -30,6 +31,7 @@ const ModalOverlay = styled.div<{ $isMobile: boolean }>`
   animation: ${fadeIn} 0.3s ease-out;
   padding: ${({ $isMobile }) => ($isMobile ? '20px' : '0')};
 `;
+
 
 const ModalContent = styled.div<{ $isMobile: boolean }>`
   width: ${({ $isMobile }) => ($isMobile ? '100%' : '900px')};
@@ -67,28 +69,34 @@ interface OverlayPopupProps {
 
 export const OverlayPopup: React.FC<OverlayPopupProps> = ({ isOpen, onClose, children }) => {
   const [isMobile, setIsMobile] = useState(false);
+  const [scrollX, setScrollX] = useState(0);
 
   useEffect(() => {
     const update = () => {
       setIsMobile(window.innerWidth < Breakpoints.mobile);
+      setScrollX(window.scrollX || window.pageXOffset);
     };
     update();
     window.addEventListener("resize", update);
-    return () => window.removeEventListener("resize", update);
+    window.addEventListener("scroll", update);
+    return () => {
+      window.removeEventListener("resize", update);
+      window.removeEventListener("scroll", update);
+    };
   }, []);
 
   if (!isOpen) return null;
 
   const handleCloseClick = (e: React.MouseEvent) => {
-    e.stopPropagation(); // 팝업 외부 닫힘 방지
+    e.stopPropagation();
     onClose();
   };
 
   return (
-    <ModalOverlay $isMobile={isMobile} onClick={onClose}>
+    <ModalOverlay $isMobile={isMobile} $scrollX={scrollX} onClick={onClose}>
       <ModalContent
         $isMobile={isMobile}
-        onClick={(e) => e.stopPropagation()} // 내부 클릭 시 닫힘 방지
+        onClick={(e) => e.stopPropagation()}
       >
         <CloseButton $isMobile={isMobile} onClick={handleCloseClick}>
           ✕
@@ -98,3 +106,4 @@ export const OverlayPopup: React.FC<OverlayPopupProps> = ({ isOpen, onClose, chi
     </ModalOverlay>
   );
 };
+

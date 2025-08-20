@@ -85,6 +85,8 @@ interface TextFieldProps {
   $borderColor?: string;
 
   autoComplete?: string;
+  type?: string; // 추가됨
+  inputMode?: string; // 추가됨
 }
 
 export const TextField: React.FC<TextFieldProps> = ({
@@ -115,10 +117,12 @@ export const TextField: React.FC<TextFieldProps> = ({
   $borderColor,
 
   autoComplete,
+  type,
+  inputMode,
 }) => {
   const device = useDevice();
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-  const resolvedInputType = isPasswordField && !isPasswordVisible ? 'password' : 'text';
+  const resolvedInputType = isPasswordField && !isPasswordVisible ? 'password' : type || 'text';
 
   const handleToggleVisibility = () => {
     setIsPasswordVisible((prev) => !prev);
@@ -141,6 +145,8 @@ export const TextField: React.FC<TextFieldProps> = ({
     $placeholderColor,
     $textColor,
     $borderColor,
+    type: resolvedInputType,
+    inputMode,
   };
 
   return (
@@ -169,7 +175,6 @@ export const TextField: React.FC<TextFieldProps> = ({
             <>
               <StyledInput
                 {...commonProps}
-                type={resolvedInputType}
               />
               {showSuffixIcon && isPasswordField && (
                 <SuffixIconWrapper
