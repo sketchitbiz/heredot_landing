@@ -2,6 +2,7 @@ import { GlobalWrapper } from './global-wrapper';
 import StyledComponentsRegistry from '@/lib/registry';
 import {ToastProvider} from '@/components/Aigo/ToastProvider'
 import Script from 'next/script'
+import FloatingButton from '@/components/FloatingButton';
 
 // import "@/lib/firebase/firebase.config";
 
@@ -37,8 +38,8 @@ export default function RootLayout({
         <meta property="og:type" content="website" />
 
         <Script
-  src="http://localhost:3000/widget.js"
-  data-url="http://localhost:3000/"
+  src="http://121.157.229.40:8535/widget.js"
+  data-url="http://121.157.229.40:8535/"
   data-position="right"
   data-color="#3391FF"
   data-size="420x720"
@@ -66,6 +67,7 @@ export default function RootLayout({
         <StyledComponentsRegistry>
         <ToastProvider>
           <GlobalWrapper>{children}</GlobalWrapper>
+          <FloatingButton />
           </ToastProvider>
         </StyledComponentsRegistry>
       </body>
