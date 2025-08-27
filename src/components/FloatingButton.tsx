@@ -99,7 +99,7 @@ const FloatingButton = () => {
         position: 'fixed',
         right: '20px',
         bottom: '20px',
-        zIndex: 10000,
+        zIndex: 1000,
         cursor: 'pointer'
       }}
       onClick={toggleChat}
