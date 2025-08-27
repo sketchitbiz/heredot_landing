@@ -1,6 +1,8 @@
 import { GlobalWrapper } from './global-wrapper';
 import StyledComponentsRegistry from '@/lib/registry';
-import Script from 'next/script'
+import FloatingButton from '@/components/FloatingButton';
+import { AiChatProvider } from '@/contexts/AiChatContext';
+import AiChatWidget from '@/components/AiChatWidget';
 
 export default function RootLayout({
   children,
@@ -42,18 +44,8 @@ export default function RootLayout({
         {/* Google Analytics */}
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-P5R0BM2W67"></script>
 
-        <Script
-          src="http://localhost:3000/widget.js"
-          data-url="http://localhost:3000/"
-          data-position="right"
-          data-color="#3391FF"
-          data-size="420x720"
-          data-height-vh="40"
-          data-height-vh-expanded="85"
-          data-label="AI"
-          data-open="0"
-          strategy="afterInteractive"
-        />
+        <script src="http://localhost:3000/widget.js" data-url="..." data-position="right" data-label="AI" data-open="0"></script>
+
 
         <script
           dangerouslySetInnerHTML={{
@@ -89,7 +81,11 @@ export default function RootLayout({
           ></iframe>
         </noscript>
         <StyledComponentsRegistry>
-          <GlobalWrapper>{children}</GlobalWrapper>
+          <AiChatProvider>
+            <GlobalWrapper>{children}</GlobalWrapper>
+            {/* <FloatingButton /> */}
+            <AiChatWidget />
+          </AiChatProvider>
         </StyledComponentsRegistry>
       </body>
     </html>
