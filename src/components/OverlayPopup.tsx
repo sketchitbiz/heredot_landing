@@ -93,7 +93,9 @@ export const OverlayPopup: React.FC<OverlayPopupProps> = ({ isOpen, onClose, chi
   };
 
   return (
-    <ModalOverlay $isMobile={isMobile} $scrollX={scrollX} onClick={onClose}>
+    <ModalOverlay $isMobile={isMobile} $scrollX={scrollX} 
+    // onClick={onClose}
+    >
       <ModalContent
         $isMobile={isMobile}
         onClick={(e) => e.stopPropagation()}

@@ -3,6 +3,7 @@ import StyledComponentsRegistry from '@/lib/registry';
 import FloatingButton from '@/components/FloatingButton';
 import { AiChatProvider } from '@/contexts/AiChatContext';
 import AiChatWidget from '@/components/AiChatWidget';
+import Script from 'next/script'
 
 export default function RootLayout({
   children,
@@ -21,7 +22,7 @@ export default function RootLayout({
         />
 
         {/* OG (Open Graph) 메타 태그 */}
-        <meta property="og:title" content="여기닷 AI 견적 시스템" />
+        <meta property="og:title" content="여기닷" />
         <meta property="og:description" content="나의 아이디어 AI에게 다 물어봐!" />
         <meta property="og:image" content="/og.png" />
         <meta property="og:url" content="https://heredotcorp.com/" />
@@ -29,7 +30,7 @@ export default function RootLayout({
 
         {/* Twitter 메타 태그 */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="여기닷 AI 견적 시스템" />
+        <meta name="twitter:title" content="여기닷" />
         <meta name="twitter:description" content="나의 아이디어 AI에게 다 물어봐!" />
         <meta name="twitter:image" content="/og.png" />
 
@@ -39,12 +40,28 @@ export default function RootLayout({
 
         {/* 파비콘 */}
         <link rel="icon" href="/favicon.ico" />
-        <title>HereDot</title>
+        <title>여기닷</title>
 
         {/* Google Analytics */}
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-P5R0BM2W67"></script>
 
         <script src="http://localhost:3000/widget.js" data-url="..." data-position="right" data-label="AI" data-open="0"></script>
+
+        {/* <Script
+      
+          src=" http://121.157.229.40:8535/widget.js"
+          data-url=" http://121.157.229.40:8535/"
+          // src="http://localhost:5173/widget.js"
+          // data-url="http://localhost:5173/"
+          data-position="right"
+          data-color="#3391FF"
+          data-size="420x720"
+          data-height-vh="40"
+          data-height-vh-expanded="85"
+          data-label="AI"
+          data-open="0"
+          strategy="afterInteractive"
+        /> */}
 
 
         <script

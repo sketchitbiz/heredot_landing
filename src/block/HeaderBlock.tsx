@@ -70,10 +70,12 @@ const PreTitle = styled.h1`
   margin: 0px;
   margin-left: 10px;
   white-space: nowrap;
+  line-height: 1.5;
 
   @media (max-width: ${Breakpoints.mobile}px) {
     font-size: 24px;
     white-space: pre-line;
+    margin-bottom: 50px;
   }
 `;
 
@@ -85,7 +87,9 @@ const Title = styled.h2`
 
   @media (max-width: ${Breakpoints.mobile}px) {
     font-size: 28px;
-    margin-bottom: 10px;
+    margin-bottom: -10px;
+    margin-top: -6px;
+    padding: 0px;
   }
 `;
 
@@ -160,7 +164,7 @@ const HeaderBlock: React.FC<HeaderBlockProps> = ({
           download
           target="_blank"
           rel="noopener noreferrer"
-          style={{ textDecoration: 'none' }}
+          style={{ textDecoration: 'none' ,marginTop:'20px' }}
           onClick={() =>
             userStamp({
               category: '버튼',
