@@ -3,12 +3,12 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useLang } from "@/contexts/LangContext";
-import { dictionary } from "@/lib/i18n/lang";
+// import { dictionary } from "@/lib/i18n/lang";
 
 const ContactCompletePage = () => {
   const router = useRouter();
   const { lang } = useLang();
-  const t = dictionary[lang].contactPopup;
+  // const t = dictionary[lang].contactPopup;
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {

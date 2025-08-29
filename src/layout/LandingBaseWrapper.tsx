@@ -4,9 +4,10 @@ import styled, { keyframes } from 'styled-components';
 import { Breakpoints } from '@/constants/layoutConstants';
 import ResponsiveView from '@/layout/ResponsiveView';
 import React, { useEffect, useRef, useState } from 'react';
-import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useLang } from '@/contexts/LangContext';
-import { dictionary } from '@/lib/i18n/lang';
+import { userStamp } from '@/lib/api/user/api';
+import ProjectInquiryCard from '@/customComponents/WebFloating';
+import { useDevice } from '@/contexts/DeviceContext';
 
 
 const slideUp = keyframes`
@@ -20,63 +21,127 @@ const slideUp = keyframes`
   }
 `;
 
-const slideDown = keyframes`
-  0% {
-    transform: translateY(-100%) translateX(var(--scroll-x, 0));
-    opacity: 0;
-  }
-  100% {
-    transform: translateY(0) translateX(var(--scroll-x, 0));
-    opacity: 1;
-  }
-`;
+// Bottom Navigation Component
+const BottomNavigation: React.FC<{
+  isAutoScrollingRef?: React.MutableRefObject<boolean>;
+  onAutoScrollStart?: () => void;
+  onAutoScrollEnd?: () => void;
+  onContactClick?: () => void;
+}> = ({ isAutoScrollingRef, onAutoScrollStart, onAutoScrollEnd, onContactClick }) => {
+  const [scrollX, setScrollX] = useState(0);
+  const localIsAutoScrollingRef = useRef(false);
+  const { lang } = useLang();
+  
+  // 전달받은 ref가 있으면 사용하고, 없으면 로컬 ref 사용
+  const autoScrollRef = isAutoScrollingRef || localIsAutoScrollingRef;
 
-// 텍스트 그라데이션 스켈레톤 애니메이션
-const textGradient = keyframes`
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-`;
+  // 스탬프 로깅 함수
+  const logButtonClick = async (content: string, memo: string) => {
+    try {
+      await userStamp({
+        category: '바텀네비',
+        content,
+        memo,
+      });
+    } catch {
+      // 실패 시 무시
+    }
+  };
 
-const bgGradient = keyframes`
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-`;
+  // 자동 스크롤 제어 함수들
+  const startAutoScroll = () => {
+    autoScrollRef.current = true;
+    onAutoScrollStart?.();
+  };
 
-// 텍스트 스켈레톤 스타일
-const SkeletonText = styled.span`
-  background: linear-gradient(90deg, #5708fb, #be83ea, #5708fb);
-  background-size: 300% 100%;
-  animation: ${textGradient} 3s ease-in-out infinite;
-  background-clip: text;
-  -webkit-background-clip: text;
-  color: transparent;
-  -webkit-text-fill-color: transparent;
-  font-weight: 700;
-`;
+  const endAutoScroll = () => {
+    autoScrollRef.current = false;
+    onAutoScrollEnd?.();
+  };
 
-const IconWrapper = styled.div`
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #5708fb, #be83ea, #5708fb);
-  background-size: 300% 100%;
-  animation: ${bgGradient} 3s ease-in-out infinite;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-`;
+  // scrollToTargetId 함수 (page.tsx와 동일한 로직)
+  const scrollToTargetId = (targetId: string, content: string, memo: string) => {
+    const element = document.getElementById(targetId);
+    if (element) {
+      // 자동 스크롤이 아닐 때만 스탬프 기록
+      if (!autoScrollRef.current) {
+        logButtonClick(content, memo);
+      }
+      
+      startAutoScroll();
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
+      let scrollTimer: ReturnType<typeof setTimeout>;
+      const handleScroll = () => {
+        clearTimeout(scrollTimer);
+        scrollTimer = setTimeout(() => {
+          endAutoScroll();
+          window.removeEventListener('scroll', handleScroll);
+        }, 300);
+      };
+      window.addEventListener('scroll', handleScroll);
+    }
+  };
 
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrollX(window.scrollX || window.pageXOffset);
+    };
 
-// ✅ ResponsiveDescription: isMobile props를 받아 조건 처리
-const ResponsiveDescription: React.FC<{ text: string; isMobile: boolean }> = ({
-  text,
-  isMobile,
-}) => {
-  const [firstLine] = text.split('\n');
-  return <LeftDescription>{isMobile ? firstLine : text}</LeftDescription>;
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const navItems = [
+    {
+      icon: '/landing/nav/home.svg',
+      text: lang === 'ko' ? '홈' : 'Home',
+      action: () => {
+        logButtonClick('홈', '홈 버튼 클릭');
+        window.location.href = '/';
+      },
+    },
+    {
+      icon: '/landing/nav/bubble.svg',
+      text: lang === 'ko' ? 'AI 견적서' : 'AI Quote',
+      action: () => {
+        logButtonClick('AI 견적서', 'AI 견적서 버튼 클릭');
+        window.open('/ai', '_blank', 'noopener,noreferrer');
+      },
+    },
+    {
+      icon: '/landing/nav/folder.svg',
+      text: lang === 'ko' ? '포트폴리오' : 'Portfolio',
+      action: () => {
+        scrollToTargetId('portfolio', '포트폴리오', '포트폴리오 버튼 클릭');
+      },
+    },
+    {
+      icon: '/landing/nav/call.svg',
+      text: lang === 'ko' ? '문의하기' : 'Contact',
+      action: () => {
+        logButtonClick('문의하기', '문의하기 버튼 클릭');
+        onContactClick?.();
+      },
+    },
+  ];
+
+  return (
+    <BottomNavWrapper $scrollX={scrollX}>
+      <NavInnerWrapper>
+        {navItems.map((item, index) => (
+          <NavButton key={index} onClick={item.action}>
+            <NavIcon>
+              <img src={item.icon} alt={item.text} />
+            </NavIcon>
+            <NavText>{item.text}</NavText>
+          </NavButton>
+        ))}
+      </NavInnerWrapper>
+    </BottomNavWrapper>
+  );
 };
 
 interface LandingSection {
@@ -92,6 +157,11 @@ interface LandingSection {
 interface LandingBaseWrapperProps {
   sections: LandingSection[];
   appBar?: React.ReactNode;
+  isAutoScrollingRef?: React.MutableRefObject<boolean>;
+  onAutoScrollStart?: () => void;
+  onAutoScrollEnd?: () => void;
+  onContactClick?: () => void;
+  isContactModalOpen?: boolean;
 }
 
 const FixedAppBarWrapper = styled.div<{ $scrollX: number }>`
@@ -99,10 +169,16 @@ const FixedAppBarWrapper = styled.div<{ $scrollX: number }>`
   top: 0;
   left: 0;
   width: 100%;
+  min-width: 100%;
   transform: translateX(${({ $scrollX }) => -$scrollX}px);
   z-index: 1000;
   display: flex;
   justify-content: center;
+  background-color: #08080f; /* AppColors.background와 동일한 색상 */
+  
+  @media (min-width: ${Breakpoints.desktop}px) {
+    min-width: ${Breakpoints.desktop}px;
+  }
 `;
 
 const AppBarContentWrapper = styled.div`
@@ -110,6 +186,11 @@ const AppBarContentWrapper = styled.div`
   max-width: ${Breakpoints.desktop}px;
   margin: 0 auto;
   box-sizing: border-box;
+  
+  @media (max-width: ${Breakpoints.mobile}px) {
+    max-width: 100%;
+    padding: 0 20px;
+  }
 `;
 
 const SectionWrapper = styled.section<{
@@ -141,60 +222,8 @@ const ContentWrapper = styled.div<{ $isOverLayout?: boolean }>`
   }
 `;
 
-const FloatingToggleButton = styled.div<{ $scrollX: number }>`
-  --scroll-x: ${({ $scrollX }) => `-${$scrollX}px`};
-  position: fixed;
-  bottom: 100px;
-  left: 0;
-  width: 100%;
-  min-width: ${Breakpoints.desktop}px;
-  transform: translateX(var(--scroll-x));
-  display: flex;
-  justify-content: center;
-  z-index: 1001;
-  pointer-events: none;
-  opacity: 0;
-  animation: ${slideDown} 0.4s ease-out forwards;
-
-  @media (max-width: ${Breakpoints.mobile}px) {
-    min-width: 100%;
-  }
-`;
-
-
-const FloatingToggleButtonInner = styled.div`
-  width: 100%;
-  max-width: ${Breakpoints.desktop}px;
-  min-width: ${Breakpoints.desktop}px;
-  display: flex;
-  justify-content: flex-end;
-  padding: 0 20px;
-  pointer-events: auto;
-
-  @media (max-width: ${Breakpoints.mobile}px) {
-    max-width: 100%;
-    min-width: 0;
-    padding: 0 34px;
-  }
-`;
-
-const ArrowToggle = styled.div`
-  background-color: #2a2135;
-  border-radius: 50%;
-  padding: 8px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-color: #727171;
-  border-width: 1px;
-  border-style: solid;
-`;
-
-const BottomFloatingBox = styled.div<{
-  $isCollapsed: boolean;
-  $scrollX: number;
-}>`
+// Bottom Navigation Styles
+const BottomNavWrapper = styled.div<{ $scrollX: number }>`
   --scroll-x: ${({ $scrollX }) => `-${$scrollX}px`};
   position: fixed;
   bottom: 0;
@@ -202,106 +231,141 @@ const BottomFloatingBox = styled.div<{
   width: 100%;
   min-width: ${Breakpoints.desktop}px;
   transform: translateX(var(--scroll-x));
-  background: ${({ $isCollapsed }) =>
-    $isCollapsed
-      ? 'transparent'
-      : 'linear-gradient(to top, #2a2135 100%, #625791 0%)'};
-  z-index: 1000;
+  background: rgba(42, 33, 53, 0.95);
+  backdrop-filter: blur(10px);
+  z-index: 9999;
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 0 32px;
-  overflow: hidden;
-  height: 120px;
+  padding: 12px 32px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
   opacity: 0;
   animation: ${slideUp} 0.4s ease-out forwards;
 
   @media (max-width: ${Breakpoints.mobile}px) {
-    padding: 0 16px;
+    padding: 8px 16px;
     min-width: 0;
   }
 `;
 
-
-const BoxInnerWrapper = styled.div<{ $isCollapsed: boolean }>`
+const NavInnerWrapper = styled.div`
   width: 100%;
   max-width: ${Breakpoints.desktop}px;
   min-width: ${Breakpoints.desktop}px;
   display: flex;
-  justify-content: ${({ $isCollapsed }) =>
-    $isCollapsed ? 'center' : 'space-between'};
+  justify-content: space-around;
   align-items: center;
-  gap: ${({ $isCollapsed }) => ($isCollapsed ? '0' : '32px')};
-  padding: 20px;
 
   @media (max-width: ${Breakpoints.mobile}px) {
     max-width: 100%;
     min-width: 0;
-    gap: ${({ $isCollapsed }) => ($isCollapsed ? '0' : '16px')};
   }
 `;
 
-const LeftColumn = styled.div<{ $isCollapsed: boolean }>`
-  display: ${({ $isCollapsed }) => ($isCollapsed ? 'none' : 'flex')};
+const NavButton = styled.div`
+  display: flex;
   flex-direction: column;
-  gap: 20px;
-`;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  min-width: 60px;
 
-const LeftTitle = styled.div`
-  font-size: 18px;
-  font-weight: 700;
-  color: #fff;
-`;
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+  }
 
-const LeftDescription = styled.div`
-  font-size: 16px;
-  line-height: 1.4;
-  white-space: pre-line;
-  color: #fff;
+  &:active {
+    transform: translateY(0);
+  }
 
   @media (max-width: ${Breakpoints.mobile}px) {
-    white-space: normal;
-    /* font-size: 12px; */
+    padding: 6px 8px;
+    min-width: 50px;
   }
 `;
 
-const RightRow = styled.div`
+const NavIcon = styled.div`
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
-  gap: 12px;
-  font-size: 18px;
-  font-weight: 700;
-  color: #fff;
-  cursor: pointer;  
+  justify-content: center;
 
   img {
-    width: 50px;
-    height: 50px;
+    width: 100%;
+    height: 100%;
     object-fit: contain;
+    filter: brightness(0) invert(1);
+  }
+
+  @media (max-width: ${Breakpoints.mobile}px) {
+    width: 28px;
+    height: 28px;
+  }
+`;
+
+// Web Floating Styles
+const WebFloatingWrapper = styled.div<{ $scrollX: number }>`
+  --scroll-x: ${({ $scrollX }) => `-${$scrollX}px`};
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  transform: translateX(var(--scroll-x));
+  z-index: 9998;
+  opacity: 0;
+  animation: ${slideUp} 0.4s ease-out forwards;
+
+  @media (max-width: ${Breakpoints.mobile}px) {
+    display: none;
+  }
+`;
+
+const RightFloatingWrapper = styled.div<{ $scrollX: number }>`
+  --scroll-x: ${({ $scrollX }) => `-${$scrollX}px`};
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: red;
+  transform: translateX(var(--scroll-x));
+  z-index: 9998;
+  opacity: 0;
+  animation: ${slideUp} 0.4s ease-out forwards;
+  height: 217px; /* WebFloating 카드와 같은 높이 */
+
+  @media (max-width: ${Breakpoints.mobile}px) {
+    display: none;
+  }
+`;
+
+const NavText = styled.span`
+  font-size: 12px;
+  font-weight: 500;
+  color: #fff;
+  white-space: nowrap;
+
+  @media (max-width: ${Breakpoints.mobile}px) {
+    font-size: 10px;
   }
 `;
 
 const LandingBaseWrapper: React.FC<LandingBaseWrapperProps> = ({
   sections,
   appBar,
+  isAutoScrollingRef,
+  onAutoScrollStart,
+  onAutoScrollEnd,
+  onContactClick,
+  isContactModalOpen = false,
 }) => {
   const [scrollX, setScrollX] = useState(0);
   const sectionRefs = useRef<(HTMLElement | null)[]>([]);
   const [isFloatingVisible, setIsFloatingVisible] = useState(false);
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const [isMobile, setIsMobile] = useState(false); // ✅ 모바일 감지용 state
-
-  const { lang } = useLang();
-  const t = dictionary[lang].landingBottomBox;
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < Breakpoints.mobile);
-    };
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+  const device = useDevice(); // DeviceContext 사용
+  const isMobile = device === 'mobile';
 
   useEffect(() => {
     const handleScroll = () => {
@@ -322,7 +386,9 @@ const LandingBaseWrapper: React.FC<LandingBaseWrapperProps> = ({
     window.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll();
 
-    return () => window.removeEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
   }, [sections]);
 
   return (
@@ -371,6 +437,27 @@ const LandingBaseWrapper: React.FC<LandingBaseWrapperProps> = ({
         )
       )}
 
+      {/* 모바일에서는 isFloatingVisible 조건에 따라 바텀 네비게이션 표시 */}
+      {isMobile && isFloatingVisible && !isContactModalOpen && (
+        <BottomNavigation 
+          isAutoScrollingRef={isAutoScrollingRef}
+          onAutoScrollStart={onAutoScrollStart}
+          onAutoScrollEnd={onAutoScrollEnd}
+          onContactClick={onContactClick}
+        />
+      )}
+
+      {/* 웹에서는 항상 WebFloating 카드를 하단 왼쪽에 표시 */}
+      {!isMobile && (
+        <>
+          <WebFloatingWrapper $scrollX={scrollX}>
+            <ProjectInquiryCard onContactClick={onContactClick} />
+          </WebFloatingWrapper>
+          
+        </>
+      )}
+
+      {/* 기존 floating 컴포넌트 주석 처리
       {isFloatingVisible && (
         <>
           <FloatingToggleButton $scrollX={scrollX}>
@@ -392,22 +479,21 @@ const LandingBaseWrapper: React.FC<LandingBaseWrapperProps> = ({
                 <ResponsiveDescription text={t.description} isMobile={isMobile} />
               </LeftColumn>
               <RightRow
-  onClick={() =>
-    window.open('/ai', '_blank', 'noopener,noreferrer')
-  }
-  style={{ marginLeft: isCollapsed ? 'auto' : undefined }}
->
-  {!isCollapsed && <SkeletonText>{t.aiButton}</SkeletonText>}
-  <IconWrapper>
-  <img src="/floating2.svg" alt="AI Icon" style={{ width: 40, height: 40 }} />
-  </IconWrapper>
-</RightRow>
-
-
+                onClick={() =>
+                  window.open('/ai', '_blank', 'noopener,noreferrer')
+                }
+                style={{ marginLeft: isCollapsed ? 'auto' : undefined }}
+              >
+                {!isCollapsed && <SkeletonText>{t.aiButton}</SkeletonText>}
+                <IconWrapper>
+                  <img src="/floating2.svg" alt="AI Icon" style={{ width: 40, height: 40 }} />
+                </IconWrapper>
+              </RightRow>
             </BoxInnerWrapper>
           </BottomFloatingBox>
         </>
       )}
+      */}
     </>
   );
 };

@@ -68,9 +68,12 @@ const PreTitle = styled.h1`
   color: ${AppColors.onBackground};
   font-size: 28px;
   margin: 0px;
+  margin-left: 10px;
+  white-space: nowrap;
 
   @media (max-width: ${Breakpoints.mobile}px) {
     font-size: 24px;
+    white-space: pre-line;
   }
 `;
 
@@ -78,7 +81,7 @@ const Title = styled.h2`
   ${AppTextStyles.display2};
   color: ${AppColors.onBackground};
 
-  margin: 0px;
+  margin: 10px;
 
   @media (max-width: ${Breakpoints.mobile}px) {
     font-size: 28px;

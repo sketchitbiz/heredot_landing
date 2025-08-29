@@ -1,6 +1,5 @@
 'use client';
 
-import useAuthStore from '@/store/authStore';
 
 import React, { useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
@@ -24,17 +23,15 @@ import { AppColors } from '@/styles/colors';
 import AppBlock from '@/block/AppBlock';
 import DesignBlock from '@/block/Design';
 import Consulting from '@/block/Consulting';
-import { v4 as uuidv4 } from 'uuid';
 import { userStamp } from '@/lib/api/user/api';
 import { AIBlock } from '@/block/AIBlock';
 import EventBlock from '@/block/EventBlock';
 import { devLog } from '@/lib/utils/devLogger';
-import { AdBottomModal } from '@/components/AdBottomMadal';
 import { AdContent } from '@/contents/AdContent';
 import { OverlayPopup } from '@/components/OverlayPopup';
 import { ContactContent } from '@/contents/ContactContent';
-import { Breakpoints } from '@/constants/layoutConstants';
-import { toast, ToastContainer } from 'react-toastify'; // 상단에 추가
+import { ToastContainer } from 'react-toastify'; // 상단에 추가
+import AiTechBlock from '@/block/AiTechBlock';
 
 
 
@@ -52,6 +49,7 @@ const sectionMap: Record<
   members: { content: 'Members', memo: '팀원소개' },
   video: { content: 'Video', memo: '고객후기' },
   event: { content: 'Event', memo: '기획전' },
+  aitech: { content: 'AiTech', memo: 'AI기술력' },
   ai: { content: 'AI', memo: 'AI' },
   contact: { content: 'Contact', memo: '연락' },
 };
@@ -89,14 +87,14 @@ export default function HomePage() {
   const [isAutoScrolling, setIsAutoScrolling] = useState(false);
   const isAutoScrollingRef = useRef(false);
 
-  const [isShowAdModal, setIsShowAdModal] = useState(false);
+  // const [isShowAdModal, setIsShowAdModal] = useState(false);
 
   const [isShowContactModal, setIsShowContactModal] = useState(false);
 
 
-  useEffect(() => {
-    setIsShowAdModal(true);
-  }, []);
+  // useEffect(() => {
+  //   setIsShowAdModal(true);
+  // }, []);
 
   const startAutoScroll = () => {
     devLog('[AutoScroll] 시작');
@@ -128,6 +126,8 @@ export default function HomePage() {
     market: 'market',
     estimate: 'ai',
     promotion: 'event',
+    aitech: 'aitech',
+    technology: 'aitech',
   };
 
   const baseNavLinks = [
@@ -460,23 +460,44 @@ export default function HomePage() {
         </>
       ),
     },
+    // {
+    //   id: 'secondMap',
+    //   $backgroundColor: AppColors.background,
+    //   content: <SecondMapBlock label={t.secondMap.label} />,
+    //   $zIndex: 1001,
+    //   $isOverLayout: true,
+    // },
+    // {
+    //   id: 'appblock',
+    //   $backgroundColor: AppColors.primary,
+    //   content: (
+    //     <AppBlock
+    //       title={t.appBlock.title}
+    //       description={t.appBlock.description}
+    //     />
+    //   ),
+    //   $zIndex: 1001,
+    //    },
     {
-      id: 'secondMap',
+      id: 'aitech',
+      showFloatingBox: true,
       $backgroundColor: AppColors.background,
-      content: <SecondMapBlock label={t.secondMap.label} />,
-      $zIndex: 1001,
       $isOverLayout: true,
-    },
-    {
-      id: 'appblock',
-      $backgroundColor: AppColors.primary,
       content: (
-        <AppBlock
-          title={t.appBlock.title}
-          description={t.appBlock.description}
+        <AiTechBlock
+          topLabel={t.departure}
+          centerLabel={t.customNavigator.technology}
+          bottomLabel={t.customNavigator.community}
+          title={t.aitechBlock.title}
+          description={t.aitechBlock.description}
+          onTopArrowClick={() =>
+            scrollToTargetId('header', 'aitech', 'header')
+          }
+          onBottomArrowClick={() =>
+            scrollToTargetId('community', 'aitech', 'community')
+          }
         />
       ),
-      $zIndex: 1001,
     },
     {
       id: 'community',
@@ -484,7 +505,7 @@ export default function HomePage() {
       $backgroundColor: AppColors.background,
       content: (
         <CommunityBlock
-          topLabel={t.departure}
+          topLabel={t.customNavigator.technology}
           centerLabel={t.customNavigator.community}
           bottomLabel={t.customNavigator.portpolio}
           title={t.community.title}
@@ -497,7 +518,7 @@ export default function HomePage() {
             window.open('https://open.kakao.com/o/g0u3dOrc', '_blank');
           }}
           onTopArrowClick={() =>
-            scrollToTargetId('header', 'community', 'header')
+            scrollToTargetId('aitech', 'community', 'aitech')
           }
           onBottomArrowClick={() =>
             scrollToTargetId('portfolio', 'community', 'portfolio')
@@ -575,36 +596,36 @@ export default function HomePage() {
           buttonTitle={t.event.buttonTitle}
           topLabel={t.customNavigator.review}
           centerLabel={t.customNavigator.event}
-          bottomLabel={t.customNavigator.ai}
+          bottomLabel={t.arrival}
           title={t.eventBlock.title}
           description={t.eventBlock.description}
           onTopArrowClick={() => scrollToTargetId('video', 'event', 'video')}
-          onBottomArrowClick={() => scrollToTargetId('ai', 'event', 'ai')}
+          onBottomArrowClick={() => scrollToTargetId('contact', 'event', 'contact')}
         />
       ),
     },
 
-    {
-      id: 'ai',
-      $backgroundColor: AppColors.background, // 또는 background로도 가능
-      content: (
-        <AIBlock
-          topLabel={t.customNavigator.event}
-          centerLabel={t.customNavigator.ai}
-          bottomLabel={t.arrival}
-          title={t.aiBlock.title}
-          description={t.aiBlock.description}
-          buttonText={t.aiBlock.buttonTitle}
-          buttonLink={t.aiBlock.buttonLink}
-          buttonHeader={t.aiBlock.buttonHeader}
-          buttonDescription={t.aiBlock.buttonDescription}
-          onTopArrowClick={() => scrollToTargetId('event', 'ai', 'event')}
-          onBottomArrowClick={() =>
-            scrollToTargetId('contact', 'ai', 'contact')
-          }
-        />
-      ),
-    },
+    // {
+    //   id: 'ai',
+    //   $backgroundColor: AppColors.background, // 또는 background로도 가능
+    //   content: (
+    //     <AIBlock
+    //       topLabel={t.customNavigator.event}
+    //       centerLabel={t.customNavigator.ai}
+    //       bottomLabel={t.arrival}
+    //       title={t.aiBlock.title}
+    //       description={t.aiBlock.description}
+    //       buttonText={t.aiBlock.buttonTitle}
+    //       buttonLink={t.aiBlock.buttonLink}
+    //       buttonHeader={t.aiBlock.buttonHeader}
+    //       buttonDescription={t.aiBlock.buttonDescription}
+    //       onTopArrowClick={() => scrollToTargetId('event', 'ai', 'event')}
+    //       onBottomArrowClick={() =>
+    //         scrollToTargetId('contact', 'ai', 'contact')
+    //       }
+    //     />
+    //   ),
+    // },
 
     {
       id: 'contact',
@@ -612,12 +633,12 @@ export default function HomePage() {
       $backgroundColor: AppColors.background,
       content: (
         <ContactSection
-          topLabel={t.customNavigator.ai}
+          topLabel={t.customNavigator.event}
           centerLabel={t.arrival}
           bottomLabel={t.arrival}
           title={t.contract.title}
           description={t.contract.description}
-          onTopArrowClick={() => scrollToTargetId('ai', 'contact', 'ai')}
+          onTopArrowClick={() => scrollToTargetId('event', 'contact', 'event')}
           onProjectInquiryClick={handleContactClick}
         />
       ),
@@ -633,12 +654,12 @@ export default function HomePage() {
   return (
     <>
       {/* 광고 모달 삽입 */}
-<OverlayPopup
+{/* <OverlayPopup
   isOpen={isShowAdModal}
   onClose={() => setIsShowAdModal(false)}
 >
   <AdContent buttonText={t.aiBlock.buttonTitle} />
-</OverlayPopup>
+</OverlayPopup> */}
 
 <OverlayPopup
   isOpen={isShowContactModal}
@@ -652,7 +673,15 @@ export default function HomePage() {
 
    <ToastContainer position="top-center" autoClose={3000} /> {/* 여기서 항상 렌더 */}
 
-      <LandingBaseWrapper sections={sections} appBar={appBar} />
+      <LandingBaseWrapper 
+        sections={sections} 
+        appBar={appBar} 
+        isAutoScrollingRef={isAutoScrollingRef}
+        onAutoScrollStart={startAutoScroll}
+        onAutoScrollEnd={endAutoScroll}
+        onContactClick={handleContactClick}
+        isContactModalOpen={isShowContactModal}
+      />
     </>
   );
 }

@@ -2,8 +2,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import styled, { keyframes } from 'styled-components';
-import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import { useLang } from '@/contexts/LangContext';
 import { downloadLinks } from '@/lib/i18n/downloadLinks';
@@ -33,12 +31,6 @@ const arrowSlide = keyframes`
   0% { transform: translateX(-30%); opacity: 0; }
   30% { opacity: 1; }
   100% { transform: translateX(100%); opacity: 0; }
-`;
-
-const moveArrow = keyframes`
-  0% { transform: translateX(0); opacity: 0.3; }
-  50% { transform: translateX(6px); opacity: 1; }
-  100% { transform: translateX(0); opacity: 0.3; }
 `;
 
 const gradientBorder = keyframes`
@@ -150,10 +142,6 @@ const Tab = styled.div<{ $active: boolean }>`
   color: ${({ $active }) => ($active ? '#000' : '#888')};
 `;
 
-const Slide = styled.div<{ $isActive: boolean }>`
-  display: ${({ $isActive }) => ($isActive ? 'block' : 'none')};
-`;
-
 // const Wrapper = styled.div`
 //   min-width: ${Breakpoints.desktop}px;
 //   background-color: #fff;
@@ -262,7 +250,7 @@ const logButtonClick = async (content: string, memo: string) => {
       content,
       memo,
     });
-  } catch (e) {
+  } catch {
     // 실패 시 무시
   }
 };
@@ -279,11 +267,7 @@ const Partner: React.FC<PartnerProps> = ({
   const { lang } = useLang();
   const [activeTab, setActiveTab] = useState(0);
   const currentSlide = slides[activeTab];
-  const leftRef = useRef<HTMLDivElement>(null);
-  const rightRef = useRef<HTMLDivElement>(null);
   const sectionRef = useRef<HTMLDivElement>(null);
-  const ignoreScroll = useRef(false);
-  const activeTabRef = useRef(activeTab);
   const [isMobile, setIsMobile] = useState(false);
   const lastLoggedIndex = useRef<number | null>(null);
 
@@ -297,69 +281,49 @@ const Partner: React.FC<PartnerProps> = ({
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
-
+  
+  // Desktop에서도 IntersectionObserver를 사용하여 섹션 진입 감지
   useEffect(() => {
-    activeTabRef.current = activeTab;
-  }, [activeTab]);
-  useEffect(() => {
-    if (
-      isMobile ||
-      !leftRef.current ||
-      !rightRef.current ||
-      !sectionRef.current
-    )
-      return;
+    if (!onEnterSection) return;
 
-    gsap.registerPlugin(ScrollTrigger);
-    const slideHeight = window.innerHeight;
-    const totalScroll = slideHeight * tabs.length;
-
-    const lastScrollY = { current: window.scrollY };
-    const ctx = gsap.context(() => {
-      ScrollTrigger.create({
-        id: 'partner-scroll',
-        trigger: sectionRef.current,
-        start: 'top top',
-        end: `+=${totalScroll}`,
-        scrub: true,
-        pin: true,
-        onUpdate: (self) => {
-          const progress = self.progress;
-          let index = Math.floor(progress * tabs.length);
-          index = Math.min(index, tabs.length - 1);
-
-          const currentScrollY = window.scrollY;
-          const isScrollingDown = currentScrollY > lastScrollY.current;
-          lastScrollY.current = currentScrollY;
-
-          if (!ignoreScroll.current) {
-            if (index !== activeTabRef.current) {
-              setActiveTab(index);
-            }
-
-            if (
-              isScrollingDown &&
-              index !== lastLoggedIndex.current &&
-              currentScrollY > self.start
-            ) {
+    const currentSectionRef = sectionRef.current;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          
+          // Desktop에서는 현재 활성 탭 인덱스를 사용
+          if (!isMobile) {
+            const index = activeTab;
+            if (index !== lastLoggedIndex.current) {
               lastLoggedIndex.current = index;
-              onEnterSection?.(index, tabs[index]);
+              onEnterSection(index, tabs[index]);
             }
           }
-        },
-      });
-    }, sectionRef);
+        });
+      },
+      { threshold: 0.6 }
+    );
 
-    return () => ctx.revert();
-  }, [isMobile, tabs.length]);
+    if (currentSectionRef) {
+      observer.observe(currentSectionRef);
+    }
+
+    return () => {
+      if (currentSectionRef) {
+        observer.unobserve(currentSectionRef);
+      }
+    };
+  }, [isMobile, activeTab, tabs, onEnterSection]);
 
   useEffect(() => {
     if (!isMobile || !onEnterSection) return;
 
+    const currentSlideRefs = slideRefs.current;
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          const index = slideRefs.current.findIndex(
+          const index = currentSlideRefs.findIndex(
             (el) => el === entry.target
           );
           if (
@@ -375,27 +339,19 @@ const Partner: React.FC<PartnerProps> = ({
       { threshold: 0.6 }
     );
 
-    slideRefs.current.forEach((el) => {
+    currentSlideRefs.forEach((el) => {
       if (el) observer.observe(el);
     });
     return () => {
-      slideRefs.current.forEach((el) => {
+      currentSlideRefs.forEach((el) => {
         if (el) observer.unobserve(el);
       });
     };
   }, [isMobile, tabs, onEnterSection]);
 
   const handleTabClick = (index: number) => {
-    const trigger = ScrollTrigger.getById('partner-scroll');
-    if (!trigger) return;
-
-    ignoreScroll.current = true;
     setActiveTab(index);
-    const scrollY =
-      trigger.start + (trigger.end - trigger.start) * (index / tabs.length);
-    window.scrollTo({ top: scrollY, behavior: 'smooth' });
     logButtonClick('Partner', `탭: ${tabs[index]}`);
-    setTimeout(() => (ignoreScroll.current = false), 1000);
   };
 
   const getDownloadLink = (index: number) => {
@@ -418,12 +374,12 @@ const Partner: React.FC<PartnerProps> = ({
       desktopView={
         <Wrapper>
           <CustomBlockLayout ref={sectionRef}>
-  <CustomBlockLayout.Left ref={leftRef}>
+  <CustomBlockLayout.Left>
     <Title>{`${title1}\n${title2}`}</Title>
     <Subtitle>{subtitle}</Subtitle>
   </CustomBlockLayout.Left>
 
-  <CustomBlockLayout.Right ref={rightRef}>
+  <CustomBlockLayout.Right>
     <Tabs>
       {tabs.map((tab, index) => (
         <Tab key={index} $active={activeTab === index} onClick={() => handleTabClick(index)}>
