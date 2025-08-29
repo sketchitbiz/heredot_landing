@@ -11,18 +11,12 @@ interface VideoCardProps {
   title?: string;   // alt 텍스트용
 }
 
-const CardContainer = styled.a`
-  position: relative;
-  aspect-ratio: 16 / 9;
-  border-radius: 8px;
-  overflow: hidden;
+const CardContainer = styled.div`
+  display: flex;
+  flex-direction: column;
   cursor: pointer;
-  background-color: ${AppColors.backgroundDark};
-  display: block; /* a 태그를 block화 */
-
-  &:hover img {
-    transform: scale(1.05);
-  }
+  background-color: transparent;
+  margin-top: 16px;
 
   &:nth-child(3n + 1) {
     align-self: flex-start;
@@ -37,14 +31,53 @@ const CardContainer = styled.a`
   }
 `;
 
+const TitleContainer = styled.div`
+  margin-bottom: 8px;
+  height: 32px; /* 2줄 높이 고정 (12px * 1.3 line-height * 2줄 + 여유공간) */
+  display: flex;
+  align-items: flex-start; /* 상단 정렬 */
+  
+  @media (max-width: 768px) {
+    height: 26px; /* 모바일에서는 10px 기준으로 조정 */
+  }
+`;
+
+const TitleText = styled.h3`
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: left;
+  line-height: 1.3;
+  margin: 0;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* 최대 2줄로 제한 */
+  -webkit-box-orient: vertical;
+  
+  @media (max-width: 768px) {
+    font-size: 10px;
+  }
+`;
+
+const ImageContainer = styled.a`
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border-radius: 8px;
+  overflow: hidden;
+  display: block;
+  background-color: ${AppColors.backgroundDark};
+
+  &:hover .card-image {
+    transform: scale(1.05);
+  }
+`;
+
 const CardImage = styled.img`
-  position: absolute;
-  top: 0;
-  left: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: top;
+  transition: transform 0.3s ease;
 `;
 
 export const VideoCard: React.FC<VideoCardProps> = ({ imageUrl, videoUrl, title = "Video" }) => {
@@ -57,17 +90,24 @@ export const VideoCard: React.FC<VideoCardProps> = ({ imageUrl, videoUrl, title 
   };
 
   return (
-    <CardContainer
-      href={videoUrl}
-      target="_blank"
-      rel="noopener noreferrer"
-      onClick={handleClick} // ✅ 클릭시 스탬프 찍기
-    >
-<CardImage
-  src={imageUrl}
-  alt={title}
-  className="w-full h-full object-cover"
-/>
+    <CardContainer>
+      <TitleContainer>
+        <TitleText>
+          {title}
+        </TitleText>
+      </TitleContainer>
+      <ImageContainer
+        href={videoUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={handleClick}
+      >
+        <CardImage
+          src={imageUrl}
+          alt={title}
+          className="card-image"
+        />
+      </ImageContainer>
     </CardContainer>
   );
 };

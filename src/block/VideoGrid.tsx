@@ -17,12 +17,12 @@ interface VideoGridProps {
 }
 
 const videoData = [
-  { id: 'v1', imageUrl: '/landing/review/1_snack.webp', videoUrl: 'https://youtu.be/_hQ-P3yVMXo' },
-  { id: 'v2', imageUrl: '/landing/review/2_lime.webp', videoUrl: 'https://vimeo.com/513664697' },
-  { id: 'v3', imageUrl: '/landing/review/3_k.webp', videoUrl: 'https://vimeo.com/512854897' },
-  { id: 'v4', imageUrl: '/landing/review/4_cupa.webp', videoUrl: 'https://youtu.be/l1WIR1AF1c4' },
-  { id: 'v5', imageUrl: '/landing/review/5_clean.webp', videoUrl: 'https://youtu.be/CGBWIDdiRl0' },
-  { id: 'v6', imageUrl: '/landing/review/6_hwi.webp', videoUrl: 'https://youtu.be/l62PZ11lWeg' },
+  { id: 'v1', imageUrl: '/landing/review/1_snack.webp', videoUrl: 'https://youtu.be/_hQ-P3yVMXo', title: '스낵왕 - 기업간식 정기배송 쇼핑몰 및 고객관리(CRM) 전산 구축' },
+  { id: 'v2', imageUrl: '/landing/review/2_lime.webp', videoUrl: 'https://vimeo.com/513664697', title: '라임푸드 - 식자재 발주(ERP) 전산 구축' },
+  { id: 'v3', imageUrl: '/landing/review/3_k.webp', videoUrl: 'https://vimeo.com/512854897', title: '케이케이 - 얼굴 인식 AI를 활용한 체질파악 플랫폼 앱 개발' },
+  { id: 'v4', imageUrl: '/landing/review/4_cupa.webp', videoUrl: 'https://youtu.be/l1WIR1AF1c4', title: '커피하우스 - 기업 재고관리(WMS) 전산 구축' },
+  { id: 'v5', imageUrl: '/landing/review/5_clean.webp', videoUrl: 'https://youtu.be/CGBWIDdiRl0', title: '청춘클린 - 기업정산(ERP) 전산구축' },
+  { id: 'v6', imageUrl: '/landing/review/6_hwi.webp', videoUrl: 'https://youtu.be/l62PZ11lWeg', title: '휘태커 - 대학생 기반 투자 모의펀딩 앱 개발' },
 ];
 
 const Wrapper = styled.div`
@@ -76,7 +76,7 @@ export const VideoGrid: React.FC<VideoGridProps> = ({
               key={video.id}
               imageUrl={video.imageUrl}
               videoUrl={video.videoUrl}
-              title={`Video ${video.id}`}
+              title={video.title}
             />
           ))}
         </GridContainerForVideos>

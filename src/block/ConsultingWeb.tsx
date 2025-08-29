@@ -2,9 +2,6 @@
  
 import { useEffect, useRef, useState } from 'react';
 import styled, { keyframes }  from 'styled-components';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import DownloadIcon from '@mui/icons-material/Download';
 import { useLang } from '@/contexts/LangContext';
 import { downloadLinks } from '@/lib/i18n/downloadLinks';
 import CustomBlockLayout from '@/customComponents/CustomBlockLayout';
@@ -22,8 +19,6 @@ interface ConsultingProps {
   onEnterSection?: () => void; // ✅ 추가
 }
  
-gsap.registerPlugin(ScrollTrigger);
- 
 const logButtonClick = async (content: string, memo: string) => {
   try {
     await userStamp({
@@ -31,7 +26,8 @@ const logButtonClick = async (content: string, memo: string) => {
       content,
       memo,
     });
-  } catch (e) {
+  } catch {
+    // 실패 시 무시
   }
 };
  
@@ -48,14 +44,7 @@ const DescriptionContainer = styled.div`
   gap: 8px;
   margin-bottom: 200px;
 `;
- 
-const DownloadContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  margin-top: 16px;
-`;
- 
+
 const TextTitle = styled.h2`
   font-size: 28px;
   font-weight: 700;
@@ -70,15 +59,6 @@ const TextDescription = styled.p`
   line-height: 1.8;
   white-space: pre-line;
   margin: 4px 0;
-`;
- 
-const RightContainer = styled.div`
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  overflow: visible;
-  position: relative;
 `;
 
 const arrowSlide = keyframes`
@@ -264,187 +244,77 @@ const ConsultingWeb: React.FC<ConsultingProps> = ({
 }) => {
   const { lang } = useLang();
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const stackRef = useRef<HTMLDivElement>(null);
-  const horizontalRefs = useRef<HTMLDivElement[]>([]);
-  const verticalRefs = useRef<HTMLDivElement[]>([]);
- 
-  const [visibleMap, setVisibleMap] = useState<number[][]>(
-    Array(3).fill([0, 0, 0, 0])
+  const [isMobile, setIsMobile] = useState(false);
+
+  // 모든 요소를 처음부터 보이게 설정
+  const [visibleMap] = useState<number[][]>(
+    Array(3).fill([1, 1, 1, 1])
   );
-  const [headerVisible, setHeaderVisible] = useState([0, 0, 0, 0]);
- 
+  const [headerVisible] = useState([1, 1, 1, 1]);
+
   const size = 150;
   const verticalWidth = 220;
   const gap = 20;
   const start = 45;
   const verticalStart = 150;
-  const centerTop = 780 / 2 - size / 2;
-  const centerLeft = 780 / 2;
-    const [isMobile, setIsMobile] = useState(false);
- 
-      useEffect(() => {
-        const checkMobile = () => {
-          setIsMobile(window.innerWidth < Breakpoints.mobile);
-        };
-        checkMobile();
-        window.addEventListener('resize', checkMobile);
-        return () => window.removeEventListener('resize', checkMobile);
-      }, []);
- 
-      const handleDownloadClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-        e.preventDefault();
-        const link = downloadLinks.functionalSpecification[lang];
-        logButtonClick('Consulting', '기능명세 다운로드');
-        logButtonClick('Consulting', '기능명세 다운로드');
-        window.open(link, '_blank');
-      };
- 
+
   useEffect(() => {
-    if (isMobile ||!wrapperRef.current) return;
- 
-    const initialMap = Array(3).fill([0, 0, 0, 0]);
- 
-    const tl = gsap.timeline({
-      scrollTrigger: {
-        id: 'consulting',
-        trigger: wrapperRef.current,
-        start: 'top top',
-        end: '+=1000',
-        pin: true,
-        // pinType: 'transform',
-        scrub: false,
-        onEnter: () => {
-          setVisibleMap(Array(3).fill([0, 0, 0, 0]));
-          setHeaderVisible([0, 0, 0, 0]);
-          tl.restart();
-          if (!isMobile) {
-            onEnterSection?.(); // ✅ 추가
-          }
-        },
-        onEnterBack: () => {
-          setVisibleMap(Array(3).fill([0, 0, 0, 0]));
-          setHeaderVisible([0, 0, 0, 0]);
-          tl.restart();
-          if (!isMobile) {
-            onEnterSection?.(); // ✅ 추가
-          }
-        },
-        
-      },
-    });
- 
-    tl.to(
-      [...horizontalRefs.current, ...verticalRefs.current],
-      {
-        opacity: 1,
-        duration: 0.3,
-        stagger: 0.02,
-        onStart: () => {
-          [...horizontalRefs.current, ...verticalRefs.current].forEach((el) => {
-            if (el) el.style.visibility = 'visible';
-          });
-        },
-      },
-      0
-    );
- 
-    horizontalRefs.current.forEach((el, i) => {
-      const top = start + i * (size + gap);
-      tl.to(el, { top, left: 0, duration: 0.3, ease: 'power2.out' }, i * 0.1);
-    });
- 
-    verticalRefs.current.forEach((el, i) => {
-      const left = verticalStart + i * (verticalWidth + gap);
-      tl.to(el, { top: 0, left, duration: 0.3, ease: 'power2.out' }, i * 0.1);
-    });
- 
-    horizontalRefs.current.forEach((el, i) => {
-      const expandStart = 0.6 + i * 0.2;
-      tl.to(el, {
-        width: 780,
-        height: size,
-        borderRadius: 24,
-        duration: 0.6,
-        ease: 'power3.out',
-      }, expandStart);
- 
-      tl.call(() => {
-        setVisibleMap((prev) => {
-          const next = [...prev];
-          next[i] = [...next[i]];
-          next[i][0] = 1;
-          return next;
-        });
-        setHeaderVisible((prev) => {
-          const next = [...prev];
-          next[0] = 1;
-          return next;
-        });
-      }, [], expandStart + 0.05);
-    });
- 
-    verticalRefs.current.forEach((el, i) => {
-      const vExpandStart = 1.5 + i * 0.4;
-      tl.to(el, {
-        width: verticalWidth,
-        height: 580,
-        borderRadius: 24,
-        duration: 0.6,
-        ease: 'power3.out',
-      }, vExpandStart);
- 
-      tl.call(() => {
-        setVisibleMap((prev) =>
-          prev.map((row) => {
-            const updated = [...row];
-            updated[i + 1] = 1;
-            return updated;
-          })
-        );
-        setHeaderVisible((prev) => {
-          const next = [...prev];
-          next[i + 1] = 1;
-          return next;
-        });
-      }, [], vExpandStart + 0.05);
-    });
- 
-    tl.call(() => {
-      setVisibleMap((prev) =>
-        prev.map((row) => {
-          const updated = [...row];
-          updated[3] = 1;
-          return updated;
-        })
-      );
-      setHeaderVisible((prev) => {
-        const next = [...prev];
-        next[3] = 1;
-        return next;
-      });
-    }, [], '+=0.01');
- 
-    return () => {
-      tl.scrollTrigger?.kill();
-      tl.kill();
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < Breakpoints.mobile);
     };
-  }, []);;
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // IntersectionObserver를 사용한 섹션 진입 감지
+  useEffect(() => {
+    if (!onEnterSection || isMobile) return;
+
+    const currentWrapperRef = wrapperRef.current;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            onEnterSection();
+          }
+        });
+      },
+      { threshold: 0.6 }
+    );
+
+    if (currentWrapperRef) {
+      observer.observe(currentWrapperRef);
+    }
+
+    return () => {
+      if (currentWrapperRef) {
+        observer.unobserve(currentWrapperRef);
+      }
+    };
+  }, [isMobile, onEnterSection]);
+
+  const handleDownloadClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    const link = downloadLinks.functionalSpecification[lang];
+    logButtonClick('Consulting', '기능명세 다운로드');
+    window.open(link, '_blank');
+  };;
  
   const horizontalBoxes = gridContents.map((row, i) => (
     <Box
       key={`h-${i}`}
-      ref={(el) => {
-        if (el) horizontalRefs.current[i] = el;
-      }}
       style={{
-        width: size,
+        width: 780,
         height: size,
-        borderRadius: 100,
+        borderRadius: 24,
         zIndex: 2,
-        top: centerTop,
+        top: start + i * (size + gap),
+        left: 0,
         border: '1px solid #E6E6E6',
         backgroundColor: 'rgba(248, 248, 248, 0.7)',
-        left: centerLeft,
+        opacity: 1,
+        visibility: 'visible',
       }}
     >
       <Grid>
@@ -460,18 +330,17 @@ const ConsultingWeb: React.FC<ConsultingProps> = ({
   const verticalBoxes = [0, 1].map((i) => (
     <Box
       key={`v-${i}`}
-      ref={(el) => {
-        if (el) verticalRefs.current[i] = el;
-      }}
       style={{
-        width: size,
-        height: size,
-        borderRadius: 100,
+        width: verticalWidth,
+        height: 580,
+        borderRadius: 24,
         zIndex: 2,
-        top: centerTop,
-        left: centerLeft,
+        top: 0,
+        left: verticalStart + i * (verticalWidth + gap),
         border: '1px solid #E6E6E6',
         backgroundColor: 'rgba(238, 203, 255, 0.7)',
+        opacity: 1,
+        visibility: 'visible',
       }}
     />
   ));
@@ -507,7 +376,7 @@ const ConsultingWeb: React.FC<ConsultingProps> = ({
         </CustomBlockLayout.Left>
  
         <CustomBlockLayout.Right>
-          <StackWrapper ref={stackRef}>
+          <StackWrapper>
             <GridHeader>
               {gridHeaders.map((header, idx) => (
                 <GridHeaderCell key={idx} $visible={!!headerVisible[idx]}>

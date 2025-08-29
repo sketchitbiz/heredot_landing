@@ -43,10 +43,15 @@ const AppBar = styled.nav<{ height?: string; padding?: string }>`
   position: sticky;
   top: 0;
   left: 0;
-  min-width: ${Breakpoints.desktop}px;
-  background-color: ${AppColors.background};
+  width: 100%;
+  background-color: transparent; /* 배경색을 투명하게 만들어 wrapper의 배경색이 보이도록 */
   z-index: 1000;
   padding: ${({ padding }) => padding || '0 20px'};
+  
+  @media (max-width: ${Breakpoints.mobile}px) {
+    min-width: 0;
+    padding: 0 20px;
+  }
 `;
 
 const MobileAppBarWrapper = styled.nav`
@@ -64,6 +69,13 @@ const ContentWrapper = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
+  max-width: ${Breakpoints.desktop}px;
+  margin: 0 auto;
+  width: 100%;
+  
+  @media (max-width: ${Breakpoints.mobile}px) {
+    max-width: 100%;
+  }
 `;
 
 const Logo = styled.img<{ width?: string; height?: string }>`

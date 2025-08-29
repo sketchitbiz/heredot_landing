@@ -31,12 +31,17 @@ export const dictionary = {
       event: '기획전',
       ai: 'AI 견적서',
       contact: '연락',
+      technology: 'AI 기술력',
+    },
+    aitechBlock: {
+      title: 'AI 맞춤 솔루션',
+      description: '다양한 AI 기능으로 비즈니스 효율성을 높여보세요',
     },
     contract: {
       title: '프로젝트 문의가 있다면',
       description: '망설이지 말고 지금 "여기닷"에게 연락 주세요',
     },
-    preTitle: 'IT 혁신의 시작, 플랫폼·솔루션·기업전산·AI개발 전문 외주 개발사',
+    preTitle: 'IT 혁신의 시작, 플랫폼·솔루션·\n기업전산·AI개발 전문 외주 개발사',
     headerTitle: '출발과 도착의 여정',
     headerSubtitle: '여기닷에서',
     download: '기업 소개서',
@@ -347,6 +352,11 @@ contactPopup: {
       event: 'Events',
       ai: 'AI Estimate',
       contact: 'Contact',
+      technology: 'AI Technology',
+    },
+    aitechBlock: {
+      title: 'AI Customized Solutions',
+      description: 'Enhance business efficiency with various AI features',
     },
     community: {
       title: 'Extensive Know-how and Network for Your Success',
