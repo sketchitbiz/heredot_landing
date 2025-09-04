@@ -6,7 +6,6 @@ import Image from 'next/image';
 import { useLang } from '../contexts/LangContext';
 import { CustomNavigator } from '@/customComponents/CustomNavigator';
 import { Breakpoints } from '@/constants/layoutConstants';
-import { AppColors } from '@/styles/colors';
 import ResponsiveView from '@/layout/ResponsiveView';
 import { userStamp } from '@/lib/api/user/api';
 
@@ -363,17 +362,20 @@ const RotatedContainer = styled.div<{ $x: number; $y: number }>`
   display: flex;
   justify-content: center;
   align-items: center;
-  position: absolute; /* absolute로 다시 변경 */
+  position: absolute;
   left: ${props => props.$x - 170}px;
   top: ${props => props.$y - 150}px;
-  transition: all 0.1s ease-out;
   pointer-events: none;
-  z-index: 9999; /* 다른 요소들 위에 표시 */
+  z-index: 9999;
+  will-change: transform;
+  transform: translate3d(0, 0, 0); /* GPU 가속 활성화 */
 `;
 
 const AnimatedImage = styled(Image)`
   filter: hue-rotate(0deg) saturate(1.2) brightness(1.1);
   animation: colorFlow 4s ease-in-out infinite;
+  will-change: filter;
+  transform: translate3d(0, 0, 0); /* GPU 가속 활성화 */
   
   @keyframes colorFlow {
     0% {
@@ -409,6 +411,8 @@ export const AiTechBlock: React.FC<AiTechBlockProps> = ({
   const [rotatedCards, setRotatedCards] = useState<Set<number>>(new Set());
   const [selectedCard, setSelectedCard] = useState<number>(0); // 기본값은 첫 번째 카드
   const containerRef = useRef<HTMLDivElement>(null);
+  const animationFrameRef = useRef<number | null>(null);
+  const lastMousePosition = useRef({ x: 0, y: 0 });
 
   // 웹 이미지 경로와 확장자를 결정하는 함수
   const getWebImagePath = (cardIndex: number) => {
@@ -451,32 +455,53 @@ export const AiTechBlock: React.FC<AiTechBlockProps> = ({
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      if (containerRef.current) {
-        // Wrapper를 기준으로 마우스 위치 계산
-        const wrapper = containerRef.current.closest('[data-wrapper]') as HTMLElement;
-        if (wrapper) {
-          const wrapperRect = wrapper.getBoundingClientRect();
-          const x = e.clientX - wrapperRect.left;
-          const y = e.clientY - wrapperRect.top;
-          
-          // 마우스가 wrapper 영역 내에 있는지 확인
-          const isInside = x >= 0 && x <= wrapperRect.width && y >= 0 && y <= wrapperRect.height;
-          
-          if (isInside) {
-            setMousePosition({ x, y });
-            setIsMouseInSection(true);
-          } else {
-            setIsMouseInSection(false);
+      // 애니메이션 프레임이 이미 예약되어 있으면 취소
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+      
+      // 마우스 위치 변화가 최소 임계값 이상일 때만 업데이트
+      const threshold = 2; // 2px 이상 움직였을 때만 업데이트
+      const deltaX = Math.abs(e.clientX - lastMousePosition.current.x);
+      const deltaY = Math.abs(e.clientY - lastMousePosition.current.y);
+      
+      if (deltaX < threshold && deltaY < threshold) {
+        return;
+      }
+      
+      animationFrameRef.current = requestAnimationFrame(() => {
+        if (containerRef.current) {
+          // Wrapper를 기준으로 마우스 위치 계산
+          const wrapper = containerRef.current.closest('[data-wrapper]') as HTMLElement;
+          if (wrapper) {
+            const wrapperRect = wrapper.getBoundingClientRect();
+            const x = e.clientX - wrapperRect.left;
+            const y = e.clientY - wrapperRect.top;
+            
+            // 마우스가 wrapper 영역 내에 있는지 확인
+            const isInside = x >= 0 && x <= wrapperRect.width && y >= 0 && y <= wrapperRect.height;
+            
+            if (isInside) {
+              setMousePosition({ x, y });
+              setIsMouseInSection(true);
+              lastMousePosition.current = { x: e.clientX, y: e.clientY };
+            } else {
+              setIsMouseInSection(false);
+            }
           }
         }
-      }
+        animationFrameRef.current = null;
+      });
     };
 
     // 전체 document에서 마우스 이벤트 감지
-    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mousemove', handleMouseMove, { passive: true });
     
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
     };
   }, []);
 
@@ -633,6 +658,25 @@ export const AiTechBlock: React.FC<AiTechBlockProps> = ({
     </MobileContainer>
   );
 
+  // 마우스 추적 이미지를 메모이제이션
+  const rotatedContainerComponent = useMemo(() => {
+    if (!isMouseInSection) return null;
+    
+    return (
+      <RotatedContainer $x={mousePosition.x} $y={mousePosition.y}>
+        <AnimatedImage
+          src="/pointer.svg"
+          alt="Pointer"
+          width={340}
+          height={340}
+          style={{ objectFit: 'contain' }}
+          priority={false}
+          loading="lazy"
+        />
+      </RotatedContainer>
+    );
+  }, [isMouseInSection, mousePosition.x, mousePosition.y]);
+
   return (
     <Wrapper data-wrapper>
       <NavigatorWrapper>
@@ -653,17 +697,7 @@ export const AiTechBlock: React.FC<AiTechBlockProps> = ({
       />
 
       {/* 마우스 추적 이미지 - 섹션 내에서만 표시 */}
-      {isMouseInSection && (
-        <RotatedContainer $x={mousePosition.x} $y={mousePosition.y}>
-          <AnimatedImage
-            src="/pointer.svg"
-            alt="Pointer"
-            width={340}
-            height={340}
-            style={{ objectFit: 'contain' }}
-          />
-        </RotatedContainer>
-      )}
+      {rotatedContainerComponent}
     </Wrapper>
   );
 };
