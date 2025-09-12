@@ -131,7 +131,7 @@ export default function EventBlock({
         {slides.map((slide, i) => {
           const color = i === 0 ? 'white' : 'black';
           const href = i === 0
-            ? 'https://aigo.framer.website/'
+            ? 'https://aigopartners.com/aiclient/heredot/'
             : 'https://xn--2e0bw7u.com/';
 
           return (

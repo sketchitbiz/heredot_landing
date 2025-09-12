@@ -45,12 +45,14 @@ export default function RootLayout({
         {/* Google Analytics */}
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-P5R0BM2W67"></script>
 
-        <script src="http://localhost:3000/widget.js" data-url="..." data-position="right" data-label="AI" data-open="0"></script>
+        {/* <script src="http://localhost:3000/widget.js" data-url="..." data-position="right" data-label="AI" data-open="0"></script> */}
 
-        {/* <Script
+        <Script
       
-          src=" http://121.157.229.40:8535/widget.js"
-          data-url=" http://121.157.229.40:8535/"
+          src=" https://aigopartners.com/widget.js"
+          data-url=" https://aigopartners.com/aiclient/heredot"
+          // src=" http://121.157.229.40:8535/widget.js"
+          // data-url=" http://121.157.229.40:8535/"
           // src="http://localhost:5173/widget.js"
           // data-url="http://localhost:5173/"
           data-position="right"
@@ -61,7 +63,7 @@ export default function RootLayout({
           data-label="AI"
           data-open="0"
           strategy="afterInteractive"
-        /> */}
+        />
 
 
         <script

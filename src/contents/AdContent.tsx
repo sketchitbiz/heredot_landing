@@ -28,7 +28,7 @@ export const AdContent: React.FC<AdContentProps> = ({ buttonText }) => {
 
   const handleClick = () => {
     userStamp({ category: '팝업', content: 'AI견적서', memo: 'AI견적서' });
-    window.open('/ai', '_blank', 'noopener,noreferrer');
+    window.open('https://aigopartners.com/aiclient/heredot', '_blank', 'noopener,noreferrer');
   };
 
   const line1Style: React.CSSProperties = {

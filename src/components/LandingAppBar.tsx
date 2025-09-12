@@ -153,6 +153,12 @@ const MobileAppBar = ({
   const [menuOpen, setMenuOpen] = useState(false);
 
   const handleScrollTo = (targetId: string, content: string, memo: string) => {
+    // 모바일 메뉴 전용: AI Estimate는 외부 링크로 이동
+    if (targetId === 'AI Estimate') {
+      window.open('https://aigopartners.com/aiclient/heredot', '_blank', 'noopener,noreferrer');
+      setMenuOpen(false);
+      return;
+    }
     if (targetId === 'contact') {
       onContact();
     } else {
