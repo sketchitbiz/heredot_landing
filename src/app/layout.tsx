@@ -49,12 +49,12 @@ export default function RootLayout({
 
         <Script
       
-          // src=" https://aigopartners.com/widget.js"
-          // data-url=" https://aigopartners.com/aiclient/heredot"
+          src=" https://aigopartners.com/widget.js"
+          data-url=" https://aigopartners.com/aiclient/heredot"
           // src=" http://121.157.229.40:8535/widget.js"
           // data-url=" http://121.157.229.40:8535/"
-          src="http://localhost:5173/widget.js"
-          data-url="http://localhost:5173/"
+          // src="http://localhost:5173/widget.js"
+          // data-url="http://localhost:5173/"
           data-position="right"
           data-color="#3391FF"
           data-size="420x720"
