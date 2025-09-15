@@ -224,7 +224,7 @@ export default function HomePage() {
   ) => {
     // 🔹 AI Estimate일 때는 스크롤 대신 새 창 열기
     if (targetId === 'AI Estimate') {
-      window.open('/ai', '_blank', 'noopener,noreferrer');
+      window.open('https://aigopartners.com/aiclient/heredot', '_blank', 'noopener,noreferrer');
       void logButtonClick(content, memo); // ✅ 스탬프는 동일하게 찍음
       return;
     }
