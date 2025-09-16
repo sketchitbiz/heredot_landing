@@ -146,7 +146,7 @@ export const PortfolioGrid: React.FC<PortfolioGridProps> = ({
             key={item.id}
             imageUrl={item.imageUrl}
             title={(t.portfolioCards as Record<string, string>)[item.id]}
-            subtitle={subtitles[lang][item.id]} // ✅ 언어에 맞는 subtitle을 동적으로 전달
+            subtitle={subtitles[lang][item.id as keyof typeof subtitles['ko']]} // ✅ 언어에 맞는 subtitle을 동적으로 전달
             onClick={() => handleCardClick(index)}
           />
         ))}

@@ -41,8 +41,8 @@ const cardData: CardData[] = [
       en: "AI File Analysis"
     },
     content: {
-      ko: "PDF 파일 내\n텍스트를 분석하여\n맞춤 결과를 도출합니다",
-      en: "Analyze text in PDF files\nto derive customized\nresults"
+      ko: "기업 문서를 분석해\n의사결정 인사이트를 제공합니다",
+      en: "Analyze corporate documents\nto provide decision-making insights"
     }
   },
   {
@@ -53,8 +53,8 @@ const cardData: CardData[] = [
       en: "AI URL Analysis"
     },
     content: {
-      ko: "URL 접속 후 페이지 내\n텍스트를 분석하여\n맞춤 결과를 도출합니다",
-      en: "Access URLs and analyze\npage text to derive\ncustomized results"
+      ko: "웹페이지 분석으로\n맞춤 비즈니스 정보를 도출합니다",
+      en: "Derive customized business\ninformation through webpage analysis"
     }
   },
   {
@@ -65,8 +65,8 @@ const cardData: CardData[] = [
       en: "AI Image Search"
     },
     content: {
-      ko: "AI 이미지 검색 시 제품 정보,\n생산년도, 제조사 정보를\n일괄 수집 가능합니다",
-      en: "AI image search enables\nbatch collection of product info,\nproduction year, and manufacturer"
+      ko: "제품·부품 이미지를 찾아 \n제조·생산 정보를 확보합니다",
+      en: "Find product and part images\nto secure manufacturing\nand production information"
     }
   },
   {
@@ -77,8 +77,8 @@ const cardData: CardData[] = [
       en: "Generative AI Chatbot"
     },
     content: {
-      ko: "자연어 기반으로\n자연스럽게 대화할 수 있습니다",
-      en: "Natural language-based\nconversation system"
+      ko: "고객 응대와\n사내 문의를 자동화합니다",
+      en: "Automate customer service\nand internal inquiries"
     }
   },
   {
@@ -89,8 +89,8 @@ const cardData: CardData[] = [
       en: "AI Content Recommendation"
     },
     content: {
-      ko: "사용자의 성향을 분석하여\n맞춤 콘텐츠를 추천합니다",
-      en: "Analyze user preferences\nto recommend personalized\ncontent"
+      ko: "고객 데이터를 기반으로\n상품·서비스를 추천합니다",
+      en: "Recommend products and services\nbased on customer data"
     }
   },
   {
@@ -101,8 +101,8 @@ const cardData: CardData[] = [
       en: "AI Global Communication"
     },
     content: {
-      ko: "전세계 언어로 자연스럽게\n대화가 가능합니다",
-      en: "Natural conversation\nin languages worldwide"
+      ko: "다국어 번역과 대화로\n글로벌 협업을 지원합니다",
+      en: "Support global collaboration\nthrough multilingual translation\nand conversation"
     }
   },
   {
@@ -113,8 +113,8 @@ const cardData: CardData[] = [
       en: "AI Quote Generation"
     },
     content: {
-      ko: "자연어로 대화하며\n맞춤 견적을 실시간 제공합니다",
-      en: "Real-time customized quotes\nthrough natural language\nconversation"
+      ko: "실시간 맞춤 견적을 생성해\n영업 효율을 높입니다",
+      en: "Generate real-time customized\nquotes to improve sales efficiency"
     }
   },
   {
@@ -125,8 +125,8 @@ const cardData: CardData[] = [
       en: "AI Reports"
     },
     content: {
-      ko: "데이터를 기반으로 AI가\n맞춤 리포트를 생성해줍니다",
-      en: "AI generates customized\nreports based on\ndata analysis"
+      ko: "데이터 분석으로\n맞춤 보고서를 자동 작성합니다",
+      en: "Automatically generate\ncustomized reports through\ndata analysis"
     }
   },
   {
@@ -137,8 +137,8 @@ const cardData: CardData[] = [
       en: "AI Work Automation"
     },
     content: {
-      ko: "견적, 보고, 분류까지\n반복업무를 자동화합니다",
-      en: "Automate repetitive tasks\nincluding quotes, reports,\nand classification"
+      ko: "반복 업무를 자동화해\n생산성을 높입니다",
+      en: "Automate repetitive tasks\nto increase productivity"
     }
   }
 ];
@@ -217,7 +217,7 @@ const WebImage = styled(Image)`
 const CardGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(3, 250px);
-    grid-template-rows: repeat(3, 220px);
+  grid-template-rows: repeat(3, 220px);
   gap: 20px;
   z-index: 10;
   position: relative;

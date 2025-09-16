@@ -173,8 +173,7 @@ const DownloadLink = styled.a`
 const PageWrapper = styled.div`
   width: 100%;
   min-width: ${Breakpoints.desktop}px; // 데스크탑 이하로 안 줄어들게
-  /* background-color:red; */
-  /* background-color: ${AppColors.background}; */
+  background-color: ${AppColors.background};
 `;
 
 const ScrollContent = styled.div`
@@ -187,7 +186,7 @@ const ScrollContent = styled.div`
 const StickySection = styled.div`
   /* position: sticky; */
   top: 0;
-  /* height: 100vh; */
+  height: 100vh;
 `;
 
 const TabNumber = styled.span<{ $active: boolean }>`

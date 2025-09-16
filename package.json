@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --hostname 0.0.0.0",
+    "dev:network": "node dev-server.js",
     "build": "next build && next-sitemap",
     "start": "next start",
     "lint": "next lint"

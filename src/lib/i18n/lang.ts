@@ -4,8 +4,8 @@ export const dictionary = {
   ko: {
     departure: '출발',
     eventBlock: {
-      title: '사업가들에게 제안하는 여기닷 솔루션',
-      description: '대표님의 사업을 지원하기 위한 최적 솔루션 소개해요',
+      title: '여기닷 R&D로 탄생한 실제 프로젝트',
+      description: '우리가 직접 만든 프로젝트, 기술력과 기획력의 결과입니다',
     },
        adModal: {
       line1: '견적서 3분이면 끝!',
@@ -34,8 +34,8 @@ export const dictionary = {
       technology: 'AI 기술력',
     },
     aitechBlock: {
-      title: 'AI 맞춤 솔루션',
-      description: '다양한 AI 기능으로 비즈니스 효율성을 높여보세요',
+      title: '기업 프로젝트에 적용 가능한 AI 기술력',
+      description: 'AI 분석, 챗봇, 자동화 등 실제 프로젝트에 활용되는 기술을 직접 개발합니다',
     },
     contract: {
       title: '프로젝트 문의가 있다면',
@@ -52,8 +52,8 @@ export const dictionary = {
       label: '여기닷',
     },
     portfolio: {
-      title: '여기닷에서 만든 대표 프로젝트!',
-      description: '다양한 산업과 분야에서 성과를 이끌어낸 프로젝트 소개해요!',
+      title: '기업 맞춤 IT 아웃소싱·앱·웹 개발 전문팀',
+      description: '기업 맞춤 앱·웹 개발과 IT 아웃소싱으로 성과를 만듭니다',
     },
     portfolioCards: {
       '1': '안티드론 솔루션',
@@ -138,81 +138,81 @@ export const dictionary = {
       ],
     },
     membersSection: {
-      title: '일감을 주세요!',
-      description: '아래 버튼을 클릭하여 직원들에게 일을 맡겨보아요!',
+      title: '기업 프로젝트에 최적화된 전문팀',
+      description: '경험 많은 전문가 팀이 기업 맞춤 외주 개발을 책임집니다',
     },
-    memberTabs: ['채팅 앱', '스트리밍 웹', '구독 플랫폼', '점심시간'],
+    memberTabs: ['팀원 역량', '전산 구축', '플랫폼 웹 구축', '앱 개발 구축'],
     memberCards: {
       '1': {
         name: '개발자 Sun',
         messages: {
-          '채팅 앱': '푸시는 앱 상태마다 다르게요',
-          '스트리밍 웹': null,
-          '구독 플랫폼': '등록이죠?\n 인증은 안 하나요?',
-          점심시간: '배고파서 코드 안 짜짐',
+          '팀원 역량': 'KT DS 기업 SI 8년 경력,\n 대규모 SI 프로젝트 다수 수행',
+          '전산 구축': '관제·경영 솔루션 구축 20+회,\n 전산 최적화 전문가',
+          '플랫폼 웹 구축': '수십만 동시접속\n웹 아키텍처 전문가',
+          '앱 개발 구축': '국내 메이저 야구단\n 앱 개발 참여',
         },
       },
       '2': {
         name: 'CEO Martin',
         messages: {
-          '채팅 앱': '채팅앱 계약됐어요!',
-          '스트리밍 웹': '유튜브처럼 만들어 주세요!',
-          '구독 플랫폼': '구독 결제 서비스 계약됐어요!',
-          점심시간: '밥 먹고 합시다.',
+      '팀원 역량': 'LG전자 IT PM 11년, ​\n글로벌 프로젝트 리딩 경험',
+          '전산 구축': 'LG전자 ERP·WMS·CRM PM\n대형 프로젝트 리딩',
+          '플랫폼 웹 구축': '웹서비스 기획 및\n대형 플랫폼 프로젝트 총괄',
+          '앱 개발 구축': 'LG 그룹웨어 앱​\n기획 참여 다수​',
         },
       },
       '3': {
         name: '이사 Max',
         messages: {
-          '채팅 앱': null,
-          '스트리밍 웹': null,
-          '구독 플랫폼': null,
-          점심시간: '영수증 챙기셨어요?',
+      '팀원 역량': '포스코 철강 재무관리​\n10년, 재무·ERP 통합 전문가',
+          '전산 구축': '경영·재무 PI 프로젝트, \n전산 통합 관리 경험',
+          '플랫폼 웹 구축': null,
+          '앱 개발 구축': null,
         },
       },
       '4': {
         name: '기획자 K',
         messages: {
-          '채팅 앱': '1:N이면\n 부방장 기능도 필요하죠.',
-          '스트리밍 웹': null,
-          '구독 플랫폼': '잔액 부족 시 재결제는요?',
-          점심시간: '요구사항? 일단 고기',
+            '팀원 역량': '플랫폼 매출 100억 달성 출신,​\n서비스 성장 전략가',
+          '전산 구축': '쇼핑몰 정산 시스템 구축​\n서비스 기획·운영 경험​',
+          '플랫폼 웹 구축': 'B2B SaaS 플랫폼 기획 및 \n서비스 고도화 경험',
+          '앱 개발 구축': '스타트업 플랫폼 BIZ​\n10회 이상 경험​',
         },
       },
       '5': {
         name: '개발자 Dony',
         messages: {
-          '채팅 앱': null,
-          '스트리밍 웹': '버퍼링 구현 방식도\n 정해야죠.',
-          '구독 플랫폼': null,
-          점심시간: '꼬르륵...',
+        '팀원 역량': 'Flutter, React.js​\n화면 개발 전문​',
+          '전산 구축': '기업 그룹웨어·전산 등​\n기업 앱 구축 경험​​',
+          '플랫폼 웹 구축': '대규모 결제·정산 시스템\n안정화·최적화 경험',
+          '앱 개발 구축': '누적 100만​\n다운로드 앱 개발',
         },
       },
       '6': {
         name: '개발자 Day',
         messages: {
-          '채팅 앱': '트래픽 과금\n 미리 조율해야 해요.',
-          '스트리밍 웹': '용량 부족하면\n 가용성 문제 생겨요.',
-          '구독 플랫폼': 'PG사 먼저 확인 필요해요.',
-          점심시간: 'API보다 급한 건 칼국수',
+   '팀원 역량': 'Java·Python·Node ​\n서버 개발 전문​',
+          '전산 구축': '빅데이터, 데이터 Flow​\n설계 등 DB 전문가​​​',
+          '플랫폼 웹 구축': '글로벌 다국어 웹 플랫폼\n구축·운영 경험',
+          '앱 개발 구축': '대용량 트레픽​\n분산 처리​',
         },
       },
       '7': {
         name: '디자이너 Sien',
         messages: {
-          '채팅 앱': null,
-          '스트리밍 웹': '화질 자동 전환 고려하셨어요?',
-          '구독 플랫폼': null,
-          점심시간: '햄버거 버튼 말고 햄버거 줘요',
+      '팀원 역량': '전산·플랫폼·UX/UI 디자인\n사용자 친화적 인터페이스 제작​',
+          '전산 구축': '기업전산·솔루션​\n디자인 전문​​​​',
+          '플랫폼 웹 구축': null,
+          '앱 개발 구축': null,
         },
       },
       '9': {
         name: '개발자 Jaxon',
         messages: {
-          '채팅 앱': 'help...',
-          '스트리밍 웹': null,
-          '구독 플랫폼': 'I debug, therefore I am.',
-          점심시간: '503 Service Unavailable (No Lunch)',
+        '팀원 역량': '풀스택 개발자, ​\n웹·앱 통합 구축 및 운영 경험​​',
+          '전산 구축': '기업 전산 고도화 개발​\n웹·앱 통합 구축 및 운영 경험​',
+          '플랫폼 웹 구축': '하이브리드 앱​ 크로스 플랫폼 앱​ \n10회 이상 경험​',
+          '앱 개발 구축': '하이브리드 앱​\n크로스 플랫폼 앱​ 10회 이상 경험',
         },
       },
     },
@@ -260,8 +260,8 @@ export const dictionary = {
       ],
     },
     reviewSection: {
-      title: '사업가들이 말하는 여기닷',
-      description: "대표님들은 '여기닷'을 이렇게 기억합니다.",
+      title: '책임감 있는 진행으로\n끝까지 안심할 수 있습니다',
+      description: "프로젝트 일정, 품질, 소통 고객들이 직접 증명한 신뢰입니다",
     },
     appBlock: {
       title: `여기닷은 레고 디자인 시스템으로\n차곡차곡 쌓아 빠르고·안정적 개발합니다.`,
@@ -329,9 +329,8 @@ contactPopup: {
   },
   en: {
     eventBlock: {
-      title: 'Heredot Solutions for Entrepreneurs',
-      description:
-        'Discover the ideal solution to support and grow your business',
+      title: 'Real Projects Born from HereDot R&D',
+      description: 'Projects we directly created, results of our technology and planning capabilities',
     },
     aiBlock: {
       title: "It's time to start the right way",
@@ -355,8 +354,8 @@ contactPopup: {
       technology: 'AI Technology',
     },
     aitechBlock: {
-      title: 'AI Customized Solutions',
-      description: 'Enhance business efficiency with various AI features',
+      title: 'AI Technology Applicable to Corporate Projects',
+      description: 'We directly develop technologies used in real projects such as AI analysis, chatbots, and automation',
     },
     community: {
       title: 'Extensive Know-how and Network for Your Success',
@@ -378,9 +377,8 @@ contactPopup: {
       ],
     },
     portfolio: {
-      title: 'Top Projects by HereDot!',
-      description:
-        'Introducing projects that led success across various industries!',
+      title: 'Corporate IT Outsourcing·App & Web Development Specialists',
+      description: 'We deliver results through customized app & web development and IT outsourcing for businesses',
     },
     portfolioCards: {
       '1': 'Anti-Drone Solution',
@@ -413,91 +411,90 @@ contactPopup: {
       label: 'Heredot',
     },
     reviewSection: {
-      title: 'What Entrepreneurs Say About Heredot',
-      description: "Here's how CEOs remember 'Heredot'",
+      title: 'You can feel secure from start to finish with our responsible project management',
+      description: 'Trust proven directly by customers in project schedules, quality, and communication',
     },
     membersSection: {
-      title: 'Give us tasks!',
-      description: 'Click the buttons below to assign work to employees!',
+      title: 'From Outsourced Development to Operations, Professional Team Optimized for Corporate Projects',
+      description: 'Our experienced team of specialists takes full responsibility for customized outsourced development for businesses',
     },
     memberTabs: [
-      'Chat App',
-      'Streaming Web',
-      'Subscription Platform',
-      'Lunch Time',
+      'Team Expertise',
+      'Enterprise Systems',
+      'Web Platform Development',
+      'Mobile App Development',
     ],
     memberCards: {
       '1': {
         name: 'Developer Sun',
         messages: {
-          'Chat App': 'Push notifications should depend on app state',
-          'Streaming Web': null,
-          'Subscription Platform': 'Registration only?\n No verification?',
-          'Lunch Time': 'Too hungry to code',
+          'Team Expertise': '8 years KT DS enterprise SI experience,\nMultiple large-scale SI projects',
+          'Enterprise Systems': '20+ control & management solutions built,\nEnterprise optimization specialist',
+          'Web Platform Development': 'Expert in web architecture for\nhundreds of thousands concurrent users',
+          'Mobile App Development': 'Participated in major domestic\nbaseball team app development',
         },
       },
       '2': {
         name: 'CEO Martin',
         messages: {
-          'Chat App': 'Chat app project signed!',
-          'Streaming Web': 'Please make it like YouTube!',
-          'Subscription Platform': 'Subscription service deal closed!',
-          'Lunch Time': "Let's eat first.",
+          'Team Expertise': '11 years LG Electronics IT PM,\nGlobal project leadership experience',
+          'Enterprise Systems': 'LG Electronics ERP·WMS·CRM PM\nLarge project leadership',
+          'Web Platform Development': 'Web service planning and\nlarge platform project management',
+          'Mobile App Development': 'Multiple LG groupware app\nplanning participation',
         },
       },
       '3': {
         name: 'Director Max',
         messages: {
-          'Chat App': null,
-          'Streaming Web': null,
-          'Subscription Platform': null,
-          'Lunch Time': 'Did you bring the receipt?',
+          'Team Expertise': '10 years POSCO steel financial management,\nFinance·ERP integration specialist',
+          'Enterprise Systems': 'Management·Finance PI projects,\nEnterprise system integration experience',
+          'Web Platform Development': null,
+          'Mobile App Development': null,
         },
       },
       '4': {
         name: 'Planner K',
         messages: {
-          'Chat App': "If it's 1:N, need sub-admin function too.",
-          'Streaming Web': null,
-          'Subscription Platform':
-            'What about retrying payment if balance is low?',
-          'Lunch Time': 'Requirement? First, BBQ.',
+          'Team Expertise': 'Platform revenue 10B KRW achiever,\nService growth strategist',
+          'Enterprise Systems': 'E-commerce settlement system development\nService planning & operation experience',
+          'Web Platform Development': 'B2B SaaS platform planning and\nservice enhancement experience',
+          'Mobile App Development': 'Startup platform business\n10+ times experience',
         },
       },
       '5': {
         name: 'Developer Dony',
         messages: {
-          'Chat App': null,
-          'Streaming Web': 'We need to decide on buffering mechanism too.',
-          'Subscription Platform': null,
-          'Lunch Time': '*rumbling stomach noises*',
+          'Team Expertise': 'Flutter, React.js\nFrontend development specialist',
+          'Enterprise Systems': 'Enterprise groupware & systems\nCorporate app development experience',
+          'Web Platform Development': 'Large-scale payment & settlement systems\nStabilization & optimization experience',
+          'Mobile App Development': 'Cumulative 1M+\ndownload app development',
         },
       },
       '6': {
         name: 'Developer Day',
         messages: {
-          'Chat App': 'We must discuss traffic billing beforehand.',
-          'Streaming Web': 'If capacity runs low, availability problems arise.',
-          'Subscription Platform': 'Need to check payment gateway first.',
-          'Lunch Time': 'More urgent than API is noodles!',
+          'Team Expertise': 'Java·Python·Node\nServer development specialist',
+          'Enterprise Systems': 'Big data, data flow design\nDatabase specialist',
+          'Web Platform Development': 'Global multilingual web platform\ndevelopment & operation experience',
+          'Mobile App Development': 'High-traffic\ndistributed processing',
         },
       },
       '7': {
         name: 'Designer Sien',
         messages: {
-          'Chat App': null,
-          'Streaming Web': 'Have you considered automatic quality switching?',
-          'Subscription Platform': null,
-          'Lunch Time': "Don't want hamburger menu, want hamburger.",
+          'Team Expertise': 'Enterprise·Platform·UX/UI design\nUser-friendly interface creation',
+          'Enterprise Systems': 'Corporate systems & solutions\nDesign specialist',
+          'Web Platform Development': null,
+          'Mobile App Development': null,
         },
       },
       '9': {
         name: 'Developer Jaxon',
         messages: {
-          'Chat App': 'help...',
-          'Streaming Web': null,
-          'Subscription Platform': 'I debug, therefore I am.',
-          'Lunch Time': '503 Service Unavailable (No Lunch)',
+          'Team Expertise': 'Full-stack developer,\nWeb·App integrated development & operation',
+          'Enterprise Systems': 'Enterprise system advancement development\nWeb·App integrated development & operation',
+          'Web Platform Development': 'Hybrid app, cross-platform app\n10+ times experience',
+          'Mobile App Development': 'Hybrid app\nCross-platform app 10+ times experience',
         },
       },
     },

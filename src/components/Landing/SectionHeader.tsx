@@ -4,6 +4,7 @@ import styled from "styled-components";
 import { AppColors } from "@/styles/colors"; // 경로 확인 필요
 import { AppTextStyles } from "@/styles/textStyles"; // 경로 확인 필요
 import { Breakpoints } from '@/constants/layoutConstants';
+import { useState, useEffect } from 'react';
 
 interface SectionHeaderProps {
   title: string;
@@ -24,9 +25,10 @@ const Title = styled.h2`
   margin-bottom: 16px;
   margin-top: 0; // 필요 시 추가 조정
 
-    @media (max-width: ${Breakpoints.mobile}px) {
+  @media (max-width: ${Breakpoints.mobile}px) {
     font-size: 18px; // 모바일에서 폰트 크기 조정
-    }
+    line-height: 1.2; // 모바일에서 줄간격 줄이기
+  }
 `;
 
 const Description = styled.p`
@@ -42,9 +44,36 @@ const Description = styled.p`
 `;
 
 export const SectionHeader: React.FC<SectionHeaderProps> = ({ title, description }) => {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768); // Breakpoints.mobile 값 사용
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  const formatTitle = (text: string) => {
+    if (isMobile) {
+      // 모바일에서만 \n을 <br>로 변환
+      return text.split('\n').map((line, index) => (
+        <span key={index}>
+          {line}
+          {index < text.split('\n').length - 1 && <br />}
+        </span>
+      ));
+    } else {
+      // 웹에서는 \n을 공백으로 변환
+      return text.replace(/\n/g, ' ');
+    }
+  };
+
   return (
     <HeaderContainer>
-      <Title>{title}</Title>
+      <Title>{formatTitle(title)}</Title>
       <Description>{description}</Description>
     </HeaderContainer>
   );
