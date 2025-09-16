@@ -108,7 +108,7 @@ const BottomNavigation: React.FC<{
       text: lang === 'ko' ? 'AI 견적서' : 'AI Quote',
       action: () => {
         logButtonClick('AI 견적서', 'AI 견적서 버튼 클릭');
-        window.open('/ai', '_blank', 'noopener,noreferrer');
+        window.open('https://aigopartners.com/aiclient/heredot', '_blank', 'noopener,noreferrer');
       },
     },
     {
