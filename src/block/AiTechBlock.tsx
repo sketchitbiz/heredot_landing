@@ -217,7 +217,7 @@ const WebImage = styled(Image)`
 const CardGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(3, 250px);
-    grid-template-rows: repeat(3, 220px);
+  grid-template-rows: repeat(3, 220px);
   gap: 20px;
   z-index: 10;
   position: relative;

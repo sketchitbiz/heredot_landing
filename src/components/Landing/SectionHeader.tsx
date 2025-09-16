@@ -27,6 +27,7 @@ const Title = styled.h2`
 
   @media (max-width: ${Breakpoints.mobile}px) {
     font-size: 18px; // 모바일에서 폰트 크기 조정
+    line-height: 1.2; // 모바일에서 줄간격 줄이기
   }
 `;
 

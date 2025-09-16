@@ -23,7 +23,25 @@ const GlobalStyle = createGlobalStyle`
     padding: 0;
     width: 100%;
     height: 100%;
-    font-family: 'Noto Sans KR', sans-serif;
+    font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    
+    /* 모든 플랫폼에서 맥 스타일 폰트 렌더링 강제 적용 */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1;
+    font-kerning: normal;
+    font-variant-ligatures: common-ligatures;
+    font-variant-numeric: proportional-nums;
+    
+    /* 윈도우에서 맥과 동일한 폰트 메트릭 강제 적용 */
+    font-synthesis: none;
+    text-size-adjust: 100%;
+    font-optical-sizing: auto;
+    
+    /* 윈도우 ClearType 비활성화하여 맥 스타일 렌더링 */
+    -ms-text-size-adjust: 100%;
+    -webkit-text-size-adjust: 100%;
 
     background-color: ${AppColors.background};      
      /* background-color: #ffffff !important; */
@@ -61,6 +79,60 @@ const GlobalStyle = createGlobalStyle`
     background: rgba(120,120,140,0.55);
   }
   ::-webkit-scrollbar-corner { background: transparent; }
+  
+  /* 모든 텍스트 요소에 맥 스타일 렌더링 일관성 적용 */
+  *, *::before, *::after {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: 'kern' 1;
+    
+    /* 윈도우에서 텍스트 너비를 맥과 동일하게 맞추기 위한 설정 */
+    letter-spacing: -0.005em;
+    word-spacing: -0.01em;
+    
+    /* 윈도우에서 폰트 볼드 처리 일관성 */
+    font-weight: inherit;
+    font-synthesis: weight style;
+  }
+  
+  /* 특별히 한글 폰트에 대한 윈도우 최적화 */
+  [lang="ko"], [lang="ko-KR"], :lang(ko) {
+    font-family: 'Noto Sans KR', 'Malgun Gothic', '맑은 고딕', sans-serif;
+    font-feature-settings: 'kern' 1, 'liga' 0;
+    letter-spacing: -0.01em;
+    
+    /* 한글 특화 윈도우 렌더링 설정 */
+    word-break: keep-all;
+    line-break: strict;
+    hanging-punctuation: none;
+  }
+  
+  /* 영문 폰트에 대한 윈도우 최적화 */
+  [lang="en"], [lang="en-US"], :lang(en) {
+    font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    letter-spacing: -0.005em;
+    
+    /* 영문 특화 설정 */
+    word-break: normal;
+    hyphens: auto;
+  }
+  
+  /* 윈도우에서 ClearType 및 DirectWrite 렌더링 강제 설정 */
+  @media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
+    * {
+      -webkit-font-smoothing: antialiased;
+      filter: contrast(1) brightness(1);
+    }
+  }
+  
+  /* 윈도우 Edge 브라우저 특화 설정 */
+  @supports (-ms-ime-align: auto) {
+    * {
+      font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1, 'ss01' 1;
+      text-rendering: geometricPrecision;
+    }
+  }
 `;
 
 export default GlobalStyle;

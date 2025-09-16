@@ -364,7 +364,13 @@ export default function HomePage() {
         />
       ),
     },
-
+    {
+      id: 'rolling',
+      $backgroundColor: AppColors.background,
+      content: <Rolling />,
+      $zIndex: 999,
+      $isOverLayout: true,
+    },
     {
       id: 'design',
       $backgroundColor: AppColors.background,
@@ -396,19 +402,21 @@ export default function HomePage() {
       showFloatingBox: true,
       $backgroundColor: AppColors.background,
       content: (
-        <PortfolioGrid
-          title={t.portfolio.title}
-          description={t.portfolio.description}
-          topLabel={t.departure}
-          centerLabel={t.customNavigator.portpolio}
-          bottomLabel={t.customNavigator.member}
-          onTopArrowClick={() =>
-            scrollToTargetId('header', 'portfolio', 'header')
-          }
-          onBottomArrowClick={() =>
-            scrollToTargetId('members', 'portfolio', 'members')
-          }
-        />
+        <div style={{ marginTop: '-300px' }}>
+          <PortfolioGrid
+            title={t.portfolio.title}
+            description={t.portfolio.description}
+            topLabel={t.departure}
+            centerLabel={t.customNavigator.portpolio}
+            bottomLabel={t.customNavigator.member}
+            onTopArrowClick={() =>
+              scrollToTargetId('header', 'portfolio', 'header')
+            }
+            onBottomArrowClick={() =>
+              scrollToTargetId('members', 'portfolio', 'members')
+            }
+          />
+        </div>
       ),
     },
 
@@ -557,13 +565,7 @@ export default function HomePage() {
     //   ),
     //   $zIndex: 1001,
     // },
-    // {
-    //   id: 'rolling',
-    //   $backgroundColor: AppColors.background,
-    //   content: <Rolling />,
-    //   $zIndex: 1001,
-    //   $isOverLayout: true,
-    // },
+
     // {
     //   id: 'consulting',
     //   $backgroundColor: AppColors.surface,

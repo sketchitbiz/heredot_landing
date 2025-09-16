@@ -1,11 +1,8 @@
-// HeaderBlock.tsx
-
 import React from 'react';
 import styled, { keyframes } from 'styled-components';
 import { AppColors } from '@/styles/colors';
 import { AppTextStyles } from '@/styles/textStyles';
 import { FiDownload } from 'react-icons/fi';
-import Gap from '@/components/Gap';
 import CommonButton from '@/components/CommonButton'; 
 import { Breakpoints } from '@/constants/layoutConstants';
 import { userStamp } from '@/lib/api/user/api';
@@ -78,6 +75,14 @@ const PreTitle = styled.h1`
     margin-bottom: 50px;
   }
 `;
+
+// 웹에서 줄바꿈을 제거하는 함수
+const formatPreTitle = (text: string, isMobile: boolean): string => {
+  if (isMobile) {
+    return text; // 모바일에서는 원본 텍스트 유지 (줄바꿈 포함)
+  }
+  return text.replace(/\n/g, ''); // 웹에서는 줄바꿈 제거
+};
 
 const Title = styled.h2`
   ${AppTextStyles.display2};
@@ -152,11 +157,25 @@ const HeaderBlock: React.FC<HeaderBlockProps> = ({
   downloadLink,
   preTitle,
 }) => {
+  // 모바일 여부 확인
+  const [isMobile, setIsMobile] = React.useState(false);
+
+  React.useEffect(() => {
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth <= Breakpoints.mobile);
+    };
+
+    checkIsMobile();
+    window.addEventListener('resize', checkIsMobile);
+
+    return () => window.removeEventListener('resize', checkIsMobile);
+  }, []);
+
   return (
     <HeaderBlockWrapper>
       <Radar />
       <LeftContent>
-        <PreTitle>{preTitle}</PreTitle>
+        <PreTitle>{formatPreTitle(preTitle, isMobile)}</PreTitle>
         <Title>{title}</Title>
         <Title>{subtitle}</Title>
         <a

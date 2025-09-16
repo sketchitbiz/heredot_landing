@@ -11,7 +11,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="ko">
       <head>
         {/* 기본 메타 태그 */}
         <meta charSet="utf-8" />
@@ -49,12 +49,12 @@ export default function RootLayout({
 
         <Script
       
-          // src=" https://aigopartners.com/widget.js"
-          // data-url=" https://aigopartners.com/aiclient/heredot"
+          src=" https://aigopartners.com/widget.js"
+          data-url=" https://aigopartners.com/aiclient/heredot"
           // src=" http://121.157.229.40:8535/widget.js"
           // data-url=" http://121.157.229.40:8535/aiclient/heredot"
-          src="http://localhost:5173/widget.js"
-          data-url="http://localhost:5173/aiclient/heredot"
+          // src="http://localhost:5173/widget.js"
+          // data-url="http://localhost:5173/aiclient/heredot"
           data-position="right"
           data-color="#3391FF"
           data-size="420x720"

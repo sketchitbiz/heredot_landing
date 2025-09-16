@@ -4,7 +4,7 @@ export const dictionary = {
   ko: {
     departure: '출발',
     eventBlock: {
-      title: 'HereDot R&D로 탄생한 실제 프로젝트',
+      title: '여기닷 R&D로 탄생한 실제 프로젝트',
       description: '우리가 직접 만든 프로젝트, 기술력과 기획력의 결과입니다',
     },
        adModal: {
@@ -52,7 +52,7 @@ export const dictionary = {
       label: '여기닷',
     },
     portfolio: {
-      title: '기업 맞춤 IT 아웃소싱 · 앱·웹 개발 전문팀',
+      title: '기업 맞춤 IT 아웃소싱·앱·웹 개발 전문팀',
       description: '기업 맞춤 앱·웹 개발과 IT 아웃소싱으로 성과를 만듭니다',
     },
     portfolioCards: {
@@ -138,7 +138,7 @@ export const dictionary = {
       ],
     },
     membersSection: {
-      title: '외주 개발부터 운영까지,\n기업 프로젝트에 최적화된 전문팀',
+      title: '기업 프로젝트에 최적화된 전문팀',
       description: '경험 많은 전문가 팀이 기업 맞춤 외주 개발을 책임집니다',
     },
     memberTabs: ['팀원 역량', '전산 구축', '플랫폼 웹 구축', '앱 개발 구축'],
@@ -260,7 +260,7 @@ export const dictionary = {
       ],
     },
     reviewSection: {
-      title: '책임감 있는 진행으로\n처음부터 끝까지 안심할 수 있습니다',
+      title: '책임감 있는 진행으로\n끝까지 안심할 수 있습니다',
       description: "프로젝트 일정, 품질, 소통 고객들이 직접 증명한 신뢰입니다",
     },
     appBlock: {
@@ -377,7 +377,7 @@ contactPopup: {
       ],
     },
     portfolio: {
-      title: 'Corporate IT Outsourcing · App & Web Development Specialists',
+      title: 'Corporate IT Outsourcing·App & Web Development Specialists',
       description: 'We deliver results through customized app & web development and IT outsourcing for businesses',
     },
     portfolioCards: {
