@@ -45,7 +45,6 @@ export default function RootLayout({
         {/* Google Analytics */}
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-P5R0BM2W67"></script>
 
-        <script src="http://localhost:3000/widget.js" data-url="..." data-position="right" data-label="AI" data-open="0"></script>
 
         {/* <Script
       

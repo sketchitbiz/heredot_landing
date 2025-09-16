@@ -40,18 +40,19 @@ const sectionMap: Record<
   { content: string; memo: string; log?: boolean }
 > = {
   header: { content: 'Header', memo: '해더' },
-  partner: { content: 'Partner', memo: 'anti_drone' },
-  firstMap: { content: 'FirstMap', memo: 'firstMap', log: false }, // ✅ 스탬프 제외
-  consulting: { content: 'Consulting', memo: '기능명세' },
-  appblock: { content: 'AppBlock', memo: '디자인시스템' },
-  community: { content: 'Community', memo: '창업커뮤니티' },
+  design: { content: 'Design', memo: '디자인시스템' },
   portfolio: { content: 'Portfolio', memo: '포트폴리오' },
   members: { content: 'Members', memo: '팀원소개' },
+  aitech: { content: 'AiTech', memo: 'AI기술력' },
   video: { content: 'Video', memo: '고객후기' },
   event: { content: 'Event', memo: '기획전' },
-  aitech: { content: 'AiTech', memo: 'AI기술력' },
-  ai: { content: 'AI', memo: 'AI' },
   contact: { content: 'Contact', memo: '연락' },
+  // partner: { content: 'Partner', memo: 'anti_drone' },
+  // firstMap: { content: 'FirstMap', memo: 'firstMap', log: false }, // ✅ 스탬프 제외
+  // consulting: { content: 'Consulting', memo: '기능명세' },
+  // appblock: { content: 'AppBlock', memo: '디자인시스템' },
+  // community: { content: 'Community', memo: '창업커뮤니티' },
+  // ai: { content: 'AI', memo: 'AI' },
 };
 
 const logSectionView = async (
@@ -115,19 +116,19 @@ export default function HomePage() {
 
   const aliasMap: Record<string, string> = {
     about: 'header',
-    portfolio: 'portfolio',
-    partner: 'partner',
-    appblock: 'appblock',
-    members: 'members',
-    review: 'video',
     design: 'design',
-    contact: 'contact',
-    community: 'community',
-    market: 'market',
-    estimate: 'ai',
-    promotion: 'event',
-    aitech: 'aitech',
+    portfolio: 'portfolio',
+    members: 'members',
     technology: 'aitech',
+    review: 'video',
+    promotion: 'event',
+    contact: 'contact',
+    // partner: 'partner',
+    // appblock: 'appblock',
+    // community: 'community',
+    // market: 'market',
+    // estimate: 'ai',
+    // aitech: 'aitech',
   };
 
   const baseNavLinks = [
@@ -281,11 +282,12 @@ export default function HomePage() {
     
           devLog(`[Observer] id: ${id}, isVisible: ${isVisible}, scrollY: ${currentScrollY}`);
     
-          if (id === 'firstMap' && isVisible && !isAutoScrollingRef.current) {
-            if (window.location.pathname !== '/') {
-              history.replaceState(null, '', '/');
-            }
-          }
+          // firstMap 관련 코드 주석 처리
+          // if (id === 'firstMap' && isVisible && !isAutoScrollingRef.current) {
+          //   if (window.location.pathname !== '/') {
+          //     history.replaceState(null, '', '/');
+          //   }
+          // }
     
           if (id !== 'header' && isVisible && id !== lastLoggedId && !isAutoScrollingRef.current) {
             devLog(`[Observer] Section 진입: ${id}`);
@@ -344,7 +346,7 @@ export default function HomePage() {
       contactText={t.nav[4]}
         navLinks={baseNavLinks} 
       onNavigate={scrollToTargetId}
-      onLogoClick={() => scrollToTargetId('partner', 'appbar', 'partner')}
+      onLogoClick={() => scrollToTargetId('header', 'appbar', 'header')}
     />
   );
 
@@ -359,78 +361,6 @@ export default function HomePage() {
           subtitle={t.headerSubtitle}
           downloadLabel={t.download}
           downloadLink={downloadLinks.companyProfile[lang]}
-        />
-      ),
-    },
-    // {
-    //   id: '3d',
-    //   $backgroundColor: AppColors.background,
-    //   content: (
-    //     <Container3DStackScroll
-    //     />
-    //   ),
-    //   $zIndex: 1001,
-    // },
-    {
-      id: 'firstMap',
-      $backgroundColor: AppColors.background,
-      content: <FirstMapBlock label={t.firstMap.label} />,
-      $zIndex: 1001,
-      $isOverLayout: true,
-    },
-    {
-      id: 'partner',
-      $backgroundColor: AppColors.surface,
-      content: (
-        <Partner
-          title1={t.partner.title1}
-          title2={t.partner.title2}
-          subtitle={t.partner.subtitle}
-          tabs={t.partner.tabs}
-          slides={t.partner.slides}
-          downloadText={t.partner.downloadText}
-          onEnterSection={(index, tab) => {
-            setCurrentSection('Partner');
-            if (isAutoScrollingRef.current) return;
-            const newUrl = '/partner'; // 또는 원하는 aliasMap key
-            if (window.location.pathname !== newUrl) {
-              history.replaceState(null, '', newUrl);
-            }
-            void logSectionView('Partner', `스크롤: ${tab}`);
-          }}
-        />
-      ),
-      $zIndex: 1001,
-    },
-    {
-      id: 'rolling',
-      $backgroundColor: AppColors.background,
-      content: <Rolling />,
-      $zIndex: 1001,
-      $isOverLayout: true,
-    },
-    {
-      id: 'consulting',
-      $backgroundColor: AppColors.surface,
-      $zIndex: 1001,
-      content: (
-        <Consulting
-          title={t.consulting.title}
-          descriptions={t.consulting.descriptions}
-          downloadText={t.consulting.downloadText}
-          gridHeaders={t.consulting.gridHeaders}
-          gridContents={t.consulting.gridContents}
-          onEnterSection={() => {
-            setCurrentSection('Consulting');
-            if (isAutoScrollingRef.current) return;
-
-            const newUrl = '/consulting';
-            if (window.location.pathname !== newUrl) {
-              history.replaceState(null, '', newUrl);
-            }
-
-            // void logSectionView('Consulting', '기능명세');
-          }}
         />
       ),
     },
@@ -460,72 +390,7 @@ export default function HomePage() {
         </>
       ),
     },
-    // {
-    //   id: 'secondMap',
-    //   $backgroundColor: AppColors.background,
-    //   content: <SecondMapBlock label={t.secondMap.label} />,
-    //   $zIndex: 1001,
-    //   $isOverLayout: true,
-    // },
-    // {
-    //   id: 'appblock',
-    //   $backgroundColor: AppColors.primary,
-    //   content: (
-    //     <AppBlock
-    //       title={t.appBlock.title}
-    //       description={t.appBlock.description}
-    //     />
-    //   ),
-    //   $zIndex: 1001,
-    //    },
-    {
-      id: 'aitech',
-      showFloatingBox: true,
-      $backgroundColor: AppColors.background,
-      $isOverLayout: true,
-      content: (
-        <AiTechBlock
-          topLabel={t.departure}
-          centerLabel={t.customNavigator.technology}
-          bottomLabel={t.customNavigator.community}
-          title={t.aitechBlock.title}
-          description={t.aitechBlock.description}
-          onTopArrowClick={() =>
-            scrollToTargetId('header', 'aitech', 'header')
-          }
-          onBottomArrowClick={() =>
-            scrollToTargetId('community', 'aitech', 'community')
-          }
-        />
-      ),
-    },
-    {
-      id: 'community',
-      showFloatingBox: true,
-      $backgroundColor: AppColors.background,
-      content: (
-        <CommunityBlock
-          topLabel={t.customNavigator.technology}
-          centerLabel={t.customNavigator.community}
-          bottomLabel={t.customNavigator.portpolio}
-          title={t.community.title}
-          description={t.community.description}
-          sectionTitle={t.community.section.title}
-          sectionDescription={t.community.section.description}
-          buttonText={t.community.section.buttonText}
-          imageUrl="/assets/community.webp"
-          onButtonClick={() => {
-            window.open('https://open.kakao.com/o/g0u3dOrc', '_blank');
-          }}
-          onTopArrowClick={() =>
-            scrollToTargetId('aitech', 'community', 'aitech')
-          }
-          onBottomArrowClick={() =>
-            scrollToTargetId('portfolio', 'community', 'portfolio')
-          }
-        />
-      ),
-    },
+
     {
       id: 'portfolio',
       showFloatingBox: true,
@@ -534,11 +399,11 @@ export default function HomePage() {
         <PortfolioGrid
           title={t.portfolio.title}
           description={t.portfolio.description}
-          topLabel={t.customNavigator.community}
+          topLabel={t.departure}
           centerLabel={t.customNavigator.portpolio}
           bottomLabel={t.customNavigator.member}
           onTopArrowClick={() =>
-            scrollToTargetId('community', 'portfolio', 'community')
+            scrollToTargetId('header', 'portfolio', 'header')
           }
           onBottomArrowClick={() =>
             scrollToTargetId('members', 'portfolio', 'members')
@@ -546,11 +411,12 @@ export default function HomePage() {
         />
       ),
     },
+
     {
       id: 'members',
       showFloatingBox: true,
       $backgroundColor: AppColors.background,
-      zIndex  : 1001,
+      zIndex: 1001,
       content: (
         <MembersTabSection
           title={t.membersSection.title}
@@ -558,35 +424,58 @@ export default function HomePage() {
           memberCards={t.memberCards}
           topLabel={t.customNavigator.portpolio}
           centerLabel={t.customNavigator.member}
-          bottomLabel={t.customNavigator.review}
+          bottomLabel={t.customNavigator.technology}
           onTopArrowClick={() =>
             scrollToTargetId('portfolio', 'members', 'portfolio')
           }
           onBottomArrowClick={() =>
-            scrollToTargetId('video', 'members', 'video')
+            scrollToTargetId('aitech', 'members', 'aitech')
           }
         />
       ),
     },
+
+    {
+      id: 'aitech',
+      showFloatingBox: true,
+      $backgroundColor: AppColors.background,
+      $isOverLayout: true,
+      content: (
+        <AiTechBlock
+          topLabel={t.customNavigator.member}
+          centerLabel={t.customNavigator.technology}
+          bottomLabel={t.customNavigator.review}
+          title={t.aitechBlock.title}
+          description={t.aitechBlock.description}
+          onTopArrowClick={() =>
+            scrollToTargetId('members', 'aitech', 'members')
+          }
+          onBottomArrowClick={() =>
+            scrollToTargetId('video', 'aitech', 'video')
+          }
+        />
+      ),
+    },
+    
     {
       id: 'video',
       $backgroundColor: AppColors.background,
       showFloatingBox: true,
-
       content: (
         <VideoGrid
-          topLabel={t.customNavigator.member}
+          topLabel={t.customNavigator.technology}
           centerLabel={t.customNavigator.review}
           bottomLabel={t.customNavigator.event}
           title={t.reviewSection.title}
           description={t.reviewSection.description}
           onTopArrowClick={() =>
-            scrollToTargetId('members', 'video', 'members')
+            scrollToTargetId('aitech', 'video', 'aitech')
           }
           onBottomArrowClick={() => scrollToTargetId('event', 'video', 'event')}
         />
       ),
     },
+
     {
       id: 'event',
       $backgroundColor: AppColors.background,
@@ -605,9 +494,146 @@ export default function HomePage() {
       ),
     },
 
+    {
+      id: 'contact',
+      $backgroundColor: AppColors.background,
+      content: (
+        <ContactSection
+          topLabel={t.customNavigator.event}
+          centerLabel={t.arrival}
+          bottomLabel={t.arrival}
+          title={t.contract.title}
+          description={t.contract.description}
+          onTopArrowClick={() => scrollToTargetId('event', 'contact', 'event')}
+          onProjectInquiryClick={handleContactClick}
+        />
+      ),
+    },
+
+    {
+      id: 'footer',
+      $backgroundColor: AppColors.background,
+      content: <Footer />,
+    },
+
+    // 주석 처리된 섹션들
+    // {
+    //   id: '3d',
+    //   $backgroundColor: AppColors.background,
+    //   content: (
+    //     <Container3DStackScroll
+    //     />
+    //   ),
+    //   $zIndex: 1001,
+    // },
+    // {
+    //   id: 'firstMap',
+    //   $backgroundColor: AppColors.background,
+    //   content: <FirstMapBlock label={t.firstMap.label} />,
+    //   $zIndex: 1001,
+    //   $isOverLayout: true,
+    // },
+    // {
+    //   id: 'partner',
+    //   $backgroundColor: AppColors.surface,
+    //   content: (
+    //     <Partner
+    //       title1={t.partner.title1}
+    //       title2={t.partner.title2}
+    //       subtitle={t.partner.subtitle}
+    //       tabs={t.partner.tabs}
+    //       slides={t.partner.slides}
+    //       downloadText={t.partner.downloadText}
+    //       onEnterSection={(index, tab) => {
+    //         setCurrentSection('Partner');
+    //         if (isAutoScrollingRef.current) return;
+    //         const newUrl = '/partner';
+    //         if (window.location.pathname !== newUrl) {
+    //           history.replaceState(null, '', newUrl);
+    //         }
+    //         void logSectionView('Partner', `스크롤: ${tab}`);
+    //       }}
+    //     />
+    //   ),
+    //   $zIndex: 1001,
+    // },
+    // {
+    //   id: 'rolling',
+    //   $backgroundColor: AppColors.background,
+    //   content: <Rolling />,
+    //   $zIndex: 1001,
+    //   $isOverLayout: true,
+    // },
+    // {
+    //   id: 'consulting',
+    //   $backgroundColor: AppColors.surface,
+    //   $zIndex: 1001,
+    //   content: (
+    //     <Consulting
+    //       title={t.consulting.title}
+    //       descriptions={t.consulting.descriptions}
+    //       downloadText={t.consulting.downloadText}
+    //       gridHeaders={t.consulting.gridHeaders}
+    //       gridContents={t.consulting.gridContents}
+    //       onEnterSection={() => {
+    //         setCurrentSection('Consulting');
+    //         if (isAutoScrollingRef.current) return;
+    //         const newUrl = '/consulting';
+    //         if (window.location.pathname !== newUrl) {
+    //           history.replaceState(null, '', newUrl);
+    //         }
+    //       }}
+    //     />
+    //   ),
+    // },
+    // {
+    //   id: 'secondMap',
+    //   $backgroundColor: AppColors.background,
+    //   content: <SecondMapBlock label={t.secondMap.label} />,
+    //   $zIndex: 1001,
+    //   $isOverLayout: true,
+    // },
+    // {
+    //   id: 'appblock',
+    //   $backgroundColor: AppColors.primary,
+    //   content: (
+    //     <AppBlock
+    //       title={t.appBlock.title}
+    //       description={t.appBlock.description}
+    //     />
+    //   ),
+    //   $zIndex: 1001,
+    // },
+    // {
+    //   id: 'community',
+    //   showFloatingBox: true,
+    //   $backgroundColor: AppColors.background,
+    //   content: (
+    //     <CommunityBlock
+    //       topLabel={t.customNavigator.technology}
+    //       centerLabel={t.customNavigator.community}
+    //       bottomLabel={t.customNavigator.portpolio}
+    //       title={t.community.title}
+    //       description={t.community.description}
+    //       sectionTitle={t.community.section.title}
+    //       sectionDescription={t.community.section.description}
+    //       buttonText={t.community.section.buttonText}
+    //       imageUrl="/assets/community.webp"
+    //       onButtonClick={() => {
+    //         window.open('https://open.kakao.com/o/g0u3dOrc', '_blank');
+    //       }}
+    //       onTopArrowClick={() =>
+    //         scrollToTargetId('aitech', 'community', 'aitech')
+    //       }
+    //       onBottomArrowClick={() =>
+    //         scrollToTargetId('portfolio', 'community', 'portfolio')
+    //       }
+    //     />
+    //   ),
+    // },
     // {
     //   id: 'ai',
-    //   $backgroundColor: AppColors.background, // 또는 background로도 가능
+    //   $backgroundColor: AppColors.background,
     //   content: (
     //     <AIBlock
     //       topLabel={t.customNavigator.event}
@@ -626,28 +652,6 @@ export default function HomePage() {
     //     />
     //   ),
     // },
-
-    {
-      id: 'contact',
-
-      $backgroundColor: AppColors.background,
-      content: (
-        <ContactSection
-          topLabel={t.customNavigator.event}
-          centerLabel={t.arrival}
-          bottomLabel={t.arrival}
-          title={t.contract.title}
-          description={t.contract.description}
-          onTopArrowClick={() => scrollToTargetId('event', 'contact', 'event')}
-          onProjectInquiryClick={handleContactClick}
-        />
-      ),
-    },
-    {
-      id: 'footer',
-      $backgroundColor: AppColors.background,
-      content: <Footer />,
-    },
   ];
 
 

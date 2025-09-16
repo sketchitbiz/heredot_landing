@@ -66,14 +66,14 @@ const LeftContent = styled.div`
 const PreTitle = styled.h1`
   ${AppTextStyles.display2};
   color: ${AppColors.onBackground};
-  font-size: 28px;
+  font-size: 25px;
   margin: 0px;
   margin-left: 10px;
   white-space: nowrap;
   line-height: 1.5;
 
   @media (max-width: ${Breakpoints.mobile}px) {
-    font-size: 24px;
+    font-size: 20px;
     white-space: pre-line;
     margin-bottom: 50px;
   }
